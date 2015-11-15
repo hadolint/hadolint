@@ -13,6 +13,7 @@ data BaseImage
   deriving (Eq, Ord, Show)
 
 type Arguments = String
+type Dockerfile = [Instruction]
 
 data Instruction
   = From BaseImage

@@ -4,14 +4,13 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 
 import Data.ByteString.Char8 (pack)
+import Control.Monad (void)
 
 import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Token
 
 import Lexer
 import Syntax
-
-eol = '\n'
 
 ludi = TaggedImage "debian" "jessie"
 
@@ -23,19 +22,22 @@ taggedImage :: Parser BaseImage
 taggedImage = do
   name <- many (noneOf ":")
   reservedOp ":"
-  tag <- many (noneOf [eol])
+  tag <- many (noneOf "\n")
+  eol
   return $ TaggedImage name tag
 
 digestedImage :: Parser BaseImage
 digestedImage = do
   name <- many (noneOf "@")
   reservedOp "@"
-  digest <- many (noneOf [eol])
+  digest <- many (noneOf "\n")
+  eol
   return $ DigestedImage name (pack digest)
 
 untaggedImage :: Parser BaseImage
 untaggedImage = do
-  name <- many (noneOf [eol])
+  name <- many (noneOf "\n")
+  eol
   return $ LatestImage name
 
 baseImage :: Parser BaseImage
@@ -47,31 +49,37 @@ from :: Parser Instruction
 from = do
   reserved "FROM"
   image <- baseImage
+  eol
   return $ From image
 
 env :: Parser Instruction
 env = do
   reserved "ENV"
   key <- many (noneOf [' ','='])
-  value <- many (noneOf [eol])
+  _ <- oneOf[' ','=']
+  value <- many (noneOf "\n")
+  eol
   return $ Env key value
 
 copy :: Parser Instruction
 copy = do
   reserved "COPY"
   args <- arguments
+  eol
   return $ Copy args
 
 expose :: Parser Instruction
 expose = do
   reserved "EXPOSE"
-  port <- integer
+  port <- natural
+  eol
   return $ Expose port
 
 maintainer :: Parser Instruction
 maintainer = do
   reserved "MAINTAINER"
-  name <- many (noneOf [eol])
+  name <- many (noneOf "\n")
+  eol
   return $ Maintainer name
 
 instruction :: Parser Instruction
@@ -81,11 +89,25 @@ instruction = try from
     <|> try env
     <|> try maintainer
 
-dockerfile :: Parser [Instruction]
-dockerfile = do
-    result <- many instruction
+contents :: Parser a -> Parser a
+contents p = do
+    Token.whiteSpace lexer
+    r <- p
     eof
-    return result
+    return r
 
-parseDockerfile:: String -> Either ParseError [Instruction]
-parseDockerfile input = parse dockerfile "<stdin>" input
+eol :: Parser ()
+eol = void (char '\n') <|> eof
+
+dockerfile :: Parser Dockerfile
+dockerfile = many $ do
+    i <- instruction
+    return i
+
+parseString :: String -> Either ParseError Dockerfile
+parseString input = parse (contents dockerfile) "<string>" input
+
+parseFile :: String -> IO (Either ParseError Dockerfile)
+parseFile file = do
+    program <- readFile file
+    return (parse (contents dockerfile) "<file>" program)

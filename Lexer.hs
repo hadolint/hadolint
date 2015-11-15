@@ -21,5 +21,8 @@ reserved = Token.reserved lexer
 reservedOp :: String -> Parser ()
 reservedOp = Token.reservedOp lexer
 
-integer :: Parser Integer
-integer = Token.integer lexer
+natural :: Parser Integer
+natural = Token.natural lexer
+
+stringLiteral :: Parser String
+stringLiteral = Token.stringLiteral lexer
