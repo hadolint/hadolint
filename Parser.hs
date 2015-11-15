@@ -1,6 +1,6 @@
 module Parser where
 
-import Text.Parsec
+import Text.Parsec hiding (label)
 import Text.Parsec.String (Parser)
 
 import Data.ByteString.Char8 (pack)
@@ -12,18 +12,11 @@ import qualified Text.Parsec.Token as Token
 import Lexer
 import Syntax
 
-ludi = TaggedImage "debian" "jessie"
-
-arguments :: Parser String
-arguments =
-  many (noneOf ",\n")
-
 taggedImage :: Parser BaseImage
 taggedImage = do
   name <- many (noneOf ":")
   reservedOp ":"
   tag <- many (noneOf "\n")
-  eol
   return $ TaggedImage name tag
 
 digestedImage :: Parser BaseImage
@@ -31,13 +24,11 @@ digestedImage = do
   name <- many (noneOf "@")
   reservedOp "@"
   digest <- many (noneOf "\n")
-  eol
   return $ DigestedImage name (pack digest)
 
 untaggedImage :: Parser BaseImage
 untaggedImage = do
   name <- many (noneOf "\n")
-  eol
   return $ LatestImage name
 
 baseImage :: Parser BaseImage
@@ -61,12 +52,47 @@ env = do
   eol
   return $ Env key value
 
+cmd :: Parser Instruction
+cmd = do
+  reserved "CMD"
+  args <- many (noneOf "\n")
+  eol
+  return $ Cmd args
+
 copy :: Parser Instruction
 copy = do
   reserved "COPY"
-  args <- arguments
+  args <- many (noneOf "\n")
   eol
   return $ Copy args
+
+stopsignal :: Parser Instruction
+stopsignal = do
+  reserved "STOPSIGNAL"
+  args <- many (noneOf "\n")
+  eol
+  return $ Stopsignal args
+
+label :: Parser Instruction
+label = do
+  reserved "LABEL"
+  args <- many (noneOf "\n")
+  eol
+  return $ Label args
+
+user :: Parser Instruction
+user = do
+  reserved "USER"
+  args <- many (noneOf "\n")
+  eol
+  return $ User args
+
+add :: Parser Instruction
+add = do
+  reserved "ADD"
+  args <- many (noneOf "\n")
+  eol
+  return $ Add args
 
 expose :: Parser Instruction
 expose = do
@@ -75,6 +101,27 @@ expose = do
   eol
   return $ Expose port
 
+run :: Parser Instruction
+run = do
+  reserved "RUN"
+  cmd <- many (noneOf "\n")
+  eol
+  return $ Run cmd
+
+workdir :: Parser Instruction
+workdir = do
+  reserved "WORKDIR"
+  directory <- many (noneOf "\n")
+  eol
+  return $ Workdir directory
+
+volume :: Parser Instruction
+volume = do
+  reserved "VOLUME"
+  directory <- many (noneOf "\n")
+  eol
+  return $ Volume directory
+
 maintainer :: Parser Instruction
 maintainer = do
   reserved "MAINTAINER"
@@ -82,11 +129,26 @@ maintainer = do
   eol
   return $ Maintainer name
 
+entrypoint:: Parser Instruction
+entrypoint = do
+  reserved "ENTRYPOINT"
+  name <- many (noneOf "\n")
+  eol
+  return $ Entrypoint name
+
 instruction :: Parser Instruction
 instruction = try from
     <|> try copy
+    <|> try run
+    <|> try workdir
+    <|> try entrypoint
+    <|> try volume
     <|> try expose
     <|> try env
+    <|> try user
+    <|> try label
+    <|> try stopsignal
+    <|> try cmd
     <|> try maintainer
 
 contents :: Parser a -> Parser a

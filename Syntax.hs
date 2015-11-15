@@ -5,6 +5,7 @@ import Data.ByteString.Char8 (ByteString)
 type Image = String
 type Tag = String
 type Port = Integer
+type Directory = String
 
 data BaseImage
   = LatestImage Image
@@ -12,18 +13,21 @@ data BaseImage
   | DigestedImage Image ByteString
   deriving (Eq, Ord, Show)
 
-type Arguments = String
 type Dockerfile = [Instruction]
 
 data Instruction
   = From BaseImage
-  | Add Arguments
-  | Copy Arguments
-  | Run Arguments
-  | Workdir Arguments
+  | Add String
+  | User String
+  | Label String
+  | Stopsignal String
+  | Copy String
+  | Run String
+  | Cmd String
+  | Workdir Directory
   | Expose Port
-  | Volume Arguments
-  | Entrypoint Arguments
+  | Volume String
+  | Entrypoint String
   | Maintainer String
   | Env String String
   deriving (Eq, Ord, Show)

@@ -7,7 +7,7 @@ import qualified Text.Parsec.Token as Token
 lexer :: Token.TokenParser ()
 lexer = Token.makeTokenParser style
   where
-    names = ["FROM","ADD","RUN","WORKDIR","EXPOSE","VOLUME","ENTRYPOINT","MAINTAINER","ENV"]
+    names = ["FROM","ADD","RUN","WORKDIR","EXPOSE","VOLUME","ENTRYPOINT","MAINTAINER","ENV","LABEL","USER","STOPSIGNAL","CMD"]
     ops = [":", "@"]
     style = emptyDef {
                Token.commentLine = "#"
@@ -23,6 +23,3 @@ reservedOp = Token.reservedOp lexer
 
 natural :: Parser Integer
 natural = Token.natural lexer
-
-stringLiteral :: Parser String
-stringLiteral = Token.stringLiteral lexer
