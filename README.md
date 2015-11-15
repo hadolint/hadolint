@@ -1,4 +1,4 @@
-# Dockerfile Linter written in Haskell
+# Dockerfile Linter written in Haskell [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
 
 There are a few existing Dockerfile linters out there where none has any real adoption. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage.
 
