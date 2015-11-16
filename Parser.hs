@@ -13,6 +13,13 @@ import qualified Text.Parsec.Token as Token
 import Lexer
 import Syntax
 
+comment :: Parser Instruction
+comment = do
+  char '#'
+  text <- many (noneOf "\n")
+  many eol
+  return $ Comment text
+
 taggedImage :: Parser BaseImage
 taggedImage = do
   name <- many (noneOf ":")
@@ -41,14 +48,14 @@ from :: Parser Instruction
 from = do
   reserved "FROM"
   image <- baseImage
-  eol
+  many eol
   return $ From image
 
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
   args <- arguments
-  eol
+  many eol
   return $ Cmd args
 
 copy :: Parser Instruction
@@ -57,14 +64,14 @@ copy = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  eol
+  many eol
   return $ Copy src dst
 
 stopsignal :: Parser Instruction
 stopsignal = do
   reserved "STOPSIGNAL"
   args <- many (noneOf "\n")
-  eol
+  many eol
   return $ Stopsignal args
 
 quotedValue:: Parser String
@@ -96,21 +103,21 @@ label :: Parser Instruction
 label = do
   reserved "LABEL"
   p <- pairs
-  eol
+  many eol
   return $ Label p
 
 env :: Parser Instruction
 env = do
   reserved "ENV"
   p <- pairs
-  eol
+  many eol
   return $ Env p
 
 user :: Parser Instruction
 user = do
   reserved "USER"
   args <- many (noneOf "\n")
-  eol
+  many eol
   return $ User args
 
 add :: Parser Instruction
@@ -119,42 +126,42 @@ add = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  eol
+  many eol
   return $ Add src dst
 
 expose :: Parser Instruction
 expose = do
   reserved "EXPOSE"
   port <- natural
-  eol
+  many eol
   return $ Expose port
 
 run :: Parser Instruction
 run = do
   reserved "RUN"
   cmd <- arguments
-  eol
+  many eol
   return $ Run cmd
 
 workdir :: Parser Instruction
 workdir = do
   reserved "WORKDIR"
   directory <- many (noneOf "\n")
-  eol
+  many eol
   return $ Workdir directory
 
 volume :: Parser Instruction
 volume = do
   reserved "VOLUME"
   directory <- many (noneOf "\n")
-  eol
+  many eol
   return $ Volume directory
 
 maintainer :: Parser Instruction
 maintainer = do
   reserved "MAINTAINER"
   name <- many (noneOf "\n")
-  eol
+  many eol
   return $ Maintainer name
 
 -- Parse arguments of a command in the exec form
@@ -163,10 +170,16 @@ argumentsExec = do
   args <- brackets $ commaSep stringLiteral
   return $ args
 
+-- A value that can span over multiple lines
+rawLongValue :: Parser Arguments
+rawLongValue = do
+  multiLines <- endBy (many (noneOf "\\\n")) (oneOf "\\\n")
+  return $ concat multiLines
+
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
-  args <- sepBy rawValue (char ' ')
+  args <- rawLongValue
   return $ args
 
 arguments :: Parser Arguments
@@ -176,11 +189,12 @@ entrypoint :: Parser Instruction
 entrypoint = do
   reserved "ENTRYPOINT"
   args <- arguments
-  eol
+  many eol
   return $ Entrypoint args
 
 instruction :: Parser Instruction
-instruction = try from
+instruction
+    = try from
     <|> try copy
     <|> try run
     <|> try workdir
@@ -194,6 +208,7 @@ instruction = try from
     <|> try cmd
     <|> try maintainer
     <|> try add
+    <|> try comment
 
 contents :: Parser a -> Parser a
 contents p = do

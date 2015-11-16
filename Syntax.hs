@@ -34,4 +34,5 @@ data Instruction
   | Entrypoint Arguments
   | Maintainer String
   | Env Pairs
+  | Comment String
   deriving (Eq, Ord, Show)
