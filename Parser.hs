@@ -2,6 +2,7 @@ module Parser where
 
 import Text.Parsec hiding (label)
 import Text.Parsec.String (Parser)
+import Text.Parsec.Combinator (sepBy)
 
 import Data.ByteString.Char8 (pack)
 import Control.Monad (void)
@@ -62,9 +63,11 @@ cmd = do
 copy :: Parser Instruction
 copy = do
   reserved "COPY"
-  args <- many (noneOf "\n")
+  src <- many (noneOf " ")
+  Token.whiteSpace lexer
+  dst <- many (noneOf "\n")
   eol
-  return $ Copy args
+  return $ Copy src dst
 
 stopsignal :: Parser Instruction
 stopsignal = do
@@ -90,9 +93,11 @@ user = do
 add :: Parser Instruction
 add = do
   reserved "ADD"
-  args <- many (noneOf "\n")
+  src <- many (noneOf " ")
+  Token.whiteSpace lexer
+  dst <- many (noneOf "\n")
   eol
-  return $ Add args
+  return $ Add src dst
 
 expose :: Parser Instruction
 expose = do
@@ -129,12 +134,28 @@ maintainer = do
   eol
   return $ Maintainer name
 
-entrypoint:: Parser Instruction
+-- Parse arguments of a command in the exec form
+argumentsExec :: Parser Arguments
+argumentsExec = do
+  args <- brackets $ commaSep stringLiteral
+  return $ args
+
+-- Parse arguments of a command in the shell form
+argumentsShell :: Parser Arguments
+argumentsShell = do
+  args <- sepBy (many (noneOf " ")) (char ' ')
+  return $ args
+
+arguments :: Parser Arguments
+arguments = try argumentsExec
+    <|> try argumentsShell
+
+entrypoint :: Parser Instruction
 entrypoint = do
   reserved "ENTRYPOINT"
-  name <- many (noneOf "\n")
+  args <- arguments
   eol
-  return $ Entrypoint name
+  return $ Entrypoint args
 
 instruction :: Parser Instruction
 instruction = try from
@@ -150,6 +171,7 @@ instruction = try from
     <|> try stopsignal
     <|> try cmd
     <|> try maintainer
+    <|> try add
 
 contents :: Parser a -> Parser a
 contents p = do

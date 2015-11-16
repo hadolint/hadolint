@@ -23,3 +23,8 @@ reservedOp = Token.reservedOp lexer
 
 natural :: Parser Integer
 natural = Token.natural lexer
+
+commaSep = Token.commaSep lexer
+stringLiteral = Token.stringLiteral lexer
+brackets = Token.brackets lexer
+identifier = Token.identifier lexer
