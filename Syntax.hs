@@ -17,20 +17,21 @@ type Dockerfile = [Instruction]
 type Source = String
 type Destination = String
 type Arguments = [String]
+type Pairs = [(String, String)]
 
 data Instruction
   = From BaseImage
   | Add Source Destination
   | User String
-  | Label String
+  | Label Pairs
   | Stopsignal String
   | Copy Source Destination
-  | Run String
-  | Cmd String
+  | Run Arguments
+  | Cmd Arguments
   | Workdir Directory
   | Expose Port
   | Volume String
-  | Entrypoint [String]
+  | Entrypoint Arguments
   | Maintainer String
-  | Env String String
+  | Env Pairs
   deriving (Eq, Ord, Show)

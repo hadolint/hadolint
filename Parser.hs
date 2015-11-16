@@ -44,19 +44,10 @@ from = do
   eol
   return $ From image
 
-env :: Parser Instruction
-env = do
-  reserved "ENV"
-  key <- many (noneOf [' ','='])
-  _ <- oneOf[' ','=']
-  value <- many (noneOf "\n")
-  eol
-  return $ Env key value
-
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
-  args <- many (noneOf "\n")
+  args <- arguments
   eol
   return $ Cmd args
 
@@ -76,12 +67,44 @@ stopsignal = do
   eol
   return $ Stopsignal args
 
+quotedValue:: Parser String
+quotedValue = do
+  str <- stringLiteral
+  return str
+
+rawValue :: Parser String
+rawValue = do
+  str <- many (noneOf " =\n")
+  return str
+
+singleValue :: Parser String
+singleValue = try quotedValue <|> try rawValue
+
+pair :: Parser (String, String)
+pair = do
+  key <- singleValue
+  oneOf "="
+  value <- singleValue
+  return (key, value)
+
+pairs :: Parser Pairs
+pairs = do
+  p <- sepBy pair (char ' ')
+  return p
+
 label :: Parser Instruction
 label = do
   reserved "LABEL"
-  args <- many (noneOf "\n")
+  p <- pairs
   eol
-  return $ Label args
+  return $ Label p
+
+env :: Parser Instruction
+env = do
+  reserved "ENV"
+  p <- pairs
+  eol
+  return $ Env p
 
 user :: Parser Instruction
 user = do
@@ -109,7 +132,7 @@ expose = do
 run :: Parser Instruction
 run = do
   reserved "RUN"
-  cmd <- many (noneOf "\n")
+  cmd <- arguments
   eol
   return $ Run cmd
 
@@ -143,12 +166,11 @@ argumentsExec = do
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
-  args <- sepBy (many (noneOf " ")) (char ' ')
+  args <- sepBy rawValue (char ' ')
   return $ args
 
 arguments :: Parser Arguments
-arguments = try argumentsExec
-    <|> try argumentsShell
+arguments = try argumentsExec <|> try argumentsShell
 
 entrypoint :: Parser Instruction
 entrypoint = do
