@@ -1,6 +1,7 @@
 module Main where
 
 import Parser
+import Analyzer
 import System.Environment (getArgs)
 
 main :: IO ()
