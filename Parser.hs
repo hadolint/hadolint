@@ -3,6 +3,7 @@ module Parser where
 import Text.Parsec hiding (label)
 import Text.Parsec.String (Parser)
 import Text.Parsec.Combinator (sepBy)
+import Text.Parsec.Pos (sourceLine)
 
 import Data.ByteString.Char8 (pack)
 import Data.String.Utils (replace, endswith, splitWs, strip)
@@ -215,8 +216,8 @@ entrypoint = do
   eol
   return $ Entrypoint args
 
-instruction :: Parser Instruction
-instruction
+parseInstruction :: Parser Instruction
+parseInstruction
     = try from
     <|> try copy
     <|> try run
@@ -245,8 +246,9 @@ eol = void (char '\n') <|> eof
 
 dockerfile :: Parser Dockerfile
 dockerfile = many $ do
-    i <- instruction
-    return i
+    pos <- getPosition
+    i <- parseInstruction
+    return $ InstructionPos i $ sourceLine pos
 
 parseString :: String -> Either ParseError Dockerfile
 parseString input = parse (contents dockerfile) "<string>" input
@@ -254,4 +256,4 @@ parseString input = parse (contents dockerfile) "<string>" input
 parseFile :: String -> IO (Either ParseError Dockerfile)
 parseFile file = do
     program <- readFile file
-    return $ parse (contents dockerfile) "<file>" program
+    return $ parse (contents dockerfile) file program

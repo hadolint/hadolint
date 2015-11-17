@@ -7,6 +7,7 @@ data Rule
   | ExplicitMaintainer
   | SortMultilineArguments
   | MaximumNumberLayers
+  | DuplicatInstruction
   | AvoidPackages
   | OneProcess
   | BuildCache
@@ -44,7 +45,7 @@ hasMaintainer :: Instruction -> Bool
 hasMaintainer (Maintainer _) = True
 hasMaintainer _              = False
 
-explicitMaintainer :: Dockerfile -> Check
+explicitMaintainer :: [Instruction] -> Check
 explicitMaintainer dockerfile =
     if or $ map hasMaintainer dockerfile
         then Success ExplicitMaintainer
@@ -80,8 +81,8 @@ checkInstruction _             = []
 
 checkDockerfile :: Dockerfile -> [Check]
 checkDockerfile dockerfile = nodeChecks ++ treeChecks
-    where nodeChecks = concat $ map checkInstruction dockerfile
-          treeChecks = [explicitMaintainer dockerfile]
+    where nodeChecks = concat $ map checkInstruction $ map instruction dockerfile
+          treeChecks = [explicitMaintainer $ map instruction dockerfile]
 
 analyze :: Either t Dockerfile -> Maybe [Check]
 analyze (Left err) = Nothing

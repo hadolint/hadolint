@@ -13,7 +13,7 @@ data BaseImage
   | DigestedImage Image ByteString
   deriving (Eq, Ord, Show)
 
-type Dockerfile = [Instruction]
+type Dockerfile = [InstructionPos]
 type Source = String
 type Destination = String
 type Arguments = [String]
@@ -36,3 +36,11 @@ data Instruction
   | Env Pairs
   | Comment String
   deriving (Eq, Ord, Show)
+
+type Linenumber = Int
+-- additional location information about an instruction
+-- required for creating good check messages
+data InstructionPos = InstructionPos Instruction Linenumber deriving (Show)
+
+instruction :: InstructionPos -> Instruction
+instruction (InstructionPos i _ ) = i
