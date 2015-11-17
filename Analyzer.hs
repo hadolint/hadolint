@@ -19,6 +19,7 @@ data Rule
   | NoSudo
   | UseWorkdir
   | AbsoluteWorkdir
+  | FetchInRun
   deriving(Show)
 
 
@@ -33,6 +34,7 @@ category ExplicitMaintainer     = BestPractice
 category SortMultilineArguments = BestPractice
 category AbsoluteWorkdir        = BestPractice
 category UseWorkdir             = BestPractice
+category FetchInRun             = BestPractice
 
 -- take boolean value and turn it into a failed or successful check
 asCheck t True  = Success t
