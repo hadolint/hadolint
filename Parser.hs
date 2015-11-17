@@ -5,6 +5,7 @@ import Text.Parsec.String (Parser)
 import Text.Parsec.Combinator (sepBy)
 
 import Data.ByteString.Char8 (pack)
+import Data.String.Utils (replace, endswith, splitWs)
 import Control.Monad (void)
 
 import qualified Text.Parsec.Expr as Ex
@@ -17,7 +18,7 @@ comment :: Parser Instruction
 comment = do
   char '#'
   text <- many (noneOf "\n")
-  many eol
+  eol
   return $ Comment text
 
 taggedImage :: Parser BaseImage
@@ -48,14 +49,14 @@ from :: Parser Instruction
 from = do
   reserved "FROM"
   image <- baseImage
-  many eol
+  eol
   return $ From image
 
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
   args <- arguments
-  many eol
+  eol
   return $ Cmd args
 
 copy :: Parser Instruction
@@ -64,14 +65,14 @@ copy = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  many eol
+  eol
   return $ Copy src dst
 
 stopsignal :: Parser Instruction
 stopsignal = do
   reserved "STOPSIGNAL"
   args <- many (noneOf "\n")
-  many eol
+  eol
   return $ Stopsignal args
 
 quotedValue:: Parser String
@@ -81,7 +82,7 @@ quotedValue = do
 
 rawValue :: Parser String
 rawValue = do
-  str <- many (noneOf " =\n")
+  str <- many (noneOf [' ','=','\n'])
   return str
 
 singleValue :: Parser String
@@ -103,21 +104,21 @@ label :: Parser Instruction
 label = do
   reserved "LABEL"
   p <- pairs
-  many eol
+  eol
   return $ Label p
 
 env :: Parser Instruction
 env = do
   reserved "ENV"
   p <- pairs
-  many eol
+  eol
   return $ Env p
 
 user :: Parser Instruction
 user = do
   reserved "USER"
   args <- many (noneOf "\n")
-  many eol
+  eol
   return $ User args
 
 add :: Parser Instruction
@@ -126,42 +127,54 @@ add = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  many eol
+  eol
   return $ Add src dst
 
 expose :: Parser Instruction
 expose = do
   reserved "EXPOSE"
   port <- natural
-  many eol
+  eol
   return $ Expose port
 
 run :: Parser Instruction
 run = do
   reserved "RUN"
-  cmd <- arguments
-  many eol
+  cmd <- multilineArguments
+  eol
   return $ Run cmd
+
+-- Entire value until end of line, if line ends with escape character
+-- the new line is consumed as well until a new line without escape character
+-- is reached
+multiline :: Parser String
+multiline = do
+  line <- many (noneOf "\n")
+  if endswith line "\\"
+    then do
+        newLine <- multiline
+        return $ line ++ newLine
+    else return $ (replace "\\" "" line)
 
 workdir :: Parser Instruction
 workdir = do
   reserved "WORKDIR"
   directory <- many (noneOf "\n")
-  many eol
+  eol
   return $ Workdir directory
 
 volume :: Parser Instruction
 volume = do
   reserved "VOLUME"
   directory <- many (noneOf "\n")
-  many eol
+  eol
   return $ Volume directory
 
 maintainer :: Parser Instruction
 maintainer = do
   reserved "MAINTAINER"
   name <- many (noneOf "\n")
-  many eol
+  eol
   return $ Maintainer name
 
 -- Parse arguments of a command in the exec form
@@ -170,26 +183,29 @@ argumentsExec = do
   args <- brackets $ commaSep stringLiteral
   return $ args
 
--- A value that can span over multiple lines
-rawLongValue :: Parser Arguments
-rawLongValue = do
-  multiLines <- endBy (many (noneOf "\\\n")) (oneOf "\\\n")
-  return $ concat multiLines
-
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
-  args <- rawLongValue
+  args <- sepBy rawValue (char ' ')
   return $ args
+
+-- Parse arguments of a command in the shell form
+multilineArgumentsShell :: Parser Arguments
+multilineArgumentsShell = do
+  line <- multiline
+  return $ splitWs line
 
 arguments :: Parser Arguments
 arguments = try argumentsExec <|> try argumentsShell
+
+multilineArguments :: Parser Arguments
+multilineArguments = try argumentsExec <|> try multilineArgumentsShell
 
 entrypoint :: Parser Instruction
 entrypoint = do
   reserved "ENTRYPOINT"
   args <- arguments
-  many eol
+  eol
   return $ Entrypoint args
 
 instruction :: Parser Instruction
@@ -231,4 +247,4 @@ parseString input = parse (contents dockerfile) "<string>" input
 parseFile :: String -> IO (Either ParseError Dockerfile)
 parseFile file = do
     program <- readFile file
-    return (parse (contents dockerfile) "<file>" program)
+    return $ parse (contents dockerfile) "<file>" program
