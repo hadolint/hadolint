@@ -67,10 +67,15 @@ usingWorkdir args = elem "cd" args
 absoluteWorkdir :: Directory -> Bool
 absoluteWorkdir dir = (head dir) == '/'
 
+rootUser :: String -> Bool
+rootUser "root" = True
+rootUser  _     = False
+
 checkInstruction :: Instruction -> [Check]
 checkInstruction (From instr)  = [asCheck ExplicitTag $ explicitTag instr]
 checkInstruction (Workdir dir) = [asCheck AbsoluteWorkdir $ absoluteWorkdir dir]
 checkInstruction (Run args)    = [asCheck UseWorkdir $ usingWorkdir args]
+checkInstruction (User name)   = [asCheck NoRootUser $ not (rootUser name)]
 checkInstruction _             = []
 
 checkDockerfile :: Dockerfile -> [Check]

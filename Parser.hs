@@ -116,9 +116,8 @@ env = do
 user :: Parser Instruction
 user = do
   reserved "USER"
-  args <- many (noneOf "\n")
-  eol
-  return $ User args
+  username <- untilEol
+  return $ User username
 
 add :: Parser Instruction
 add = do
