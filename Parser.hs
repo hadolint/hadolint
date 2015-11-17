@@ -5,7 +5,7 @@ import Text.Parsec.String (Parser)
 import Text.Parsec.Combinator (sepBy)
 
 import Data.ByteString.Char8 (pack)
-import Data.String.Utils (replace, endswith, splitWs)
+import Data.String.Utils (replace, endswith, splitWs, strip)
 import Control.Monad (void)
 
 import qualified Text.Parsec.Expr as Ex
@@ -17,8 +17,7 @@ import Syntax
 comment :: Parser Instruction
 comment = do
   char '#'
-  text <- many (noneOf "\n")
-  eol
+  text <- untilEol
   return $ Comment text
 
 taggedImage :: Parser BaseImage
@@ -49,7 +48,7 @@ from :: Parser Instruction
 from = do
   reserved "FROM"
   image <- baseImage
-  eol
+  many eol
   return $ From image
 
 cmd :: Parser Instruction
@@ -150,11 +149,19 @@ run = do
 multiline :: Parser String
 multiline = do
   line <- many (noneOf "\n")
-  if endswith line "\\"
+  eol
+  if endswith "\\" line
     then do
         newLine <- multiline
         return $ line ++ newLine
-    else return $ (replace "\\" "" line)
+    else return $ replace "\\" "" line
+
+-- Parse value until end of line is reached
+untilEol :: Parser String
+untilEol = do
+  line <- many (noneOf "\n")
+  many eol
+  return line
 
 workdir :: Parser Instruction
 workdir = do
@@ -173,20 +180,21 @@ volume = do
 maintainer :: Parser Instruction
 maintainer = do
   reserved "MAINTAINER"
-  name <- many (noneOf "\n")
-  eol
+  name <- untilEol
   return $ Maintainer name
 
 -- Parse arguments of a command in the exec form
 argumentsExec :: Parser Arguments
 argumentsExec = do
   args <- brackets $ commaSep stringLiteral
+  eol
   return $ args
 
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
   args <- sepBy rawValue (char ' ')
+  eol
   return $ args
 
 -- Parse arguments of a command in the shell form
