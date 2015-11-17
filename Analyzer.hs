@@ -24,17 +24,17 @@ data Rule
 
 
 data Check = Success Rule | Failed Rule deriving(Show)
-data Category = Error | BestPractice deriving(Show)
+data Category = Error | BestPractice | Recommendation deriving(Show)
 
 category :: Rule -> Category
 category MaximumNumberLayers    = Error
 category NoSudo                 = Error
 category ExplicitTag            = BestPractice
-category ExplicitMaintainer     = BestPractice
 category SortMultilineArguments = BestPractice
 category AbsoluteWorkdir        = BestPractice
 category UseWorkdir             = BestPractice
 category FetchInRun             = BestPractice
+category ExplicitMaintainer     = Recommendation
 
 -- take boolean value and turn it into a failed or successful check
 asCheck t True  = Success t
@@ -74,7 +74,7 @@ rootUser  _     = False
 checkInstruction :: Instruction -> [Check]
 checkInstruction (From instr)  = [asCheck ExplicitTag $ explicitTag instr]
 checkInstruction (Workdir dir) = [asCheck AbsoluteWorkdir $ absoluteWorkdir dir]
-checkInstruction (Run args)    = [asCheck UseWorkdir $ usingWorkdir args]
+checkInstruction (Run args)    = [asCheck UseWorkdir $ not (usingWorkdir args)]
 checkInstruction (User name)   = [asCheck NoRootUser $ not (rootUser name)]
 checkInstruction _             = []
 

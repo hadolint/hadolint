@@ -139,7 +139,7 @@ run :: Parser Instruction
 run = do
   reserved "RUN"
   cmd <- multilineArguments
-  eol
+  many eol
   return $ Run cmd
 
 -- Entire value until end of line, if line ends with escape character
