@@ -23,6 +23,7 @@ data Rule
   | WgetAndCurlUsed
   | AbsoluteWorkdir
   | FetchInRun
+  | UnusableCommand
   deriving(Show)
 
 
@@ -69,6 +70,7 @@ usingCurlAndWget dockerfile =
     where anyCurl = or $ map usingCurl dockerfile
           anyWget = or $ map usingWget dockerfile
 
+
 -- check if base image has a explicit tag
 explicitTag :: BaseImage -> Bool
 explicitTag (LatestImage img)    = False
@@ -90,10 +92,16 @@ rootUser :: String -> Bool
 rootUser "root" = True
 rootUser  _     = False
 
+-- check for invalid bash commands (first argument of run instruction)
+isUnusable :: Arguments -> Bool
+isUnusable args = elem (head args) invalidCmds
+    where invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
+
 checkInstruction :: Instruction -> [Check]
 checkInstruction (From instr)  = [asCheck ExplicitTag $ explicitTag instr]
 checkInstruction (Workdir dir) = [asCheck AbsoluteWorkdir $ absoluteWorkdir dir]
-checkInstruction (Run args)    = [asCheck UseWorkdir $ not (usingWorkdir args)]
+checkInstruction (Run args)    = [asCheck UseWorkdir $ not (usingWorkdir args)
+                                 ,asCheck UnusableCommand $ isUnusable args]
 checkInstruction (User name)   = [asCheck NoRootUser $ not (rootUser name)]
 checkInstruction _             = []
 
