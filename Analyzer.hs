@@ -18,7 +18,9 @@ data Rule
   | ChainEnv
   | NoRootUser
   | NoSudo
+  | NoUpgrade
   | UseWorkdir
+  | WgetAndCurlUsed
   | AbsoluteWorkdir
   | FetchInRun
   deriving(Show)
@@ -51,6 +53,22 @@ explicitMaintainer dockerfile =
         then Success ExplicitMaintainer
         else Failed ExplicitMaintainer
 
+usingCmd :: String -> Instruction -> Bool
+usingCmd cmd (Run args) = elem cmd args
+usingCmd _ _            = False
+
+usingCurl :: Instruction -> Bool
+usingCurl i = usingCmd "curl" i
+
+usingWget :: Instruction -> Bool
+usingWget i = usingCmd "wget" i
+
+usingCurlAndWget  :: [Instruction] -> Check
+usingCurlAndWget dockerfile =
+    asCheck WgetAndCurlUsed $ anyCurl && anyWget
+    where anyCurl = or $ map usingCurl dockerfile
+          anyWget = or $ map usingWget dockerfile
+
 -- check if base image has a explicit tag
 explicitTag :: BaseImage -> Bool
 explicitTag (LatestImage img)    = False
@@ -81,8 +99,11 @@ checkInstruction _             = []
 
 checkDockerfile :: Dockerfile -> [Check]
 checkDockerfile dockerfile = nodeChecks ++ treeChecks
-    where nodeChecks = concat $ map checkInstruction $ map instruction dockerfile
-          treeChecks = [explicitMaintainer $ map instruction dockerfile]
+    where
+        instructions = map instruction dockerfile
+        nodeChecks = concat $ map checkInstruction $ map instruction dockerfile
+        treeChecks = [explicitMaintainer instructions
+                     ,usingCurlAndWget instructions]
 
 analyze :: Either t Dockerfile -> Maybe [Check]
 analyze (Left err) = Nothing
