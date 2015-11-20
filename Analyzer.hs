@@ -113,6 +113,9 @@ checkDockerfile dockerfile = nodeChecks ++ treeChecks
         treeChecks = [explicitMaintainer instructions
                      ,usingCurlAndWget instructions]
 
-analyze :: Either t Dockerfile -> Maybe [Check]
-analyze (Left err) = Nothing
-analyze (Right d)  = Just $ checkDockerfile d
+analyzeOld :: Either t Dockerfile -> Maybe [Check]
+analyzeOld (Left err) = Nothing
+analyzeOld (Right d)  = Just $ checkDockerfile d
+
+analyze :: Dockerfile -> [String]
+analyze = undefined
