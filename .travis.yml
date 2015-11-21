@@ -1,6 +1,2 @@
-sudo: required
-language: generic
-services:
-- docker
-script:
-- docker build -t lukasmartinelli/hadolint .
+language: haskell
+ghc: 7.10
