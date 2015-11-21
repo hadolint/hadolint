@@ -6,8 +6,8 @@ import Text.Parsec.Combinator (sepBy)
 import Text.Parsec.Pos (sourceLine)
 
 import Data.ByteString.Char8 (pack)
-import Data.String.Utils (replace, endswith, splitWs, strip)
 import Control.Monad (void)
+import Data.List.Split (splitOn)
 
 import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Token
@@ -144,11 +144,11 @@ multiline :: Parser String
 multiline = do
   line <- many (noneOf "\n")
   eol
-  if endswith "\\" line
+  if head (reverse line) == '\\'
     then do
         newLine <- multiline
         return $ line ++ newLine
-    else return $ replace "\\" "" line
+    else return $ line
 
 -- Parse value until end of line is reached
 untilEol :: Parser String
@@ -195,7 +195,7 @@ argumentsShell = do
 multilineArgumentsShell :: Parser Arguments
 multilineArgumentsShell = do
   line <- multiline
-  return $ splitWs line
+  return $ splitOn " " line
 
 arguments :: Parser Arguments
 arguments = try argumentsExec <|> try argumentsShell
