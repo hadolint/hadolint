@@ -2,15 +2,14 @@ module Main where
 
 import Parser
 import Analyzer
+import Formatter
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)
 
-printFailedChecks :: IO ()
-printFailedChecks = do
-    putStrLn "L1-12 [NoDefaultCmd] Specify a default CMD"
-    putStrLn "L1-12 [WgetAndCurlUsed] Either use curl or wget but not both"
-    putStrLn "L10 [NoSudo] Do not use sudo inside Dockerfile. "
+printFailedChecks :: [Check] -> IO ()
+printFailedChecks checks = do
+    mapM_ putStrLn $ map formatCheck $ failedChecks checks
 
 main :: IO ()
 main = getArgs >>= parse
@@ -22,7 +21,7 @@ parse [file] = do
     ast <- parseFile file
     case ast of
         Left err -> print err >> exit
-        Right d  -> print $ analyze d
+        Right d  -> printFailedChecks $ analyze d
 
 -- Helper to analyze AST quickly in GHCI
 analyzeEither (Left err) = []

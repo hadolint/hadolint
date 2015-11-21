@@ -1,4 +1,4 @@
-module Analyzer(analyze, appliedChecks, failedChecks, successfulChecks) where
+module Analyzer(analyze, appliedChecks, failedChecks, successfulChecks, Check(..)) where
 
 import Syntax
 import Rules
