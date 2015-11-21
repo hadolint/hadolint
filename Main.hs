@@ -28,5 +28,5 @@ analyzeEither (Right d)  = analyze d
 
 usage   = putStrLn "Usage: hadolint [-vh] <file>"
 version = putStrLn "Haskell Dockerfile Linter v0.1"
-exit    = existSuccess
+exit    = exitSuccess
 die     = exitWith (ExitFailure 1)
