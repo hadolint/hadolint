@@ -1,64 +1,36 @@
-module Rules where
+module Rules (Category(..), instructionRule, dockerfileRule) where
 
 import Syntax
 
-data Rule
-    = AbsoluteWorkdir
-    | InvalidCmd
-    | NoRootUser
-    | NoSudo
-    | NoCd
-    | NoUpgrade
-    | WgetOrCurl
-    | HasMaintainer
+type InstructionCheck = Instruction -> (Maybe Bool)
+type DockerfileCheck  = [Instruction] -> (Maybe Bool)
 
 data Category = Error | BestPractice deriving(Show)
+data Rule = Rule { name :: String,
+                   message :: String,
+                   category :: Category,
+                   checkInstruction :: InstructionCheck,
+                   checkDockerfile :: DockerfileCheck
+                 }
 
-class Check a where
-    message :: a -> String
-    category :: a -> Category
-    checkInstruction :: a -> Instruction -> (Maybe Bool)
-    checkDockerfile :: a -> [Instruction] -> (Maybe Bool)
+noInstruction :: InstructionCheck
+noInstruction _ = Nothing
 
-usingCmd :: String -> Instruction -> Bool
-usingCmd cmd (Run args) = elem cmd args
-usingCmd _ _            = False
+noDockerfile :: DockerfileCheck
+noDockerfile _ = Nothing
 
-instance Check Rule where
-    category NoRootUser = BestPractice
-    category NoCd = BestPractice
-    category NoSudo = BestPractice
-    category NoUpgrade = BestPractice
-    category HasMaintainer = BestPractice
-    category AbsoluteWorkdir = BestPractice
-    category InvalidCmd = BestPractice
-    category WgetOrCurl = BestPractice
+instructionRule  :: String -> String -> Category -> InstructionCheck -> Rule
+instructionRule name msg cat check = Rule { name = name,
+                                            message = msg,
+                                            category = cat,
+                                            checkInstruction = check,
+                                            checkDockerfile = noDockerfile
+                                          }
 
-    message WgetOrCurl = "Either use curl or wget for downloading"
-    message HasMaintainer = "Specify a maintainer of the Dockerfile"
-    message AbsoluteWorkdir = "Use absolute WORKDIR"
-    message InvalidCmd = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-    message NoRootUser = "Do not switch to root USER"
-    message NoCd = "Use WORKDIR to switch to a directory"
-    message NoSudo = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
-    message NoUpgrade = "Do not use apt-get upgrade or dist-upgrade."
-
-    checkInstruction AbsoluteWorkdir (Workdir dir) = Just $ not $ (head dir) == '/'
-    checkInstruction InvalidCmd (Run args) = Just $ not $ elem (head args) invalidCmds
-        where invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
-    checkInstruction NoRootUser (User "root") = Just $ False
-    checkInstruction NoRootUser (User _) = Just $ True
-    checkInstruction NoCd (Run args) = Just $ not $ elem "cd" args
-    checkInstruction NoSudo (Run args) = Just $ not $ elem "sudo" args
-    checkInstruction NoUpgrade (Run args) = Just $ True
-    checkInstruction _ _ = Nothing
-
-    checkDockerfile WgetOrCurl dockerfile = Just $ not $ anyCurl && anyWget
-        where anyCurl = or $ map usingCurl dockerfile
-              anyWget = or $ map usingWget dockerfile
-              usingCurl i = usingCmd "curl" i
-              usingWget i = usingCmd "wget" i
-    checkDockerfile HasMaintainer dockerfile = Just $ or $ map hasMaintainer dockerfile
-        where hasMaintainer (Maintainer _) = True
-              hasMaintainer _              = False
-    checkDockerfile _ _ = Nothing
+dockerfileRule :: String -> String -> Category -> DockerfileCheck -> Rule
+dockerfileRule name msg cat check = Rule { name = name,
+                                           message = msg,
+                                           category = cat,
+                                           checkInstruction = noInstruction,
+                                           checkDockerfile = check
+                                         }
