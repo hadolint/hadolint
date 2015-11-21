@@ -2,8 +2,8 @@ module Rules (Rule(..), Category(..), instructionRule, dockerfileRule) where
 
 import Syntax
 
-type InstructionCheck = Instruction -> (Maybe Bool)
-type DockerfileCheck  = [Instruction] -> (Maybe Bool)
+type InstructionCheck = Instruction -> Maybe Bool
+type DockerfileCheck  = [Instruction] -> Maybe Bool
 
 data Category = Error | BestPractice deriving(Show)
 data Rule = Rule { name :: String,
@@ -14,7 +14,7 @@ data Rule = Rule { name :: String,
                  }
 
 instance Show Rule where
-    show (Rule name _ cat _ _) = "Rule " ++ (show name)
+    show (Rule name _ cat _ _) = "Rule " ++ show name
 
 noInstruction :: InstructionCheck
 noInstruction _ = Nothing

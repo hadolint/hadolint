@@ -76,14 +76,10 @@ stopsignal = do
   return $ Stopsignal args
 
 quotedValue:: Parser String
-quotedValue = do
-  str <- stringLiteral
-  return str
+quotedValue = stringLiteral
 
 rawValue :: Parser String
-rawValue = do
-  str <- many (noneOf [' ','=','\n'])
-  return str
+rawValue = many (noneOf [' ','=','\n'])
 
 singleValue :: Parser String
 singleValue = try quotedValue <|> try rawValue
@@ -96,9 +92,7 @@ pair = do
   return (key, value)
 
 pairs :: Parser Pairs
-pairs = do
-  p <- sepBy pair (char ' ')
-  return p
+pairs = sepBy pair (char ' ')
 
 label :: Parser Instruction
 label = do
@@ -188,14 +182,14 @@ argumentsExec :: Parser Arguments
 argumentsExec = do
   args <- brackets $ commaSep stringLiteral
   eol
-  return $ args
+  return args
 
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
   args <- sepBy rawValue (char ' ')
   eol
-  return $ args
+  return args
 
 -- Parse arguments of a command in the shell form
 multilineArgumentsShell :: Parser Arguments

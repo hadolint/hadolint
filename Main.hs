@@ -8,8 +8,7 @@ import System.Environment (getArgs)
 import System.Exit hiding (die)
 
 printFailedChecks :: [Check] -> IO ()
-printFailedChecks checks = do
-    mapM_ putStrLn $ map formatCheck $ failedChecks checks
+printFailedChecks checks = mapM_ putStrLn $ map formatCheck $ failedChecks checks
 
 main :: IO ()
 main = getArgs >>= parse
@@ -29,5 +28,5 @@ analyzeEither (Right d)  = analyze d
 
 usage   = putStrLn "Usage: hadolint [-vh] <file>"
 version = putStrLn "Haskell Dockerfile Linter v0.1"
-exit    = exitWith ExitSuccess
+exit    = existSuccess
 die     = exitWith (ExitFailure 1)

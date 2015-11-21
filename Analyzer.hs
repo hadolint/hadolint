@@ -8,12 +8,12 @@ import Data.List (intercalate)
 data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
 
 instance Show Check where
-    show (DockerfileCheck rule _) = intercalate " " ["DockerfileCheck", (show rule)]
-    show (InstructionCheck rule pos) = intercalate " " ["InstructionCheck", (show rule), (show pos)]
+    show (DockerfileCheck rule _) = unwords ["DockerfileCheck", show rule]
+    show (InstructionCheck rule pos) = unwords ["InstructionCheck", show rule, show pos]
 
 -- Execute rule of check on related dockerfile or instruction
 eval :: Check -> Maybe Bool
-eval (DockerfileCheck rule dockerfile) = (checkDockerfile rule) (map instruction $ dockerfile)
+eval (DockerfileCheck rule dockerfile) = (checkDockerfile rule) (map instruction dockerfile)
 eval (InstructionCheck rule pos) = (checkInstruction rule) (instruction pos)
 
 -- Analyze a dockerfile and apply all checks to instructions and dockerfile
@@ -24,7 +24,7 @@ analyze dockerfile = dockerfileChecks ++ instructionChecks
 
 appliedChecks checks = [c | c <- checks, isJust (eval c)]
 failedChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == False]
-successfulChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == True]
+successfulChecks checks = [c | c <- appliedChecks checks, fromMaybe False (eval c)]
 
 rules = [ absoluteWorkdir
         , hasMaintainer
@@ -40,14 +40,14 @@ absoluteWorkdir = instructionRule name msg category check
     where name = "AbsoluteWorkdir"
           msg = "Use absolute WORKDIR"
           category = BestPractice
-          check (Workdir dir) = Just $ (head dir) == '/'
+          check (Workdir dir) = Just $ head dir == '/'
           check _ = Nothing
 
 hasMaintainer = dockerfileRule name msg category check
     where name = "HasMaintainer"
           msg = "Specify a maintainer of the Dockerfile"
           category = BestPractice
-          check dockerfile = Just $ or $ map maintainer dockerfile
+          check dockerfile = Just $ any $ map maintainer dockerfile
           maintainer (Maintainer _) = True
           maintainer _              = False
 
@@ -57,8 +57,8 @@ wgetOrCurl = dockerfileRule name msg category check
           msg = "Either use Wget or Curl but not both"
           category = BestPractice
           check dockerfile = Just $ not $ anyCurl dockerfile && anyWget dockerfile
-          anyCurl dockerfile = or $ map usingCurl dockerfile
-          anyWget dockerfile = or $ map usingWget dockerfile
+          anyCurl dockerfile = any $ map usingCurl dockerfile
+          anyWget dockerfile = any $ map usingWget dockerfile
           usingCurl i = usingCmd "curl" i
           usingWget i = usingCmd "wget" i
           usingCmd cmd (Run args) = elem cmd args
@@ -69,7 +69,7 @@ invalidCmd = instructionRule name msg category check
     where name = "InvalidCmd"
           msg = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
           category = BestPractice
-          check (Run args) = Just $ not $ elem (head args) invalidCmds
+          check (Run args) = Just $ notElem (head args) invalidCmds
           check _ = Nothing
           invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
@@ -77,22 +77,22 @@ noRootUser = instructionRule name msg category check
     where name = "NoRoot"
           msg = "Do not switch to root USER"
           category = BestPractice
-          check (User "root") = Just $ False
-          check (User _) = Just $ True
+          check (User "root") = Just False
+          check (User _) = Just True
           check _ = Nothing
 
 noCd = instructionRule name msg category check
     where name ="NoCd"
           msg = "Use WORKDIR to switch to a directory"
           category = BestPractice
-          check (Run args) = Just $ not $ elem "cd" args
+          check (Run args) = Just $ notElem "cd" args
           check _ = Nothing
 
 noSudo = instructionRule name msg category check
     where name = "NoSudo"
           msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
           category = BestPractice
-          check (Run args) = Just $ not $ elem "sudo" args
+          check (Run args) = Just $ notElem "sudo" args
           check _ = Nothing
 
 noUpgrade = instructionRule name msg category check
