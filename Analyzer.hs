@@ -44,33 +44,6 @@ category ExplicitMaintainer     = Recommendation
 asCheck t True  = Success t
 asCheck t False = Failed t
 
-hasMaintainer :: Instruction -> Bool
-hasMaintainer (Maintainer _) = True
-hasMaintainer _              = False
-
-explicitMaintainer :: [Instruction] -> Check
-explicitMaintainer dockerfile =
-    if or $ map hasMaintainer dockerfile
-        then Success ExplicitMaintainer
-        else Failed ExplicitMaintainer
-
-usingCmd :: String -> Instruction -> Bool
-usingCmd cmd (Run args) = elem cmd args
-usingCmd _ _            = False
-
-usingCurl :: Instruction -> Bool
-usingCurl i = usingCmd "curl" i
-
-usingWget :: Instruction -> Bool
-usingWget i = usingCmd "wget" i
-
-usingCurlAndWget  :: [Instruction] -> Check
-usingCurlAndWget dockerfile =
-    asCheck WgetAndCurlUsed $ anyCurl && anyWget
-    where anyCurl = or $ map usingCurl dockerfile
-          anyWget = or $ map usingWget dockerfile
-
-
 -- check if base image has a explicit tag
 explicitTag :: BaseImage -> Bool
 explicitTag (LatestImage img)    = False
