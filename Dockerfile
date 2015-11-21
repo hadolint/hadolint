@@ -6,7 +6,6 @@ WORKDIR hadolint
 ADD ./hadolint.cabal /opt/hadolint/hadolint.cabal
 RUN cabal install --only-dependencies -j4
 
-
 ADD ./ /opt/hadolint
 RUN cabal install
 

@@ -1,3 +1,6 @@
-language: haskell
-ghc: 7.10
-before_install: cabal sandbox init
+sudo: required
+language: generic
+services:
+- docker
+script:
+- docker build -t lukasmartinelli/hadolint .
