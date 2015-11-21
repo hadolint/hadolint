@@ -1,118 +1,104 @@
-module Analyzer where
+module Analyzer(analyze, appliedChecks, failedChecks, successfulChecks, Check(..)) where
 
 import Syntax
+import Rules
+import Data.Maybe (isJust, fromMaybe)
+import Data.List (intercalate)
 
-data Rule
-  = ExplicitTag
-  | ExplicitMaintainer
-  | SortMultilineArguments
-  | MaximumNumberLayers
-  | DuplicatInstruction
-  | AvoidPackages
-  | OneProcess
-  | BuildCache
-  | OfficialBaseImage
-  | AptGetVersionPinning
-  | AptGetCleanup
-  | CmdUseExecForm
-  | ChainEnv
-  | NoRootUser
-  | NoSudo
-  | NoUpgrade
-  | UseWorkdir
-  | WgetAndCurlUsed
-  | AbsoluteWorkdir
-  | FetchInRun
-  | UnusableCommand
-  deriving(Show)
+data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
 
+instance Show Check where
+    show (DockerfileCheck rule _) = intercalate " " ["DockerfileCheck", (show rule)]
+    show (InstructionCheck rule pos) = intercalate " " ["InstructionCheck", (show rule), (show pos)]
 
-data Check = Success Rule | Failed Rule deriving(Show)
-data Category = Error | BestPractice | Recommendation deriving(Show)
+-- Execute rule of check on related dockerfile or instruction
+eval :: Check -> Maybe Bool
+eval (DockerfileCheck rule dockerfile) = (checkDockerfile rule) (map instruction $ dockerfile)
+eval (InstructionCheck rule pos) = (checkInstruction rule) (instruction pos)
 
-category :: Rule -> Category
-category MaximumNumberLayers    = Error
-category NoSudo                 = Error
-category ExplicitTag            = BestPractice
-category SortMultilineArguments = BestPractice
-category AbsoluteWorkdir        = BestPractice
-category UseWorkdir             = BestPractice
-category FetchInRun             = BestPractice
-category ExplicitMaintainer     = Recommendation
+-- Analyze a dockerfile and apply all checks to instructions and dockerfile
+analyze :: Dockerfile -> [Check]
+analyze dockerfile = dockerfileChecks ++ instructionChecks
+    where dockerfileChecks = [DockerfileCheck r dockerfile | r <- rules]
+          instructionChecks = [InstructionCheck r pos | r <- rules, pos <- dockerfile]
 
--- take boolean value and turn it into a failed or successful check
-asCheck t True  = Success t
-asCheck t False = Failed t
+appliedChecks checks = [c | c <- checks, isJust (eval c)]
+failedChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == False]
+successfulChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == True]
 
-hasMaintainer :: Instruction -> Bool
-hasMaintainer (Maintainer _) = True
-hasMaintainer _              = False
+rules = [ absoluteWorkdir
+        , hasMaintainer
+        , wgetOrCurl
+        , invalidCmd
+        , noRootUser
+        , noCd
+        , noSudo
+        , noUpgrade
+        ]
 
-explicitMaintainer :: [Instruction] -> Check
-explicitMaintainer dockerfile =
-    if or $ map hasMaintainer dockerfile
-        then Success ExplicitMaintainer
-        else Failed ExplicitMaintainer
+absoluteWorkdir = instructionRule name msg category check
+    where name = "AbsoluteWorkdir"
+          msg = "Use absolute WORKDIR"
+          category = BestPractice
+          check (Workdir dir) = Just $ (head dir) == '/'
+          check _ = Nothing
 
-usingCmd :: String -> Instruction -> Bool
-usingCmd cmd (Run args) = elem cmd args
-usingCmd _ _            = False
-
-usingCurl :: Instruction -> Bool
-usingCurl i = usingCmd "curl" i
-
-usingWget :: Instruction -> Bool
-usingWget i = usingCmd "wget" i
-
-usingCurlAndWget  :: [Instruction] -> Check
-usingCurlAndWget dockerfile =
-    asCheck WgetAndCurlUsed $ anyCurl && anyWget
-    where anyCurl = or $ map usingCurl dockerfile
-          anyWget = or $ map usingWget dockerfile
+hasMaintainer = dockerfileRule name msg category check
+    where name = "HasMaintainer"
+          msg = "Specify a maintainer of the Dockerfile"
+          category = BestPractice
+          check dockerfile = Just $ or $ map maintainer dockerfile
+          maintainer (Maintainer _) = True
+          maintainer _              = False
 
 
--- check if base image has a explicit tag
-explicitTag :: BaseImage -> Bool
-explicitTag (LatestImage img)    = False
-explicitTag (TaggedImage _ _)    = True
-explicitTag (DigestedImage _ _)  = True
+wgetOrCurl = dockerfileRule name msg category check
+    where name = "WgetOrCurl"
+          msg = "Either use Wget or Curl but not both"
+          category = BestPractice
+          check dockerfile = Just $ not $ anyCurl dockerfile && anyWget dockerfile
+          anyCurl dockerfile = or $ map usingCurl dockerfile
+          anyWget dockerfile = or $ map usingWget dockerfile
+          usingCurl i = usingCmd "curl" i
+          usingWget i = usingCmd "wget" i
+          usingCmd cmd (Run args) = elem cmd args
+          usingCmd _ _            = False
 
-usingSudo :: Arguments -> Bool
-usingSudo args = elem "sudo" args
 
--- check if cd occurs in run arguments
-usingWorkdir :: Arguments -> Bool
-usingWorkdir args = elem "cd" args
+invalidCmd = instructionRule name msg category check
+    where name = "InvalidCmd"
+          msg = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
+          category = BestPractice
+          check (Run args) = Just $ not $ elem (head args) invalidCmds
+          check _ = Nothing
+          invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
--- check if directory path is absolute
-absoluteWorkdir :: Directory -> Bool
-absoluteWorkdir dir = (head dir) == '/'
+noRootUser = instructionRule name msg category check
+    where name = "NoRoot"
+          msg = "Do not switch to root USER"
+          category = BestPractice
+          check (User "root") = Just $ False
+          check (User _) = Just $ True
+          check _ = Nothing
 
-rootUser :: String -> Bool
-rootUser "root" = True
-rootUser  _     = False
+noCd = instructionRule name msg category check
+    where name ="NoCd"
+          msg = "Use WORKDIR to switch to a directory"
+          category = BestPractice
+          check (Run args) = Just $ not $ elem "cd" args
+          check _ = Nothing
 
--- check for invalid bash commands (first argument of run instruction)
-isUnusable :: Arguments -> Bool
-isUnusable args = elem (head args) invalidCmds
-    where invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
+noSudo = instructionRule name msg category check
+    where name = "NoSudo"
+          msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
+          category = BestPractice
+          check (Run args) = Just $ not $ elem "sudo" args
+          check _ = Nothing
 
-checkInstruction :: Instruction -> [Check]
-checkInstruction (From instr)  = [asCheck ExplicitTag $ explicitTag instr]
-checkInstruction (Workdir dir) = [asCheck AbsoluteWorkdir $ absoluteWorkdir dir]
-checkInstruction (Run args)    = [asCheck UseWorkdir $ not (usingWorkdir args)
-                                 ,asCheck UnusableCommand $ isUnusable args]
-checkInstruction (User name)   = [asCheck NoRootUser $ not (rootUser name)]
-checkInstruction _             = []
+noUpgrade = instructionRule name msg category check
+    where name = "NoUpgrade"
+          msg = "Do not use apt-get upgrade or dist-upgrade."
+          category = BestPractice
+          check (Run args) = Just $ True
+          check _ = Nothing
 
-checkDockerfile :: Dockerfile -> [Check]
-checkDockerfile dockerfile = nodeChecks ++ treeChecks
-    where
-        instructions = map instruction dockerfile
-        nodeChecks = concat $ map checkInstruction $ map instruction dockerfile
-        treeChecks = [explicitMaintainer instructions
-                     ,usingCurlAndWget instructions]
-
-analyze :: Either t Dockerfile -> Maybe [Check]
-analyze (Left err) = Nothing
-analyze (Right d)  = Just $ checkDockerfile d
