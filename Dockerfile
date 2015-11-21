@@ -1,4 +1,5 @@
 FROM haskell:7.10
+MAINTAINER Lukas Martinelli
 
 RUN cabal update
 

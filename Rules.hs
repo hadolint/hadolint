@@ -1,4 +1,4 @@
-module Rules (Category(..), instructionRule, dockerfileRule) where
+module Rules (Rule(..), Category(..), instructionRule, dockerfileRule) where
 
 import Syntax
 
@@ -12,6 +12,9 @@ data Rule = Rule { name :: String,
                    checkInstruction :: InstructionCheck,
                    checkDockerfile :: DockerfileCheck
                  }
+
+instance Show Rule where
+    show (Rule name _ cat _ _) = "Rule " ++ (show name)
 
 noInstruction :: InstructionCheck
 noInstruction _ = Nothing

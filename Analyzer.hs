@@ -1,13 +1,47 @@
-module Analyzer where
+module Analyzer(analyze, appliedChecks, failedChecks, successfulChecks) where
 
 import Syntax
 import Rules
+import Data.Maybe (isJust, fromMaybe)
+import Data.List (intercalate)
+
+data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
+
+instance Show Check where
+    show (DockerfileCheck rule _) = intercalate " " ["DockerfileCheck", (show rule)]
+    show (InstructionCheck rule pos) = intercalate " " ["InstructionCheck", (show rule), (show pos)]
+
+-- Execute rule of check on related dockerfile or instruction
+eval :: Check -> Maybe Bool
+eval (DockerfileCheck rule dockerfile) = (checkDockerfile rule) (map instruction $ dockerfile)
+eval (InstructionCheck rule pos) = (checkInstruction rule) (instruction pos)
+
+-- Analyze a dockerfile and apply all checks to instructions and dockerfile
+analyze :: Dockerfile -> [Check]
+analyze dockerfile = dockerfileChecks ++ instructionChecks
+    where dockerfileChecks = [DockerfileCheck r dockerfile | r <- rules]
+          instructionChecks = [InstructionCheck r pos | r <- rules, pos <- dockerfile]
+
+appliedChecks checks = [c | c <- checks, isJust (eval c)]
+failedChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == False]
+successfulChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == True]
+
+rules = [ absoluteWorkdir
+        , hasMaintainer
+        , wgetOrCurl
+        , invalidCmd
+        , noRootUser
+        , noCd
+        , noSudo
+        , noUpgrade
+        ]
 
 absoluteWorkdir = instructionRule name msg category check
     where name = "AbsoluteWorkdir"
           msg = "Use absolute WORKDIR"
           category = BestPractice
           check (Workdir dir) = Just $ (head dir) == '/'
+          check _ = Nothing
 
 hasMaintainer = dockerfileRule name msg category check
     where name = "HasMaintainer"
@@ -36,6 +70,7 @@ invalidCmd = instructionRule name msg category check
           msg = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
           category = BestPractice
           check (Run args) = Just $ not $ elem (head args) invalidCmds
+          check _ = Nothing
           invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
 noRootUser = instructionRule name msg category check
@@ -44,22 +79,26 @@ noRootUser = instructionRule name msg category check
           category = BestPractice
           check (User "root") = Just $ False
           check (User _) = Just $ True
+          check _ = Nothing
 
 noCd = instructionRule name msg category check
     where name ="NoCd"
           msg = "Use WORKDIR to switch to a directory"
           category = BestPractice
           check (Run args) = Just $ not $ elem "cd" args
+          check _ = Nothing
 
 noSudo = instructionRule name msg category check
     where name = "NoSudo"
           msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
           category = BestPractice
           check (Run args) = Just $ not $ elem "sudo" args
+          check _ = Nothing
 
 noUpgrade = instructionRule name msg category check
     where name = "NoUpgrade"
           msg = "Do not use apt-get upgrade or dist-upgrade."
           category = BestPractice
           check (Run args) = Just $ True
+          check _ = Nothing
 
