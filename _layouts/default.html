@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    {% include head.html %}
+  </head>
+  <body>
+    {% include github_corner.html %}
+    {{ content }}
+    {% include google_analytics.html %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.7.0/codemirror.min.js" type="text/javascript"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/addon/mode/simple.min.js" type="text/javascript"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/dockerfile/dockerfile.min.js" type="text/javascript"></script>
+    <script>
+      $(function() {
+        var dockerfileEditor = CodeMirror.fromTextArea(document.getElementById('dockerfile__code'), {
+          mode: 'text/x-dockerfile'
+        });
+
+        $('#choose-code-example').change(function() {
+          var exampleCodeId = $(this).val();
+          var exampleCode = $(document.getElementById(exampleCodeId)).text();
+          pythonEditor.getDoc().setValue(exampleCode);
+          cppEditor.getDoc().setValue("");
+        });
+        $('#choose-code-example').change();
+
+        $('#transpile').click(function() {
+          var src = pythonEditor.getDoc().getValue();
+          $.ajax({
+            type: 'POST',
+            url: '/transpile',
+            data: src,
+            contentType: 'text/plain'
+          }).done(function(data) {
+            cppEditor.getDoc().setValue(data);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

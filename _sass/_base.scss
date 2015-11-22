@@ -1,0 +1,99 @@
+@font-face {
+    font-family: 'audimatregular';
+    src: url('../fonts/audimat-regular-webfont.eot');
+    src: url('../fonts/audimat-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/audimat-regular-webfont.woff2') format('woff2'),
+         url('../fonts/audimat-regular-webfont.woff') format('woff'),
+         url('../fonts/audimat-regular-webfont.ttf') format('truetype'),
+         url('../fonts/audimat-regular-webfont.svg#audimatregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/**
+ * Make 1rem equal 10px
+ */
+html {
+    font-size: 62.5%;
+}
+
+
+// apply a natural box layout model to all elements, but allowing
+// components to change
+html {
+  box-sizing: border-box;
+  }
+
+  *, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/**
+ * Basic styling
+ */
+body {
+    font-family: $base-font-family;
+    font-size: $base-font-size;
+    line-height: $base-line-height;
+    font-weight: 300;
+    color: $text-color;
+    background-color: $background-color;
+    -webkit-text-size-adjust: 100%;
+}
+
+a {
+    text-decoration: none;
+    color: #3771C8;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #2C5AA0;
+}
+
+h1, h2, h3 {
+    font-family: $title-font-family;
+}
+
+h1 {
+    font-size: 7rem;
+    display: inline-block;
+    margin: 0.5rem auto;
+}
+
+h2 {
+    font-size: 5rem;
+    margin: 0.5rem auto;
+}
+
+h3 {
+    font-size: 3rem;
+    margin: 0.5rem auto;
+}
+
+/**
+ * Lists
+ */
+ul, ol {
+    margin-left: $spacing-unit;
+}
+
+li {
+    > ul,
+    > ol {
+         margin-bottom: 0;
+    }
+}
+
+p {
+    font-size: 1.8rem;
+    max-width: 80rem;
+}
+
+/**
+ * Images
+ */
+img {
+    max-width: 100%;
+    vertical-align: middle;
+}

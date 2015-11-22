@@ -1,0 +1,26 @@
+---
+layout: default
+---
+
+{% include header.html %}
+<section class="main">
+    {{ content }}
+    <form method="POST" action="/" id="dockerfile__form" class="dockerfile__form">
+        <div class="dockerfile__container">
+          <textarea id="dockerfile__code">
+FROM debian
+
+RUN apt-get upgrade
+RUN apt-get update && apt-get install vim
+
+COPY requirements.txt /usr/src/app
+RUN cd /usr/src/app && pip install -r requirements.txt
+
+ENV PYTHON_UNBUFFERED = 80
+ENV LOCALE = "en-us"
+EXPOSE 80000
+          </textarea>
+        </div>
+        <button type="button" class="button">Analyze</button>
+    </form>
+</section>

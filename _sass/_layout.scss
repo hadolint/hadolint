@@ -1,0 +1,16 @@
+.header {
+    margin: $spacing-unit;
+
+    &__brand {
+        &-logo {
+            max-width: 100px;
+        }
+        &-title {
+            color: $brand-color;
+        }
+    }
+}
+
+.main {
+    margin: $spacing-unit;
+}
