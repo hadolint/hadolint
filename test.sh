@@ -36,7 +36,7 @@ function lint_dockerfiles() {
 }
 
 function main() {
-    #clone_repos
+    clone_repos
     lint_dockerfiles
 }
 

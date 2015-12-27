@@ -126,8 +126,8 @@ add = do
 expose :: Parser Instruction
 expose = do
   reserved "EXPOSE"
-  port <- natural
-  return $ Expose port
+  ports <- many natural
+  return $ Expose ports
 
 run :: Parser Instruction
 run = do
@@ -202,9 +202,16 @@ entrypoint = do
   args <- arguments
   return $ Entrypoint args
 
+onbuild :: Parser Instruction
+onbuild = do
+  reserved "ONBUILD"
+  i <- parseInstruction
+  return $ OnBuild i
+
 parseInstruction :: Parser Instruction
 parseInstruction
-    = try from
+    = try onbuild
+    <|> try from
     <|> try copy
     <|> try run
     <|> try workdir
