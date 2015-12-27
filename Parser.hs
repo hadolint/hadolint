@@ -87,6 +87,13 @@ pair = do
   value <- singleValue
   return (key, value)
 
+singlePair :: Parser Pairs
+singlePair = do
+  key <- singleValue
+  oneOf " "
+  value <- singleValue
+  return [(key, value)]
+
 pairs :: Parser Pairs
 pairs = sepBy pair (char ' ')
 
@@ -99,7 +106,7 @@ label = do
 env :: Parser Instruction
 env = do
   reserved "ENV"
-  p <- pairs
+  p <- try pairs <|> try singlePair
   return $ Env p
 
 user :: Parser Instruction
