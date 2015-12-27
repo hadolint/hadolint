@@ -2,5 +2,7 @@ sudo: required
 language: generic
 services:
 - docker
-script:
+before_script:
 - docker build -t lukasmartinelli/hadolint .
+script:
+- docker run --rm lukasmartinelli/hadolint bash test.sh

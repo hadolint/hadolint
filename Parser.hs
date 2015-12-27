@@ -49,14 +49,12 @@ from :: Parser Instruction
 from = do
   reserved "FROM"
   image <- baseImage
-  many eol
   return $ From image
 
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
   args <- arguments
-  eol
   return $ Cmd args
 
 copy :: Parser Instruction
@@ -65,14 +63,12 @@ copy = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  eol
   return $ Copy src dst
 
 stopsignal :: Parser Instruction
 stopsignal = do
   reserved "STOPSIGNAL"
   args <- many (noneOf "\n")
-  eol
   return $ Stopsignal args
 
 quotedValue:: Parser String
@@ -91,6 +87,13 @@ pair = do
   value <- singleValue
   return (key, value)
 
+singlePair :: Parser Pairs
+singlePair = do
+  key <- singleValue
+  oneOf " "
+  value <- singleValue
+  return [(key, value)]
+
 pairs :: Parser Pairs
 pairs = sepBy pair (char ' ')
 
@@ -98,14 +101,12 @@ label :: Parser Instruction
 label = do
   reserved "LABEL"
   p <- pairs
-  eol
   return $ Label p
 
 env :: Parser Instruction
 env = do
   reserved "ENV"
-  p <- pairs
-  eol
+  p <- try pairs <|> try singlePair
   return $ Env p
 
 user :: Parser Instruction
@@ -120,21 +121,18 @@ add = do
   src <- many (noneOf " ")
   Token.whiteSpace lexer
   dst <- many (noneOf "\n")
-  eol
   return $ Add src dst
 
 expose :: Parser Instruction
 expose = do
   reserved "EXPOSE"
-  port <- natural
-  eol
-  return $ Expose port
+  ports <- many natural
+  return $ Expose ports
 
 run :: Parser Instruction
 run = do
   reserved "RUN"
   cmd <- multilineArguments
-  many eol
   return $ Run cmd
 
 -- Entire value until end of line, if line ends with escape character
@@ -154,21 +152,18 @@ multiline = do
 untilEol :: Parser String
 untilEol = do
   line <- many (noneOf "\n")
-  many eol
   return line
 
 workdir :: Parser Instruction
 workdir = do
   reserved "WORKDIR"
   directory <- many (noneOf "\n")
-  eol
   return $ Workdir directory
 
 volume :: Parser Instruction
 volume = do
   reserved "VOLUME"
   directory <- many (noneOf "\n")
-  eol
   return $ Volume directory
 
 maintainer :: Parser Instruction
@@ -181,14 +176,12 @@ maintainer = do
 argumentsExec :: Parser Arguments
 argumentsExec = do
   args <- brackets $ commaSep stringLiteral
-  eol
   return args
 
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
 argumentsShell = do
   args <- sepBy rawValue (char ' ')
-  eol
   return args
 
 -- Parse arguments of a command in the shell form
@@ -207,12 +200,18 @@ entrypoint :: Parser Instruction
 entrypoint = do
   reserved "ENTRYPOINT"
   args <- arguments
-  eol
   return $ Entrypoint args
+
+onbuild :: Parser Instruction
+onbuild = do
+  reserved "ONBUILD"
+  i <- parseInstruction
+  return $ OnBuild i
 
 parseInstruction :: Parser Instruction
 parseInstruction
-    = try from
+    = try onbuild
+    <|> try from
     <|> try copy
     <|> try run
     <|> try workdir
@@ -236,12 +235,13 @@ contents p = do
     return r
 
 eol :: Parser ()
-eol = void (char '\n') <|> eof
+eol = (char '\n' <|> (char '\r' >> option '\n' (char '\n'))) >> return ()
 
 dockerfile :: Parser Dockerfile
 dockerfile = many $ do
     pos <- getPosition
     i <- parseInstruction
+    many eol
     return $ InstructionPos i $ sourceLine pos
 
 parseString :: String -> Either ParseError Dockerfile

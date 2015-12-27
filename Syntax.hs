@@ -29,12 +29,13 @@ data Instruction
   | Run Arguments
   | Cmd Arguments
   | Workdir Directory
-  | Expose Port
+  | Expose [Port]
   | Volume String
   | Entrypoint Arguments
   | Maintainer String
   | Env Pairs
   | Comment String
+  | OnBuild Instruction
   deriving (Eq, Ord, Show)
 
 type Linenumber = Int
