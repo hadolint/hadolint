@@ -60,6 +60,20 @@ function clone_repos() {
     git_clone https://github.com/Netflix-Skunkworks/zerotodocker.git &
     git_clone https://github.com/amplab/docker-scripts.git &
     git_clone https://github.com/oracle/docker-images.git &
+    git_clone https://github.com/dockerfile/ubuntu-desktop.git &
+    git_clone https://github.com/splitbrain/docker-phpfarm.git &
+    git_clone https://github.com/yesnault/docker-phabricator.git &
+
+    # colliding names
+    git clone --quiet --depth 1 https://github.com/yaronr/dockerfile.git yaronr-dockerfile &
+    git clone --quiet --depth 1 https://github.com/seapy/dockerfiles.git seapy-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/nickstenning/dockerfiles.git nickstenning-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/crosbymichael/Dockerfiles.git crosbymichael-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/SvenDowideit/dockerfiles.git svendowideit-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/codenvy/dockerfiles.git codenvy-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/couchbase/docker.git couchbase-docker &
+    git clone --quiet --depth 1 https://github.com/EvaEngine/Dockerfiles.git evaengine-dockerfiles &
+    git clone --quiet --depth 1 https://github.com/yankcrime/dockerfiles.git yankcrime-dockerfiles &
 
     wait
     cd "$CWD"
