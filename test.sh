@@ -11,6 +11,12 @@ function git_clone() {
     git clone --quiet --depth 1 "$git_url"
 }
 
+function git_named_clone() {
+    local git_url="$1"
+    local dir="$2"
+    git clone --quiet --depth 1 "$git_url" "$dir"
+}
+
 function clone_repos() {
     rm -rf "$TESTS_DIR" && mkdir -p "$TESTS_DIR" && cd "$TESTS_DIR"
     # offical docker images
@@ -65,15 +71,15 @@ function clone_repos() {
     git_clone https://github.com/yesnault/docker-phabricator.git &
 
     # colliding names
-    git clone --quiet --depth 1 https://github.com/yaronr/dockerfile.git yaronr-dockerfile &
-    git clone --quiet --depth 1 https://github.com/seapy/dockerfiles.git seapy-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/nickstenning/dockerfiles.git nickstenning-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/crosbymichael/Dockerfiles.git crosbymichael-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/SvenDowideit/dockerfiles.git svendowideit-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/codenvy/dockerfiles.git codenvy-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/couchbase/docker.git couchbase-docker &
-    git clone --quiet --depth 1 https://github.com/EvaEngine/Dockerfiles.git evaengine-dockerfiles &
-    git clone --quiet --depth 1 https://github.com/yankcrime/dockerfiles.git yankcrime-dockerfiles &
+    git_named_clone https://github.com/yaronr/dockerfile.git yaronr-dockerfile &
+    git_named_clone https://github.com/seapy/dockerfiles.git seapy-dockerfiles &
+    git_named_clone https://github.com/nickstenning/dockerfiles.git nickstenning-dockerfiles &
+    git_named_clone https://github.com/crosbymichael/Dockerfiles.git crosbymichael-dockerfiles &
+    git_named_clone https://github.com/SvenDowideit/dockerfiles.git svendowideit-dockerfiles &
+    git_named_clone https://github.com/codenvy/dockerfiles.git codenvy-dockerfiles &
+    git_named_clone https://github.com/couchbase/docker.git couchbase-docker &
+    git_named_clone https://github.com/EvaEngine/Dockerfiles.git evaengine-dockerfiles &
+    git_named_clone https://github.com/yankcrime/dockerfiles.git yankcrime-dockerfiles &
 
     wait
     cd "$CWD"
