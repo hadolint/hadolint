@@ -1,8 +1,19 @@
 # Dockerfile Linter written in Haskell [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
 
-There are a few existing Dockerfile linters out there where none has any real adoption. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage.
+
+A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
+The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage.
+
+## Get Started
+
+Try it out online: http://hadolint.lukasmartinelli.ch/
+
+The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile
+into the code editor.
 
 ## Checks
+
+List of implemented checks. Take a look into `Analyzer.hs` to find the implementation of the rules.
 
 | Check                | Description
 |----------------------|-----------------------------------
@@ -14,17 +25,6 @@ There are a few existing Dockerfile linters out there where none has any real ad
 | **WgetOrCurl**       | Either use Wget or Curl but not both
 | **HasMaintainer**    | Specify a maintainer of the Dockerfile
 | **AbsoluteWorkdir**  | Use absolute WORKDIR
-
-## Parsing
-
-The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is using the lexer `Lexer.hs` and parser `Parser.hs`.
-
-Parser is nearly complete. There are still some problems with newlines and escape characters though.
-
-## AST
-
-Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).
-Just take a look at `Syntax.hs` to see the AST definition.
 
 ## Develop
 
@@ -45,3 +45,16 @@ In the REPL you can load the parser code with `:l Parser.hs` and use `parseStrin
 ```
 parseString "FROM debian:jessie"
 ```
+
+
+### Parsing
+
+The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is using the lexer `Lexer.hs` and parser `Parser.hs`.
+
+Parser is nearly complete. There are still some problems with newlines and escape characters though.
+
+### AST
+
+Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).
+Just take a look at `Syntax.hs` to see the AST definition.
+
