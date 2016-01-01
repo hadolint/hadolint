@@ -24,6 +24,25 @@ function clone_repos() {
     git clone https://github.com/docker-library/elasticsearch.git
     git clone https://github.com/docker-library/kibana.git
     git clone https://github.com/docker-library/php.git
+    git clone https://github.com/docker-library/mongo.git
+    git clone https://github.com/docker-library/gcc.git
+    git clone https://github.com/docker-library/httpd.git
+    git clone https://github.com/docker-library/java.git
+    git clone https://github.com/docker-library/wordpress.git
+    git clone https://github.com/docker-library/tomcat.git
+    git clone https://github.com/docker-library/logstash.git
+    git clone https://github.com/docker-library/julia.git
+    git clone https://github.com/docker-library/busybox.git
+    git clone https://github.com/docker-library/percona.git
+    git clone https://github.com/docker-library/django.git
+    git clone https://github.com/docker-library/memcached.git
+    git clone https://github.com/docker-library/docker.git
+    git clone https://github.com/docker-library/rails.git
+    git clone https://github.com/docker-library/pypy.git
+    git clone https://github.com/docker-library/hello-world.git
+    git clone https://github.com/docker-library/celery.git
+    git clone https://github.com/nodejs/docker-node.git
+    git clone https://github.com/nginxinc/docker-nginx.git
     cd "$CWD"
 }
 
