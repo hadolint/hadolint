@@ -68,15 +68,10 @@ function clone_repos() {
 function lint_dockerfiles() {
     cabal build
     local hadolint_bin="./dist/build/hadolint/hadolint"
-    red=`tput setaf 1`
-    reset=`tput sgr0`
     local dockerfiles=$(find . -name 'Dockerfile')
     for dockerfile in $dockerfiles; do
         echo "Lint $dockerfile"
-
-        printf "${red}"
         $hadolint_bin "$dockerfile"
-        printf "${reset}"
     done
 }
 
