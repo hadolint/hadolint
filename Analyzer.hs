@@ -102,3 +102,9 @@ noUpgrade = instructionRule name msg category check
           check (Run args) = Just $ True
           check _ = Nothing
 
+noLatestTag = instructionRule name msg category check
+    where name = "NoLatestTag"
+          msg = "Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag."
+          category = BestPractice
+          check (From (LatestImage _)) = Just $ False
+          check _ = Nothing

@@ -4,10 +4,9 @@ There are a few existing Dockerfile linters out there where none has any real ad
 
 ## Checks
 
-| Check                 | Description
-|-----------------------|-----------------------------------
-| **ExplicitTag**      | Always specify base images explicitly. Instead of `FROM debian` use `FROM debian:jessie`.
-| **NoLatestTag**      | Using `FROM debian:latest` is prone to errors if the `latest` debian image will ever update. Pin the version explicitely to a release like `FROM debian:jessie`.
+| Check                | Description
+|----------------------|-----------------------------------
+| **NoLatestTag**      | Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag.
 | **NoSudo**           | Do not use `sudo` as it leas to unpredictable behavior. Use a tool like `gosu` to enforce root.
 | **NoUpgrade**        | Do not use `apt-get upgrade` or `dist-upgrade`.
 | **NoCd**             | Use WORKDIR to switch to a directory
