@@ -6,13 +6,15 @@ There are a few existing Dockerfile linters out there where none has any real ad
 
 | Check                 | Description
 |-----------------------|-----------------------------------
-| **ExplicitTag:**      | Always specify base images explicitly. Instead of `FROM debian` use `FROM debian:jessie`.
-| **NoLatestTag:**      | Using `FROM debian:latest` is prone to errors if the `latest` debian image will ever update. Pin the version explicitely to a release like `FROM debian:jessie`.
-| **OfficialBaseImage:**| It is a best practice to base your own images on official base image to ensure you will later from potential later upgrades.
-| **ChainEnv:**         | Use `ENV bar=foo foo=bar` instead of two separate instructions `ENV bar=foo` and `ENV foo=bar`. This improve build speed and reduce amoutn of layers.
-| **FetchInRun:**       | Do not use `ADD https://my-big-download` for fetching files. Use `curl` or `wget` in a `RUN` instruction instead.
-| **NoSudo:**           | Do not use `sudo` as it leas to unpredictable behavior. Use a tool like `gosu` to enforce root.
-| **NoUpgrade:**        | Do not use `apt-get upgrade` or `dist-upgrade`.
+| **ExplicitTag**      | Always specify base images explicitly. Instead of `FROM debian` use `FROM debian:jessie`.
+| **NoLatestTag**      | Using `FROM debian:latest` is prone to errors if the `latest` debian image will ever update. Pin the version explicitely to a release like `FROM debian:jessie`.
+| **NoSudo**           | Do not use `sudo` as it leas to unpredictable behavior. Use a tool like `gosu` to enforce root.
+| **NoUpgrade**        | Do not use `apt-get upgrade` or `dist-upgrade`.
+| **NoCd**             | Use WORKDIR to switch to a directory
+| **InvalidCmd**       | For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`
+| **WgetOrCurl**       | Either use Wget or Curl but not both
+| **HasMaintainer**    | Specify a maintainer of the Dockerfile
+| **AbsoluteWorkdir**  | Use absolute WORKDIR
 
 ## Parsing
 
