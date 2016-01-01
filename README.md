@@ -1,15 +1,9 @@
 # Dockerfile Linter written in Haskell [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
 
-
-A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
-The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage.
-
-## Get Started
-
 Try it out online: http://hadolint.lukasmartinelli.ch/
 
-The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile
-into the code editor.
+A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
+The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage. The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile into the code editor.
 
 ## Checks
 
@@ -46,15 +40,11 @@ In the REPL you can load the parser code with `:l Parser.hs` and use `parseStrin
 parseString "FROM debian:jessie"
 ```
 
-
 ### Parsing
 
 The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is using the lexer `Lexer.hs` and parser `Parser.hs`.
-
 Parser is nearly complete. There are still some problems with newlines and escape characters though.
 
 ### AST
 
-Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).
-Just take a look at `Syntax.hs` to see the AST definition.
-
+Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
