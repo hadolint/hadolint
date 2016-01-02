@@ -239,6 +239,7 @@ eol = (char '\n' <|> (char '\r' >> option '\n' (char '\n'))) >> return ()
 
 dockerfile :: Parser Dockerfile
 dockerfile = many $ do
+    skipMany space -- deal with empty lines that only contain spaces
     pos <- getPosition
     i <- parseInstruction
     many eol
