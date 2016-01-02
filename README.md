@@ -1,9 +1,11 @@
 # Dockerfile Linter written in Haskell [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
 
+<img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
+
 Try it out online: http://hadolint.lukasmartinelli.ch/
 
 A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
-The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing so easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage. The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile into the code editor.
+The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing easy easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage. The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile into the code editor.
 
 ## Checks
 
@@ -43,7 +45,6 @@ parseString "FROM debian:jessie"
 ### Parsing
 
 The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is using the lexer `Lexer.hs` and parser `Parser.hs`.
-Parser is nearly complete. There are still some problems with newlines and escape characters though.
 
 ### AST
 
