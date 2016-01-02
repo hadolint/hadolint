@@ -3,7 +3,7 @@ module Analyzer(analyze, appliedChecks, failedChecks, successfulChecks, Check(..
 import Syntax
 import Rules
 import Data.Maybe (isJust, fromMaybe)
-import Data.List (intercalate)
+import Data.List (intercalate, isInfixOf)
 
 data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
 
@@ -96,14 +96,14 @@ noSudo = instructionRule name msg category check
     where name = "NoSudo"
           msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
           category = BestPractice
-          check (Run args) = Just $ notElem "sudo" args
+          check (Run args) = Just $ notElem (head args) ["sudo"]
           check _ = Nothing
 
 noUpgrade = instructionRule name msg category check
     where name = "NoUpgrade"
           msg = "Do not use apt-get upgrade or dist-upgrade."
           category = BestPractice
-          check (Run args) = Just $ True
+          check (Run args) = Just $ not $ isInfixOf ["apt-get", "upgrade"] args
           check _ = Nothing
 
 noLatestTag = instructionRule name msg category check
