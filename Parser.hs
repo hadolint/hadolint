@@ -140,7 +140,7 @@ run = do
 -- is reached
 multiline :: Parser String
 multiline = do
-  line <- many (noneOf "\n")
+  line <- untilEol
   eol
   if head (reverse line) == '\\'
     then do
@@ -239,7 +239,9 @@ eol = (char '\n' <|> (char '\r' >> option '\n' (char '\n'))) >> return ()
 
 dockerfile :: Parser Dockerfile
 dockerfile = many $ do
-    skipMany space -- deal with empty lines that only contain spaces
+    -- deal with empty lines that only contain spaces or tabs
+    skipMany space
+    skipMany $ char '\t'
     pos <- getPosition
     i <- parseInstruction
     many eol
