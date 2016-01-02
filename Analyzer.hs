@@ -4,6 +4,7 @@ import Syntax
 import Rules
 import Data.Maybe (isJust, fromMaybe)
 import Data.List (intercalate, isInfixOf)
+import Data.List.Split (splitOneOf)
 
 data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
 
@@ -25,6 +26,10 @@ analyze dockerfile = dockerfileChecks ++ instructionChecks
 appliedChecks checks = [c | c <- checks, isJust (eval c)]
 failedChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == False]
 successfulChecks checks = [c | c <- appliedChecks checks, fromMaybe False (eval c)]
+
+-- Split different bash commands
+bashCommands :: [String] -> [[String]]
+bashCommands args = splitOneOf [";", "|", "&&"] args
 
 -- Documentation for each rule
 rulesDocs = unlines [name r ++ "\t " ++ message r | r <- rules]
@@ -55,6 +60,8 @@ hasMaintainer = dockerfileRule name msg category check
           maintainer (Maintainer _) = True
           maintainer _              = False
 
+-- Check if a command contains a program call in the Run instruction
+usingProgram prog args = or $ [(head cmds) == prog | cmds <- bashCommands args]
 
 wgetOrCurl = dockerfileRule name msg category check
     where name = "WgetOrCurl"
@@ -89,14 +96,14 @@ noCd = instructionRule name msg category check
     where name ="NoCd"
           msg = "Use WORKDIR to switch to a directory"
           category = BestPractice
-          check (Run args) = Just $ notElem "cd" args
+          check (Run args) = Just $ not $ usingProgram "cd" args
           check _ = Nothing
 
 noSudo = instructionRule name msg category check
     where name = "NoSudo"
           msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
           category = BestPractice
-          check (Run args) = Just $ notElem (head args) ["sudo"]
+          check (Run args) = Just $ not $ usingProgram "sudo" args
           check _ = Nothing
 
 noUpgrade = instructionRule name msg category check
