@@ -103,6 +103,12 @@ label = do
   p <- pairs
   return $ Label p
 
+arg :: Parser Instruction
+arg = do
+  reserved "ARG"
+  p <- try pairs <|> try singlePair
+  return $ Arg p
+
 env :: Parser Instruction
 env = do
   reserved "ENV"
@@ -219,6 +225,7 @@ parseInstruction
     <|> try volume
     <|> try expose
     <|> try env
+    <|> try arg
     <|> try user
     <|> try label
     <|> try stopsignal
