@@ -6,4 +6,4 @@ before_script:
 - docker build -t lukasmartinelli/hadolint .
 script:
 - docker run --rm lukasmartinelli/hadolint cabal test
-- docker run --rm lukasmartinelli/hadolint bash test.sh
+- docker run --rm lukasmartinelli/hadolint bash integration_test.sh
