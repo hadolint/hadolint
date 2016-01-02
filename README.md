@@ -11,16 +11,19 @@ The linter is parsing the Dockerfile into an AST and performs rules on top of th
 
 List of implemented checks. Take a look into `Analyzer.hs` to find the implementation of the rules.
 
-| Check                | Description
-|----------------------|-----------------------------------
-| **NoLatestTag**      | Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag.
-| **NoSudo**           | Do not use `sudo` as it leas to unpredictable behavior. Use a tool like `gosu` to enforce root.
-| **NoUpgrade**        | Do not use `apt-get upgrade` or `dist-upgrade`.
-| **NoCd**             | Use WORKDIR to switch to a directory
-| **InvalidCmd**       | For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`
-| **WgetOrCurl**       | Either use Wget or Curl but not both
-| **HasMaintainer**    | Specify a maintainer of the Dockerfile
-| **AbsoluteWorkdir**  | Use absolute WORKDIR
+| Rule                 | Description                                                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  AbsoluteWorkdir     |  Use absolute WORKDIR                                                                                                                                                   |
+| HasMaintainer        |  Specify a maintainer of the Dockerfile                                                                                                                                 |
+| WgetOrCurl           |  Either use Wget or Curl but not both                                                                                                                                   |
+| InvalidCmd           |  For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig` |
+| NoRoot               |  Do not switch to root USER                                                                                                                                             |
+| NoCd                 |  Use WORKDIR to switch to a directory                                                                                                                                   |
+| NoSudo               |  Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root.                                                                           |
+| NoUpgrade            |  Do not use apt-get upgrade or dist-upgrade.                                                                                                                            |
+| NoLatestTag          |  Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag.                                                           |
+| NoUntagged           |  Always tag the version of an image explicitely.                                                                                                                        |
+| AptGetVersionPinning |  Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>                                                       |
 
 ## Develop
 
