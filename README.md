@@ -48,3 +48,9 @@ Parser is nearly complete. There are still some problems with newlines and escap
 ### AST
 
 Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
+
+## Alternatives
+
+- https://github.com/RedCoolBeans/dockerlint/
+- https://github.com/projectatomic/dockerfile_lint/
+- http://dockerfile-linter.com/
