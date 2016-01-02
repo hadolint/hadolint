@@ -26,6 +26,9 @@ appliedChecks checks = [c | c <- checks, isJust (eval c)]
 failedChecks checks = [c | c <- appliedChecks checks, (fromMaybe False (eval c)) == False]
 successfulChecks checks = [c | c <- appliedChecks checks, fromMaybe False (eval c)]
 
+-- Documentation for each rule
+rulesDocs = unlines [name r ++ "\t " ++ message r | r <- rules]
+
 rules = [ absoluteWorkdir
         , hasMaintainer
         , wgetOrCurl

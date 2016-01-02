@@ -8,7 +8,8 @@ RUN apt-get update \
 
 WORKDIR /opt/hadolint/
 ADD ./hadolint.cabal /opt/hadolint/hadolint.cabal
-RUN cabal install --only-dependencies -j4
+RUN cabal install --only-dependencies -j4 --enable-tests \
+ && cabal configure --enable-tests
 
 ADD ./ /opt/hadolint
 RUN cabal install
