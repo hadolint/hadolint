@@ -34,6 +34,7 @@ rules = [ absoluteWorkdir
         , noCd
         , noSudo
         , noUpgrade
+        , noLatestTag
         ]
 
 absoluteWorkdir = instructionRule name msg category check
@@ -107,4 +108,5 @@ noLatestTag = instructionRule name msg category check
           msg = "Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag."
           category = BestPractice
           check (From (LatestImage _)) = Just $ False
+          check (From (TaggedImage _ "latest")) = Just $ False
           check _ = Nothing

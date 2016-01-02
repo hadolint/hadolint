@@ -14,7 +14,7 @@ data Rule = Rule { name :: String,
                  }
 
 instance Show Rule where
-    show (Rule name _ cat _ _) = "Rule " ++ show name
+    show (Rule name _ _ _ _) = "Rule " ++ show name
 
 noInstruction :: InstructionCheck
 noInstruction _ = Nothing
