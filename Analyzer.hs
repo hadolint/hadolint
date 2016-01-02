@@ -4,7 +4,7 @@ import Syntax
 import Rules
 import Data.Maybe (isJust, fromMaybe)
 import Data.List (intercalate, isInfixOf)
-import Data.List.Split (splitOneOf)
+import Data.List.Split (splitOneOf, splitOn)
 
 data Check = DockerfileCheck Rule Dockerfile | InstructionCheck Rule InstructionPos
 
@@ -44,6 +44,7 @@ rules = [ absoluteWorkdir
         , noUpgrade
         , noLatestTag
         , noUntagged
+        , aptGetVersionPinned
         ]
 
 absoluteWorkdir = instructionRule name msg category check
@@ -129,3 +130,14 @@ noLatestTag = instructionRule name msg category check
           check (From (TaggedImage _ "latest")) = Just $ False
           check (From (TaggedImage _ _)) = Just $ True
           check _ = Nothing
+
+aptGetVersionPinned = instructionRule name msg category check
+    where name = "AptGetVersionPinning"
+          msg = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
+          category = BestPractice
+          check (Run args) = Just $ and $ [versionFixed p | p <- packages args]
+          check _ = Nothing
+          versionFixed package = isInfixOf "=" package
+          packages :: [String] -> [String]
+          packages args = concat [drop 2 cmd | cmd <- bashCommands args, isInstall cmd]
+          isInstall cmd = isInfixOf ["apt-get", "install"] cmd

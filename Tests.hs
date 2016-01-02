@@ -36,6 +36,7 @@ no_invalid_cmd_after_program = TestCase $ assertOneSucceeded "InvalidCmd" "RUN a
 
 apt_upgrade = TestCase $ assertOneFailed "NoUpgrade" "RUN apt-get update && apt-get upgrade" "Should find forbidden upgrade command"
 
+apt_get_version_pinning = TestCase $ assertOneFailed "AptGetVersionPinning" "RUN apt-get update && apt-get install python" "Should find unpinned package version"
 
 tests = TestList [ TestLabel "untagged" untagged
                  , TestLabel "explicit_latest" explicit_latest
@@ -46,6 +47,7 @@ tests = TestList [ TestLabel "untagged" untagged
                  , TestLabel "invalid_cmd" invalid_cmd
                  , TestLabel "no_invalid_cmd_after_program" no_invalid_cmd_after_program
                  , TestLabel "apt_upgrade" apt_upgrade
+                 , TestLabel "apt_get_version_pinning" apt_get_version_pinning
                  ]
 
 main = defaultMain $ hUnitTestToTests tests
