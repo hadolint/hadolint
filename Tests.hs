@@ -1,9 +1,12 @@
-import Test.HUnit
 import Analyzer
 import Parser
 import Rules
 import Data.List (find)
 import Data.Maybe (isJust, fromMaybe)
+
+import Test.HUnit
+import Test.Framework
+import Test.Framework.Providers.HUnit
 
 assertChecks ruleName s f = case parseString s of
     Left err -> assertFailure $ show err
@@ -23,7 +26,9 @@ implicit_latest = TestCase $ assertOneFailed "NoLatestTag" "FROM debian" "Should
 explicit_latest = TestCase $ assertOneFailed "NoLatestTag" "FROM debian:latest" "Should find explicit latest tag"
 no_latest = TestCase $ assertOneSucceeded "NoLatestTag" "FROM debian:jessie" "Should find no latest tag"
 
-tests = TestList [ TestLabel "NoLatestTag" implicit_latest
-                 , TestLabel "NoLatestTag" explicit_latest
-                 , TestLabel "NoLatestTag" no_latest
+tests = TestList [ TestLabel "implicit_latest" implicit_latest
+                 , TestLabel "explicit_latest" explicit_latest
+                 , TestLabel "no_latest" no_latest
                  ]
+
+main = defaultMain $ hUnitTestToTests tests

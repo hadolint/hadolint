@@ -109,4 +109,5 @@ noLatestTag = instructionRule name msg category check
           category = BestPractice
           check (From (LatestImage _)) = Just $ False
           check (From (TaggedImage _ "latest")) = Just $ False
+          check (From (TaggedImage _ _)) = Just $ True
           check _ = Nothing
