@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install vim
 COPY requirements.txt /usr/src/app
 RUN cd /usr/src/app && pip install -r requirements.txt
 
-ENV PYTHON_UNBUFFERED = 80
-ENV LOCALE = "en-us"
+ENV PYTHON_UNBUFFERED=80
+ENV LOCALE="en-us"
 EXPOSE 80000
           </textarea>
         </div>
