@@ -43,6 +43,7 @@ rules = [ absoluteWorkdir
         , noSudo
         , noUpgrade
         , noLatestTag
+        , noUntagged
         ]
 
 absoluteWorkdir = instructionRule name msg category check
@@ -113,11 +114,18 @@ noUpgrade = instructionRule name msg category check
           check (Run args) = Just $ not $ isInfixOf ["apt-get", "upgrade"] args
           check _ = Nothing
 
+noUntagged = instructionRule name msg category check
+    where name = "NoUntagged"
+          msg = "Always tag the version of an image explicitely."
+          category = BestPractice
+          check (From (UntaggedImage _)) = Just $ False
+          check (From (TaggedImage _ _)) = Just $ True
+          check _ = Nothing
+
 noLatestTag = instructionRule name msg category check
     where name = "NoLatestTag"
           msg = "Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag."
           category = BestPractice
-          check (From (LatestImage _)) = Just $ False
           check (From (TaggedImage _ "latest")) = Just $ False
           check (From (TaggedImage _ _)) = Just $ True
           check _ = Nothing

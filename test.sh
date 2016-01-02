@@ -14,7 +14,7 @@ function git_clone() {
 function git_named_clone() {
     local git_url="$1"
     local dir="$2"
-    git clone --depth 1 "$git_url" "$dir"
+    git clone --quiet --depth 1 "$git_url" "$dir"
 }
 
 function clone_repos() {

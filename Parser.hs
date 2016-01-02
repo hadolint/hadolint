@@ -38,7 +38,7 @@ digestedImage = do
 untaggedImage :: Parser BaseImage
 untaggedImage = do
   name <- many (noneOf "\n")
-  return $ LatestImage name
+  return $ UntaggedImage name
 
 baseImage :: Parser BaseImage
 baseImage = try taggedImage

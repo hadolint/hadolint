@@ -8,7 +8,7 @@ type Port = Integer
 type Directory = String
 
 data BaseImage
-  = LatestImage Image
+  = UntaggedImage Image
   | TaggedImage Image Tag
   | DigestedImage Image ByteString
   deriving (Eq, Ord, Show)

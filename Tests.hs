@@ -22,7 +22,8 @@ assertOneFailed ruleName s msg = assertChecks ruleName s f
 assertOneSucceeded ruleName s msg = assertChecks ruleName s f
     where f checks = assertEqual msg 1 (length $ successfulChecks checks)
 
-implicit_latest = TestCase $ assertOneFailed "NoLatestTag" "FROM debian" "Should find implicit latest tag"
+untagged = TestCase $ assertOneFailed "NoUntagged" "FROM debian" "Should find untagged"
+
 explicit_latest = TestCase $ assertOneFailed "NoLatestTag" "FROM debian:latest" "Should find explicit latest tag"
 no_latest = TestCase $ assertOneSucceeded "NoLatestTag" "FROM debian:jessie" "Should find no latest tag"
 
@@ -36,7 +37,7 @@ no_invalid_cmd_after_program = TestCase $ assertOneSucceeded "InvalidCmd" "RUN a
 apt_upgrade = TestCase $ assertOneFailed "NoUpgrade" "RUN apt-get update && apt-get upgrade" "Should find forbidden upgrade command"
 
 
-tests = TestList [ TestLabel "implicit_latest" implicit_latest
+tests = TestList [ TestLabel "untagged" untagged
                  , TestLabel "explicit_latest" explicit_latest
                  , TestLabel "no_latest" no_latest
                  , TestLabel "no_sudo_after_program" no_sudo_after_program
