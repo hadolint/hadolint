@@ -208,7 +208,7 @@ pipVersionPinned = instructionRule name message check
 
 aptGetYes = instructionRule name message check
     where name = "AptGetYes"
-          message = "Use the -y switch: apt-get -y install <package>"
+          message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
           check (Run args) = if isInstall args
                              then hasYesOption args
                              else True
@@ -218,7 +218,7 @@ aptGetYes = instructionRule name message check
 
 aptGetNoRecommends = instructionRule name message check
     where name = "AptGetNoRecommends"
-          message = "Avoid additional packages by specifying --no-install-recommends"
+          message = "Avoid additional packages by specifying `--no-install-recommends`"
           check (Run args) = if isInstall args
                              then hasNoRecommendsOption args
                              else True
