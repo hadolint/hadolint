@@ -148,12 +148,20 @@ noLatestTag = instructionRule name message check
           check (From (TaggedImage _ _)) = True
           check _ = True
 
-aptGetVersionPinned = instructionRule name msg check
+aptGetVersionPinned = instructionRule name message check
     where name = "AptGetVersionPinning"
-          msg = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
+          message = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
           check (Run args) = and $ [versionFixed p | p <- packages args]
           check _ = True
           versionFixed package = isInfixOf "=" package
           packages :: [String] -> [String]
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isInstall cmd]
           isInstall cmd = isInfixOf ["apt-get", "install"] cmd
+
+aptGetCleanup = instructionRule name message check
+    where name = "AptGetCleanup"
+          message = "Delete the apt-get lists after installing something"
+          check (Run args) = if hasUpdate args then hasCleanup args else True
+          check _ = True
+          hasCleanup cmd = isInfixOf ["rm", "-rf", "/var/lib/apt/lists/*"] cmd
+          hasUpdate cmd = isInfixOf ["apt-get", "update"] cmd
