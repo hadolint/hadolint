@@ -47,17 +47,15 @@ rules = [ absoluteWorkdir
         , aptGetVersionPinned
         ]
 
-absoluteWorkdir = instructionRule name msg category check
+absoluteWorkdir = instructionRule name msg check
     where name = "AbsoluteWorkdir"
           msg = "Use absolute WORKDIR"
-          category = BestPractice
           check (Workdir dir) = Just $ head dir == '/'
           check _ = Nothing
 
-hasMaintainer = dockerfileRule name msg category check
+hasMaintainer = dockerfileRule name msg check
     where name = "HasMaintainer"
           msg = "Specify a maintainer of the Dockerfile"
-          category = BestPractice
           check dockerfile = Just $ or $ map maintainer dockerfile
           maintainer (Maintainer _) = True
           maintainer _              = False
@@ -65,10 +63,9 @@ hasMaintainer = dockerfileRule name msg category check
 -- Check if a command contains a program call in the Run instruction
 usingProgram prog args = or $ [(head cmds) == prog | cmds <- bashCommands args]
 
-wgetOrCurl = dockerfileRule name msg category check
+wgetOrCurl = dockerfileRule name msg check
     where name = "WgetOrCurl"
           msg = "Either use Wget or Curl but not both"
-          category = BestPractice
           check dockerfile = Just $ not $ anyCurl dockerfile && anyWget dockerfile
           anyCurl dockerfile = or $ map usingCurl dockerfile
           anyWget dockerfile = or $ map usingWget dockerfile
@@ -78,63 +75,55 @@ wgetOrCurl = dockerfileRule name msg category check
           usingCmd _ _            = False
 
 
-invalidCmd = instructionRule name msg category check
+invalidCmd = instructionRule name msg check
     where name = "InvalidCmd"
           msg = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-          category = BestPractice
           check (Run args) = Just $ notElem (head args) invalidCmds
           check _ = Nothing
           invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
-noRootUser = instructionRule name msg category check
+noRootUser = instructionRule name msg check
     where name = "NoRoot"
           msg = "Do not switch to root USER"
-          category = BestPractice
           check (User "root") = Just False
           check (User _) = Just True
           check _ = Nothing
 
-noCd = instructionRule name msg category check
+noCd = instructionRule name msg check
     where name ="NoCd"
           msg = "Use WORKDIR to switch to a directory"
-          category = BestPractice
           check (Run args) = Just $ not $ usingProgram "cd" args
           check _ = Nothing
 
-noSudo = instructionRule name msg category check
+noSudo = instructionRule name msg check
     where name = "NoSudo"
           msg = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
-          category = BestPractice
           check (Run args) = Just $ not $ usingProgram "sudo" args
           check _ = Nothing
 
-noUpgrade = instructionRule name msg category check
+noUpgrade = instructionRule name msg check
     where name = "NoUpgrade"
           msg = "Do not use apt-get upgrade or dist-upgrade."
-          category = BestPractice
           check (Run args) = Just $ not $ isInfixOf ["apt-get", "upgrade"] args
           check _ = Nothing
 
-noUntagged = instructionRule name msg category check
+noUntagged = instructionRule name msg check
     where name = "NoUntagged"
           msg = "Always tag the version of an image explicitely."
-          category = BestPractice
           check (From (UntaggedImage _)) = Just $ False
           check (From (TaggedImage _ _)) = Just $ True
           check _ = Nothing
 
-noLatestTag = instructionRule name msg category check
+noLatestTag = instructionRule name msg check
     where name = "NoLatestTag"
           msg = "Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag."
-          category = BestPractice
           check (From (TaggedImage _ "latest")) = Just $ False
           check (From (TaggedImage _ _)) = Just $ True
           check _ = Nothing
 
-aptGetVersionPinned = instructionRule name msg category check
+aptGetVersionPinned = instructionRule name msg check
     where name = "AptGetVersionPinning"
           msg = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
-          category = BestPractice
           check (Run args) = Just $ and $ [versionFixed p | p <- packages args]
           check _ = Nothing
           versionFixed package = isInfixOf "=" package
