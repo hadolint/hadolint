@@ -172,3 +172,9 @@ useAdd = instructionRule name message check
           check (Copy src dst) = and [not (isSuffixOf format src) | format <- archive_formats]
           check _ = True
           archive_formats = [".tar", ".gz", ".bz2", "xz"]
+
+invalidPort = instructionRule name message check
+    where name = "InvalidPort"
+          message = "Valid UNIX ports range from 0 to 65535"
+          check (Expose ports) = and [(p <= 65535) | p <- ports]
+          check _ = True
