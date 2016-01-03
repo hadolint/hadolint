@@ -32,6 +32,8 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "apt-get version pinning" ~: ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
              , "apt-get no cleanup" ~: ruleCatches aptGetCleanup "RUN apt-get update && apt-get install python"
              , "apt-get cleanup" ~: ruleCatchesNot aptGetCleanup "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
+             , "use add" ~: ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
+             , "use not add" ~: ruleCatchesNot useAdd "COPY package.json /usr/src/app"
              ]
 
 main = defaultMain $ hUnitTestToTests tests

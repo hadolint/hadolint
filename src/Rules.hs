@@ -2,7 +2,7 @@ module Rules where
 
 import Syntax
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
-import Data.List (intercalate, isInfixOf)
+import Data.List (intercalate, isInfixOf, isSuffixOf)
 import Data.List.Split (splitOneOf, splitOn)
 
 -- a check is the application of a rule which returns
@@ -165,3 +165,10 @@ aptGetCleanup = instructionRule name message check
           check _ = True
           hasCleanup cmd = isInfixOf ["rm", "-rf", "/var/lib/apt/lists/*"] cmd
           hasUpdate cmd = isInfixOf ["apt-get", "update"] cmd
+
+useAdd = instructionRule name message check
+    where name = "UseAdd"
+          message = "Use ADD for extracting archives into an image"
+          check (Copy src dst) = and [not (isSuffixOf format src) | format <- archive_formats]
+          check _ = True
+          archive_formats = [".tar", ".gz", ".bz2", "xz"]
