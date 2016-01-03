@@ -43,6 +43,11 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "pip requirements" ~: ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
              , "pip version not pinned" ~: ruleCatches pipVersionPinned "RUN pip install MySQL_python"
              , "pip version pinned" ~: ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
+             , "apt-get auto yes" ~: ruleCatches aptGetYes "RUN apt-get install python"
+             , "apt-get with auto yes" ~: ruleCatchesNot aptGetYes "RUN apt-get -y install python"
+             , "apt-get with auto expanded yes" ~: ruleCatchesNot aptGetYes "RUN apt-get --yes install python"
+             , "apt-get without install recommends" ~: ruleCatchesNot aptGetNoRecommends "RUN apt-get install --no-install-recommends python"
+             , "apt-get with install recommends" ~: ruleCatches aptGetNoRecommends "RUN apt-get install python"
              ]
 
 main = defaultMain $ hUnitTestToTests tests

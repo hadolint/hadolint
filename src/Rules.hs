@@ -53,7 +53,9 @@ analyze rules dockerfile = concat $ map unwrapChecks enforcedRules
           failed (_, success) = not success
 
 allRules = suggestionRules ++ bestPracticeRules
-suggestionRules = [ hasMaintainer ]
+suggestionRules = [ hasMaintainer
+                  , maintainerAddress
+                  ]
 bestPracticeRules = [ absoluteWorkdir
                     , wgetOrCurl
                     , invalidCmd
@@ -64,6 +66,12 @@ bestPracticeRules = [ absoluteWorkdir
                     , noLatestTag
                     , noUntagged
                     , aptGetVersionPinned
+                    , aptGetCleanup
+                    , useAdd
+                    , pipVersionPinned
+                    , invalidPort
+                    , aptGetNoRecommends
+                    , aptGetYes
                     ]
 
 -- Documentation for each rule
@@ -197,3 +205,23 @@ pipVersionPinned = instructionRule name message check
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
           isPipInstall cmd = isInfixOf ["pip", "install"] cmd
           isRecursiveInstall cmd = isInfixOf ["-r"] cmd
+
+aptGetYes = instructionRule name message check
+    where name = "AptGetYes"
+          message = "Use the -y switch: apt-get -y install <package>"
+          check (Run args) = if isInstall args
+                             then hasYesOption args
+                             else True
+          check _ = True
+          hasYesOption cmd = isInfixOf ["-y"] cmd || isInfixOf ["--yes"] cmd
+          isInstall cmd = isInfixOf ["apt-get", "install"] cmd
+
+aptGetNoRecommends = instructionRule name message check
+    where name = "AptGetNoRecommends"
+          message = "Avoid additional packages by specifying --no-install-recommends"
+          check (Run args) = if isInstall args
+                             then hasNoRecommendsOption args
+                             else True
+          check _ = True
+          hasNoRecommendsOption cmd = isInfixOf ["--no-install-recommends"] cmd
+          isInstall cmd = isInfixOf ["apt-get", "install"] cmd
