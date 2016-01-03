@@ -36,6 +36,9 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "use not add" ~: ruleCatchesNot useAdd "COPY package.json /usr/src/app"
              , "invalid port" ~: ruleCatches invalidPort "EXPOSE 80000"
              , "valid port" ~: ruleCatchesNot invalidPort "EXPOSE 60000"
+             , "maintainer address" ~: ruleCatches maintainerAddress "MAINTAINER Lukas"
+             , "maintainer uri" ~: ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
+             , "maintainer mail" ~: ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
              ]
 
 main = defaultMain $ hUnitTestToTests tests

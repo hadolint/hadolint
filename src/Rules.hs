@@ -178,3 +178,9 @@ invalidPort = instructionRule name message check
           message = "Valid UNIX ports range from 0 to 65535"
           check (Expose ports) = and [(p <= 65535) | p <- ports]
           check _ = True
+
+maintainerAddress = instructionRule name message check
+    where name = "MaintainerAddress"
+          message = "Provide an email adress or URL as maintainer"
+          check (Maintainer name) = isInfixOf "@" name || isInfixOf "http://" name
+          check _ = True
