@@ -1,4 +1,4 @@
-module Rules (Rule(..), Check(..), RuleResult, instructionRule, dockerfileRule, analyze, bestPracticeRules, suggestionRules, allRules) where
+module Rules where
 
 import Syntax
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
