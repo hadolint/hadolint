@@ -1,14 +1,14 @@
 module Main where
 
 import Parser
-import Analyzer
+import Rules
 import Formatter
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)
 
-printFailedChecks :: [Check] -> IO ()
-printFailedChecks checks = mapM_ putStrLn $ map formatCheck $ failedChecks checks
+printChecks :: [Check] -> IO ()
+printChecks checks = mapM_ putStrLn $ map formatCheck checks
 
 main :: IO ()
 main = getArgs >>= parse
@@ -19,12 +19,15 @@ parse ["-v"] = version >> exit
 parse [file] = do
     ast <- parseFile file
     case ast of
-        Left err -> print err >> exit
-        Right d  -> printFailedChecks $ analyze d
+        Left err         -> print err >> exit
+        Right dockerfile -> printChecks $ analyzeAll dockerfile
+
+analyzeAll = analyze $ allRules
+analyzeBestPractices = analyze bestPracticeRules
 
 -- Helper to analyze AST quickly in GHCI
 analyzeEither (Left err) = []
-analyzeEither (Right d)  = analyze d
+analyzeEither (Right dockerfile)  = analyzeAll dockerfile
 
 usage   = putStrLn "Usage: hadolint [-vh] <file>"
 version = putStrLn "Haskell Dockerfile Linter v0.1"
