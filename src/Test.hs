@@ -24,6 +24,7 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "explicit latest" ~: ruleCatches noLatestTag "FROM debian:latest"
              , "explicit tagged" ~: ruleCatchesNot noLatestTag "FROM debian:jessie"
              , "sudo" ~: ruleCatches noSudo "RUN sudo apt-get update"
+             , "no root" ~: ruleCatches noRootUser "USER root"
              , "install sudo" ~: ruleCatchesNot noSudo "RUN apt-get install sudo"
              , "sudo chained programs" ~: ruleCatches noSudo "RUN apt-get update && sudo apt-get install"
              , "invalid cmd" ~: ruleCatches invalidCmd "RUN top"
@@ -39,6 +40,9 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "maintainer address" ~: ruleCatches maintainerAddress "MAINTAINER Lukas"
              , "maintainer uri" ~: ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
              , "maintainer mail" ~: ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
+             , "pip requirements" ~: ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
+             , "pip version not pinned" ~: ruleCatches pipVersionPinned "RUN pip install MySQL_python"
+             , "pip version pinned" ~: ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
              ]
 
 main = defaultMain $ hUnitTestToTests tests

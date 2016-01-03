@@ -184,3 +184,16 @@ maintainerAddress = instructionRule name message check
           message = "Provide an email adress or URL as maintainer"
           check (Maintainer name) = isInfixOf "@" name || isInfixOf "http://" name
           check _ = True
+
+pipVersionPinned = instructionRule name message check
+    where name = "PipVersionPinned"
+          message = "Pin versions in pip. Instead of `pip install <package>` use `pip install <package>==<version>`"
+          check (Run args) = if isPipInstall args && not (isRecursiveInstall args)
+                             then and $ map versionFixed $ packages args
+                             else True
+          check _ = True
+          versionFixed package = isInfixOf "==" package
+          packages :: [String] -> [String]
+          packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
+          isPipInstall cmd = isInfixOf ["pip", "install"] cmd
+          isRecursiveInstall cmd = isInfixOf ["-r"] cmd
