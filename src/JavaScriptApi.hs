@@ -27,5 +27,5 @@ analyzeString str = return $ failedChecks checks
           analyzeEither (Right d) = analyze d
           checks = analyzeEither ast
 
-main = do
-    export "analyzeString" analyzeString
+hayabusa = shellcheck "echo $1"
+main = export "analyzeString" analyzeString

@@ -1,0 +1,3 @@
+[submodule "shellcheck"]
+	path = shellcheck
+	url = git@github.com:lukasmartinelli/shellcheck.git

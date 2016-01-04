@@ -1,3 +1,5 @@
+module Bash where
+
 import ShellCheck.Interface
 import ShellCheck.Checker
 import Data.Functor.Identity (runIdentity)
