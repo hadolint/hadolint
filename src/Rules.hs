@@ -7,11 +7,11 @@ import Data.List.Split (splitOneOf, splitOn)
 
 -- a check is the application of a rule which returns
 -- the enforcement result of a rule and the affected line numbers
-type Check = (Rule, RuleResult)
+data Check = Check Rule RuleResult
 
 -- result of a enforced rule on a specific line
 -- line numbers in the negative range are meant for the global context
-type RuleResult = (Linenumber, Bool)
+data RuleResult = RuleResult Linenumber Bool
 
 -- a rule has a short name and a message that describes the reason for the rule
 -- the check functions take in a Dockerfile and return a check
@@ -28,7 +28,7 @@ instance Show Rule where
 -- for the according line number if function returns a state
 mapInstructions :: (Instruction -> Bool) -> Dockerfile -> [RuleResult]
 mapInstructions f = map applyRule
-    where applyRule (InstructionPos i linenumber) = (linenumber, f i)
+    where applyRule (InstructionPos i linenumber) = RuleResult linenumber (f i)
 
 instructionRule :: String -> String -> (Instruction -> Bool) -> Rule
 instructionRule name message f = Rule { name = name,
@@ -42,15 +42,15 @@ dockerfileRule name message f = Rule { name = name,
                                        enforce = enforce
                                      }
     where enforce :: Dockerfile -> [RuleResult]
-          enforce dockerfile = [(-1, f (map instruction dockerfile))]
+          enforce dockerfile = [RuleResult (-1) (f (map instruction dockerfile))]
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [Check]
 analyze rules dockerfile = concatMap unwrapChecks enforcedRules
-    where unwrapChecks (r, checks) = [(r, c) | c <- checks]
+    where unwrapChecks (rule, results) = [Check rule result | result <- results]
           enforcedRules = [(r, failedChecks $ enforce r dockerfile) | r <- rules]
           failedChecks = filter failed
-          failed (_, success) = not success
+          failed (RuleResult _ success) = not success
 
 allRules = suggestionRules ++ bestPracticeRules
 suggestionRules = [ hasMaintainer
