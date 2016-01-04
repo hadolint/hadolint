@@ -27,7 +27,7 @@ instance Show Rule where
 -- Apply a function on each instruction and create a check
 -- for the according line number if function returns a state
 mapInstructions :: (Instruction -> Bool) -> Dockerfile -> [RuleResult]
-mapInstructions f dockerfile = map applyRule dockerfile
+mapInstructions f = map applyRule
     where applyRule (InstructionPos i linenumber) = (linenumber, f i)
 
 instructionRule :: String -> String -> (Instruction -> Bool) -> Rule
@@ -46,10 +46,10 @@ dockerfileRule name message f = Rule { name = name,
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [Check]
-analyze rules dockerfile = concat $ map unwrapChecks enforcedRules
+analyze rules dockerfile = concatMap unwrapChecks enforcedRules
     where unwrapChecks (r, checks) = [(r, c) | c <- checks]
           enforcedRules = [(r, failedChecks $ enforce r dockerfile) | r <- rules]
-          failedChecks checks  = filter failed checks
+          failedChecks = filter failed
           failed (_, success) = not success
 
 allRules = suggestionRules ++ bestPracticeRules
@@ -80,7 +80,7 @@ rulesDocs = unlines [name r ++ "\t " ++ message r | r <- allRules]
 
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
-bashCommands args = splitOneOf [";", "|", "&&"] args
+bashCommands = splitOneOf [";", "|", "&&"]
 
 absoluteWorkdir = instructionRule name message check
     where name = "AbsoluteWorkdir"
@@ -91,29 +91,27 @@ absoluteWorkdir = instructionRule name message check
 hasMaintainer = dockerfileRule name message check
     where name = "HasMaintainer"
           message = "Specify a maintainer of the Dockerfile"
-          check dockerfile = or $ map maintainer dockerfile
+          check = any maintainer
           maintainer (Maintainer _) = True
           maintainer _              = False
 
 -- Check if a command contains a program call in the Run instruction
-usingProgram prog args = or $ [(head cmds) == prog | cmds <- bashCommands args]
+usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
 
 wgetOrCurl = dockerfileRule name message check
     where name = "WgetOrCurl"
           message = "Either use Wget or Curl but not both"
           check dockerfile = not $ anyCurl dockerfile && anyWget dockerfile
-          anyCurl dockerfile = or $ map usingCurl dockerfile
-          anyWget dockerfile = or $ map usingWget dockerfile
-          usingCurl i = usingCmd "curl" i
-          usingWget i = usingCmd "wget" i
-          usingCmd cmd (Run args) = elem cmd args
+          anyCurl = any $ usingCmd "curl"
+          anyWget = any $ usingCmd "wget"
+          usingCmd cmd (Run args) = cmd `elem` args
           usingCmd _ _            = False
 
 
 invalidCmd = instructionRule name message check
     where name = "InvalidCmd"
           message = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-          check (Run args) = notElem (head args) invalidCmds
+          check (Run args) = head args `notElem` invalidCmds
           check _ = True
           invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
@@ -159,32 +157,32 @@ noLatestTag = instructionRule name message check
 aptGetVersionPinned = instructionRule name message check
     where name = "AptGetVersionPinning"
           message = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
-          check (Run args) = and $ [versionFixed p | p <- packages args]
+          check (Run args) = and [versionFixed p | p <- packages args]
           check _ = True
-          versionFixed package = isInfixOf "=" package
+          versionFixed package = "=" `isInfixOf` package
           packages :: [String] -> [String]
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isInstall cmd]
-          isInstall cmd = isInfixOf ["apt-get", "install"] cmd
+          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
 
 aptGetCleanup = instructionRule name message check
     where name = "AptGetCleanup"
           message = "Delete the apt-get lists after installing something"
-          check (Run args) = if hasUpdate args then hasCleanup args else True
+          check (Run args) = not (hasUpdate args) || hasCleanup args
           check _ = True
-          hasCleanup cmd = isInfixOf ["rm", "-rf", "/var/lib/apt/lists/*"] cmd
-          hasUpdate cmd = isInfixOf ["apt-get", "update"] cmd
+          hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
+          hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
 
 useAdd = instructionRule name message check
     where name = "UseAdd"
           message = "Use ADD for extracting archives into an image"
-          check (Copy src dst) = and [not (isSuffixOf format src) | format <- archive_formats]
+          check (Copy src dst) = and [not (format `isSuffixOf` src) | format <- archive_formats]
           check _ = True
           archive_formats = [".tar", ".gz", ".bz2", "xz"]
 
 invalidPort = instructionRule name message check
     where name = "InvalidPort"
           message = "Valid UNIX ports range from 0 to 65535"
-          check (Expose ports) = and [(p <= 65535) | p <- ports]
+          check (Expose ports) = and [p <= 65535 | p <- ports]
           check _ = True
 
 maintainerAddress = instructionRule name message check
@@ -196,32 +194,27 @@ maintainerAddress = instructionRule name message check
 pipVersionPinned = instructionRule name message check
     where name = "PipVersionPinned"
           message = "Pin versions in pip. Instead of `pip install <package>` use `pip install <package>==<version>`"
-          check (Run args) = if isPipInstall args && not (isRecursiveInstall args)
-                             then and $ map versionFixed $ packages args
-                             else True
+          check (Run args) = not (isPipInstall args && not (isRecursiveInstall args)) ||
+                                all versionFixed (packages args)
           check _ = True
-          versionFixed package = isInfixOf "==" package
+          versionFixed package = "==" `isInfixOf` package
           packages :: [String] -> [String]
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
-          isPipInstall cmd = isInfixOf ["pip", "install"] cmd
-          isRecursiveInstall cmd = isInfixOf ["-r"] cmd
+          isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd
+          isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
 
 aptGetYes = instructionRule name message check
     where name = "AptGetYes"
           message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-          check (Run args) = if isInstall args
-                             then hasYesOption args
-                             else True
+          check (Run args) = not (isInstall args) || hasYesOption args
           check _ = True
-          hasYesOption cmd = isInfixOf ["-y"] cmd || isInfixOf ["--yes"] cmd
-          isInstall cmd = isInfixOf ["apt-get", "install"] cmd
+          hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd
+          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
 
 aptGetNoRecommends = instructionRule name message check
     where name = "AptGetNoRecommends"
           message = "Avoid additional packages by specifying `--no-install-recommends`"
-          check (Run args) = if isInstall args
-                             then hasNoRecommendsOption args
-                             else True
+          check (Run args) = not (isInstall args) || hasNoRecommendsOption args
           check _ = True
-          hasNoRecommendsOption cmd = isInfixOf ["--no-install-recommends"] cmd
-          isInstall cmd = isInfixOf ["apt-get", "install"] cmd
+          hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
+          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
