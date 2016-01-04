@@ -5,9 +5,9 @@ import Rules
 import Syntax
 
 formatCheck :: Check -> String
-formatCheck (rule, result) = formatPos result ++ "[" ++ name rule ++ "] " ++ message rule
+formatCheck (Check rule result) = formatPos result ++ "[" ++ name rule ++ "] " ++ message rule
 
 formatPos :: RuleResult -> String
-formatPos (linenumber, _) = if linenumber >= 0
-                            then "L" ++ show linenumber ++ " "
-                            else ""
+formatPos (RuleResult linenumber _) = if linenumber >= 0
+                                      then "L" ++ show linenumber ++ " "
+                                      else ""
