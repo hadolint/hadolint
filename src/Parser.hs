@@ -124,10 +124,11 @@ user = do
 add :: Parser Instruction
 add = do
   reserved "ADD"
-  src <- many (noneOf " ")
+  src <- until " "
   Token.whiteSpace lexer
-  dst <- many (noneOf "\n")
+  dst <- until "\n"
   return $ Add src dst
+  where until t = many $ noneOf t
 
 expose :: Parser Instruction
 expose = do
