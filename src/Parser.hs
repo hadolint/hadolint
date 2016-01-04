@@ -148,17 +148,15 @@ multiline :: Parser String
 multiline = do
   line <- untilEol
   eol
-  if head (reverse line) == '\\'
+  if last line == '\\'
     then do
         newLine <- multiline
         return $ line ++ newLine
-    else return $ line
+    else return line
 
 -- Parse value until end of line is reached
 untilEol :: Parser String
-untilEol = do
-  line <- many (noneOf "\n")
-  return line
+untilEol = many (noneOf "\n")
 
 workdir :: Parser Instruction
 workdir = do
@@ -180,15 +178,11 @@ maintainer = do
 
 -- Parse arguments of a command in the exec form
 argumentsExec :: Parser Arguments
-argumentsExec = do
-  args <- brackets $ commaSep stringLiteral
-  return args
+argumentsExec = brackets $ commaSep stringLiteral
 
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
-argumentsShell = do
-  args <- sepBy rawValue (char ' ')
-  return args
+argumentsShell = sepBy rawValue (char ' ')
 
 -- Parse arguments of a command in the shell form
 multilineArgumentsShell :: Parser Arguments
@@ -242,7 +236,7 @@ contents p = do
     return r
 
 eol :: Parser ()
-eol = (char '\n' <|> (char '\r' >> option '\n' (char '\n'))) >> return ()
+eol = void $ char '\n' <|> (char '\r' >> option '\n' (char '\n'))
 
 dockerfile :: Parser Dockerfile
 dockerfile = many $ do
@@ -255,7 +249,7 @@ dockerfile = many $ do
     return $ InstructionPos i $ sourceLine pos
 
 parseString :: String -> Either ParseError Dockerfile
-parseString input = parse (contents dockerfile) "<string>" input
+parseString = parse (contents dockerfile) "<string>"
 
 parseFile :: String -> IO (Either ParseError Dockerfile)
 parseFile file = do

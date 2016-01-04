@@ -8,7 +8,7 @@ import System.Environment (getArgs)
 import System.Exit hiding (die)
 
 printChecks :: [Check] -> IO ()
-printChecks checks = mapM_ putStrLn $ map formatCheck checks
+printChecks = mapM_ (putStrLn . formatCheck)
 
 main :: IO ()
 main = getArgs >>= parse
@@ -22,7 +22,7 @@ parse [file] = do
         Left err         -> print err >> exit
         Right dockerfile -> printChecks $ analyzeAll dockerfile
 
-analyzeAll = analyze $ allRules
+analyzeAll = analyze allRules
 analyzeBestPractices = analyze bestPracticeRules
 
 -- Helper to analyze AST quickly in GHCI
