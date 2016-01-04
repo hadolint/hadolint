@@ -124,11 +124,10 @@ user = do
 add :: Parser Instruction
 add = do
   reserved "ADD"
-  src <- until " "
+  src <- untilOccurrence " "
   Token.whiteSpace lexer
-  dst <- until "\n"
+  dst <- untilOccurrence "\n"
   return $ Add src dst
-  where until t = many $ noneOf t
 
 expose :: Parser Instruction
 expose = do
@@ -158,6 +157,9 @@ multiline = do
 -- Parse value until end of line is reached
 untilEol :: Parser String
 untilEol = many (noneOf "\n")
+
+untilOccurrence :: String -> Parser String
+untilOccurrence t = many $ noneOf t
 
 workdir :: Parser Instruction
 workdir = do
