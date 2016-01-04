@@ -11,10 +11,11 @@ The linter is parsing the Dockerfile into an AST and performs rules on top of th
 
 List of implemented checks. Take a look into `Analyzer.hs` to find the implementation of the rules.
 
-| Rule                 | Description                                                                                                                                                             |
+|  Rule                |  Decscription
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  AbsoluteWorkdir     |  Use absolute WORKDIR                                                                                                                                                   |
-| HasMaintainer        |  Specify a maintainer of the Dockerfile                                                                                                                                 |
+|  HasMaintainer       |  Specify a maintainer of the Dockerfile                                                                                                                                 |
+| MaintainerAddress    |  Provide an email adress or URL as maintainer                                                                                                                           |
+| AbsoluteWorkdir      |  Use absolute WORKDIR                                                                                                                                                   |
 | WgetOrCurl           |  Either use Wget or Curl but not both                                                                                                                                   |
 | InvalidCmd           |  For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig` |
 | NoRoot               |  Do not switch to root USER                                                                                                                                             |
@@ -23,7 +24,13 @@ List of implemented checks. Take a look into `Analyzer.hs` to find the implement
 | NoUpgrade            |  Do not use apt-get upgrade or dist-upgrade.                                                                                                                            |
 | NoLatestTag          |  Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag.                                                           |
 | NoUntagged           |  Always tag the version of an image explicitely.                                                                                                                        |
-| AptGetVersionPinning |  Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>                                                       |
+| AptGetVersionPinning |  Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`                                                      |
+| AptGetCleanup        |  Delete the apt-get lists after installing something                                                                                                                    |
+| UseAdd               |  Use ADD for extracting archives into an image                                                                                                                          |
+| PipVersionPinned     |  Pin versions in pip. Instead of `pip install <package>` use `pip install <package>==<version>`                                                                         |
+| InvalidPort          |  Valid UNIX ports range from 0 to 65535                                                                                                                                 |
+| AptGetNoRecommends   |  Avoid additional packages by specifying `--no-install-recommends`                                                                                                        |
+| AptGetYes            |  Use the -y switch: apt-get -y install <package>                                                                                                                        |
 
 ## Develop
 
