@@ -34,11 +34,26 @@ List of implemented checks. Take a look into `Analyzer.hs` to find the implement
 
 ## Develop
 
-Create a new sandbox.
+### Setup
 
-```
-cabal init
-```
+1. Clone repository
+    ```
+    git clone --recursive git@github.com:lukasmartinelli/hadolint.git
+    ```
+2. Create a new sandbox.
+    ```
+    cabal init
+    ```
+3. Install the dependencies
+    ```
+    cabal install --only-dependencies
+    ```
+4. Install modified ShellCheck version
+    ```
+    cabal install deps/shellcheck
+    ```
+
+### REPL
 
 The easiest way to try out the parser is using the REPL.
 
