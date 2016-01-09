@@ -1,3 +1,0 @@
-[submodule "shellcheck"]
-	path = shellcheck
-	url = https://github.com/koalaman/shellcheck.git
