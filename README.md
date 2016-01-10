@@ -19,8 +19,8 @@ The best way to use `hadolint` is using it online on http://hadolint.lukasmartin
 
 **With Docker**
 
-Docker comes to the rescue to provide an easy way how to run `hadlint` on most platforms.
-To lint a Dockerfile you just pipe it into the running container.
+Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
+To lint a Dockerfile you pipe it into the running container.
 
 ```
 cat <dockerfile> | docker run --rm -it lukasmartinelli/hadolint
@@ -28,7 +28,7 @@ cat <dockerfile> | docker run --rm -it lukasmartinelli/hadolint
 
 **From your terminal**
 
-If you have `hadolint` installed locally you can run it on any Dockerfile
+If you have `hadolint` installed locally you can run it on any local Dockerfile
 to get the lint results.
 
 ```
@@ -48,9 +48,8 @@ cabal install hadolint
 
 ### Binaries
 
-Haskell does not have such a good cross compile story like Go. If any one
-knows how to create static binaries for Windows, OSX and Linux I would be thankful
-for your help.
+Haskell does not have such a great cross compile story like Go. If someone has experience in
+creating static Haskell binaries for Windows, OSX and Linux I would be thankful for your help.
 
 ## Checks
 

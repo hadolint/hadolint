@@ -9,9 +9,9 @@ RUN apt-get update \
 WORKDIR /opt/hadolint/
 ADD ./hadolint.cabal /opt/hadolint/hadolint.cabal
 ADD ./deps /opt/hadolint/deps
-RUN cabal install --only-dependencies -j4 --enable-tests \
- && cabal install hlint \
+RUN cabal install hlint \
  && cabal install deps/shellcheck \
+ && cabal install --only-dependencies -j4 --enable-tests \
  && cabal configure --enable-tests
 
 ADD ./ /opt/hadolint
