@@ -22,8 +22,7 @@ parse [file] = do
         Left err         -> print err >> exit
         Right dockerfile -> printChecks $ analyzeAll dockerfile
 
-analyzeAll = analyze allRules
-analyzeBestPractices = analyze bestPracticeRules
+analyzeAll = analyze rules
 
 -- Helper to analyze AST quickly in GHCI
 analyzeEither (Left err) = []

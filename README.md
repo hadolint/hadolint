@@ -34,6 +34,9 @@ List of implemented checks. Take a look into `Analyzer.hs` to find the implement
 
 ## Develop
 
+This is my first Haskell program. If you are a experienced Haskeller I would be really thankful
+if you would tear my code apart in a review.
+
 ### Setup
 
 1. Clone repository
@@ -74,6 +77,7 @@ The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is 
 ### AST
 
 Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
+
 
 ## Alternatives
 
