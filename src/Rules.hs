@@ -69,7 +69,7 @@ commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) = Metadata ("SC" ++ show code) severity message
 
 shellcheckBash :: Dockerfile -> [Check]
-shellcheckBash dockerfile = concat $ map check dockerfile
+shellcheckBash dockerfile = concatMap check dockerfile
     where check (InstructionPos (Run args) linenumber) = [Check m linenumber False | m <- convert args]
           check _ = []
           convert args = [commentMetadata c | c <- shellcheck $ unwords args]

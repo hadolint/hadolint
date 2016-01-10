@@ -4,10 +4,51 @@
 
 Try it out online: http://hadolint.lukasmartinelli.ch/
 
-A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
-The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. 
+A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
+The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
 It additionally is using the famous [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
 code inside `RUN` instructions.
+
+## How to use
+
+**On the web**
+
+The best way to use `hadolint` is using it online on http://hadolint.lukasmartinelli.ch/.
+
+**With Docker**
+
+Docker comes to the rescue to provide an easy way how to run `hadlint` on most platforms.
+To lint a Dockerfile you just pipe it into the running container.
+
+```
+cat <dockerfile> | docker run --rm -it lukasmartinelli/hadolint
+```
+
+**From your terminal**
+
+If you have `hadolint` installed locally you can run it on any Dockerfile
+to get the lint results.
+
+```
+hadolint <dockerfile>
+```
+
+## Install
+
+To install `hadlint` locally you need [Haskell](https://www.haskell.org/platform/) and [Cabal](https://wiki.haskell.org/Cabal-Install) installed.
+
+On systems with Cabal you can now install the linter directly from Hhackage (installs to `~/.cabal/bin`).
+
+```
+cabal update
+cabal install hadolint
+```
+
+### Binaries
+
+Haskell does not have such a good cross compile story like Go. If any one
+knows how to create static binaries for Windows, OSX and Linux I would be thankful
+for your help.
 
 ## Checks
 

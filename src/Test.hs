@@ -14,11 +14,11 @@ assertChecks rule s f = case parseString (s ++ "\n") of
 -- Assert a failed check exists for rule
 ruleCatches :: Rule -> String -> Assertion
 ruleCatches rule s = assertChecks rule s f
-    where f checks = assertEqual ("No check for rule found") 1 $ length checks
+    where f checks = assertEqual "No check for rule found" 1 $ length checks
 
 ruleCatchesNot :: Rule -> String -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
-    where f checks = assertEqual ("Found check of rule") 0 $ length checks
+    where f checks = assertEqual "Found check of rule" 0 $ length checks
 
 tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "explicit latest" ~: ruleCatches noLatestTag "FROM debian:latest"
