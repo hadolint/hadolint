@@ -18,4 +18,5 @@ ADD ./ /opt/hadolint
 RUN cabal install
 
 ENV PATH=/root/.cabal/bin:$PATH
-CMD ["hadolint"]
+EXPOSE 8000
+CMD ["cabal", "run", "hadolint-api"]
