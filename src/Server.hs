@@ -46,6 +46,6 @@ instance ToJSON Check where
 
 instance ToJSON Metadata where
     toJSON (Metadata code severity message) = object [ "code" .= code
-                                                     , "severity" .= (show severity)
+                                                     , "severity" .= show severity
                                                      , "message" .= message
                                                      ]
