@@ -9,6 +9,8 @@ The linter is parsing the Dockerfile into an AST and performs rules on top of th
 It additionally is using the famous [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
 code inside `RUN` instructions.
 
+[![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
+
 ## How to use
 
 **On the web**
