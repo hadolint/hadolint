@@ -5,7 +5,9 @@
 Try it out online: http://hadolint.lukasmartinelli.ch/
 
 A smarter Dockerfile that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
-The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. Haskell is the ideal language for writing a Dockerfile linter because it makes parsing easy easy and allows integrating [Shellcheck](https://github.com/koalaman/shellcheck) at a later stage. The linter can be transpiled to JavaScript and is available online so you can copy paste your Dockerfile into the code editor.
+The linter is parsing the Dockerfile into an AST and performs rules on top of the AST. 
+It additionally is using the famous [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
+code inside `RUN` instructions.
 
 ## Checks
 

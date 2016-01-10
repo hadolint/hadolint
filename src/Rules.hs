@@ -4,10 +4,10 @@ import Syntax
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.List (intercalate, isInfixOf, isSuffixOf)
 import Data.List.Split (splitOneOf, splitOn)
+import Bash
 
-type Code = String
-data Severity = Error | Warning | Info | Style deriving (Show, Eq, Ord)
-data Metadata = Metadata { code :: Code,
+import ShellCheck.Interface
+data Metadata = Metadata { code :: String,
                            severity :: Severity,
                            message :: String
                          }
@@ -31,10 +31,10 @@ mapInstructions :: Metadata -> (Instruction -> Bool) -> Rule
 mapInstructions metadata f = map applyRule
     where applyRule (InstructionPos i linenumber) = Check metadata linenumber (f i)
 
-instructionRule :: Code -> Severity -> String -> (Instruction -> Bool) -> Rule
+instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
 instructionRule code severity message f = mapInstructions (Metadata code severity message) f
 
-dockerfileRule :: Code -> Severity -> String -> ([Instruction] -> Bool) -> Rule
+dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
     where rule dockerfile = [Check metadata (-1) (f (map instruction dockerfile))]
           metadata = Metadata code severity message
@@ -45,6 +45,7 @@ analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
     where failed (Check _ _ success) = not success
 
 rules = [ absoluteWorkdir
+        , shellcheckBash
         , hasMaintainer
         , maintainerAddress
         , wgetOrCurl
@@ -64,6 +65,14 @@ rules = [ absoluteWorkdir
         , aptGetYes
         ]
 
+commentMetadata :: ShellCheck.Interface.Comment -> Metadata
+commentMetadata (ShellCheck.Interface.Comment severity code message) = Metadata ("SC" ++ show code) severity message
+
+shellcheckBash :: Dockerfile -> [Check]
+shellcheckBash dockerfile = concat $ map check dockerfile
+    where check (InstructionPos (Run args) linenumber) = [Check m linenumber False | m <- convert args]
+          check _ = []
+          convert args = [commentMetadata c | c <- shellcheck $ unwords args]
 
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
@@ -71,14 +80,14 @@ bashCommands = splitOneOf [";", "|", "&&"]
 
 absoluteWorkdir = instructionRule code severity message check
     where code = "DL3000"
-          severity = Error
+          severity = ErrorC
           message = "Use absolute WORKDIR"
           check (Workdir dir) = head dir == '/'
           check _ = True
 
 hasMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
-          severity = Info
+          severity = InfoC
           message = "Specify a maintainer of the Dockerfile"
           check = any maintainer
           maintainer (Maintainer _) = True
@@ -89,7 +98,7 @@ usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
 
 wgetOrCurl = dockerfileRule code severity message check
     where code = "DL4001"
-          severity = Warning
+          severity = WarningC
           message = "Either use Wget or Curl but not both"
           check dockerfile = not $ anyCurl dockerfile && anyWget dockerfile
           anyCurl = any $ usingCmd "curl"
@@ -100,7 +109,7 @@ wgetOrCurl = dockerfileRule code severity message check
 
 invalidCmd = instructionRule code severity message check
     where code = "DL3001"
-          severity = Info
+          severity = InfoC
           message = "For some bash commands it makes no sense running them in a Docker container like `ssh`, `vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
           check (Run args) = head args `notElem` invalidCmds
           check _ = True
@@ -108,7 +117,7 @@ invalidCmd = instructionRule code severity message check
 
 noRootUser = instructionRule code severity message check
     where code = "DL3002"
-          severity = Error
+          severity = ErrorC
           message = "Do not switch to root USER"
           check (User "root") = False
           check (User _) = True
@@ -116,28 +125,28 @@ noRootUser = instructionRule code severity message check
 
 noCd = instructionRule code severity message check
     where code = "DL3003"
-          severity = Warning
+          severity = WarningC
           message = "Use WORKDIR to switch to a directory"
           check (Run args) = not $ usingProgram "cd" args
           check _ = True
 
 noSudo = instructionRule code severity message check
     where code = "DL3004"
-          severity = Error
+          severity = ErrorC
           message = "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root."
           check (Run args) = not $ usingProgram "sudo" args
           check _ = True
 
 noUpgrade = instructionRule code severity message check
     where code = "DL3005"
-          severity = Error
+          severity = ErrorC
           message = "Do not use apt-get upgrade or dist-upgrade."
           check (Run args) = not $ isInfixOf ["apt-get", "upgrade"] args
           check _ = True
 
 noUntagged = instructionRule code severity message check
     where code = "DL3006"
-          severity = Warning
+          severity = WarningC
           message = "Always tag the version of an image explicitely."
           check (From (UntaggedImage _)) = False
           check (From (TaggedImage _ _)) = True
@@ -145,7 +154,7 @@ noUntagged = instructionRule code severity message check
 
 noLatestTag = instructionRule code severity message check
     where code = "DL3007"
-          severity = Warning
+          severity = WarningC
           message = "Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag."
           check (From (TaggedImage _ "latest")) = False
           check (From (TaggedImage _ _)) = True
@@ -153,7 +162,7 @@ noLatestTag = instructionRule code severity message check
 
 aptGetVersionPinned = instructionRule code severity message check
     where code = "DL3008"
-          severity = Warning
+          severity = WarningC
           message = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
           check (Run args) = and [versionFixed p | p <- packages args]
           check _ = True
@@ -164,7 +173,7 @@ aptGetVersionPinned = instructionRule code severity message check
 
 aptGetCleanup = instructionRule code severity message check
     where code = "DL3009"
-          severity = Info
+          severity = InfoC
           message = "Delete the apt-get lists after installing something"
           check (Run args) = not (hasUpdate args) || hasCleanup args
           check _ = True
@@ -173,7 +182,7 @@ aptGetCleanup = instructionRule code severity message check
 
 useAdd = instructionRule code severity message check
     where code = "DL3010"
-          severity = Info
+          severity = InfoC
           message = "Use ADD for extracting archives into an image"
           check (Copy src dst) = and [not (format `isSuffixOf` src) | format <- archive_formats]
           check _ = True
@@ -181,21 +190,21 @@ useAdd = instructionRule code severity message check
 
 invalidPort = instructionRule code severity message check
     where code = "DL3011"
-          severity = Error
+          severity = ErrorC
           message = "Valid UNIX ports range from 0 to 65535"
           check (Expose ports) = and [p <= 65535 | p <- ports]
           check _ = True
 
 maintainerAddress = instructionRule code severity message check
     where code = "DL3012"
-          severity = Style
+          severity = StyleC
           message = "Provide an email adress or URL as maintainer"
           check (Maintainer name) = isInfixOf "@" name || isInfixOf "http://" name
           check _ = True
 
 pipVersionPinned = instructionRule code severity message check
     where code = "DL3013"
-          severity = Warning
+          severity = WarningC
           message = "Pin versions in pip. Instead of `pip install <package>` use `pip install <package>==<version>`"
           check (Run args) = not (isPipInstall args && not (isRecursiveInstall args)) ||
                                 all versionFixed (packages args)
@@ -208,7 +217,7 @@ pipVersionPinned = instructionRule code severity message check
 
 aptGetYes = instructionRule code severity message check
     where code = "DL3014"
-          severity = Warning
+          severity = WarningC
           message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
           check (Run args) = not (isInstall args) || hasYesOption args
           check _ = True
@@ -217,7 +226,7 @@ aptGetYes = instructionRule code severity message check
 
 aptGetNoRecommends = instructionRule code severity message check
     where code = "DL3015"
-          severity = Info
+          severity = InfoC
           message = "Avoid additional packages by specifying `--no-install-recommends`"
           check (Run args) = not (isInstall args) || hasNoRecommendsOption args
           check _ = True

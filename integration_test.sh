@@ -56,6 +56,7 @@ function clone_repos() {
     git_clone https://github.com/nodejs/docker-node.git &
     git_clone https://github.com/nginxinc/docker-nginx.git &
 
+
     # popular Dockerfile repos
     git_clone https://github.com/wking/dockerfile.git &
     git_clone https://github.com/eugeneware/docker-wordpress-nginx.git &
@@ -67,7 +68,6 @@ function clone_repos() {
     git_clone https://github.com/amplab/docker-scripts.git &
     git_clone https://github.com/oracle/docker-images.git &
     git_clone https://github.com/dockerfile/ubuntu-desktop.git &
-    git_clone https://github.com/splitbrain/docker-phpfarm.git &
     git_clone https://github.com/yesnault/docker-phabricator.git &
 
     # colliding names
