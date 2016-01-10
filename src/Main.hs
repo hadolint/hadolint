@@ -17,8 +17,8 @@ parse [] = usage >> die
 parse ["-i"] = do
     content <- getContents
     length content `seq` return ()
-    if (length content) > 0
-    then case (parseString content) of
+    if not (null content)
+    then case parseString content of
             Left err         -> print err >> exit
             Right dockerfile -> printChecks $ analyzeAll dockerfile
     else usage >> die
