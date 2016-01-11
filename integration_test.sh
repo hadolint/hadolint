@@ -69,6 +69,13 @@ function clone_repos() {
     git_clone https://github.com/oracle/docker-images.git &
     git_clone https://github.com/dockerfile/ubuntu-desktop.git &
     git_clone https://github.com/yesnault/docker-phabricator.git &
+    git_clone https://github.com/mattgruter/dockerfile-guacamole.git &
+    git_clone https://github.com/uzyexe/dockerfile-terraform.git &
+    git_clone https://github.com/mattgruter/dockerfile-doubledocker.git &
+    git_clone https://github.com/mattgruter/dockerfile-drone.git &
+    git_clone https://github.com/ArchiveTeam/warrior-dockerfile.git &
+    git_clone https://github.com/wckr/wocker-dockerfile.git &
+    git_clone https://github.com/kartoza/docker-postgis.git &
 
     # colliding names
     git_named_clone https://github.com/yaronr/dockerfile.git yaronr-dockerfile &
@@ -80,6 +87,13 @@ function clone_repos() {
     git_named_clone https://github.com/couchbase/docker.git couchbase-docker &
     git_named_clone https://github.com/EvaEngine/Dockerfiles.git evaengine-dockerfiles &
     git_named_clone https://github.com/yankcrime/dockerfiles.git yankcrime-dockerfiles &
+    git_named_clone https://github.com/voxxit/dockerfiles.git voxxit-dockerfiles &
+    git_named_clone https://github.com/mikz/dockerfiles.git mikz-dockerfiles &
+    git_named_clone https://github.com/ksoichiro/dockerfiles.git ksoichiro-dockerfiles &
+    git_named_clone https://github.com/jgautheron/dockerfiles.git jgautheron-dockerfiles &
+    git_named_clone https://github.com/coderstephen/dockerfiles.git coderstephen-dockerfiles &
+    git_named_clone https://github.com/ehazlett/dockerfiles.git ehazlett-dockerfiles &
+    git_named_clone https://github.com/Evlos/dockerfile.git evlos-dockerfile &
 
     wait
     cd "$CWD"
@@ -90,8 +104,7 @@ function lint_dockerfiles() {
     local hadolint_bin="./dist/build/hadolint/hadolint"
     local dockerfiles=$(find . -name 'Dockerfile')
     for dockerfile in $dockerfiles; do
-        echo "Lint $dockerfile"
-        $hadolint_bin "$dockerfile"
+        $hadolint_bin "$dockerfile" | awk "{print \"$dockerfile \" \$0}"
     done
 }
 
