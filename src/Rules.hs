@@ -105,6 +105,22 @@ hasMaintainer = dockerfileRule code severity message check
 -- Check if a command contains a program call in the Run instruction
 usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
 
+multipleCmds =dockerfileRule code severity message check
+    where code = "DL4003"
+          severity = WarningC
+          message = "Multiple `CMD` instructions found. Only the first instruction will take effect."
+          check dockerfile = 1 == length (filter (True==) $ map isCmd dockerfile)
+          isCmd (Cmd _) = True
+          isCmd _       = False
+
+multipleEntrypoints =dockerfileRule code severity message check
+    where code = "DL4004"
+          severity = ErrorC
+          message = "Multiple `ENTRYPOINT` instructions found. Only the first instruction will take effect."
+          check dockerfile = 1 == length (filter (True==) $ map isEntrypoint dockerfile)
+          isEntrypoint (Entrypoint _) = True
+          isEntrypoint _       = False
+
 wgetOrCurl = dockerfileRule code severity message check
     where code = "DL4001"
           severity = WarningC

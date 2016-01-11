@@ -57,6 +57,10 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "using add" ~: ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
              , "should use copy archive" ~: ruleCatches copyInsteadAdd "ADD file.tar /usr/src/app/"
              , "should use copy url" ~: ruleCatches copyInsteadAdd "ADD http://file.com /usr/src/app/"
+             , "many cmds" ~: ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
+             , "single cmd" ~: ruleCatchesNot multipleCmds "CMD /bin/true"
+             , "many entries" ~: ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
+             , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
              ]
 
 main = defaultMain $ hUnitTestToTests tests
