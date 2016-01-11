@@ -10,7 +10,7 @@ import ShellCheck.Interface
 data Metadata = Metadata { code :: String,
                            severity :: Severity,
                            message :: String
-                         }
+                         } deriving (Eq)
 
 -- a check is the application of a rule on a specific part of code
 -- the enforced result and the affected position
@@ -70,9 +70,12 @@ commentMetadata (ShellCheck.Interface.Comment severity code message) = Metadata 
 
 shellcheckBash :: Dockerfile -> [Check]
 shellcheckBash dockerfile = concatMap check dockerfile
-    where check (InstructionPos (Run args) linenumber) = [Check m linenumber False | m <- convert args]
+    where check (InstructionPos (Run args) linenumber) = rmDup [Check m linenumber False | m <- convert args]
           check _ = []
           convert args = [commentMetadata c | c <- shellcheck $ unwords args]
+          rmDup :: [Check] -> [Check]
+          rmDup [] = []
+          rmDup (x:xs) = x : rmDup (filter (\y -> not(metadata x == metadata y)) xs)
 
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
