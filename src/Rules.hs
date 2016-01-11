@@ -75,7 +75,7 @@ shellcheckBash dockerfile = concatMap check dockerfile
           convert args = [commentMetadata c | c <- shellcheck $ unwords args]
           rmDup :: [Check] -> [Check]
           rmDup [] = []
-          rmDup (x:xs) = x : rmDup (filter (\y -> not(metadata x == metadata y)) xs)
+          rmDup (x:xs) = x : rmDup (filter (\y -> metadata x /= metadata y) xs)
 
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
