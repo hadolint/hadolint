@@ -178,7 +178,7 @@ aptGetVersionPinned = instructionRule code severity message check
           versionFixed package = "=" `isInfixOf` package
           packages :: [String] -> [String]
           packages args = concat [filter noOption (drop 2 cmd) | cmd <- bashCommands args, isAptGetInstall cmd]
-          noOption arg = all (arg/=) options
+          noOption arg = arg `notElem` options
           options = [ "-f", "--no-f"
                     , "--no-install-recommends"
                     , "--install-suggests"
