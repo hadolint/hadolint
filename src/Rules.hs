@@ -262,7 +262,8 @@ aptGetYes = instructionRule code severity message check
           message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
           check (Run args) = not (isAptGetInstall args) || hasYesOption args
           check _ = True
-          hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd
+          hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd || startsWithYesFlag cmd
+          startsWithYesFlag cmd = any (True==) ["-y" `isInfixOf` arg | arg <- cmd]
 
 aptGetNoRecommends = instructionRule code severity message check
     where code = "DL3015"
