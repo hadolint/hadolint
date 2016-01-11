@@ -52,12 +52,12 @@ creating static Haskell binaries for Windows, OSX and Linux I would be thankful 
 
 ## Rules
 
-List of implemented rules. Take a look into `Rules.hs` to find the implementation of the rules.
-Rules with the prefix `DL` originate from **hadolint** while rules with the `SC` prefix originate
-from **ShellCheck**. Click on the error code to get more detailed information.
+Incomplete list of implemented rules. Click on the error code to get more detailed information.
+
+- Rules with the prefix `DL` originate from **hadolint**. Take a look into `Rules.hs` to find the implementation of the rules.
+- Rules with the `SC` prefix originate from **ShellCheck** (Only the most common rules are listed, there are dozens more)
 
 Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new) if you have an idea for a good rule.
-Only the most common **ShellCheck** rules are listed.
 
 | Rule                                                              | Decscription
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------
