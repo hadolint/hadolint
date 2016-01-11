@@ -56,6 +56,8 @@ List of implemented rules. Take a look into `Rules.hs` to find the implementatio
 Rules with the prefix `DL` originate from **hadolint** while rules with the `SC` prefix originate
 from **ShellCheck**. Click on the error code to get more detailed information.
 
+Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new) if you have an idea for a good rule.
+
 | Rule                                                         | Decscription
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------
 | DL3000                                                       | Use absolute WORKDIR.
@@ -126,7 +128,6 @@ from **ShellCheck**. Click on the error code to get more detailed information.
 | [SC2020](https://github.com/koalaman/shellcheck/wiki/SC2020) | `tr` replaces sets of chars, not words (mentioned due to duplicates).
 | [SC2021](https://github.com/koalaman/shellcheck/wiki/SC2021) | Don't use `[]` around ranges in `tr`, it replaces literal square brackets.
 | [SC2022](https://github.com/koalaman/shellcheck/wiki/SC2022) | Note that unlike globs, `o*` here matches `ooo` but not `oscar`
-| [SC2024](https://github.com/koalaman/shellcheck/wiki/SC2024) | `sudo` doesn't affect redirects. Use `..| sudo tee file`.
 | [SC2025](https://github.com/koalaman/shellcheck/wiki/SC2025) | Make sure all escape sequences are enclosed in `[..]` to prevent line wrapping issues
 | [SC2026](https://github.com/koalaman/shellcheck/wiki/SC2026) | This word is outside of quotes. Did you intend to 'nest '"'single quotes'"' instead'?
 | [SC2027](https://github.com/koalaman/shellcheck/wiki/SC2027) | The surrounding quotes actually unquote this. Remove or escape them.
@@ -144,6 +145,15 @@ from **ShellCheck**. Click on the error code to get more detailed information.
 | [SC2041](https://github.com/koalaman/shellcheck/wiki/SC2041) | This is a literal string. To run as a command, use `$(seq 1 10)`.
 | [SC2043](https://github.com/koalaman/shellcheck/wiki/SC2043) | This loop will only run once, with var=value
 | [SC2044](https://github.com/koalaman/shellcheck/wiki/SC2044) | For loops over find output are fragile. Use `find -exec` or a while read loop.
+
+### Unsupported ShellCheck Rules
+
+Some **ShellCheck** rules collide with **hadolint** checks or make not much sense in the context of Docker
+and are therefore nto supported.
+
+| Rule                                                         | Decscription
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------
+| [SC2024](https://github.com/koalaman/shellcheck/wiki/SC2024) | `sudo` doesn't affect redirects. Use `..| sudo tee file`.
 
 ## Develop
 
