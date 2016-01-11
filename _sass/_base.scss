@@ -97,3 +97,16 @@ img {
     max-width: 100%;
     vertical-align: middle;
 }
+
+/**
+ * Buttons
+ */
+.button {
+    font-family: $title-font-family;
+    font-weight: bold;
+    font-size: 3rem;
+    background-color: $brand-color;
+    color: #fff;
+    padding: 0.5rem 3rem;
+    margin: 0.5rem;
+}
