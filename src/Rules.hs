@@ -54,6 +54,7 @@ rules = [ absoluteWorkdir
         , shellcheckBash
         , maintainerAddress
         , invalidCmd
+        , copyInsteadAdd
         , noRootUser
         , noCd
         , noSudo
@@ -69,6 +70,8 @@ rules = [ absoluteWorkdir
         , aptGetYes
         , wgetOrCurl
         , hasMaintainer
+        , multipleCmds
+        , multipleEntrypoints
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
