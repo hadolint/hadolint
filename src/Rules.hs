@@ -177,8 +177,22 @@ aptGetVersionPinned = instructionRule code severity message check
           check _ = True
           versionFixed package = "=" `isInfixOf` package
           packages :: [String] -> [String]
-          packages args = concat [drop 2 cmd | cmd <- bashCommands args, isInstall cmd]
+          packages args = concat [filter noOption (drop 2 cmd) | cmd <- bashCommands args, isInstall cmd]
           isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
+          noOption arg = all (arg/=) options
+          options = [ "-f", "--no-f"
+                    , "--no-install-recommends"
+                    , "--install-suggests"
+                    , "-d", "--download-only"
+                    , "-f", "--fix-broken"
+                    , "-m", "--ignore-missing", "--fix-missing"
+                    , "--no-download"
+                    , "-q", "--quiet"
+                    , "-y", "--yes", "--assume-yes"
+                    , "--no-upgrade"
+                    , "--only-upgrade"
+                    , "--force-yes"
+                    ]
 
 aptGetCleanup = instructionRule code severity message check
     where code = "DL3009"
