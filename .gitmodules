@@ -1,3 +1,0 @@
-[submodule "deps/shellcheck"]
-	path = deps/shellcheck
-	url = https://github.com/lukasmartinelli/shellcheck.git
