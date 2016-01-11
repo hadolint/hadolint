@@ -48,6 +48,9 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "apt-get with auto expanded yes" ~: ruleCatchesNot aptGetYes "RUN apt-get --yes install python"
              , "apt-get without install recommends" ~: ruleCatchesNot aptGetNoRecommends "RUN apt-get install --no-install-recommends python"
              , "apt-get with install recommends" ~: ruleCatches aptGetNoRecommends "RUN apt-get install python"
+             , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
+             , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
+             , "has no maintainer" ~: ruleCatches hasMaintainer "FROM debian"
              ]
 
 main = defaultMain $ hUnitTestToTests tests
