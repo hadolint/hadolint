@@ -191,7 +191,7 @@ argumentsShell = sepBy rawValue (char ' ')
 multilineArgumentsShell :: Parser Arguments
 multilineArgumentsShell = do
   line <- multiline
-  return $ splitOn " " line
+  return $ filter (""/=) $ splitOn " " line
 
 arguments :: Parser Arguments
 arguments = try argumentsExec <|> try argumentsShell

@@ -54,8 +54,8 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "apt-get pinned" ~: ruleCatchesNot aptGetVersionPinned "RUN apt-get -y --no-install-recommends install nodejs=0.10"
              , "apt-get pinned chained" ~: ruleCatchesNot aptGetVersionPinned $ unlines [
                  "RUN apt-get update \\",
-                 "&& apt-get -y --no-install-recommends install nodejs=0.10 \\",
-                 "&& rm -rf /var/lib/apt/lists/*"
+                 " && apt-get -y --no-install-recommends install nodejs=0.10 \\",
+                 " && rm -rf /var/lib/apt/lists/*"
                  ]
              , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
              , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
