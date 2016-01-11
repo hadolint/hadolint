@@ -28,10 +28,9 @@
       code inside <code>RUN</code> instructions. Please <a href="https://github.com/lukasmartinelli/hadolint/issues">help me improve the linter</a> with your suggestions.</p>
       <form method="POST" action="/" id="dockerfile__form" class="dockerfile__form">
           <div class="dockerfile__container">
-            <textarea id="dockerfile__code">
-FROM debian
-RUN node_version= "0.10" \
- && apt-get update && apt-get -y install nodejs="$node_verson"
+            <textarea id="dockerfile__code">FROM debian
+RUN export node_version="0.10" \
+ && apt-get update && apt-get -y install nodejs="$node_verion"
 COPY package.json usr/src/app
 RUN cd /usr/src/app \
  && npm install node-static
