@@ -17,15 +17,6 @@ code inside `RUN` instructions.
 
 The best way to use `hadolint` is using it online on http://hadolint.lukasmartinelli.ch/.
 
-**With Docker**
-
-Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
-To lint a Dockerfile you pipe it into the running container.
-
-```
-cat <dockerfile> | docker run --rm -it lukasmartinelli/hadolint
-```
-
 **From your terminal**
 
 If you have `hadolint` installed locally you can run it on any local Dockerfile
@@ -35,11 +26,19 @@ to get the lint results.
 hadolint <dockerfile>
 ```
 
+**With Docker**
+
+Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
+To lint a Dockerfile you mount it into the running container and run `hadolint` on top of it.
+
+```
+docker run --rm -v $(pwd):/lint lukasmartinelli/hadolint hadolint /lint/Dockerfile
+```
+
 ## Install
 
-To install `hadlint` locally you need [Haskell](https://www.haskell.org/platform/) and [Cabal](https://wiki.haskell.org/Cabal-Install) installed.
-
-On systems with Cabal you can now install the linter directly from Hhackage (installs to `~/.cabal/bin`).
+To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and [Cabal](https://wiki.haskell.org/Cabal-Install) installed.
+On systems with Cabal you can now install the linter directly from Hackage (installs to `~/.cabal/bin`).
 
 ```
 cabal update
@@ -91,13 +90,13 @@ if you would tear my code apart in a review.
     ```
     cabal init
     ```
-3. Install the dependencies
-    ```
-    cabal install --only-dependencies
-    ```
-4. Install modified ShellCheck version
+3. Install modified ShellCheck version
     ```
     cabal install deps/shellcheck
+    ```
+4. Install the dependencies
+    ```
+    cabal install --only-dependencies
     ```
 
 ### REPL
