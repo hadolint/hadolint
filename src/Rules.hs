@@ -192,11 +192,9 @@ aptGetVersionPinned = instructionRule code severity message check
     where code = "DL3008"
           severity = WarningC
           message = "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`"
-          check (Run args) = and [versionFixed p | p <- packages args]
+          check (Run args) = and [versionFixed p | p <- aptGetPackages args]
           check _ = True
           versionFixed package = "=" `isInfixOf` package
-          packages :: [String] -> [String]
-          packages args = concat [filter (noOption) (drop 2 cmd) | cmd <- bashCommands args, isAptGetInstall cmd]
           noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
           options = [ "-f"
                     , "install"
@@ -206,6 +204,11 @@ aptGetVersionPinned = instructionRule code severity message check
                     , "-q"
                     , "-y"
                     ]
+
+aptGetPackages :: [String] -> [String]
+aptGetPackages args = concat [filter (noOption) cmd | cmd <- bashCommands args, isAptGetInstall cmd]
+    where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
+          options = [ "-f" , "install" , "apt-get" , "-d" , "-f" , "-m" , "-q" , "-y" ]
 
 aptGetCleanup = instructionRule code severity message check
     where code = "DL3009"

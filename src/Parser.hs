@@ -151,7 +151,7 @@ multiline = do
   if last line == '\\'
     then do
         newLine <- multiline
-        return $ line ++ newLine
+        return $ (init line) ++ newLine
     else return line
 
 -- Parse value until end of line is reached

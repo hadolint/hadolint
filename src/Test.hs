@@ -51,7 +51,12 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "apt-get no install recommends" ~: ruleCatches aptGetNoRecommends "RUN apt-get install python"
              , "apt-get no install recommends" ~: ruleCatches aptGetNoRecommends "RUN apt-get -y install python"
              , "apt-get version" ~: ruleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
-             , "apt-get pinned " ~: ruleCatchesNot aptGetVersionPinned "RUN apt-get -y --no-install-recommends install nodejs=0.10"
+             , "apt-get pinned" ~: ruleCatchesNot aptGetVersionPinned "RUN apt-get -y --no-install-recommends install nodejs=0.10"
+             , "apt-get pinned chained" ~: ruleCatchesNot aptGetVersionPinned $ unlines [
+                 "RUN apt-get update \\",
+                 "&& apt-get -y --no-install-recommends install nodejs=0.10 \\",
+                 "&& rm -rf /var/lib/apt/lists/*"
+                 ]
              , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
              , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
              , "has no maintainer" ~: ruleCatches hasMaintainer "FROM debian"
