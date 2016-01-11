@@ -22,12 +22,10 @@
       </div>
     </section>
     <section class="main">
-      <p>A smart Dockerfile linter with 57 rules which help you build
-        <a href="https://docs.docker.com/engine/articles/dockerfile_best-practices/">best practice Docker images</a>.
-      </p>
-      <p>The linter is written in <a href="https://www.haskell.org/">Haskell</a> and <a href="http://haste-lang.org/">transpiled</a> to JavaScript.
-      It can either be installed as static binary or you can copy paste
-      your Dockerfile into the code editor.</p>
+      <p>A smarter Dockerfile linter that helps you build <a href="https://docs.docker.com/engine/articles/dockerfile_best-practices/">best practice Docker images</a>.
+      The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
+      It additionally is using the famous <a href="https://github.com/koalaman/shellcheck">Shellcheck</a> to lint the Bash
+      code inside <code>RUN</code> instructions. Please <a href="https://github.com/lukasmartinelli/hadolint/issues">help me improve the linter</a> with your suggestions.</p>
       <form method="POST" action="/" id="dockerfile__form" class="dockerfile__form">
           <div class="dockerfile__container">
             <textarea id="dockerfile__code">

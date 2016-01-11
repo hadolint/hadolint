@@ -30,7 +30,7 @@ $(function() {
     });
     $('#lint').click(function() {
       var src = editor.getDoc().getValue() + '\n';
-      $.post('http://hadolint.apps.lukasmartinelli.ch/dockerfile', { dockerfile: src }, function(checks) {
+      $.post('http://api.hadolint.lukasmartinelli.ch/dockerfile', { dockerfile: src }, function(checks) {
           console.log(checks);
           updateHints(checks);
       });
