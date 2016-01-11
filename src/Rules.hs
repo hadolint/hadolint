@@ -54,6 +54,7 @@ rules = [ absoluteWorkdir
         , shellcheckBash
         , maintainerAddress
         , invalidCmd
+        , copyInsteadAdd
         , noRootUser
         , noCd
         , noSudo
@@ -69,6 +70,8 @@ rules = [ absoluteWorkdir
         , aptGetYes
         , wgetOrCurl
         , hasMaintainer
+        , multipleCmds
+        , multipleEntrypoints
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -104,6 +107,22 @@ hasMaintainer = dockerfileRule code severity message check
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
+
+multipleCmds =dockerfileRule code severity message check
+    where code = "DL4003"
+          severity = WarningC
+          message = "Multiple `CMD` instructions found. Only the first instruction will take effect."
+          check dockerfile = 1 == length (filter (True==) $ map isCmd dockerfile)
+          isCmd (Cmd _) = True
+          isCmd _       = False
+
+multipleEntrypoints =dockerfileRule code severity message check
+    where code = "DL4004"
+          severity = ErrorC
+          message = "Multiple `ENTRYPOINT` instructions found. Only the first instruction will take effect."
+          check dockerfile = 1 == length (filter (True==) $ map isEntrypoint dockerfile)
+          isEntrypoint (Entrypoint _) = True
+          isEntrypoint _       = False
 
 wgetOrCurl = dockerfileRule code severity message check
     where code = "DL4001"
@@ -254,3 +273,14 @@ aptGetNoRecommends = instructionRule code severity message check
           check (Run args) = not (isAptGetInstall args) || hasNoRecommendsOption args
           check _ = True
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
+
+isArchive :: String -> Bool
+isArchive path =  not $ all (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isUrl :: String -> Bool
+isUrl path = not $ all (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
+copyInsteadAdd = instructionRule code severity message check
+    where code = "DL3020"
+          severity = ErrorC
+          message = "Use COPY instead of ADD for files and folders"
+          check (Add src _) = not (isArchive src) && not (isUrl src)
+          check _ = True
