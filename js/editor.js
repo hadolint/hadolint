@@ -25,13 +25,14 @@ $(function() {
         });
       });
     }
+    $('#clear').click(function() {
+        updateHints([]);
+    });
     $('#lint').click(function() {
-      var src = editor.getDoc().getValue();
+      var src = editor.getDoc().getValue() + '\n';
       $.post('http://hadolint.apps.lukasmartinelli.ch/dockerfile', { dockerfile: src }, function(checks) {
           console.log(checks);
           updateHints(checks);
       });
     });
-
-    $('#lint').click();
 });
