@@ -14,12 +14,9 @@ $(function() {
 
         widgets = [];
         $.each(checks, function(_, check) {
-          var hint = $('<div class="lint-error"></div>').text(check.message).get(0);
-          var linenumber = 0;
-          if(check.linenumber) {
-            linenumber = check.linenumber - 1;
-          }
-          var widget = editor.addLineWidget(linenumber, hint, {
+          var inlineText = check.metadata.code + ': ' + check.metadata.message;
+          var hint = $('<div class="lint-error"></div>').text(inlineText).get(0);
+          var widget = editor.addLineWidget(check.linenumber - 1, hint, {
             coverGutter: false,
             noHScroll: true,
             above: true
@@ -36,7 +33,5 @@ $(function() {
       });
     });
 
-    window.setTimeout(function() {
-      $('#lint').click();
-    }, 1000);
+    $('#lint').click();
 });
