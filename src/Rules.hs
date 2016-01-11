@@ -22,8 +22,8 @@ data Check = Check { metadata :: Metadata,
                      success :: Bool
                    }
 
-link :: Check -> String
-link (Check (Metadata code _ _) _ _)
+link :: Metadata -> String
+link (Metadata code _ _)
     | isPrefixOf "SC" code  = "https://github.com/koalaman/shellcheck/wiki/" ++ code
     | isPrefixOf "DL" code  = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
     | otherwise             = "https://github.com/lukasmartinelli/hadolint"
