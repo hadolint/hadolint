@@ -177,8 +177,7 @@ aptGetVersionPinned = instructionRule code severity message check
           check _ = True
           versionFixed package = "=" `isInfixOf` package
           packages :: [String] -> [String]
-          packages args = concat [filter noOption (drop 2 cmd) | cmd <- bashCommands args, isInstall cmd]
-          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
+          packages args = concat [filter noOption (drop 2 cmd) | cmd <- bashCommands args, isAptGetInstall cmd]
           noOption arg = all (arg/=) options
           options = [ "-f", "--no-f"
                     , "--no-install-recommends"
@@ -238,20 +237,20 @@ pipVersionPinned = instructionRule code severity message check
           isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd
           isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
 
+
+isAptGetInstall cmd = ["apt-get"] `isInfixOf` cmd && ["install"] `isInfixOf` cmd
 aptGetYes = instructionRule code severity message check
     where code = "DL3014"
           severity = WarningC
           message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-          check (Run args) = not (isInstall args) || hasYesOption args
+          check (Run args) = not (isAptGetInstall args) || hasYesOption args
           check _ = True
           hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd
-          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
 
 aptGetNoRecommends = instructionRule code severity message check
     where code = "DL3015"
           severity = InfoC
           message = "Avoid additional packages by specifying `--no-install-recommends`"
-          check (Run args) = not (isInstall args) || hasNoRecommendsOption args
+          check (Run args) = not (isAptGetInstall args) || hasNoRecommendsOption args
           check _ = True
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
-          isInstall cmd = ["apt-get", "install"] `isInfixOf` cmd
