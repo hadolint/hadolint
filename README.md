@@ -1,4 +1,4 @@
-# Dockerfile Linter written in Haskell [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
+# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
@@ -127,11 +127,7 @@ if you would tear my code apart in a review.
     ```
     cabal init
     ```
-3. Install modified ShellCheck version
-    ```
-    cabal install deps/shellcheck
-    ```
-4. Install the dependencies
+3. Install the dependencies
     ```
     cabal install --only-dependencies
     ```
@@ -148,6 +144,20 @@ In the REPL you can load the parser code with `:l Parser.hs` and use `parseStrin
 
 ```
 parseString "FROM debian:jessie"
+```
+
+### Tests
+
+Run unit tests.
+
+```
+cabal test
+```
+
+Run integration tests.
+
+```
+./integration_test.sh
 ```
 
 ### Parsing
