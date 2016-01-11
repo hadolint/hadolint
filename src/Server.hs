@@ -7,7 +7,7 @@ import Snap.Http.Server
 import Snap.Core
 import Data.ByteString.Char8 (unpack)
 import Parser (parseString)
-import Rules (Check(..), Metadata(..), analyze, rules)
+import Rules (Check(..), Metadata(..), analyze, rules, link)
 
 
 main :: IO ()
@@ -41,6 +41,7 @@ instance ToJSON JsonError where
 instance ToJSON Check where
     toJSON (Check metadata linenumber _) = object [ "metadata" .= metadata
                                                   , "linenumber" .= linenumber
+                                                  , "link" .= link metadata
                                                   ]
 
 instance ToJSON Metadata where
