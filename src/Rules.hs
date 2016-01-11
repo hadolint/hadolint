@@ -88,10 +88,7 @@ shellcheckBash dockerfile = concatMap check dockerfile
 
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
-bashCommands args = map stripEolEscapes $ splitOneOf [";", "|", "&&"] args
-
-stripEolEscapes :: [String] -> [String]
-stripEolEscapes args = filter ("\\"/=) args
+bashCommands = splitOneOf [";", "|", "&&"]
 
 absoluteWorkdir = instructionRule code severity message check
     where code = "DL3000"
