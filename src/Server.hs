@@ -5,7 +5,6 @@ import Data.Aeson
 import Control.Monad (mzero)
 import Snap.Http.Server
 import Snap.Core
-import Snap.Extras.JSON (getJSON, writeJSON)
 import Data.ByteString.Char8 (unpack)
 import Parser (parseString)
 import Rules (Check(..), Metadata(..), analyze, rules)
