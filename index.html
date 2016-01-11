@@ -30,14 +30,14 @@
           <div class="dockerfile__container">
             <textarea id="dockerfile__code">
 FROM debian
-RUN apt-get upgrade
-RUN apt-get update && apt-get install vim
-COPY requirements.txt /usr/src/app
-RUN cd /usr/src/app && pip install -r requirements.txt
-ENV PYTHON_UNBUFFERED=80
-ENV LOCALE="en-us"
+RUN node_version= "0.10" \
+ && apt-get update && apt-get -y install nodejs="$node_verson"
+COPY package.json usr/src/app
+RUN cd /usr/src/app \
+ && npm install node-static
+ 
 EXPOSE 80000
-            </textarea>
+CMD ["npm", "start"]</textarea>
           </div>
           <button id="lint" type="button" class="button">Lint</button>
           <button id="clear" type="button" class="button">Clear</button>
