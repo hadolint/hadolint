@@ -24,9 +24,9 @@ data Check = Check { metadata :: Metadata,
 
 link :: Metadata -> String
 link (Metadata code _ _)
-    | isPrefixOf "SC" code  = "https://github.com/koalaman/shellcheck/wiki/" ++ code
-    | isPrefixOf "DL" code  = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
-    | otherwise             = "https://github.com/lukasmartinelli/hadolint"
+    | "SC" `isPrefixOf` code  = "https://github.com/koalaman/shellcheck/wiki/" ++ code
+    | "DL" `isPrefixOf` code  = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
+    | otherwise               = "https://github.com/lukasmartinelli/hadolint"
 
 -- a Rule takes a Dockerfile and returns the executed checks
 type Rule =  Dockerfile -> [Check]
@@ -52,9 +52,7 @@ analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
 
 rules = [ absoluteWorkdir
         , shellcheckBash
-        , hasMaintainer
         , maintainerAddress
-        , wgetOrCurl
         , invalidCmd
         , noRootUser
         , noCd
@@ -69,6 +67,8 @@ rules = [ absoluteWorkdir
         , invalidPort
         , aptGetNoRecommends
         , aptGetYes
+        , wgetOrCurl
+        , hasMaintainer
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -98,7 +98,7 @@ hasMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
           severity = InfoC
           message = "Specify a maintainer of the Dockerfile"
-          check = any maintainer
+          check instructions = any maintainer instructions
           maintainer (Maintainer _) = True
           maintainer _              = False
 
