@@ -2,7 +2,7 @@ module Rules where
 
 import Syntax
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
-import Data.List (intercalate, isInfixOf, isSuffixOf)
+import Data.List (intercalate, isInfixOf, isSuffixOf, isPrefixOf)
 import Data.List.Split (splitOneOf, splitOn)
 import Bash
 
@@ -21,6 +21,12 @@ data Check = Check { metadata :: Metadata,
                      linenumber :: Linenumber,
                      success :: Bool
                    }
+
+link :: Check -> String
+link (Check (Metadata code _ _) _ _)
+    | isPrefixOf "SC" code  = "https://github.com/koalaman/shellcheck/wiki/" ++ code
+    | isPrefixOf "DL" code  = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
+    | otherwise             = "https://github.com/lukasmartinelli/hadolint"
 
 -- a Rule takes a Dockerfile and returns the executed checks
 type Rule =  Dockerfile -> [Check]
