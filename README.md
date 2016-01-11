@@ -73,7 +73,7 @@ ShellCheck supports over 100 rules and therefore only the most relevant rules ar
 | DL3011 | Valid UNIX ports range from 0 to 65535.
 | DL3012 | Provide an email adress or URL as maintainer.
 | DL3013 | Pin versions in pip.
-| DL3014 | Use the -y switch.
+| DL3014 | Use the `-y` switch.
 | DL3015 | Avoid additional packages by specifying --no-install-recommends.
 | DL4000 | Specify a maintainer of the Dockerfile.
 | DL4001 | Either use Wget or Curl but not both.
@@ -87,36 +87,64 @@ ShellCheck supports over 100 rules and therefore only the most relevant rules ar
 | SC1035 | You need a space here
 | SC1037 | Braces are required for positionals over `9`, e.g. `${10}`.
 | SC1038 | Shells are space sensitive. Use `< <(cmd)`, not `<<(cmd)`.
-| SC1040 | When using <<-, you can only indent with tabs.
+| SC1040 | When using `<<-`, you can only indent with tabs.
 | SC1044 | Couldn't find the end of the here doc.
 | SC1045 | It's not `foo &; bar`, just `foo & bar`.
-| SC1065 | Trying to declare parameters? Don't. Use () and refer to params as $1, $2..
+| SC1065 | Trying to declare parameters? Don't. Use `()` and refer to params as `$1`, `$2` etc.
 | SC1066 | Don't use $ on the left side of assignments.
-| SC1068 | Don't put spaces around the = in assignments.
+| SC1068 | Don't put spaces around the `=` in assignments.
 | SC1077 | For command expansion, the tick should slant left (\` vs ´).
 | SC1078 | Did you forget to close this double quoted string?
 | SC1079 | This is actually an end quote, but due to next char it looks suspect.
-| SC1081 | Scripts are case sensitive. Use 'if', not 'If'.
-| SC1083 | This {/} is literal. Check expression (missing ;/\n?) or quote it.
-| SC1086 | Don't use $ on the iterator name in for loops.
-| SC1087 | Braces are required when expanding arrays, as in ${array[idx]}.
+| SC1081 | Scripts are case sensitive. Use `if`, not `If`.
+| SC1083 | This `{/}` is literal. Check expression (missing `;/\n`?) or quote it.
+| SC1086 | Don't use `$` on the iterator name in for loops.
+| SC1087 | Braces are required when expanding arrays, as in `${array[idx]}`.
 | SC1088 | Parsing stopped here. Invalid use of parentheses?
 | SC1089 | Parsing stopped here. Is this keyword correctly matched up?
 | SC1090 | Can't follow non-constant source. Use a directive to specify location.
 | SC1091 | Not following: (error message here)
 | SC1095 | You need a space or linefeed between the function name and body.
 | SC1097 | Unexpected `==`. For assignment, use `=`. For comparison, use `[/[[`.
-| SC1098 | Quote/escape special characters when using eval, e.g. eval "a=(b)".
-| SC1099 | You need a space before the #.
+| SC1098 | Quote/escape special characters when using `eval`, e.g. `eval "a=(b)"`.
+| SC1099 | You need a space before the `#`.
 | SC2001 | See if you can use `${variable//search/replace}` instead.
 | SC2002 | Useless cat. Consider `cmd < file | ..` or `cmd file | ..` instead.
-| SC2003 | expr is antiquated. Consider rewriting this using $((..)), ${} or .
+| SC2003 | `expr` is antiquated. Consider rewriting this using `$((..))`, `${}`.
 | SC2004 | `$/${}` is unnecessary on arithmetic variables.
 | SC2005 | Useless `echo?`. Instead of echo `$(cmd)`, just use `cmd`.
-| SC2006 | Use $(..) instead of legacy \`..\`
-| SC2008 | echo doesn't read from stdin, are you sure you should be piping to it?
-| SC2009 | Consider using pgrep instead of grepping ps output.
-| SC2010 | Don't use ls | grep. Use a glob or a for loop with a condition to allow non-alphanumeric filenames.
+| SC2006 | Use `$(..)` instead of legacy \`..\`
+| SC2008 | `echo` doesn't read from stdin, are you sure you should be piping to it?
+| SC2009 | Consider using `pgrep` instead of grepping `ps` output.
+| SC2010 | Don't use `ls | grep`. Use a glob or a for loop with a condition to allow non-alphanumeric filenames.
+| SC2012 | Use `find` instead of `ls` to better handle non-alphanumeric filenames.
+| SC2013 | To read lines rather than words, pipe/redirect to a `while read` loop.
+| SC2014 | This will expand once before find runs, not per file found.
+| SC2015 | Note that `A && B || C` is not if-then-else. C may run when A is true.
+| SC2016 | Expressions don't expand in single quotes, use double quotes for that.
+| SC2017 | Increase precision by replacing `a/b*c` with `a*c/b`.
+| SC2017 | Increase precision by replacing `a/b*c` with `a*c/b`.
+| SC2020 | `tr` replaces sets of chars, not words (mentioned due to duplicates).
+| SC2021 | Don't use `[]` around ranges in `tr`, it replaces literal square brackets.
+| SC2022 | Note that unlike globs, `o*` here matches `ooo` but not `oscar`
+| SC2024 | `sudo` doesn't affect redirects. Use `..| sudo tee file`.
+| SC2025 | Make sure all escape sequences are enclosed in `[..]` to prevent line wrapping issues
+| SC2026 | This word is outside of quotes. Did you intend to 'nest '"'single quotes'"' instead'?
+| SC2027 | The surrounding quotes actually unquote this. Remove or escape them.
+| SC2028 | `echo` won't expand escape sequences. Consider `printf`.
+| SC2029 | Note that, unescaped, this expands on the client side.
+| SC2030 | Modification of var is local (to subshell caused by pipeline).
+| SC2031 | var was modified in a subshell. That change might be lost.
+| SC2032 | Use own script or `sh -c '..'` to run this from `su`.
+| SC2033 | Shell functions can't be passed to external commands.
+| SC2034 | foo appears unused. Verify it or export it.
+| SC2035 | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.
+| SC2036 | If you wanted to assign the output of the pipeline, use `a=$(b | c)`.
+| SC2038 | Use `-print0/-0` or `find -exec +` to allow for non-alphanumeric filenames.
+| SC2039 | In POSIX sh, something is undefined.
+| SC2041 | This is a literal string. To run as a command, use `$(seq 1 10)`.
+| SC2043 | This loop will only run once, with var=value
+| SC2044 | For loops over find output are fragile. Use `find -exec` or a while read loop.
 
 ## Develop
 
