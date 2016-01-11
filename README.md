@@ -37,27 +37,15 @@ docker run --rm -v $(pwd):/lint lukasmartinelli/hadolint hadolint /lint/Dockerfi
 
 ## Install
 
-To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and [Cabal](https://wiki.haskell.org/Cabal-Install) installed.
-On systems with Cabal you can now install the linter directly from Hackage (installs to `~/.cabal/bin`).
+To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and
+the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
+You can build the binary with stack.
 
-```
-cabal update
-cabal install hadolint
-```
-
-## Build with stack
-
-You can build the binary with stack:
 ```
 git clone https://github.com/lukasmartinelli/hadolint
 cd hadolint
 stack build
 ```
-
-### Binaries
-
-Haskell does not have such a great cross compile story like Go. If someone has experience in
-creating static Haskell binaries for Windows, OSX and Linux I would be thankful for your help.
 
 ## Rules
 
