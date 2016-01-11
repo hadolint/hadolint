@@ -1,4 +1,4 @@
-# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint)
+# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
@@ -6,7 +6,7 @@ Try it out online: http://hadolint.lukasmartinelli.ch/
 
 A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
 The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
-It additionally is using the famous [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
+It is standing on the shoulders of [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
 code inside `RUN` instructions.
 
 [![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
@@ -174,3 +174,4 @@ Dockerfile syntax is is fully described in the [Dockerfile reference](http://doc
 - https://github.com/RedCoolBeans/dockerlint/
 - https://github.com/projectatomic/dockerfile_lint/
 - http://dockerfile-linter.com/
+
