@@ -45,6 +45,15 @@ cabal update
 cabal install hadolint
 ```
 
+## Build with stack
+
+You can build the binary with stack:
+```
+git clone https://github.com/lukasmartinelli/hadolint
+cd hadolint
+stack build
+```
+
 ### Binaries
 
 Haskell does not have such a great cross compile story like Go. If someone has experience in
