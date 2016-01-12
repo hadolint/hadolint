@@ -29,10 +29,10 @@ hadolint <dockerfile>
 **With Docker**
 
 Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
-To lint a Dockerfile you mount it into the running container and run `hadolint` on top of it.
+Just pipe your `Dockerfile` to `docker run`:
 
 ```
-docker run --rm -v $(pwd):/lint lukasmartinelli/hadolint hadolint /lint/Dockerfile
+docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 ```
 
 ## Install
