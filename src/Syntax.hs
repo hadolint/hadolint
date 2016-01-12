@@ -34,7 +34,7 @@ data Instruction
   | Entrypoint Arguments
   | Maintainer String
   | Env Pairs
-  | Arg Pairs
+  | Arg String
   | Comment String
   | OnBuild Instruction
   deriving (Eq, Ord, Show)

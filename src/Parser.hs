@@ -106,7 +106,7 @@ label = do
 arg :: Parser Instruction
 arg = do
   reserved "ARG"
-  p <- try pairs <|> try singlePair
+  p <- untilEol
   return $ Arg p
 
 env :: Parser Instruction
