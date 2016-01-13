@@ -104,7 +104,7 @@ function lint_dockerfiles() {
     local hadolint_bin="./dist/build/hadolint/hadolint"
     local dockerfiles=$(find . -name 'Dockerfile')
     for dockerfile in $dockerfiles; do
-        $hadolint_bin "$dockerfile" | awk "{print \"$dockerfile \" \$0}"
+        $hadolint_bin "$dockerfile" | awk "{print \"$dockerfile \" \$0}" || true
     done
 }
 
