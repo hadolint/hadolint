@@ -3,12 +3,17 @@ module Main where
 import Parser
 import Rules
 import Formatter
+import Syntax
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)
+import Data.List (sort)
+import Text.Parsec (ParseError)
 
 printChecks :: [Check] -> IO ()
-printChecks = mapM_ (putStrLn . formatCheck)
+printChecks checks = do
+    mapM_ (putStrLn . formatCheck) $ sort checks
+    exitWith $ ExitFailure $ length checks
 
 main :: IO ()
 main = getArgs >>= parse
@@ -18,17 +23,17 @@ parse ["-i"] = do
     content <- getContents
     length content `seq` return ()
     if not (null content)
-    then case parseString content of
-            Left err         -> print err >> exit
-            Right dockerfile -> printChecks $ analyzeAll dockerfile
+    then checkAst $ parseString content
     else usage >> die
 parse ["-h"] = usage   >> exit
 parse ["-v"] = version >> exit
 parse [file] = do
-    ast <- parseFile file
-    case ast of
-        Left err         -> print err >> exit
-        Right dockerfile -> printChecks $ analyzeAll dockerfile
+    parseFile file >>= checkAst
+
+checkAst :: Either ParseError Dockerfile -> IO ()
+checkAst ast = case ast of
+    Left err         -> print err >> exit
+    Right dockerfile -> printChecks $ analyzeAll dockerfile
 
 analyzeAll = analyze rules
 
