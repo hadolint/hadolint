@@ -20,7 +20,10 @@ data Metadata = Metadata { code :: String,
 data Check = Check { metadata :: Metadata,
                      linenumber :: Linenumber,
                      success :: Bool
-                   }
+                   } deriving Eq
+
+instance Ord Check where
+    a `compare` b = linenumber a `compare` linenumber b
 
 link :: Metadata -> String
 link (Metadata code _ _)

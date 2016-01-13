@@ -6,9 +6,10 @@ import Formatter
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)
+import Data.List (sort)
 
 printChecks :: [Check] -> IO ()
-printChecks = mapM_ (putStrLn . formatCheck)
+printChecks = mapM_ (putStrLn . formatCheck) . sort
 
 main :: IO ()
 main = getArgs >>= parse
