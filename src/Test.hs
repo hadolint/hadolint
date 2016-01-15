@@ -77,6 +77,7 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
              , "from untagged" ~: assertAst "FROM busybox" [InstructionPos (From (UntaggedImage "busybox")) 1]
              , "env pair" ~: assertAst "ENV foo=bar" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env space pair" ~: assertAst "ENV foo bar" [InstructionPos (Env [("foo", "bar")]) 1]
              , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [InstructionPos (Env [("foo", "bar")]) 1]
              , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
              , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
