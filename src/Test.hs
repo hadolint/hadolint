@@ -1,11 +1,16 @@
 import Parser
 import Rules
+import Syntax
 import Data.List (find)
 import Data.Maybe (isJust, fromMaybe)
 
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
+
+assertAst s ast = case parseString (s ++ "\n") of
+    Left err          -> assertFailure $ show err
+    Right dockerfile  -> assertEqual "ASTs are not equal" ast dockerfile
 
 assertChecks rule s f = case parseString (s ++ "\n") of
     Left err -> assertFailure $ show err
@@ -70,6 +75,12 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "many entries" ~: ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
              , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
              , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
+             , "from untagged" ~: assertAst "FROM busybox" [InstructionPos (From (UntaggedImage "busybox")) 1]
+             , "env pair" ~: assertAst "ENV foo=bar" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env space pair" ~: assertAst "ENV foo bar" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
+             , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
              ]
 
 main = defaultMain $ hUnitTestToTests tests

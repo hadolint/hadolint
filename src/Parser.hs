@@ -82,20 +82,14 @@ singleValue = try quotedValue <|> try rawValue
 
 pair :: Parser (String, String)
 pair = do
-  key <- singleValue
-  oneOf "="
+  key <- rawValue
+  oneOf "= "
   value <- singleValue
+  many space
   return (key, value)
 
-singlePair :: Parser Pairs
-singlePair = do
-  key <- singleValue
-  oneOf " "
-  value <- singleValue
-  return [(key, value)]
-
 pairs :: Parser Pairs
-pairs = sepBy pair (char ' ')
+pairs = many1 pair
 
 label :: Parser Instruction
 label = do
@@ -112,7 +106,7 @@ arg = do
 env :: Parser Instruction
 env = do
   reserved "ENV"
-  p <- try pairs <|> try singlePair
+  p <- pairs
   return $ Env p
 
 user :: Parser Instruction
