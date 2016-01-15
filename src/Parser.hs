@@ -54,7 +54,7 @@ from = do
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
-  args <- arguments
+  args <- multilineArguments
   return $ Cmd args
 
 copy :: Parser Instruction

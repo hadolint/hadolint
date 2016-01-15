@@ -81,6 +81,8 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [InstructionPos (Env [("foo", "bar")]) 1]
              , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
              , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
+             , "one line cmd" ~: assertAst "CMD true" [InstructionPos (Cmd ["true"]) 1]
+             , "multiline cmd" ~: assertAst "CMD true \\\n && true" [InstructionPos (Cmd ["true", "&&", "true"]) 1]
              ]
 
 main = defaultMain $ hUnitTestToTests tests
