@@ -268,12 +268,12 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  not $ all (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isArchive path =  any (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
 isUrl :: String -> Bool
-isUrl path = not $ all (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
+isUrl path = any (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check
     where code = "DL3020"
           severity = ErrorC
           message = "Use COPY instead of ADD for files and folders"
-          check (Add src _) = not (isArchive src) && not (isUrl src)
+          check (Add src _) = isArchive src || isUrl src
           check _ = True
