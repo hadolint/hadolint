@@ -30,9 +30,9 @@ taggedImage = do
 
 digestedImage :: Parser BaseImage
 digestedImage = do
-  name <- many (noneOf "@")
-  reservedOp "@"
-  digest <- many (noneOf "\n")
+  name <- untilOccurrence "@\n"
+  oneOf "@"
+  digest <- untilEol
   return $ DigestedImage name (pack digest)
 
 untaggedImage :: Parser BaseImage

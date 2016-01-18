@@ -104,9 +104,9 @@ hasMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
           severity = InfoC
           message = "Specify a maintainer of the Dockerfile"
-          check instructions = any maintainer instructions
-          maintainer (Maintainer _) = True
-          maintainer _              = False
+          check dockerfile = or $ map isMaintainer dockerfile
+          isMaintainer (Maintainer _) = True
+          isMaintainer _              = False
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]

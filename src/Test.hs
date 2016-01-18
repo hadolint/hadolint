@@ -63,6 +63,7 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
                  " && apt-get -y --no-install-recommends install nodejs=0.10 \\",
                  " && rm -rf /var/lib/apt/lists/*"
                  ]
+             , "has maintainer named" ~: ruleCatchesNot hasMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
              , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
              , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
              , "has no maintainer" ~: ruleCatches hasMaintainer "FROM debian"
@@ -83,6 +84,10 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
              , "one line cmd" ~: assertAst "CMD true" [InstructionPos (Cmd ["true"]) 1]
              , "multiline cmd" ~: assertAst "CMD true \\\n && true" [InstructionPos (Cmd ["true", "&&", "true"]) 1]
+             , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [InstructionPos (Maintainer "hudu@mail.com") 1]
+             , "maintainer from" ~: assertAst "FROM busybox\nMAINTAINER hudu@mail.com" [
+                    InstructionPos (From (UntaggedImage "busybox")) 1,
+                    InstructionPos (Maintainer "hudu@mail.com") 2]
              ]
 
 main = defaultMain $ hUnitTestToTests tests
