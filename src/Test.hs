@@ -1,11 +1,16 @@
 import Parser
 import Rules
+import Syntax
 import Data.List (find)
 import Data.Maybe (isJust, fromMaybe)
 
 import Test.HUnit
 import Test.Framework
 import Test.Framework.Providers.HUnit
+
+assertAst s ast = case parseString (s ++ "\n") of
+    Left err          -> assertFailure $ show err
+    Right dockerfile  -> assertEqual "ASTs are not equal" ast dockerfile
 
 assertChecks rule s f = case parseString (s ++ "\n") of
     Left err -> assertFailure $ show err
@@ -58,18 +63,31 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
                  " && apt-get -y --no-install-recommends install nodejs=0.10 \\",
                  " && rm -rf /var/lib/apt/lists/*"
                  ]
+             , "has maintainer named" ~: ruleCatchesNot hasMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
              , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
              , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
              , "has no maintainer" ~: ruleCatches hasMaintainer "FROM debian"
              , "using add" ~: ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
-             , "should use copy archive" ~: ruleCatches copyInsteadAdd "ADD file.tar /usr/src/app/"
-             , "should use copy url" ~: ruleCatches copyInsteadAdd "ADD http://file.com /usr/src/app/"
+             , "add is ok for archive" ~: ruleCatchesNot copyInsteadAdd "ADD file.tar /usr/src/app/"
+             , "add is ok for url" ~: ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
              , "many cmds" ~: ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
              , "single cmd" ~: ruleCatchesNot multipleCmds "CMD /bin/true"
              , "no cmd" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
              , "many entries" ~: ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
              , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
              , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
+             , "from untagged" ~: assertAst "FROM busybox" [InstructionPos (From (UntaggedImage "busybox")) 1]
+             , "env pair" ~: assertAst "ENV foo=bar" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env space pair" ~: assertAst "ENV foo bar" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [InstructionPos (Env [("foo", "bar")]) 1]
+             , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
+             , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
+             , "one line cmd" ~: assertAst "CMD true" [InstructionPos (Cmd ["true"]) 1]
+             , "multiline cmd" ~: assertAst "CMD true \\\n && true" [InstructionPos (Cmd ["true", "&&", "true"]) 1]
+             , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [InstructionPos (Maintainer "hudu@mail.com") 1]
+             , "maintainer from" ~: assertAst "FROM busybox\nMAINTAINER hudu@mail.com" [
+                    InstructionPos (From (UntaggedImage "busybox")) 1,
+                    InstructionPos (Maintainer "hudu@mail.com") 2]
              ]
 
 main = defaultMain $ hUnitTestToTests tests

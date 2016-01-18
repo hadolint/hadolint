@@ -1,4 +1,4 @@
-# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg)](https://travis-ci.org/lukasmartinelli/hadolint) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
+# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg?branch=master)](https://travis-ci.org/lukasmartinelli/hadolint) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
@@ -29,26 +29,23 @@ hadolint <dockerfile>
 **With Docker**
 
 Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
-To lint a Dockerfile you mount it into the running container and run `hadolint` on top of it.
+Just pipe your `Dockerfile` to `docker run`:
 
 ```
-docker run --rm -v $(pwd):/lint lukasmartinelli/hadolint hadolint /lint/Dockerfile
+docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 ```
 
 ## Install
 
-To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and [Cabal](https://wiki.haskell.org/Cabal-Install) installed.
-On systems with Cabal you can now install the linter directly from Hackage (installs to `~/.cabal/bin`).
+To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and
+the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
+You can build the binary with stack.
 
 ```
-cabal update
-cabal install hadolint
+git clone https://github.com/lukasmartinelli/hadolint
+cd hadolint
+stack build
 ```
-
-### Binaries
-
-Haskell does not have such a great cross compile story like Go. If someone has experience in
-creating static Haskell binaries for Windows, OSX and Linux I would be thankful for your help.
 
 ## Rules
 

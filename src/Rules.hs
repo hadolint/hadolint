@@ -20,7 +20,10 @@ data Metadata = Metadata { code :: String,
 data Check = Check { metadata :: Metadata,
                      linenumber :: Linenumber,
                      success :: Bool
-                   }
+                   } deriving Eq
+
+instance Ord Check where
+    a `compare` b = linenumber a `compare` linenumber b
 
 link :: Metadata -> String
 link (Metadata code _ _)
@@ -101,9 +104,9 @@ hasMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
           severity = InfoC
           message = "Specify a maintainer of the Dockerfile"
-          check instructions = any maintainer instructions
-          maintainer (Maintainer _) = True
-          maintainer _              = False
+          check dockerfile = or $ map isMaintainer dockerfile
+          isMaintainer (Maintainer _) = True
+          isMaintainer _              = False
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
@@ -274,12 +277,12 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  not $ all (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isArchive path =  any (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
 isUrl :: String -> Bool
-isUrl path = not $ all (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
+isUrl path = any (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check
     where code = "DL3020"
           severity = ErrorC
           message = "Use COPY instead of ADD for files and folders"
-          check (Add src _) = not (isArchive src) && not (isUrl src)
+          check (Add src _) = isArchive src || isUrl src
           check _ = True

@@ -34,7 +34,7 @@ data Instruction
   | Entrypoint Arguments
   | Maintainer String
   | Env Pairs
-  | Arg Pairs
+  | Arg String
   | Comment String
   | OnBuild Instruction
   deriving (Eq, Ord, Show)
@@ -42,7 +42,7 @@ data Instruction
 type Linenumber = Int
 -- additional location information about an instruction
 -- required for creating good check messages
-data InstructionPos = InstructionPos Instruction Linenumber deriving (Show)
+data InstructionPos = InstructionPos Instruction Linenumber deriving (Eq, Ord, Show)
 
 instruction :: InstructionPos -> Instruction
 instruction (InstructionPos i _ ) = i

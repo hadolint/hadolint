@@ -30,9 +30,9 @@ taggedImage = do
 
 digestedImage :: Parser BaseImage
 digestedImage = do
-  name <- many (noneOf "@")
-  reservedOp "@"
-  digest <- many (noneOf "\n")
+  name <- untilOccurrence "@\n"
+  oneOf "@"
+  digest <- untilEol
   return $ DigestedImage name (pack digest)
 
 untaggedImage :: Parser BaseImage
@@ -54,7 +54,7 @@ from = do
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
-  args <- arguments
+  args <- multilineArguments
   return $ Cmd args
 
 copy :: Parser Instruction
@@ -82,20 +82,14 @@ singleValue = try quotedValue <|> try rawValue
 
 pair :: Parser (String, String)
 pair = do
-  key <- singleValue
-  oneOf "="
+  key <- rawValue
+  oneOf "= "
   value <- singleValue
+  many space
   return (key, value)
 
-singlePair :: Parser Pairs
-singlePair = do
-  key <- singleValue
-  oneOf " "
-  value <- singleValue
-  return [(key, value)]
-
 pairs :: Parser Pairs
-pairs = sepBy pair (char ' ')
+pairs = many1 pair
 
 label :: Parser Instruction
 label = do
@@ -106,13 +100,13 @@ label = do
 arg :: Parser Instruction
 arg = do
   reserved "ARG"
-  p <- try pairs <|> try singlePair
+  p <- untilEol
   return $ Arg p
 
 env :: Parser Instruction
 env = do
   reserved "ENV"
-  p <- try pairs <|> try singlePair
+  p <- pairs
   return $ Env p
 
 user :: Parser Instruction
