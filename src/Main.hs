@@ -27,8 +27,7 @@ parse ["-i"] = do
     else usage >> die
 parse ["-h"] = usage   >> exit
 parse ["-v"] = version >> exit
-parse [file] = do
-    parseFile file >>= checkAst
+parse [file] = parseFile file >>= checkAst
 
 checkAst :: Either ParseError Dockerfile -> IO ()
 checkAst ast = case ast of

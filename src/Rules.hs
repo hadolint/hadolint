@@ -104,7 +104,7 @@ hasMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
           severity = InfoC
           message = "Specify a maintainer of the Dockerfile"
-          check dockerfile = or $ map isMaintainer dockerfile
+          check dockerfile = any isMaintainer dockerfile
           isMaintainer (Maintainer _) = True
           isMaintainer _              = False
 
@@ -200,7 +200,7 @@ aptGetVersionPinned = instructionRule code severity message check
           versionFixed package = "=" `isInfixOf` package
 
 aptGetPackages :: [String] -> [String]
-aptGetPackages args = concat [filter (noOption) cmd | cmd <- bashCommands args, isAptGetInstall cmd]
+aptGetPackages args = concat [filter noOption cmd | cmd <- bashCommands args, isAptGetInstall cmd]
     where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
           options = [ "-f" , "install" , "apt-get" , "-d" , "-f" , "-m" , "-q" , "-y" ]
 
@@ -257,7 +257,7 @@ aptGetYes = instructionRule code severity message check
           check (Run args) = not (isAptGetInstall args) || hasYesOption args
           check _ = True
           hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd || startsWithYesFlag cmd
-          startsWithYesFlag cmd = any (True==) ["-y" `isInfixOf` arg | arg <- cmd]
+          startsWithYesFlag cmd = True `elem` ["-y" `isInfixOf` arg | arg <- cmd]
 
 aptGetNoRecommends = instructionRule code severity message check
     where code = "DL3015"
@@ -268,9 +268,9 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  any (True==) [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
 isUrl :: String -> Bool
-isUrl path = any (True==) [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
+isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check
     where code = "DL3020"
           severity = ErrorC
