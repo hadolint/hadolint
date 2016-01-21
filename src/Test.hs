@@ -63,6 +63,13 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
                  " && apt-get -y --no-install-recommends install nodejs=0.10 \\",
                  " && rm -rf /var/lib/apt/lists/*"
                  ]
+             , "apt-get pinned regression" ~: ruleCatchesNot aptGetVersionPinned $ unlines [
+                "RUN apt-get update && apt-get install --no-install-recommends -y \\",
+                "python-demjson=2.2.2* \\",
+                "wget=1.16.1* \\",
+                "git=1:2.5.0* \\",
+                "ruby=1:2.1.*"
+                ]
              , "has maintainer named" ~: ruleCatchesNot hasMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
              , "has maintainer" ~: ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
              , "has maintainer first" ~: ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
