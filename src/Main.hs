@@ -9,17 +9,35 @@ import System.Environment (getArgs)
 import System.Exit hiding (die)
 import Data.List (sort)
 import Text.Parsec (ParseError)
+import Options.Applicative hiding (ParseError)
+
+data LintOptions = LintOptions { readStdin :: Bool
+                               , json :: Bool
+                               , codeClimate :: Bool
+                               }
+
 
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
     exitWith $ ExitFailure $ length checks
 
-main :: IO ()
-main = getArgs >>= parse
+parseOptions :: Parser LintOptions
+parseOptions = LintOptions
+    <$> switch (long "read-stdin" <> help "Read file contents from stdin")
+    <*> switch (long "json" <> help "Format output as JSON")
+    <*> switch (long "code-climate" <> help "Format output as CodeClimate compatible JSON")
 
-parse [] = usage >> die
-parse ["-i"] = do
+main :: IO ()
+main = execParser opts >>= lint
+    where
+        opts = info (helper <*> parseOptions)
+          ( fullDesc
+         <> progDesc "Lint Dockerfile for errors and best practices"
+         <> header "hadolint - Dockerfile Linter written in Haskell" )
+
+lint :: LintOptions -> IO ()
+lint LintOptions(True ) = do
     content <- getContents
     length content `seq` return ()
     if not (null content)
