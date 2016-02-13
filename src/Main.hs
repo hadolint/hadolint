@@ -13,7 +13,7 @@ import Text.Parsec (ParseError)
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
-    exitWith $ ExitFailure $ length checks
+    if length checks == 0 then exit else die
 
 main :: IO ()
 main = getArgs >>= parse
@@ -31,7 +31,7 @@ parse [file] = parseFile file >>= checkAst
 
 checkAst :: Either ParseError Dockerfile -> IO ()
 checkAst ast = case ast of
-    Left err         -> print err >> exit
+    Left err         -> print err >> die
     Right dockerfile -> printChecks $ analyzeAll dockerfile
 
 analyzeAll = analyze rules
