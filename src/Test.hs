@@ -35,18 +35,28 @@ astTests =
     , "one line cmd" ~: assertAst "CMD true" [Cmd ["true"]]
     , "multiline cmd" ~: assertAst "CMD true \\\n && true" [Cmd ["true", "&&", "true"]]
     , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [Maintainer "hudu@mail.com"]
-    , "maintainer from" ~: assertAst maintainerFromProgram maintainerFromAst
+    , "maintainer from" ~: assertAst maintainerFromProg maintainerFromAst
     , "quoted exec" ~: assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
-    , "env works with cmd" ~: assertAst envWorksCmdProgram envWorksCmdAst
+    , "env works with cmd" ~: assertAst envWorksCmdProg envWorksCmdAst
+    , "multicomments first" ~: assertAst multiCommentsProg1 [Run ["apt-get", "update"]]
+    , "multicomments after" ~: assertAst multiCommentsProg2 [Run ["apt-get", "update"], Comment " line 1", Comment " line 2"]
     ] where
-        maintainerFromProgram = "FROM busybox\nMAINTAINER hudu@mail.com"
+        maintainerFromProg = "FROM busybox\nMAINTAINER hudu@mail.com"
         maintainerFromAst = [ From (UntaggedImage "busybox")
                             , Maintainer "hudu@mail.com"
                             ]
-        envWorksCmdProgram = "ENV PATH=\"/root\"\nCMD [\"hadolint\",\"-i\"]"
+        envWorksCmdProg = "ENV PATH=\"/root\"\nCMD [\"hadolint\",\"-i\"]"
         envWorksCmdAst = [ Env [("PATH", "/root")]
                          , Cmd ["hadolint", "-i"]
                          ]
+        multiCommentsProg1 = unlines [ "# line 1"
+                                     , "# line 2"
+                                     , "RUN apt-get update"
+                                     ]
+        multiCommentsProg2 = unlines [ "RUN apt-get update"
+                                     , "# line 1"
+                                     , "# line 2"
+                                     ]
 
 ruleTests =
     [ "untagged" ~: ruleCatches noUntagged "FROM debian"
