@@ -36,11 +36,17 @@ astTests =
     , "multiline cmd" ~: assertAst "CMD true \\\n && true" [Cmd ["true", "&&", "true"]]
     , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [Maintainer "hudu@mail.com"]
     , "maintainer from" ~: assertAst maintainerFromProgram maintainerFromAst
+    , "quoted exec" ~: assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
+    , "env works with cmd" ~: assertAst envWorksCmdProgram envWorksCmdAst
     ] where
         maintainerFromProgram = "FROM busybox\nMAINTAINER hudu@mail.com"
         maintainerFromAst = [ From (UntaggedImage "busybox")
                             , Maintainer "hudu@mail.com"
                             ]
+        envWorksCmdProgram = "ENV PATH=\"/root\"\nCMD [\"hadolint\",\"-i\"]"
+        envWorksCmdAst = [ Env [("PATH", "/root")]
+                         , Cmd ["hadolint", "-i"]
+                         ]
 
 ruleTests =
     [ "untagged" ~: ruleCatches noUntagged "FROM debian"

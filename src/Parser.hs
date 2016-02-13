@@ -71,11 +71,17 @@ stopsignal = do
   args <- many (noneOf "\n")
   return $ Stopsignal args
 
+-- We cannot use string literal because it swallows space
+-- and therefore have to implement quoted values by ourselves
 quotedValue:: Parser String
-quotedValue = stringLiteral
+quotedValue = do
+    char '"'
+    literal <- untilOccurrence "\""
+    char '"'
+    return literal
 
 rawValue :: Parser String
-rawValue = many (noneOf [' ','=','\n'])
+rawValue = many1 (noneOf [' ','=','\n'])
 
 singleValue :: Parser String
 singleValue = try quotedValue <|> try rawValue
@@ -85,11 +91,17 @@ pair = do
   key <- rawValue
   oneOf "= "
   value <- singleValue
-  many space
   return (key, value)
 
 pairs :: Parser Pairs
-pairs = many1 pair
+pairs = do
+    first <- pair
+    next <- remainingPairs
+    return (first:next)
+
+remainingPairs =
+    try (char ' ' >> pairs)
+    <|> try (return [])
 
 label :: Parser Instruction
 label = do

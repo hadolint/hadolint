@@ -28,3 +28,4 @@ commaSep = Token.commaSep lexer
 stringLiteral = Token.stringLiteral lexer
 brackets = Token.brackets lexer
 identifier = Token.identifier lexer
+lexeme = Token.lexeme lexer
