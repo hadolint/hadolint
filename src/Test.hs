@@ -10,7 +10,7 @@ import Test.Framework.Providers.HUnit
 
 assertAst s ast = case parseString (s ++ "\n") of
     Left err          -> assertFailure $ show err
-    Right dockerfile  -> assertEqual "ASTs are not equal" ast dockerfile
+    Right dockerfile  -> assertEqual "ASTs are not equal" ast $ map instruction dockerfile
 
 assertChecks rule s f = case parseString (s ++ "\n") of
     Left err -> assertFailure $ show err
@@ -25,7 +25,24 @@ ruleCatchesNot :: Rule -> String -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
     where f checks = assertEqual "Found check of rule" 0 $ length checks
 
-tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
+astTests =
+    [ "from untagged" ~: assertAst "FROM busybox" [From (UntaggedImage "busybox")]
+    , "env pair" ~: assertAst "ENV foo=bar" [Env [("foo", "bar")]]
+    , "env space pair" ~: assertAst "ENV foo bar" [Env [("foo", "bar")] ]
+    , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [Env [("foo", "bar")]]
+    , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [Env [("foo", "bar"), ("baz", "foo")]]
+    , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [Env [("foo", "bar"), ("baz", "foo")]]
+    , "one line cmd" ~: assertAst "CMD true" [Cmd ["true"]]
+    , "multiline cmd" ~: assertAst "CMD true \\\n && true" [Cmd ["true", "&&", "true"]]
+    , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [Maintainer "hudu@mail.com"]
+    , "maintainer from" ~: assertAst maintainerFromProgram maintainerFromAst
+    ] where
+        maintainerFromProgram = "FROM busybox\nMAINTAINER hudu@mail.com"
+        maintainerFromAst = [ From (UntaggedImage "busybox")
+                            , Maintainer "hudu@mail.com"
+                            ]
+
+ruleTests = [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "explicit latest" ~: ruleCatches noLatestTag "FROM debian:latest"
              , "explicit tagged" ~: ruleCatchesNot noLatestTag "FROM debian:jessie"
              , "sudo" ~: ruleCatches noSudo "RUN sudo apt-get update"
@@ -83,18 +100,7 @@ tests = test [ "untagged" ~: ruleCatches noUntagged "FROM debian"
              , "many entries" ~: ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
              , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
              , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
-             , "from untagged" ~: assertAst "FROM busybox" [InstructionPos (From (UntaggedImage "busybox")) 1]
-             , "env pair" ~: assertAst "ENV foo=bar" [InstructionPos (Env [("foo", "bar")]) 1]
-             , "env space pair" ~: assertAst "ENV foo bar" [InstructionPos (Env [("foo", "bar")]) 1]
-             , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [InstructionPos (Env [("foo", "bar")]) 1]
-             , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
-             , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [InstructionPos (Env [("foo", "bar"), ("baz", "foo")]) 1]
-             , "one line cmd" ~: assertAst "CMD true" [InstructionPos (Cmd ["true"]) 1]
-             , "multiline cmd" ~: assertAst "CMD true \\\n && true" [InstructionPos (Cmd ["true", "&&", "true"]) 1]
-             , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [InstructionPos (Maintainer "hudu@mail.com") 1]
-             , "maintainer from" ~: assertAst "FROM busybox\nMAINTAINER hudu@mail.com" [
-                    InstructionPos (From (UntaggedImage "busybox")) 1,
-                    InstructionPos (Maintainer "hudu@mail.com") 2]
              ]
 
+tests = test $ ruleTests ++ astTests
 main = defaultMain $ hUnitTestToTests tests
