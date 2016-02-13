@@ -3,7 +3,9 @@ MAINTAINER Lukas Martinelli <me@lukasmartinelli.ch>
 RUN cabal update
 
 RUN apt-get update \
- && apt-get install --no-install-recommends -y git=2.1.4 hlint=1.8.61 \
+ && apt-get install --no-install-recommends -y -s \
+    git=1:2.1.4-2.1+deb8u1 \
+    hlint=1.8.61-1+b2 \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/hadolint/
