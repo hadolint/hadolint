@@ -232,7 +232,7 @@ maintainerAddress = instructionRule code severity message check
     where code = "DL3012"
           severity = StyleC
           message = "Provide an email adress or URL as maintainer"
-          check (Maintainer name) = isInfixOf "@" name || isInfixOf "http://" name
+          check (Maintainer name) = isInfixOf "@" name || isInfixOf "https://" name || isInfixOf "http://" name
           check _ = True
 
 pipVersionPinned = instructionRule code severity message check
