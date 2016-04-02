@@ -97,7 +97,7 @@ absoluteWorkdir = instructionRule code severity message check
     where code = "DL3000"
           severity = ErrorC
           message = "Use absolute WORKDIR"
-          check (Workdir dir) = head dir == '/'
+          check (Workdir dir) = head dir == '$' || head dir == '/'
           check _ = True
 
 hasMaintainer = dockerfileRule code severity message check

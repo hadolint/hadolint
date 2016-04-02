@@ -78,6 +78,7 @@ ruleTests =
     , "valid port" ~: ruleCatchesNot invalidPort "EXPOSE 60000"
     , "maintainer address" ~: ruleCatches maintainerAddress "MAINTAINER Lukas"
     , "maintainer uri" ~: ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
+    , "maintainer uri" ~: ruleCatchesNot maintainerAddress "MAINTAINER John Doe <john.doe@example.net>"
     , "maintainer mail" ~: ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
     , "pip requirements" ~: ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
     , "pip version not pinned" ~: ruleCatches pipVersionPinned "RUN pip install MySQL_python"
@@ -107,6 +108,7 @@ ruleTests =
     , "many entries" ~: ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
     , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
     , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
+    , "workdir variable" ~: ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"
     ] where
     aptGetPinnedChainedProgram =
         [ "RUN apt-get update \\"

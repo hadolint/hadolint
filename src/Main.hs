@@ -13,7 +13,7 @@ import Text.Parsec (ParseError)
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
-    if length checks == 0 then exit else die
+    if null checks then exit else die
 
 main :: IO ()
 main = getArgs >>= parse
