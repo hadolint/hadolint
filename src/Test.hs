@@ -1,6 +1,7 @@
 import Parser
 import Rules
 import Syntax
+import Normalize
 import Data.List (find)
 import Data.Maybe (isJust, fromMaybe)
 
@@ -24,6 +25,12 @@ ruleCatches rule s = assertChecks rule s f
 ruleCatchesNot :: Rule -> String -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
     where f checks = assertEqual "Found check of rule" 0 $ length checks
+
+normalizeTests = [ "join escaped lines" ~: assertEqual "Lines are not joined" expected $ normalizeEscapedLines dockerfile
+                 ]
+    where expected = unlines ["ENV foo=bar  baz=foz", ""]
+          dockerfile = unlines ["ENV foo=bar \\", "baz=foz"]
+
 
 astTests =
     [ "from untagged" ~: assertAst "FROM busybox" [From (UntaggedImage "busybox")]
@@ -123,5 +130,5 @@ ruleTests =
         , "ruby=1:2.1.*"
         ]
 
-tests = test $ ruleTests ++ astTests
+tests = test $ ruleTests ++ astTests ++ normalizeTests
 main = defaultMain $ hUnitTestToTests tests
