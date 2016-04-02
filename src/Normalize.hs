@@ -15,7 +15,7 @@ normalizeEscapedLines :: String -> String
 normalizeEscapedLines s = unwords escapedSegments ++ lineBreakReplacements
   where
     escapedSegments = splitOn escapeSequence s
-    lineBreakReplacements = intercalate "" $ replicate escapeOccurrences "\n"
+    lineBreakReplacements = concat $ replicate escapeOccurrences "\n"
     -- count gaps between elements
     escapeOccurrences = length escapedSegments - 1
     escapeSequence = "\\\n"

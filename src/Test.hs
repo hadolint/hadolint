@@ -27,9 +27,31 @@ ruleCatchesNot rule s = assertChecks rule s f
     where f checks = assertEqual "Found check of rule" 0 $ length checks
 
 normalizeTests = [ "join escaped lines" ~: assertEqual "Lines are not joined" expected $ normalizeEscapedLines dockerfile
+                 , "join long cmd" ~: assertEqual "Lines are not joined" longEscapedCmdExpected $ normalizeEscapedLines longEscapedCmd
                  ]
     where expected = unlines ["ENV foo=bar  baz=foz", ""]
           dockerfile = unlines ["ENV foo=bar \\", "baz=foz"]
+
+
+longEscapedCmd = unlines
+    [ "RUN wget https://download.com/${version}.tar.gz -O /tmp/logstash.tar.gz && \\"
+    , "(cd /tmp && tar zxf logstash.tar.gz && mv logstash-${version} /opt/logstash && \\"
+    , "rm logstash.tar.gz) && \\"
+    , "(cd /opt/logstash && \\"
+    ,  "/opt/logstash/bin/plugin install contrib)"
+    ]
+
+longEscapedCmdExpected = concat
+    [ "RUN wget https://download.com/${version}.tar.gz -O /tmp/logstash.tar.gz &&  "
+    , "(cd /tmp && tar zxf logstash.tar.gz && mv logstash-${version} /opt/logstash &&  "
+    , "rm logstash.tar.gz) &&  "
+    , "(cd /opt/logstash &&  "
+    ,  "/opt/logstash/bin/plugin install contrib)\n"
+    , "\n"
+    , "\n"
+    , "\n"
+    , "\n"
+    ]
 
 
 astTests =
