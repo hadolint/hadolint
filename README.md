@@ -37,11 +37,16 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 
 ## Install
 
-To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and
-the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
-You can build the binary with stack.
+If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
+```bash
+brew install hadolint
 ```
+
+You can also build `hadolint` locally. You need [Haskell](https://www.haskell.org/platform/) and
+the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html) to build the binary.
+
+```bash
 git clone https://github.com/lukasmartinelli/hadolint
 cd hadolint
 stack build
