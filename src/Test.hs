@@ -70,6 +70,7 @@ astTests =
     , "multicomments first" ~: assertAst multiCommentsProg1 [Run ["apt-get", "update"]]
     , "multicomments after" ~: assertAst multiCommentsProg2 [Run ["apt-get", "update"], Comment " line 1", Comment " line 2"]
     , "escape with space" ~: assertAst escapedWithSpaceProgram [Run ["yum", "install", "-y", "imagemagick", "mysql"]]
+    , "scratch and maintainer" ~: assertAst "FROM scratch\nMAINTAINER hudu@mail.com" [From (UntaggedImage "scratch"), Maintainer "hudu@mail.com"]
     ] where
         maintainerFromProg = "FROM busybox\nMAINTAINER hudu@mail.com"
         maintainerFromAst = [ From (UntaggedImage "busybox")
