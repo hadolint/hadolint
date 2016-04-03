@@ -25,9 +25,9 @@ comment = do
 
 taggedImage :: Parser BaseImage
 taggedImage = do
-  name <- many (noneOf ":")
-  reservedOp ":"
-  tag <- many (noneOf "\n")
+  name <- untilOccurrence ":\n"
+  oneOf ":"
+  tag <- untilEol
   return $ TaggedImage name tag
 
 digestedImage :: Parser BaseImage

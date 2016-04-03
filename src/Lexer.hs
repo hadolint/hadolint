@@ -8,11 +8,9 @@ lexer :: Token.TokenParser ()
 lexer = Token.makeTokenParser style
   where
     names = ["FROM","ADD","RUN","WORKDIR","EXPOSE","VOLUME","ENTRYPOINT","MAINTAINER","ENV","LABEL","USER","STOPSIGNAL","CMD", "ONBUILD", "ARG"]
-    ops = [":"]
     style = emptyDef {
                Token.commentLine = "#"
              , Token.reservedNames = names
-             , Token.reservedOpNames = ops
              }
 
 reserved :: String -> Parser ()
