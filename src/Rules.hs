@@ -179,7 +179,7 @@ noUntagged = instructionRule code severity message check
     where code = "DL3006"
           severity = WarningC
           message = "Always tag the version of an image explicitly."
-          check (From (UntaggedImage _)) = False
+          check (From (UntaggedImage image)) = image == "scratch"
           check (From (TaggedImage _ _)) = True
           check _ = True
 

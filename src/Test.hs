@@ -143,6 +143,7 @@ ruleTests =
     , "single entry" ~: ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
     , "no entry" ~: ruleCatchesNot multipleEntrypoints "FROM busybox"
     , "workdir variable" ~: ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"
+    , "scratch" ~: ruleCatchesNot noUntagged "FROM scratch"
     ] where
     aptGetPinnedChainedProgram =
         [ "RUN apt-get update \\"
