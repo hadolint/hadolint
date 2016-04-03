@@ -69,6 +69,7 @@ astTests =
     , "env works with cmd" ~: assertAst envWorksCmdProg envWorksCmdAst
     , "multicomments first" ~: assertAst multiCommentsProg1 [Run ["apt-get", "update"]]
     , "multicomments after" ~: assertAst multiCommentsProg2 [Run ["apt-get", "update"], Comment " line 1", Comment " line 2"]
+    , "escape with space" ~: assertAst escapedWithSpaceProgram [Run ["yum", "install", "-y", "imagemagick", "mysql"]]
     ] where
         maintainerFromProg = "FROM busybox\nMAINTAINER hudu@mail.com"
         maintainerFromAst = [ From (UntaggedImage "busybox")
@@ -86,6 +87,10 @@ astTests =
                                      , "# line 1"
                                      , "# line 2"
                                      ]
+        escapedWithSpaceProgram = unlines [ "RUN yum install -y \\ "
+                                          , "imagemagick \\ "
+                                          , "mysql"
+                                          ]
 
 ruleTests =
     [ "untagged" ~: ruleCatches noUntagged "FROM debian"
