@@ -4,7 +4,7 @@ RUN cabal update
 
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
-    git=1:2.1.4-2.1+deb8u1 \
+    git=1:2.1.4-2.1+deb8u2 \
     hlint=1.8.61-1+b2 \
  && rm -rf /var/lib/apt/lists/*
 
@@ -18,4 +18,3 @@ RUN cabal install
 
 ENV PATH="/root/.cabal/bin:$PATH"
 CMD ["hadolint", "-i"]
-
