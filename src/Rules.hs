@@ -48,7 +48,7 @@ dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rul
 dockerfileRule code severity message f = rule
     where rule dockerfile = [Check metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
           metadata = Metadata code severity message
-          filename dockerfile = source $ head dockerfile
+          filename dockerfile = sourcename $ head dockerfile
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [Check]
