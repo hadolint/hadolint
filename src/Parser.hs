@@ -237,7 +237,7 @@ dockerfile = many $ do
     pos <- getPosition
     i <- parseInstruction
     many eol
-    return $ InstructionPos i $ sourceLine pos
+    return $ InstructionPos i (sourceName pos) (sourceLine pos)
 
 parseString :: String -> Either ParseError Dockerfile
 parseString s = parse (contents dockerfile) "<string>" $ normalizeEscapedLines s
