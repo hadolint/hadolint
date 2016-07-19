@@ -61,7 +61,7 @@ Incomplete list of implemented rules. Click on the error code to get more detail
 
 Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new) if you have an idea for a good rule.
 
-| Rule                                                              | Decscription
+| Rule                                                              | Description
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------
 | [DL3000](https://github.com/lukasmartinelli/hadolint/wiki/DL3000) | Use absolute WORKDIR.
 | [DL3001](https://github.com/lukasmartinelli/hadolint/wiki/DL3001) | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig.
