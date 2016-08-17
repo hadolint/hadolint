@@ -44,10 +44,6 @@ matrix:
     compiler: ": #stack default"
     addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-2"
-    compiler: ": #stack 7.8.4"
-    addons: {apt: {packages: [ghc-7.8.4], sources: [hvr-ghc]}}
-
   - env: BUILD=stack ARGS="--resolver lts-3"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [ghc-7.10.2], sources: [hvr-ghc]}}
@@ -64,10 +60,6 @@ matrix:
   # Build on OS X in addition to Linux
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default osx"
-    os: osx
-
-  - env: BUILD=stack ARGS="--resolver lts-2"
-    compiler: ": #stack 7.8.4 osx"
     os: osx
 
   - env: BUILD=stack ARGS="--resolver lts-3"
