@@ -1,4 +1,4 @@
-module Bash where
+module Hadolint.Bash where
 
 import ShellCheck.Interface
 import ShellCheck.Checker

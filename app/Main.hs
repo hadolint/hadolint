@@ -1,9 +1,9 @@
 module Main where
 
-import Parser
-import Rules
-import Formatter
-import Syntax
+import Hadolint.Parser
+import Hadolint.Rules
+import Hadolint.Formatter
+import Hadolint.Syntax
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)

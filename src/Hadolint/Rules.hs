@@ -1,10 +1,10 @@
-module Rules where
+module Hadolint.Rules where
 
-import Syntax
+import Hadolint.Syntax
+import Hadolint.Bash
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.List (intercalate, isInfixOf, isSuffixOf, isPrefixOf)
 import Data.List.Split (splitOneOf, splitOn)
-import Bash
 
 import ShellCheck.Interface
 data Metadata = Metadata { code :: String,

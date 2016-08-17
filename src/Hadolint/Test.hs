@@ -53,46 +53,6 @@ longEscapedCmdExpected = concat
     , "\n"
     ]
 
-
-astTests =
-    [ "from untagged" ~: assertAst "FROM busybox" [From (UntaggedImage "busybox")]
-    , "env pair" ~: assertAst "ENV foo=bar" [Env [("foo", "bar")]]
-    , "env space pair" ~: assertAst "ENV foo bar" [Env [("foo", "bar")] ]
-    , "env quoted pair" ~: assertAst "ENV foo=\"bar\"" [Env [("foo", "bar")]]
-    , "env multi raw pair" ~: assertAst "ENV foo=bar baz=foo" [Env [("foo", "bar"), ("baz", "foo")]]
-    , "env multi quoted pair" ~: assertAst "ENV foo=\"bar\" baz=\"foo\"" [Env [("foo", "bar"), ("baz", "foo")]]
-    , "one line cmd" ~: assertAst "CMD true" [Cmd ["true"]]
-    , "multiline cmd" ~: assertAst "CMD true \\\n && true" [Cmd ["true", "&&", "true"]]
-    , "maintainer " ~: assertAst "MAINTAINER hudu@mail.com" [Maintainer "hudu@mail.com"]
-    , "maintainer from" ~: assertAst maintainerFromProg maintainerFromAst
-    , "quoted exec" ~: assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
-    , "env works with cmd" ~: assertAst envWorksCmdProg envWorksCmdAst
-    , "multicomments first" ~: assertAst multiCommentsProg1 [Run ["apt-get", "update"]]
-    , "multicomments after" ~: assertAst multiCommentsProg2 [Run ["apt-get", "update"], Comment " line 1", Comment " line 2"]
-    , "escape with space" ~: assertAst escapedWithSpaceProgram [Run ["yum", "install", "-y", "imagemagick", "mysql"]]
-    , "scratch and maintainer" ~: assertAst "FROM scratch\nMAINTAINER hudu@mail.com" [From (UntaggedImage "scratch"), Maintainer "hudu@mail.com"]
-    ] where
-        maintainerFromProg = "FROM busybox\nMAINTAINER hudu@mail.com"
-        maintainerFromAst = [ From (UntaggedImage "busybox")
-                            , Maintainer "hudu@mail.com"
-                            ]
-        envWorksCmdProg = "ENV PATH=\"/root\"\nCMD [\"hadolint\",\"-i\"]"
-        envWorksCmdAst = [ Env [("PATH", "/root")]
-                         , Cmd ["hadolint", "-i"]
-                         ]
-        multiCommentsProg1 = unlines [ "# line 1"
-                                     , "# line 2"
-                                     , "RUN apt-get update"
-                                     ]
-        multiCommentsProg2 = unlines [ "RUN apt-get update"
-                                     , "# line 1"
-                                     , "# line 2"
-                                     ]
-        escapedWithSpaceProgram = unlines [ "RUN yum install -y \\ "
-                                          , "imagemagick \\ "
-                                          , "mysql"
-                                          ]
-
 ruleTests =
     [ "untagged" ~: ruleCatches noUntagged "FROM debian"
     , "explicit latest" ~: ruleCatches noLatestTag "FROM debian:latest"

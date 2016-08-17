@@ -1,4 +1,4 @@
-module Normalize (
+module Hadolint.Normalize (
  normalizeEscapedLines
 ) where
 
