@@ -18,6 +18,7 @@ data Metadata = Metadata { code :: String,
 -- and simple to develop new rules
 -- line numbers in the negative range are meant for the global context
 data Check = Check { metadata :: Metadata,
+                     filename :: Filename,
                      linenumber :: Linenumber,
                      success :: Bool
                    } deriving Eq
@@ -38,20 +39,21 @@ type Rule =  Dockerfile -> [Check]
 -- for the according line number
 mapInstructions :: Metadata -> (Instruction -> Bool) -> Rule
 mapInstructions metadata f = map applyRule
-    where applyRule (InstructionPos i linenumber) = Check metadata linenumber (f i)
+    where applyRule (InstructionPos i source linenumber) = Check metadata source linenumber (f i)
 
 instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
 instructionRule code severity message f = mapInstructions (Metadata code severity message) f
 
 dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
-    where rule dockerfile = [Check metadata (-1) (f (map instruction dockerfile))]
+    where rule dockerfile = [Check metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
           metadata = Metadata code severity message
+          filename dockerfile = sourcename $ head dockerfile
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [Check]
 analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
-    where failed (Check _ _ success) = not success
+    where failed (Check _ _ _ success) = not success
 
 rules = [ absoluteWorkdir
         , shellcheckBash
@@ -82,7 +84,7 @@ commentMetadata (ShellCheck.Interface.Comment severity code message) = Metadata 
 
 shellcheckBash :: Dockerfile -> [Check]
 shellcheckBash dockerfile = concatMap check dockerfile
-    where check (InstructionPos (Run args) linenumber) = rmDup [Check m linenumber False | m <- convert args]
+    where check (InstructionPos (Run args) source linenumber) = rmDup [Check m source linenumber False | m <- convert args]
           check _ = []
           convert args = [commentMetadata c | c <- shellcheck $ unwords args]
           rmDup :: [Check] -> [Check]

@@ -37,11 +37,16 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 
 ## Install
 
-To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and
-the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
-You can build the binary with stack.
+If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
+```bash
+brew install hadolint
 ```
+
+You can also build `hadolint` locally. You need [Haskell](https://www.haskell.org/platform/) and
+the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html) to build the binary.
+
+```bash
 git clone https://github.com/lukasmartinelli/hadolint
 cd hadolint
 stack build
@@ -56,7 +61,7 @@ Incomplete list of implemented rules. Click on the error code to get more detail
 
 Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new) if you have an idea for a good rule.
 
-| Rule                                                              | Decscription
+| Rule                                                              | Description
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------
 | [DL3000](https://github.com/lukasmartinelli/hadolint/wiki/DL3000) | Use absolute WORKDIR.
 | [DL3001](https://github.com/lukasmartinelli/hadolint/wiki/DL3001) | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig.
