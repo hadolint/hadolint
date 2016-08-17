@@ -22,7 +22,7 @@ library
                      , Hadolint.Parser
                      , Hadolint.Rules
                      , Hadolint.Syntax
-  build-depends:       base >=4.8
+  build-depends:       base >=4.6 && < 5
                      , parsec >=3.1
                      , bytestring >=0.10
                      , split >= 0.2
@@ -32,7 +32,7 @@ library
 executable hadolint
   hs-source-dirs:      app
   main-is:             Main.hs
-  build-depends:       base >=4.8
+  build-depends:       base >=4.6 && < 5
                      , hadolint
                      , parsec >=3.1
   default-language:    Haskell2010
@@ -41,7 +41,7 @@ test-suite hadolint-unit-tests
   hs-source-dirs:      test
   type:                exitcode-stdio-1.0
   main-is:             Spec.hs
-  build-depends:       base >=4.8
+  build-depends:       base >=4.6 && < 5
                      , parsec >=3.1
                      , bytestring >=0.10
                      , split >= 0.2
