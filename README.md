@@ -1,5 +1,4 @@
-# Haskell Dockerfile Linter [![Linux/OSX Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg?branch=master)](https://travis-ci.org/lukasmartinelli/hadolint) [![Windows Build status](https://ci.appveyor.com/api/projects/status/t6m5vpv6mud7yi89/branch/master?svg=true)](https://ci.appveyor.com/project/lukasmartinelli/hadolint/branch/master)
- [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
+# Haskell Dockerfile Linter [![Linux/OSX Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg?branch=master)](https://travis-ci.org/lukasmartinelli/hadolint) [![Windows Build status](https://ci.appveyor.com/api/projects/status/t6m5vpv6mud7yi89/branch/master?svg=true)](https://ci.appveyor.com/project/lukasmartinelli/hadolint/branch/master) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
