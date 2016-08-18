@@ -9,7 +9,9 @@ import System.Environment (getArgs)
 import System.Exit hiding (die)
 import Data.List (sort)
 import Text.Parsec (ParseError)
+import Control.Applicative
 import Options.Applicative hiding (ParseError)
+
 
 type IgnoreRule = String
 data LintOptions = LintOptions { json :: Bool
