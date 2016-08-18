@@ -14,7 +14,6 @@ import Options.Applicative hiding (ParseError)
 
 type IgnoreRule = String
 data LintOptions = LintOptions { showVersion :: Bool
-                               , codeClimate :: Bool
                                , ignoreRules :: [IgnoreRule]
                                , dockerfiles :: [String]
                                }
@@ -30,7 +29,6 @@ printChecks checks = do
 parseOptions :: Parser LintOptions
 parseOptions = LintOptions
     <$> switch (long "version" <> short 'v' <> help "Show version")
-    <*> switch (long "code-climate" <> help "Format output as CodeClimate compatible JSON")
     <*> many (strOption (long "ignore" <> help "Ignore rule" <> metavar "RULECODE"))
     <*> many (argument str (metavar "DOCKERFILE..."))
 
@@ -53,9 +51,9 @@ lintDockerfile ignoreRules dockerfile = do
     checkAst (ignoreFilter ignoreRules) ast
 
 lint :: LintOptions -> IO ()
-lint (LintOptions True _ _ _) = putStrLn "Haskell Dockerfile Linter v1.1" >> exitSuccess
-lint (LintOptions _ _ _ []) = putStrLn "Please provide a Dockerfile" >> exitSuccess
-lint (LintOptions _ _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
+lint (LintOptions True _ _) = putStrLn "Haskell Dockerfile Linter v1.1" >> exitSuccess
+lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitSuccess
+lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
 checkAst checkFilter ast = case ast of
