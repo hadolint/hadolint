@@ -283,7 +283,7 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz", ".zip", ".tgz"]]
 isUrl :: String -> Bool
 isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check
