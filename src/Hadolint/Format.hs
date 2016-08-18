@@ -30,13 +30,16 @@ categorize :: String -> String
 categorize "DL3004" = "Security"
 categorize _ = "Compatibility"
 
+-- | Take code and return wiki url
+wikiUrl :: String -> String
+wikiUrl code = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
 -- | Emit Code Climate compatible JSON structure of check
 -- https://github.com/codeclimate/spec/blob/master/SPEC.md
 instance ToJSON Check where
     toJSON (Check m fname lineno success ) = object [ "type" .= T.pack "issue"
                       , "check_name" .= T.pack (code m)
                       , "description" .= T.pack (message m)
-                      , "content" .= ("https://github.com/lukasmartinelli/hadolint/wiki/" ++ code m)
+                      , "content" .= object [ "body" .= wikiUrl (code m) ]
                       , "categories" .= [categorize (code m)]
                       , "severity" .= impact (severity m)
                       , "location" .= object [ "path" .= fname
