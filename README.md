@@ -2,14 +2,14 @@
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
-[:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
-
-[:open_file_folder: **Download the binaries for your platform from the releases page**](https://github.com/lukasmartinelli/hadolint/releases/latest).
-
 A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
 The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
 It is standing on the shoulders of [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
 code inside `RUN` instructions.
+
+[:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
+
+[:open_file_folder: **Download the binaries for your platform from the releases page**](https://github.com/lukasmartinelli/hadolint/releases/latest).
 
 [![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
 
@@ -19,6 +19,7 @@ You can run `hadolint` locally to lint your Dockerfile.
 
 ```bash
 hadolint <Dockerfile>
+hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 ```
 
 If you feel advantageous Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
