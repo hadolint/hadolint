@@ -15,4 +15,4 @@ COPY . /opt/hadolint
 RUN stack install # --ghc-options='-optl-static -optl-pthread' --force-dirty
 
 ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
-CMD ["hadolint", "-i"]
+CMD ["hadolint", "-"]

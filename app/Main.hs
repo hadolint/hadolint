@@ -12,30 +12,27 @@ import Text.Parsec (ParseError)
 import Control.Applicative
 import Options.Applicative hiding (ParseError)
 
-
 type IgnoreRule = String
-data LintOptions = LintOptions { json :: Bool
+data LintOptions = LintOptions { showVersion :: Bool
                                , codeClimate :: Bool
                                , ignoreRules :: [IgnoreRule]
-                               , dockerfile :: String
+                               , dockerfiles :: [String]
                                }
-
 
 ignoreFilter :: [IgnoreRule] -> Check -> Bool
 ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
 
-
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
-    if null checks then exit else die
+    if null checks then exitSuccess else die
 
 parseOptions :: Parser LintOptions
 parseOptions = LintOptions
-    <$> switch (long "json" <> help "Format output as JSON")
+    <$> switch (long "version" <> short 'v' <> help "Show version")
     <*> switch (long "code-climate" <> help "Format output as CodeClimate compatible JSON")
     <*> many (strOption (long "ignore" <> help "Ignore rule" <> metavar "RULECODE"))
-    <*> argument str (metavar "DOCKERFILE")
+    <*> many (argument str (metavar "DOCKERFILE..."))
 
 main :: IO ()
 main = execParser opts >>= lint
@@ -45,19 +42,24 @@ main = execParser opts >>= lint
          <> progDesc "Lint Dockerfile for errors and best practices"
          <> header "hadolint - Dockerfile Linter written in Haskell" )
 
--- | Support UNIX convention of passing "-" instead of "/dev/stdin" 
+-- | Support UNIX convention of passing "-" instead of "/dev/stdin"
 parseFilename :: String -> String
 parseFilename "-" = "/dev/stdin"
 parseFilename s = s
 
+lintDockerfile :: [IgnoreRule] -> String -> IO ()
+lintDockerfile ignoreRules dockerfile = do
+    ast <- parseFile $ parseFilename dockerfile
+    checkAst (ignoreFilter ignoreRules) ast
+
 lint :: LintOptions -> IO ()
-lint (LintOptions _ _ ignoreRules dockerfile) = do
-   ast <- parseFile $ parseFilename dockerfile
-   checkAst (ignoreFilter ignoreRules) ast
+lint (LintOptions True _ _ _) = putStrLn "Haskell Dockerfile Linter v1.1" >> exitSuccess
+lint (LintOptions _ _ _ []) = putStrLn "Please provide a Dockerfile" >> exitSuccess
+lint (LintOptions _ _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
 checkAst checkFilter ast = case ast of
-    Left err         -> print err >> exit
+    Left err         -> print err >> exitSuccess
     Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
 
 analyzeAll = analyze rules
@@ -66,7 +68,4 @@ analyzeAll = analyze rules
 analyzeEither (Left err) = []
 analyzeEither (Right dockerfile)  = analyzeAll dockerfile
 
-usage   = putStrLn "Usage: hadolint [-vhi] <file>"
-version = putStrLn "Haskell Dockerfile Linter v1.1"
-exit    = exitSuccess
 die     = exitWith (ExitFailure 1)
