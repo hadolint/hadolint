@@ -143,6 +143,17 @@ main = hspec $ do
     it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
     it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
 
+  describe "pip pinning" $ do
+    it "pip install requirements" $ ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
+    it "pip version not pinned" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python"
+    it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
+    it "pip install git" $ ruleCatchesNot pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git@0.6-alpha#egg=readthedocs-sphinx-ext"
+    it "pip install unversioned git" $ ruleCatches pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git#egg=readthedocs-sphinx-ext"
+    it "pip install upper bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster>=0.7'"
+    it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
+    it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
+
+
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
@@ -150,9 +161,6 @@ main = hspec $ do
     it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
     it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER John Doe <john.doe@example.net>"
     it "maintainer mail" $ ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
-    it "pip requirements" $ ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
-    it "pip version not pinned" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python"
-    it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"
