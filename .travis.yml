@@ -138,9 +138,8 @@ script:
   case "$BUILD" in
     stack)
       stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
-      stack --no-terminal $ARGS build --ghc-options='-O0 -optl-static -optl-pthread' --force-dirty --no-run-benchmarks
-      stack install
-      cp $(which hadolint) ./releases/
+      stack --no-terminal $ARGS install --ghc-options='-O0'
+      cp "$(which hadolint)" ./releases/
       ;;
     cabal)
       cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
