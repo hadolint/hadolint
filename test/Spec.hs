@@ -144,6 +144,9 @@ main = hspec $ do
     it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
 
   describe "pip pinning" $ do
+    it "pip2 version not pinned" $ ruleCatches pipVersionPinned "RUN pip2 install MySQL_python"
+    it "pip3 version not pinned" $ ruleCatches pipVersionPinned "RUN pip3 install MySQL_python"
+    it "pip3 version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip3 install MySQL_python==1.2.2"
     it "pip install requirements" $ ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
     it "pip version not pinned" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python"
     it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
@@ -152,7 +155,6 @@ main = hspec $ do
     it "pip install upper bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster>=0.7'"
     it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
     it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
-
 
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"

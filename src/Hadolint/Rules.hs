@@ -258,7 +258,7 @@ pipVersionPinned = instructionRule code severity message check
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
 
           isPipInstall :: [String] -> Bool
-          isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd
+          isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd || ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
 
           isRecursiveInstall:: [String] -> Bool
           isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
