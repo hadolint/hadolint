@@ -11,11 +11,6 @@ cache:
   - $HOME/.cabal
   - $HOME/.stack
 
-addons:
-  artifacts:
-    paths:
-    - ./releases/
-
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
 # of those below.
@@ -55,7 +50,9 @@ matrix:
 
   - env: BUILD=stack ARGS="--resolver lts-5"
     compiler: ": #stack 7.10.3"
-    addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+    addons:
+      artifacts: {paths: [./releases]}
+      apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}
 
   # Nightly builds are allowed to fail
   - env: BUILD=stack ARGS="--resolver nightly"
@@ -73,6 +70,8 @@ matrix:
 
   - env: BUILD=stack ARGS="--resolver lts-5"
     compiler: ": #stack 7.10.3 osx"
+    addons:
+      artifacts: {paths: [./releases]}
     os: osx
 
   - env: BUILD=stack ARGS="--resolver nightly"
