@@ -9,8 +9,6 @@ code inside `RUN` instructions.
 
 [:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
 
-[:open_file_folder: **Download the binaries for your platform from the releases page**](https://github.com/lukasmartinelli/hadolint/releases/latest).
-
 [![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
 
 ## How to use
@@ -22,7 +20,7 @@ hadolint <Dockerfile>
 hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 ```
 
-If you feel advantageous Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
+Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
 ```
@@ -32,7 +30,7 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 ## Install
 
 You can [**download prebuilt binaries for OSX, Windows and Linux from the latest release page**](https://github.com/lukasmartinelli/hadolint/releases/latest
-).
+). However they may not run on your system configuration since I am not able to provide completly staticly linked binaries. Fall back to `brew`, source installation or Docker if it doesn't work for you.
 
 If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
