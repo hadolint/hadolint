@@ -1,5 +1,5 @@
 name:                hadolint
-version:             0.2.0.0
+version:             1.2.0.0
 synopsis:            Dockerfile Linter JavaScript API
 homepage:            https://github.com/lukasmartinelli/hadolint
 license:             MIT
@@ -7,13 +7,30 @@ license-file:        LICENSE
 author:              Lukas Martinelli
 maintainer:          me@lukasmartinelli.ch
 copyright:           Lukas Martinelli
+description:         A smarter Dockerfile linter that helps you build best practice Docker images.
 category:            Development
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
-executable hadolint
+library
   hs-source-dirs:      src
+  exposed-modules:     Hadolint.Bash
+                     , Hadolint.Formatter
+                     , Hadolint.Lexer
+                     , Hadolint.Normalize
+                     , Hadolint.Parser
+                     , Hadolint.Rules
+                     , Hadolint.Syntax
+  build-depends:       base >=4.8 && < 5
+                     , parsec >=3.1
+                     , bytestring >=0.10
+                     , split >= 0.2
+                     , ShellCheck
+  default-language:    Haskell2010
+
+executable hadolint
+  hs-source-dirs:      app
   main-is:             Main.hs
   build-depends:       base >=4.8, parsec >=3.1, bytestring >=0.10, split >= 0.2, ShellCheck >= 0.4
   default-language:    Haskell2010
@@ -24,12 +41,26 @@ executable hadolint-api
   build-depends:       base >=4.8, parsec >=3.1, bytestring >=0.10, split >= 0.2, ShellCheck >= 0.4,
                        snap >= 0.13 && < 0.15, snap-core >= 0.9 && < 0.10, snap-server >= 0.9 && < 0.10,
                        lens >= 3.7.6 && < 4.13, aeson
+  build-depends:       base >=4.8 && < 5
+                     , hadolint
+                     , parsec >=3.1
+                     , optparse-applicative
   default-language:    Haskell2010
 
 test-suite hadolint-unit-tests
-  hs-source-dirs:      src
+  hs-source-dirs:      test
   type:                exitcode-stdio-1.0
-  main-is:             Test.hs
-  build-depends:       base >= 4.8, parsec >=3.1, bytestring >=0.10, split >= 0.2, ShellCheck,
-                       test-framework, test-framework-hunit, HUnit >= 1.2
+  main-is:             Spec.hs
+  build-depends:       base >=4.8 && < 5
+                     , parsec >=3.1
+                     , bytestring >=0.10
+                     , split >= 0.2
+                     , ShellCheck
+                     , HUnit >= 1.2
+                     , hspec
+                     , hadolint
   default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: git@github.com:lukasmartinelli/hadolint.git

@@ -1,0 +1,14 @@
+build: off
+
+before_build:
+- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- 7z x stack.zip stack.exe
+
+build_script:
+# Suppress output from stack setup, as there is a lot and it's not necessary.
+- stack setup --no-terminal > nul
+- stack build --only-snapshot --no-terminal
+- stack --local-bin-path . install hadolint
+
+artifacts:
+- path: hadolint.exe

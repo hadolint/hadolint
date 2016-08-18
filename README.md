@@ -1,32 +1,24 @@
-# Haskell Dockerfile Linter [![Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg?branch=master)](https://travis-ci.org/lukasmartinelli/hadolint) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
+# Haskell Dockerfile Linter [![Linux/OSX Build Status](https://travis-ci.org/lukasmartinelli/hadolint.svg?branch=master)](https://travis-ci.org/lukasmartinelli/hadolint) [![Windows Build status](https://ci.appveyor.com/api/projects/status/t6m5vpv6mud7yi89/branch/master?svg=true)](https://ci.appveyor.com/project/lukasmartinelli/hadolint/branch/master) [![GPL-3 licensed](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
-
-Try it out online: http://hadolint.lukasmartinelli.ch/
 
 A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
 The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
 It is standing on the shoulders of [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
 code inside `RUN` instructions.
 
+[:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
+
 [![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
 
 ## How to use
 
-**On the web**
+You can run `hadolint` locally to lint your Dockerfile.
 
-The best way to use `hadolint` is using it online on http://hadolint.lukasmartinelli.ch/.
-
-**From your terminal**
-
-If you have `hadolint` installed locally you can run it on any local Dockerfile
-to get the lint results.
-
+```bash
+hadolint <Dockerfile>
+hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 ```
-hadolint <dockerfile>
-```
-
-**With Docker**
 
 Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
 Just pipe your `Dockerfile` to `docker run`:
@@ -37,11 +29,19 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 
 ## Install
 
-To install `hadolint` locally you need [Haskell](https://www.haskell.org/platform/) and
-the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
-You can build the binary with stack.
+You can [**download prebuilt binaries for OSX, Windows and Linux from the latest release page**](https://github.com/lukasmartinelli/hadolint/releases/latest
+). However they may not run on your system configuration since I am not able to provide completly staticly linked binaries. Fall back to `brew`, source installation or Docker if it doesn't work for you.
 
+If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
+
+```bash
+brew install hadolint
 ```
+
+You can also build `hadolint` locally. You need [Haskell](https://www.haskell.org/platform/) and
+the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html) to build the binary.
+
+```bash
 git clone https://github.com/lukasmartinelli/hadolint
 cd hadolint
 stack build
@@ -56,7 +56,7 @@ Incomplete list of implemented rules. Click on the error code to get more detail
 
 Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new) if you have an idea for a good rule.
 
-| Rule                                                              | Decscription
+| Rule                                                              | Description
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------
 | [DL3000](https://github.com/lukasmartinelli/hadolint/wiki/DL3000) | Use absolute WORKDIR.
 | [DL3001](https://github.com/lukasmartinelli/hadolint/wiki/DL3001) | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig.
@@ -64,8 +64,8 @@ Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new)
 | [DL3003](https://github.com/lukasmartinelli/hadolint/wiki/DL3003) | Use WORKDIR to switch to a directory.
 | [DL3004](https://github.com/lukasmartinelli/hadolint/wiki/DL3004) | Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root.
 | [DL3005](https://github.com/lukasmartinelli/hadolint/wiki/DL3005) | Do not use apt-get upgrade or dist-upgrade.
-| [DL3007](https://github.com/lukasmartinelli/hadolint/wiki/DL3007) | Using latest is prone to errors if the image will ever update. Pin the version explicitely to a release tag.
-| [DL3006](https://github.com/lukasmartinelli/hadolint/wiki/DL3006) | Always tag the version of an image explicitely.
+| [DL3007](https://github.com/lukasmartinelli/hadolint/wiki/DL3007) | Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag.
+| [DL3006](https://github.com/lukasmartinelli/hadolint/wiki/DL3006) | Always tag the version of an image explicitly.
 | [DL3008](https://github.com/lukasmartinelli/hadolint/wiki/DL3008) | Pin versions in apt get install.
 | [DL3009](https://github.com/lukasmartinelli/hadolint/wiki/DL3009) | Delete the apt-get lists after installing something.
 | [DL3010](https://github.com/lukasmartinelli/hadolint/wiki/DL3010) | Use ADD for extracting archives into an image.

@@ -100,8 +100,8 @@ function clone_repos() {
 }
 
 function lint_dockerfiles() {
-    cabal build
-    local hadolint_bin="./dist/build/hadolint/hadolint"
+    stack install
+    local hadolint_bin="hadolint"
     local dockerfiles=$(find . -name 'Dockerfile')
     for dockerfile in $dockerfiles; do
         $hadolint_bin "$dockerfile" | awk "{print \"$dockerfile \" \$0}" || true
