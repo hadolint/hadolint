@@ -1,9 +1,9 @@
 module Main where
 
-import Parser
-import Rules
-import Formatter
-import Syntax
+import Hadolint.Parser
+import Hadolint.Rules
+import Hadolint.Formatter
+import Hadolint.Syntax
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)
@@ -26,7 +26,7 @@ ignoreFilter ignoredRules (Check (Metadata code _ _) _ _) = code `notElem` ignor
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
-    exitWith $ ExitFailure $ length checks
+    if null checks then exit else die
 
 parseOptions :: Parser LintOptions
 parseOptions = LintOptions
@@ -60,6 +60,6 @@ analyzeEither (Left err) = []
 analyzeEither (Right dockerfile)  = analyzeAll dockerfile
 
 usage   = putStrLn "Usage: hadolint [-vhi] <file>"
-version = putStrLn "Haskell Dockerfile Linter v0.1"
+version = putStrLn "Haskell Dockerfile Linter v1.0"
 exit    = exitSuccess
 die     = exitWith (ExitFailure 1)

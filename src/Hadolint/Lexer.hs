@@ -1,4 +1,4 @@
-module Lexer where
+module Hadolint.Lexer where
 
 import Text.Parsec.String (Parser)
 import Text.Parsec.Language (emptyDef)
@@ -8,11 +8,9 @@ lexer :: Token.TokenParser ()
 lexer = Token.makeTokenParser style
   where
     names = ["FROM","ADD","RUN","WORKDIR","EXPOSE","VOLUME","ENTRYPOINT","MAINTAINER","ENV","LABEL","USER","STOPSIGNAL","CMD", "ONBUILD", "ARG"]
-    ops = [":"]
     style = emptyDef {
                Token.commentLine = "#"
              , Token.reservedNames = names
-             , Token.reservedOpNames = ops
              }
 
 reserved :: String -> Parser ()
@@ -28,3 +26,4 @@ commaSep = Token.commaSep lexer
 stringLiteral = Token.stringLiteral lexer
 brackets = Token.brackets lexer
 identifier = Token.identifier lexer
+lexeme = Token.lexeme lexer

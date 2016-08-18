@@ -1,4 +1,4 @@
-module Parser where
+module Hadolint.Parser where
 
 import Text.Parsec hiding (label)
 import Text.Parsec.String (Parser)
@@ -12,8 +12,10 @@ import Data.List.Split (splitOn)
 import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Token
 
-import Lexer
-import Syntax
+import Debug.Trace
+import Hadolint.Lexer
+import Hadolint.Syntax
+import Hadolint.Normalize
 
 comment :: Parser Instruction
 comment = do
@@ -23,9 +25,9 @@ comment = do
 
 taggedImage :: Parser BaseImage
 taggedImage = do
-  name <- many (noneOf ":")
-  reservedOp ":"
-  tag <- many (noneOf "\n")
+  name <- untilOccurrence ":\n"
+  oneOf ":"
+  tag <- untilEol
   return $ TaggedImage name tag
 
 digestedImage :: Parser BaseImage
@@ -54,7 +56,7 @@ from = do
 cmd :: Parser Instruction
 cmd = do
   reserved "CMD"
-  args <- multilineArguments
+  args <- arguments
   return $ Cmd args
 
 copy :: Parser Instruction
@@ -71,11 +73,17 @@ stopsignal = do
   args <- many (noneOf "\n")
   return $ Stopsignal args
 
+-- We cannot use string literal because it swallows space
+-- and therefore have to implement quoted values by ourselves
 quotedValue:: Parser String
-quotedValue = stringLiteral
+quotedValue = do
+    char '"'
+    literal <- untilOccurrence "\""
+    char '"'
+    return literal
 
 rawValue :: Parser String
-rawValue = many (noneOf [' ','=','\n'])
+rawValue = many1 (noneOf [' ','=','\n'])
 
 singleValue :: Parser String
 singleValue = try quotedValue <|> try rawValue
@@ -85,11 +93,17 @@ pair = do
   key <- rawValue
   oneOf "= "
   value <- singleValue
-  many space
   return (key, value)
 
 pairs :: Parser Pairs
-pairs = many1 pair
+pairs = do
+    first <- pair
+    next <- remainingPairs
+    return (first:next)
+
+remainingPairs =
+    try (char ' ' >> pairs)
+    <|> try (return [])
 
 label :: Parser Instruction
 label = do
@@ -132,21 +146,8 @@ expose = do
 run :: Parser Instruction
 run = do
   reserved "RUN"
-  cmd <- multilineArguments
+  cmd <- arguments
   return $ Run cmd
-
--- Entire value until end of line, if line ends with escape character
--- the new line is consumed as well until a new line without escape character
--- is reached
-multiline :: Parser String
-multiline = do
-  line <- untilEol
-  eol
-  if last line == '\\'
-    then do
-        newLine <- multiline
-        return $ init line ++ newLine
-    else return line
 
 -- Parse value until end of line is reached
 untilEol :: Parser String
@@ -179,19 +180,12 @@ argumentsExec = brackets $ commaSep stringLiteral
 
 -- Parse arguments of a command in the shell form
 argumentsShell :: Parser Arguments
-argumentsShell = sepBy rawValue (char ' ')
-
--- Parse arguments of a command in the shell form
-multilineArgumentsShell :: Parser Arguments
-multilineArgumentsShell = do
-  line <- multiline
-  return $ filter (""/=) $ splitOn " " line
+argumentsShell = do
+    args <- untilEol
+    return $ words args 
 
 arguments :: Parser Arguments
 arguments = try argumentsExec <|> try argumentsShell
-
-multilineArguments :: Parser Arguments
-multilineArguments = try argumentsExec <|> try multilineArgumentsShell
 
 entrypoint :: Parser Instruction
 entrypoint = do
@@ -243,12 +237,12 @@ dockerfile = many $ do
     pos <- getPosition
     i <- parseInstruction
     many eol
-    return $ InstructionPos i $ sourceLine pos
+    return $ InstructionPos i (sourceName pos) (sourceLine pos)
 
 parseString :: String -> Either ParseError Dockerfile
-parseString = parse (contents dockerfile) "<string>"
+parseString s = parse (contents dockerfile) "<string>" $ normalizeEscapedLines s
 
 parseFile :: String -> IO (Either ParseError Dockerfile)
 parseFile file = do
     program <- readFile file
-    return $ parse (contents dockerfile) file program
+    return $ parse (contents dockerfile) file $ normalizeEscapedLines program
