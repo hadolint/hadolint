@@ -1,5 +1,5 @@
 import Test.Hspec
-import Test.HUnit
+import Test.HUnit hiding (Label)
 
 import Hadolint.Parser
 import Hadolint.Rules
@@ -14,6 +14,14 @@ main = hspec $ do
   describe "parse FROM" $
     it "parse untagged image" $
         assertAst "FROM busybox" [From (UntaggedImage "busybox")]
+
+  describe "parse LABEL" $ do
+    it "parse label" $ assertAst "LABEL foo=bar" [Label[("foo", "bar")]]
+    it "parses multiline labels" $
+        let dockerfile = unlines [ "LABEL foo=bar \\", "hobo=mobo"]
+            ast = [ Label[("foo", "bar"), ("hobo", "mobo")] ]
+        in assertAst dockerfile ast
+
 
   describe "parse ENV" $ do
     it "parses unquoted pair" $
