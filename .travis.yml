@@ -11,6 +11,11 @@ cache:
   - $HOME/.cabal
   - $HOME/.stack
 
+addons:
+  artifacts:
+    paths:
+    - ./releases/
+
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
 # of those below.
@@ -133,6 +138,9 @@ script:
   case "$BUILD" in
     stack)
       stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+      stack --no-terminal $ARGS build --ghc-options='-O0 -optl-static -optl-pthread' --force-dirty --no-run-benchmarks
+      stack install
+      cp $(which hadolint) ./releases/
       ;;
     cabal)
       cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
