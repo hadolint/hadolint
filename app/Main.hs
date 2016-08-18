@@ -45,9 +45,14 @@ main = execParser opts >>= lint
          <> progDesc "Lint Dockerfile for errors and best practices"
          <> header "hadolint - Dockerfile Linter written in Haskell" )
 
+-- | Support UNIX convention of passing "-" instead of "/dev/stdin" 
+parseFilename :: String -> String
+parseFilename "-" = "/dev/stdin"
+parseFilename s = s
+
 lint :: LintOptions -> IO ()
 lint (LintOptions _ _ ignoreRules dockerfile) = do
-   ast <- parseFile dockerfile
+   ast <- parseFile $ parseFilename dockerfile
    checkAst (ignoreFilter ignoreRules) ast
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
