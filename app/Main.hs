@@ -11,7 +11,6 @@ import System.Exit hiding (die)
 import Data.List (sort)
 import Data.Aeson (encode)
 import Text.Parsec (ParseError)
-import Data.Aeson.Encode.Pretty (encodePretty)
 import Options.Applicative hiding (ParseError)
 
 type IgnoreRule = String
@@ -30,7 +29,7 @@ printChecks useJson checks = do
     mapM_ (if useJson then jsonOutput else plainOutput) $ sort checks
     if null checks then exit else die
   where
-    jsonOutput c = BS.putStr $ encodePretty c
+    jsonOutput c = BS.putStrLn $ encode c
     plainOutput = print
 
 parseOptions :: Parser LintOptions
