@@ -244,7 +244,10 @@ pipVersionPinned = instructionRule code severity message check
           check (Run args) = not (isPipInstall args && not (isRecursiveInstall args)) ||
                                 all versionFixed (packages args)
           check _ = True
-          versionFixed package = "==" `isInfixOf` package
+          isVersionedGit :: String -> Bool
+          isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
+
+          versionFixed package = "==" `isInfixOf` package || isVersionedGit package
           packages :: [String] -> [String]
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
           isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd
