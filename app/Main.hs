@@ -11,7 +11,9 @@ import System.Exit hiding (die)
 import Data.List (sort)
 import Data.Aeson (encode)
 import Text.Parsec (ParseError)
+import Control.Applicative
 import Options.Applicative hiding (ParseError)
+
 
 type IgnoreRule = String
 data LintOptions = LintOptions { useJsonFormat :: Bool
@@ -47,9 +49,14 @@ main = execParser opts >>= lint
          <> progDesc "Lint Dockerfile for errors and best practices"
          <> header "hadolint - Dockerfile Linter written in Haskell" )
 
+-- | Support UNIX convention of passing "-" instead of "/dev/stdin" 
+parseFilename :: String -> String
+parseFilename "-" = "/dev/stdin"
+parseFilename s = s
+
 lint :: LintOptions -> IO ()
 lint (LintOptions useJsonFormat _ ignoreRules dockerfile) = do
-   ast <- parseFile dockerfile
+   ast <- parseFile $ parseFilename dockerfile
    case ast of
         Left err         -> print err >> exit
         Right dockerfile -> printChecks useJsonFormat $ filter (ignoreFilter ignoreRules) $ analyzeAll dockerfile

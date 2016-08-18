@@ -253,10 +253,23 @@ pipVersionPinned = instructionRule code severity message check
           check (Run args) = not (isPipInstall args && not (isRecursiveInstall args)) ||
                                 all versionFixed (packages args)
           check _ = True
-          versionFixed package = "==" `isInfixOf` package
+          isVersionedGit :: String -> Bool
+          isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
+
+          versionSymbols = ["==", ">=", "<=", ">", "<", "!="]
+          hasVersionSymbol :: String -> Bool
+          hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
+
+          versionFixed :: String -> Bool
+          versionFixed package = hasVersionSymbol package || isVersionedGit package
+
           packages :: [String] -> [String]
           packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
-          isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd
+
+          isPipInstall :: [String] -> Bool
+          isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd || ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
+
+          isRecursiveInstall:: [String] -> Bool
           isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
 
 
@@ -279,7 +292,7 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz"]]
+isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz", ".zip", ".tgz"]]
 isUrl :: String -> Bool
 isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check

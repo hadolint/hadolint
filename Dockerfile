@@ -1,4 +1,4 @@
-FROM haskell
+FROM haskell:7.10
 MAINTAINER Lukas Martinelli <me@lukasmartinelli.ch>
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689BEFB442" \

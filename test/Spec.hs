@@ -143,6 +143,19 @@ main = hspec $ do
     it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
     it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
 
+  describe "pip pinning" $ do
+    it "pip2 version not pinned" $ ruleCatches pipVersionPinned "RUN pip2 install MySQL_python"
+    it "pip3 version not pinned" $ ruleCatches pipVersionPinned "RUN pip3 install MySQL_python"
+    it "pip3 version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip3 install MySQL_python==1.2.2"
+    it "pip install requirements" $ ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
+    it "pip version not pinned" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python"
+    it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
+    it "pip install git" $ ruleCatchesNot pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git@0.6-alpha#egg=readthedocs-sphinx-ext"
+    it "pip install unversioned git" $ ruleCatches pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git#egg=readthedocs-sphinx-ext"
+    it "pip install upper bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster>=0.7'"
+    it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
+    it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
+
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
@@ -150,9 +163,6 @@ main = hspec $ do
     it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
     it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER John Doe <john.doe@example.net>"
     it "maintainer mail" $ ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
-    it "pip requirements" $ ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
-    it "pip version not pinned" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python"
-    it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"
@@ -167,8 +177,6 @@ main = hspec $ do
     it "has maintainer first" $ ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
     it "has no maintainer" $ ruleCatches hasMaintainer "FROM debian"
     it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
-    it "add is ok for archive" $ ruleCatchesNot copyInsteadAdd "ADD file.tar /usr/src/app/"
-    it "add is ok for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
     it "many cmds" $ ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
     it "single cmd" $ ruleCatchesNot multipleCmds "CMD /bin/true"
     it "no cmd" $ ruleCatchesNot multipleEntrypoints "FROM busybox"
@@ -178,6 +186,14 @@ main = hspec $ do
     it "workdir variable" $ ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"
     it "scratch" $ ruleCatchesNot noUntagged "FROM scratch"
 
+  describe "add files and archives" $ do
+    it "add for tar" $ ruleCatchesNot copyInsteadAdd "ADD file.tar /usr/src/app/"
+    it "add for zip" $ ruleCatchesNot copyInsteadAdd "ADD file.zip /usr/src/app/"
+    it "add for gzip" $ ruleCatchesNot copyInsteadAdd "ADD file.gz /usr/src/app/"
+    it "add for bz2" $ ruleCatchesNot copyInsteadAdd "ADD file.bz2 /usr/src/app/"
+    it "add for xz" $ ruleCatchesNot copyInsteadAdd "ADD file.xz /usr/src/app/"
+    it "add for tgz" $ ruleCatchesNot copyInsteadAdd "ADD file.tgz /usr/src/app/"
+    it "add for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
 
 assertAst s ast = case parseString (s ++ "\n") of
     Left err          -> assertFailure $ show err
