@@ -167,8 +167,6 @@ main = hspec $ do
     it "has maintainer first" $ ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
     it "has no maintainer" $ ruleCatches hasMaintainer "FROM debian"
     it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
-    it "add is ok for archive" $ ruleCatchesNot copyInsteadAdd "ADD file.tar /usr/src/app/"
-    it "add is ok for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
     it "many cmds" $ ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
     it "single cmd" $ ruleCatchesNot multipleCmds "CMD /bin/true"
     it "no cmd" $ ruleCatchesNot multipleEntrypoints "FROM busybox"
@@ -178,6 +176,14 @@ main = hspec $ do
     it "workdir variable" $ ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"
     it "scratch" $ ruleCatchesNot noUntagged "FROM scratch"
 
+  describe "add files and archives" $ do
+    it "add for tar" $ ruleCatchesNot copyInsteadAdd "ADD file.tar /usr/src/app/"
+    it "add for zip" $ ruleCatchesNot copyInsteadAdd "ADD file.zip /usr/src/app/"
+    it "add for gzip" $ ruleCatchesNot copyInsteadAdd "ADD file.gz /usr/src/app/"
+    it "add for bz2" $ ruleCatchesNot copyInsteadAdd "ADD file.bz2 /usr/src/app/"
+    it "add for xz" $ ruleCatchesNot copyInsteadAdd "ADD file.xz /usr/src/app/"
+    it "add for tgz" $ ruleCatchesNot copyInsteadAdd "ADD file.tgz /usr/src/app/"
+    it "add for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
 
 assertAst s ast = case parseString (s ++ "\n") of
     Left err          -> assertFailure $ show err
