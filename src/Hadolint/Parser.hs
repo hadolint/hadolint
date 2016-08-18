@@ -97,6 +97,7 @@ pair = do
 
 pairs :: Parser Pairs
 pairs = do
+    _ <- many (char ' ')
     first <- pair
     next <- remainingPairs
     return (first:next)
