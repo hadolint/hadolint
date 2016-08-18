@@ -20,7 +20,7 @@ data LintOptions = LintOptions { json :: Bool
 
 
 ignoreFilter :: [IgnoreRule] -> Check -> Bool
-ignoreFilter ignoredRules (Check (Metadata code _ _) _ _) = code `notElem` ignoredRules
+ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
 
 
 printChecks :: [Check] -> IO ()
