@@ -1,8 +1,8 @@
-module Formatter (formatCheck) where
+module Hadolint.Formatter (formatCheck) where
 
 import Control.Monad
-import Rules
-import Syntax
+import Hadolint.Rules
+import Hadolint.Syntax
 
 formatCheck :: Check -> String
 formatCheck (Check metadata source linenumber _) = formatPos source linenumber ++ code metadata ++ " " ++ message metadata

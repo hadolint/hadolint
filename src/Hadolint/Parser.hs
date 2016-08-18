@@ -1,4 +1,4 @@
-module Parser where
+module Hadolint.Parser where
 
 import Text.Parsec hiding (label)
 import Text.Parsec.String (Parser)
@@ -13,9 +13,9 @@ import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Token
 
 import Debug.Trace
-import Lexer
-import Syntax
-import Normalize
+import Hadolint.Lexer
+import Hadolint.Syntax
+import Hadolint.Normalize
 
 comment :: Parser Instruction
 comment = do
