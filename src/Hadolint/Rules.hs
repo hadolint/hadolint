@@ -1,7 +1,12 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Hadolint.Rules where
 
 import Hadolint.Syntax
 import Hadolint.Bash
+
+import GHC.Generics
+import Data.Aeson
+import Data.Aeson.Types (defaultOptions)
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.List (intercalate, isInfixOf, isSuffixOf, isPrefixOf)
 import Data.List.Split (splitOneOf, splitOn)
@@ -10,7 +15,11 @@ import ShellCheck.Interface
 data Metadata = Metadata { code :: String,
                            severity :: Severity,
                            message :: String
-                         } deriving (Eq)
+                         } deriving (Generic, Show, Eq)
+
+--instance ToJSON Metadata where
+ ----   toJSON = genericToJSON defaultOptions
+
 
 -- a check is the application of a rule on a specific part of code
 -- the enforced result and the affected position
@@ -21,7 +30,7 @@ data Check = Check { metadata :: Metadata,
                      filename :: Filename,
                      linenumber :: Linenumber,
                      success :: Bool
-                   } deriving Eq
+                   } deriving (Generic, Eq)
 
 instance Ord Check where
     a `compare` b = linenumber a `compare` linenumber b

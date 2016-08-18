@@ -2,31 +2,36 @@ module Main where
 
 import Hadolint.Parser
 import Hadolint.Rules
-import Hadolint.Formatter
 import Hadolint.Syntax
+import Hadolint.Format
 
+import qualified Data.ByteString.Lazy as BS
 import System.Environment (getArgs)
 import System.Exit hiding (die)
 import Data.List (sort)
+import Data.Aeson (encode)
 import Text.Parsec (ParseError)
+import Data.Aeson.Encode.Pretty (encodePretty)
 import Options.Applicative hiding (ParseError)
 
 type IgnoreRule = String
-data LintOptions = LintOptions { json :: Bool
+data LintOptions = LintOptions { useJsonFormat :: Bool
                                , codeClimate :: Bool
                                , ignoreRules :: [IgnoreRule]
                                , dockerfile :: String
                                }
 
-
 ignoreFilter :: [IgnoreRule] -> Check -> Bool
 ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
 
 
-printChecks :: [Check] -> IO ()
-printChecks checks = do
-    mapM_ (putStrLn . formatCheck) $ sort checks
+printChecks :: Bool -> [Check] -> IO ()
+printChecks useJson checks = do
+    mapM_ (if useJson then jsonOutput else plainOutput) $ sort checks
     if null checks then exit else die
+  where
+    jsonOutput c = BS.putStr $ encodePretty c
+    plainOutput = print
 
 parseOptions :: Parser LintOptions
 parseOptions = LintOptions
@@ -44,14 +49,11 @@ main = execParser opts >>= lint
          <> header "hadolint - Dockerfile Linter written in Haskell" )
 
 lint :: LintOptions -> IO ()
-lint (LintOptions _ _ ignoreRules dockerfile) = do
+lint (LintOptions useJsonFormat _ ignoreRules dockerfile) = do
    ast <- parseFile dockerfile
-   checkAst (ignoreFilter ignoreRules) ast
-
-checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
-checkAst checkFilter ast = case ast of
-    Left err         -> print err >> exit
-    Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
+   case ast of
+        Left err         -> print err >> exit
+        Right dockerfile -> printChecks useJsonFormat $ filter (ignoreFilter ignoreRules) $ analyzeAll dockerfile
 
 analyzeAll = analyze rules
 
