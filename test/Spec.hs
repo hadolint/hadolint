@@ -149,6 +149,10 @@ main = hspec $ do
     it "pip version pinned" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
     it "pip install git" $ ruleCatchesNot pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git@0.6-alpha#egg=readthedocs-sphinx-ext"
     it "pip install unversioned git" $ ruleCatches pipVersionPinned "RUN pip install git+https://github.com/rtfd/readthedocs-sphinx-ext.git#egg=readthedocs-sphinx-ext"
+    it "pip install upper bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster>=0.7'"
+    it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
+    it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
+
 
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
