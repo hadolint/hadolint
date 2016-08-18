@@ -2,7 +2,9 @@
 
 <img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
-Try it out online: http://hadolint.lukasmartinelli.ch/
+[:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
+
+[:open_file_folder: **Download the binaries for your platform from the releases page**](https://github.com/lukasmartinelli/hadolint/releases/latest).
 
 A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
 The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
@@ -13,22 +15,13 @@ code inside `RUN` instructions.
 
 ## How to use
 
-**On the web**
+You can run `hadolint` locally to lint your Dockerfile.
 
-The best way to use `hadolint` is using it online on http://hadolint.lukasmartinelli.ch/.
-
-**From your terminal**
-
-If you have `hadolint` installed locally you can run it on any local Dockerfile
-to get the lint results.
-
-```
-hadolint <dockerfile>
+```bash
+hadolint <Dockerfile>
 ```
 
-**With Docker**
-
-Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
+If you feel advantageous Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
 ```
@@ -36,6 +29,9 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 ```
 
 ## Install
+
+You can [**download prebuilt binaries for OSX, Windows and Linux from the latest release page**](https://github.com/lukasmartinelli/hadolint/releases/latest
+).
 
 If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
