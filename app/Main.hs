@@ -67,6 +67,6 @@ analyzeEither (Left err) = []
 analyzeEither (Right dockerfile)  = analyzeAll dockerfile
 
 usage   = putStrLn "Usage: hadolint [-vhi] <file>"
-version = putStrLn "Haskell Dockerfile Linter v1.0"
+version = putStrLn "Haskell Dockerfile Linter v1.1"
 exit    = exitSuccess
 die     = exitWith (ExitFailure 1)
