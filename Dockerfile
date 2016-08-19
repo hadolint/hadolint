@@ -12,8 +12,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN cabal install
 
-ENV PATH=/root/.cabal/bin:$PATH
+ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
 EXPOSE 8000
-CMD ["cabal", "run", "hadolint-api"]
+CMD ["hadolint-api"]
