@@ -25,6 +25,7 @@ analyzeEither (Right dockerfile)  = analyzeAll dockerfile
 lintHandler:: Snap ()
 lintHandler = do
     modifyResponse $ setHeader "Content-Type" "application/json"
+    modifyResponse $ setHeader "Access-Control-Allow-Origin" "*"
     source <- getParam "dockerfile"
     case source of
         Nothing   -> writeLBS "Please specify 'dockerfile' in request"
