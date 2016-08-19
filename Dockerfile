@@ -12,7 +12,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
+RUN stack install
 
-ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
 EXPOSE 8000
-CMD ["hadolint-api"]
+CMD ["stack", "exec", "hadolint-api"]
