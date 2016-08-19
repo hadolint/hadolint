@@ -6,8 +6,8 @@ import Control.Monad (mzero)
 import Snap.Http.Server
 import Snap.Core
 import Data.ByteString.Char8 (unpack)
-import Parser (parseString)
-import Rules (Check(..), Metadata(..), analyze, rules, link)
+import Hadolint.Parser (parseString)
+import Hadolint.Rules (Check(..), Metadata(..), analyze, rules, link)
 
 
 main :: IO ()
