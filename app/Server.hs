@@ -26,6 +26,9 @@ lintHandler:: Snap ()
 lintHandler = do
     modifyResponse $ setHeader "Content-Type" "application/json"
     modifyResponse $ setHeader "Access-Control-Allow-Origin" "*"
+    modifyResponse $ setHeader "Access-Control-Allow-Methods" "GET, PUT, POST, DELETE, OPTIONS"
+    modifyResponse $ setHeader "Access-Control-Allow-Headers" "*"
+
     source <- getParam "dockerfile"
     case source of
         Nothing   -> writeLBS "Please specify 'dockerfile' in request"
