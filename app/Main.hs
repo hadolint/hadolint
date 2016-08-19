@@ -31,7 +31,7 @@ printChecks useJson checks = do
     mapM_ (if useJson then jsonOutput else plainOutput) $ sort checks
     if null checks then exit else die
   where
-    jsonOutput c = BS.putStrLn $ encode c
+    jsonOutput c = BS.putStrLn $ encode c ++ "\NUL"
     plainOutput = print
 
 parseOptions :: Parser LintOptions
