@@ -40,7 +40,7 @@ executable hadolint-api
   main-is:             Server.hs
   build-depends:       base >=4.8, parsec >=3.1, bytestring >=0.10, split >= 0.2, ShellCheck >= 0.4,
                        snap >= 0.13 && < 0.15, snap-core >= 0.9 && < 0.10, snap-server >= 0.9 && < 0.10,
-                       lens >= 3.7.6 && < 4.13, aeson
+                       lens >= 3.7.6, aeson
   build-depends:       base >=4.8 && < 5
                      , hadolint
                      , parsec >=3.1
