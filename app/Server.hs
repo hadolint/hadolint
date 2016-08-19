@@ -39,10 +39,10 @@ instance ToJSON JsonError where
     toJSON (JsonError error) = object [ "error" .= error ]
 
 instance ToJSON Check where
-    toJSON (Check metadata linenumber _) = object [ "metadata" .= metadata
-                                                  , "linenumber" .= linenumber
-                                                  , "link" .= link metadata
-                                                  ]
+    toJSON (Check metadata linenumber _ _) = object [ "metadata" .= metadata
+                                                    , "linenumber" .= linenumber
+                                                    , "link" .= link metadata
+                                                    ]
 
 instance ToJSON Metadata where
     toJSON (Metadata code severity message) = object [ "code" .= code
