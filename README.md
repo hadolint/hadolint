@@ -120,29 +120,22 @@ if you would tear my code apart in a review.
 ### Setup
 
 1. Clone repository
-    ```
+    ```bash
     git clone --recursive git@github.com:lukasmartinelli/hadolint.git
     ```
-2. Create a new sandbox.
-    ```
-    cabal init
-    ```
-3. Install the dependencies
-    ```
-    cabal install --only-dependencies
+2. Install the dependencies
+    ```bash
+    stack install
     ```
 
 ### REPL
 
 The easiest way to try out the parser is using the REPL.
 
-```
-cabal repl
-```
-
-In the REPL you can load the parser code with `:l Parser.hs` and use `parseString` or `parseFile` to get a quick look at the AST.
-
-```
+```bash
+# start the repl
+stack repl
+# parse instruction and look at AST representation
 parseString "FROM debian:jessie"
 ```
 
@@ -150,8 +143,8 @@ parseString "FROM debian:jessie"
 
 Run unit tests.
 
-```
-cabal test
+```bash
+stack test
 ```
 
 Run integration tests.
