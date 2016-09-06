@@ -77,6 +77,7 @@ rules = [ absoluteWorkdir
         , hasMaintainer
         , multipleCmds
         , multipleEntrypoints
+        , useShell
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -292,3 +293,11 @@ copyInsteadAdd = instructionRule code severity message check
           message = "Use COPY instead of ADD for files and folders"
           check (Add src _) = isArchive src || isUrl src
           check _ = True
+
+useShell = instructionRule code severity message check
+    where code = "DL4005"
+          severity = WarningC
+          message = "Use SHELL to change the default shell"
+          check (Run args) = not $ any shellSymlink (bashCommands args)
+          check _ = True
+          shellSymlink (args) = usingProgram "ln" args && isInfixOf ["/bin/sh"] args

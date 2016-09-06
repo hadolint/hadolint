@@ -195,6 +195,11 @@ main = hspec $ do
     it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
     it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
 
+  describe "use SHELL" $ do
+    it "RUN ln" $ ruleCatches useShell "RUN ln -sfv /bin/bash /bin/sh"
+    it "RUN ln with unrelated symlinks" $ ruleCatchesNot useShell "RUN ln -sf /bin/true /sbin/initctl"
+    it "RUN ln with multiple acceptable commands" $ ruleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
+
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
