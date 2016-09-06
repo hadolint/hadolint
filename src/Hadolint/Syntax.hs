@@ -28,6 +28,7 @@ data Instruction
   | Copy Source Destination
   | Run Arguments
   | Cmd Arguments
+  | Shell Arguments
   | Workdir Directory
   | Expose [Port]
   | Volume String

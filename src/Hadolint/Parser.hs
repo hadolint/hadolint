@@ -59,6 +59,12 @@ cmd = do
   args <- arguments
   return $ Cmd args
 
+shell :: Parser Instruction
+shell = do
+  reserved "SHELL"
+  args <- arguments
+  return $ Shell args
+
 copy :: Parser Instruction
 copy = do
   reserved "COPY"
@@ -216,6 +222,7 @@ parseInstruction
     <|> try label
     <|> try stopsignal
     <|> try cmd
+    <|> try shell
     <|> try maintainer
     <|> try add
     <|> try comment

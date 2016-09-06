@@ -76,6 +76,10 @@ main = hspec $ do
     it "quoted command params" $
         assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
 
+  describe "parse SHELL" $ do
+    it "quoted shell params" $
+        assertAst "SHELL [\"/bin/bash\",  \"-c\"]" [Shell ["/bin/bash", "-c"]]
+
   describe "parse MAINTAINER" $ do
     it "maintainer of untagged scratch image" $
         assertAst "FROM scratch\nMAINTAINER hudu@mail.com" [From (UntaggedImage "scratch"), Maintainer "hudu@mail.com"]
