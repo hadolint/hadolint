@@ -36,6 +36,7 @@ data Instruction
   | Maintainer String
   | Env Pairs
   | Arg String
+  | Healthcheck String
   | Comment String
   | OnBuild Instruction
   deriving (Eq, Ord, Show)
