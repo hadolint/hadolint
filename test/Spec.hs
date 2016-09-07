@@ -11,6 +11,10 @@ import Data.Maybe (isJust, fromMaybe)
 
 main :: IO ()
 main = hspec $ do
+  describe "parse HEALTHCHECK" $
+    it "parse healthcheck without args" $
+        assertAst "HEALTHCHECK --interval=5m \\nCMD curl -f http://localhost/" [Healthcheck "--interval=5m \\nCMD curl -f http://localhost/"]
+
   describe "parse FROM" $
     it "parse untagged image" $
         assertAst "FROM busybox" [From (UntaggedImage "busybox")]
