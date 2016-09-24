@@ -57,7 +57,7 @@ lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
 checkAst checkFilter ast = case ast of
-    Left err         -> print err >> exitSuccess
+    Left err         -> putStrLn (formatError err) >> exitSuccess
     Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
 
 analyzeAll = analyze rules

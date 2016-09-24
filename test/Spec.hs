@@ -1,6 +1,7 @@
 import Test.Hspec
 import Test.HUnit hiding (Label)
 
+import Hadolint.Formatter
 import Hadolint.Parser
 import Hadolint.Rules
 import Hadolint.Syntax
@@ -80,7 +81,7 @@ main = hspec $ do
     it "quoted command params" $
         assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
 
-  describe "parse SHELL" $ do
+  describe "parse SHELL" $
     it "quoted shell params" $
         assertAst "SHELL [\"/bin/bash\",  \"-c\"]" [Shell ["/bin/bash", "-c"]]
 
@@ -242,6 +243,14 @@ main = hspec $ do
     it "add for xz" $ ruleCatchesNot copyInsteadAdd "ADD file.xz /usr/src/app/"
     it "add for tgz" $ ruleCatchesNot copyInsteadAdd "ADD file.tgz /usr/src/app/"
     it "add for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
+
+  describe "format error" $
+    it "display error after line pos" $ do
+        let ast = parseString "FOM debian:jessie"
+            expectedMsg = "<string>:1:1 unexpected 'F' expecting space, \"\\t\", \"ONBUILD\", \"FROM\", \"COPY\", \"RUN\", \"WORKDIR\", \"ENTRYPOINT\", \"VOLUME\", \"EXPOSE\", \"ENV\", \"ARG\", \"USER\", \"LABEL\", \"STOPSIGNAL\", \"CMD\", \"SHELL\", \"MAINTAINER\", \"ADD\", \"#\", \"HEALTHCHECK\" or end of input"
+        case ast of
+            Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
+            Right _  -> assertFailure "AST should fail parsing"
 
 assertAst s ast = case parseString (s ++ "\n") of
     Left err          -> assertFailure $ show err
