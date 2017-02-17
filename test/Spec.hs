@@ -207,9 +207,13 @@ main = hspec $ do
     it "RUN ln with unrelated symlinks" $ ruleCatchesNot useShell "RUN ln -sf /bin/true /sbin/initctl"
     it "RUN ln with multiple acceptable commands" $ ruleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
 
-  describe "other rules" $ do
+  describe "COPY rules" $ do
+    it "has source" $ ruleCatches copyMissingArgs "COPY packaged-app.tar"
+    it "has source and target" $ ruleCatchesNot copyMissingArgs "COPY packaged-app.tar /usr/src/app"
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
+
+  describe "other rules" $ do
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"

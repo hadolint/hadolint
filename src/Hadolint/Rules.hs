@@ -78,6 +78,7 @@ rules = [ absoluteWorkdir
         , multipleEntrypoints
         , useShell
         , exposeMissingArgs
+        , copyMissingArgs
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -229,6 +230,13 @@ exposeMissingArgs = instructionRule code severity message check
           severity = ErrorC
           message = "EXPOSE requires at least one argument"
           check (Expose ports) = length ports > 0
+          check _ = True
+
+copyMissingArgs = instructionRule code severity message check
+    where code = "DL3022"
+          severity = ErrorC
+          message = "COPY requires source and target"
+          check (Copy src target) = length src > 0 && length target > 0
           check _ = True
 
 invalidPort = instructionRule code severity message check
