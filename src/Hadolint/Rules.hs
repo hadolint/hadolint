@@ -292,4 +292,4 @@ useShell = instructionRule code severity message check
           message = "Use SHELL to change the default shell"
           check (Run args) = not $ any shellSymlink (bashCommands args)
           check _ = True
-          shellSymlink (args) = usingProgram "ln" args && isInfixOf ["/bin/sh"] args
+          shellSymlink args = usingProgram "ln" args && isInfixOf ["/bin/sh"] args
