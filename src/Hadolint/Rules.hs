@@ -57,7 +57,6 @@ analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
 
 rules = [ absoluteWorkdir
         , shellcheckBash
-        , maintainerAddress
         , invalidCmd
         , copyInsteadAdd
         , noRootUser
@@ -229,13 +228,6 @@ invalidPort = instructionRule code severity message check
           severity = ErrorC
           message = "Valid UNIX ports range from 0 to 65535"
           check (Expose ports) = and [p <= 65535 | p <- ports]
-          check _ = True
-
-maintainerAddress = instructionRule code severity message check
-    where code = "DL3012"
-          severity = StyleC
-          message = "Provide an email adress or URL as maintainer"
-          check (Maintainer name) = isInfixOf "@" name || isInfixOf "https://" name || isInfixOf "http://" name
           check _ = True
 
 pipVersionPinned = instructionRule code severity message check

@@ -208,10 +208,6 @@ main = hspec $ do
   describe "other rules" $ do
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
-    it "maintainer address" $ ruleCatches maintainerAddress "MAINTAINER Lukas"
-    it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
-    it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER John Doe <john.doe@example.net>"
-    it "maintainer mail" $ ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"
