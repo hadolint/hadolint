@@ -51,13 +51,13 @@ lintDockerfile ignoreRules dockerfile = do
     checkAst (ignoreFilter ignoreRules) ast
 
 lint :: LintOptions -> IO ()
-lint (LintOptions True _ _) = putStrLn "Haskell Dockerfile Linter v1.2" >> exitSuccess
+lint (LintOptions True _ _) = putStrLn "Haskell Dockerfile Linter v1.2.1" >> exitSuccess
 lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitSuccess
 lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
 checkAst checkFilter ast = case ast of
-    Left err         -> print err >> exitSuccess
+    Left err         -> putStrLn (formatError err) >> exitSuccess
     Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
 
 analyzeAll = analyze rules

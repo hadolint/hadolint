@@ -28,6 +28,7 @@ data Instruction
   | Copy Source Destination
   | Run Arguments
   | Cmd Arguments
+  | Shell Arguments
   | Workdir Directory
   | Expose [Port]
   | Volume String
@@ -35,6 +36,7 @@ data Instruction
   | Maintainer String
   | Env Pairs
   | Arg String
+  | Healthcheck String
   | Comment String
   | OnBuild Instruction
   deriving (Eq, Ord, Show)

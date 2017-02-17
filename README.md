@@ -77,8 +77,9 @@ Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new)
 | [DL3020](https://github.com/lukasmartinelli/hadolint/wiki/DL3020) | Use `COPY` instead of `ADD` for files and folders.
 | [DL4000](https://github.com/lukasmartinelli/hadolint/wiki/DL4000) | Specify a maintainer of the Dockerfile.
 | [DL4001](https://github.com/lukasmartinelli/hadolint/wiki/DL4001) | Either use Wget or Curl but not both.
-| [DL4003](https://github.com/lukasmartinelli/hadolint/wiki/DL4001) | Multiple CMD instructions found.
-| [DL4004](https://github.com/lukasmartinelli/hadolint/wiki/DL4001) | Multiple ENTRYPOINT instructions found.
+| [DL4003](https://github.com/lukasmartinelli/hadolint/wiki/DL4003) | Multiple `CMD` instructions found.
+| [DL4004](https://github.com/lukasmartinelli/hadolint/wiki/DL4004) | Multiple `ENTRYPOINT` instructions found.
+| [DL4005](https://github.com/lukasmartinelli/hadolint/wiki/DL4005) | Use `SHELL` to change the default shell.
 | [SC1000](https://github.com/koalaman/shellcheck/wiki/SC1000)      | `$` is not used specially and should therefore be escaped.
 | [SC1001](https://github.com/koalaman/shellcheck/wiki/SC1001)      | This `\c` will be a regular `'c'`  in this context.
 | [SC1007](https://github.com/koalaman/shellcheck/wiki/SC1007)      | Remove space after `=` if trying to assign a value (or for empty string, use `var='' ...`).
@@ -120,29 +121,22 @@ if you would tear my code apart in a review.
 ### Setup
 
 1. Clone repository
-    ```
+    ```bash
     git clone --recursive git@github.com:lukasmartinelli/hadolint.git
     ```
-2. Create a new sandbox.
-    ```
-    cabal init
-    ```
-3. Install the dependencies
-    ```
-    cabal install --only-dependencies
+2. Install the dependencies
+    ```bash
+    stack install
     ```
 
 ### REPL
 
 The easiest way to try out the parser is using the REPL.
 
-```
-cabal repl
-```
-
-In the REPL you can load the parser code with `:l Parser.hs` and use `parseString` or `parseFile` to get a quick look at the AST.
-
-```
+```bash
+# start the repl
+stack repl
+# parse instruction and look at AST representation
 parseString "FROM debian:jessie"
 ```
 
@@ -150,8 +144,8 @@ parseString "FROM debian:jessie"
 
 Run unit tests.
 
-```
-cabal test
+```bash
+stack test
 ```
 
 Run integration tests.

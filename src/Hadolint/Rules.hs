@@ -57,7 +57,6 @@ analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
 
 rules = [ absoluteWorkdir
         , shellcheckBash
-        , maintainerAddress
         , invalidCmd
         , copyInsteadAdd
         , noRootUser
@@ -74,9 +73,12 @@ rules = [ absoluteWorkdir
         , aptGetNoRecommends
         , aptGetYes
         , wgetOrCurl
-        , hasMaintainer
+        , hasNoMaintainer
         , multipleCmds
         , multipleEntrypoints
+        , useShell
+        , exposeMissingArgs
+        , copyMissingArgs
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -102,11 +104,11 @@ absoluteWorkdir = instructionRule code severity message check
           check (Workdir dir) = head dir == '$' || head dir == '/'
           check _ = True
 
-hasMaintainer = dockerfileRule code severity message check
+hasNoMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
-          severity = InfoC
-          message = "Specify a maintainer of the Dockerfile"
-          check dockerfile = any isMaintainer dockerfile
+          severity = ErrorC
+          message = "MAINTAINER is deprecated"
+          check dockerfile = not $ any isMaintainer dockerfile
           isMaintainer (Maintainer _) = True
           isMaintainer _              = False
 
@@ -232,18 +234,25 @@ useAdd = instructionRule code severity message check
           check _ = True
           archive_formats = [".tar", ".gz", ".bz2", "xz"]
 
+exposeMissingArgs = instructionRule code severity message check
+    where code = "DL3021"
+          severity = ErrorC
+          message = "EXPOSE requires at least one argument"
+          check (Expose ports) = length ports > 0
+          check _ = True
+
+copyMissingArgs = instructionRule code severity message check
+    where code = "DL3022"
+          severity = ErrorC
+          message = "COPY requires source and target"
+          check (Copy src target) = length src > 0 && length target > 0
+          check _ = True
+
 invalidPort = instructionRule code severity message check
     where code = "DL3011"
           severity = ErrorC
           message = "Valid UNIX ports range from 0 to 65535"
           check (Expose ports) = and [p <= 65535 | p <- ports]
-          check _ = True
-
-maintainerAddress = instructionRule code severity message check
-    where code = "DL3012"
-          severity = StyleC
-          message = "Provide an email adress or URL as maintainer"
-          check (Maintainer name) = isInfixOf "@" name || isInfixOf "https://" name || isInfixOf "http://" name
           check _ = True
 
 pipVersionPinned = instructionRule code severity message check
@@ -292,7 +301,7 @@ aptGetNoRecommends = instructionRule code severity message check
           hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
 isArchive :: String -> Bool
-isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz", ".zip", ".tgz"]]
+isArchive path =  True `elem` [ftype `isSuffixOf` path | ftype <- [".tar", ".gz", ".bz2", ".xz", ".zip", ".tgz", ".tb2", ".tbz", ".tbz2", ".lz", ".lzma", ".tlz", ".txz", ".Z", ".tZ"]]
 isUrl :: String -> Bool
 isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 copyInsteadAdd = instructionRule code severity message check
@@ -301,3 +310,11 @@ copyInsteadAdd = instructionRule code severity message check
           message = "Use COPY instead of ADD for files and folders"
           check (Add src _) = isArchive src || isUrl src
           check _ = True
+
+useShell = instructionRule code severity message check
+    where code = "DL4005"
+          severity = WarningC
+          message = "Use SHELL to change the default shell"
+          check (Run args) = not $ any shellSymlink (bashCommands args)
+          check _ = True
+          shellSymlink args = usingProgram "ln" args && isInfixOf ["/bin/sh"] args

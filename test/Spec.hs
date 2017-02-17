@@ -1,6 +1,7 @@
 import Test.Hspec
 import Test.HUnit hiding (Label)
 
+import Hadolint.Formatter
 import Hadolint.Parser
 import Hadolint.Rules
 import Hadolint.Syntax
@@ -11,6 +12,10 @@ import Data.Maybe (isJust, fromMaybe)
 
 main :: IO ()
 main = hspec $ do
+  describe "parse HEALTHCHECK" $
+    it "parse healthcheck without args" $
+        assertAst "HEALTHCHECK --interval=5m \\nCMD curl -f http://localhost/" [Healthcheck "--interval=5m \\nCMD curl -f http://localhost/"]
+
   describe "parse FROM" $
     it "parse untagged image" $
         assertAst "FROM busybox" [From (UntaggedImage "busybox")]
@@ -75,6 +80,10 @@ main = hspec $ do
         assertAst "CMD true \\\n && true" [Cmd ["true", "&&", "true"]]
     it "quoted command params" $
         assertAst "CMD [\"echo\",  \"1\"]" [Cmd ["echo", "1"]]
+
+  describe "parse SHELL" $
+    it "quoted shell params" $
+        assertAst "SHELL [\"/bin/bash\",  \"-c\"]" [Shell ["/bin/bash", "-c"]]
 
   describe "parse MAINTAINER" $ do
     it "maintainer of untagged scratch image" $
@@ -172,9 +181,11 @@ main = hspec $ do
                          ]
         in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
 
-    it "has maintainer named" $ ruleCatchesNot hasMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
+    it "has deprecated maintainer" $ ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
 
   describe "EXPOSE rules" $ do
+    it "has no arg" $ ruleCatches exposeMissingArgs "EXPOSE"
+    it "has one arg" $ ruleCatchesNot exposeMissingArgs "EXPOSE 80"
     it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
     it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
 
@@ -191,13 +202,18 @@ main = hspec $ do
     it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
     it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
 
-  describe "other rules" $ do
+  describe "use SHELL" $ do
+    it "RUN ln" $ ruleCatches useShell "RUN ln -sfv /bin/bash /bin/sh"
+    it "RUN ln with unrelated symlinks" $ ruleCatchesNot useShell "RUN ln -sf /bin/true /sbin/initctl"
+    it "RUN ln with multiple acceptable commands" $ ruleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
+
+  describe "COPY rules" $ do
+    it "has source" $ ruleCatches copyMissingArgs "COPY packaged-app.tar"
+    it "has source and target" $ ruleCatchesNot copyMissingArgs "COPY packaged-app.tar /usr/src/app"
     it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
     it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
-    it "maintainer address" $ ruleCatches maintainerAddress "MAINTAINER Lukas"
-    it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER Lukas <me@lukasmartinelli.ch>"
-    it "maintainer uri" $ ruleCatchesNot maintainerAddress "MAINTAINER John Doe <john.doe@example.net>"
-    it "maintainer mail" $ ruleCatchesNot maintainerAddress "MAINTAINER http://lukasmartinelli.ch"
+
+  describe "other rules" $ do
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"
@@ -208,9 +224,9 @@ main = hspec $ do
     it "apt-get no install recommends" $ ruleCatches aptGetNoRecommends "RUN apt-get -y install python"
     it "apt-get version" $ ruleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
     it "apt-get pinned" $ ruleCatchesNot aptGetVersionPinned "RUN apt-get -y --no-install-recommends install nodejs=0.10"
-    it "has maintainer" $ ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
-    it "has maintainer first" $ ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
-    it "has no maintainer" $ ruleCatches hasMaintainer "FROM debian"
+    it "has maintainer" $ ruleCatches hasNoMaintainer "FROM debian\nMAINTAINER Lukas"
+    it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
+    it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
     it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
     it "many cmds" $ ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
     it "single cmd" $ ruleCatchesNot multipleCmds "CMD /bin/true"
@@ -229,6 +245,14 @@ main = hspec $ do
     it "add for xz" $ ruleCatchesNot copyInsteadAdd "ADD file.xz /usr/src/app/"
     it "add for tgz" $ ruleCatchesNot copyInsteadAdd "ADD file.tgz /usr/src/app/"
     it "add for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
+
+  describe "format error" $
+    it "display error after line pos" $ do
+        let ast = parseString "FOM debian:jessie"
+            expectedMsg = "<string>:1:1 unexpected 'F' expecting space, \"\\t\", \"ONBUILD\", \"FROM\", \"COPY\", \"RUN\", \"WORKDIR\", \"ENTRYPOINT\", \"VOLUME\", \"EXPOSE\", \"ENV\", \"ARG\", \"USER\", \"LABEL\", \"STOPSIGNAL\", \"CMD\", \"SHELL\", \"MAINTAINER\", \"ADD\", \"#\", \"HEALTHCHECK\" or end of input"
+        case ast of
+            Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
+            Right _  -> assertFailure "AST should fail parsing"
 
 assertAst s ast = case parseString (s ++ "\n") of
     Left err          -> assertFailure $ show err

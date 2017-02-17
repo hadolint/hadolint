@@ -59,6 +59,12 @@ cmd = do
   args <- arguments
   return $ Cmd args
 
+shell :: Parser Instruction
+shell = do
+  reserved "SHELL"
+  args <- arguments
+  return $ Shell args
+
 copy :: Parser Instruction
 copy = do
   reserved "COPY"
@@ -183,7 +189,7 @@ argumentsExec = brackets $ commaSep stringLiteral
 argumentsShell :: Parser Arguments
 argumentsShell = do
     args <- untilEol
-    return $ words args 
+    return $ words args
 
 arguments :: Parser Arguments
 arguments = try argumentsExec <|> try argumentsShell
@@ -199,6 +205,12 @@ onbuild = do
   reserved "ONBUILD"
   i <- parseInstruction
   return $ OnBuild i
+
+healthcheck :: Parser Instruction
+healthcheck = do
+  reserved "HEALTHCHECK"
+  args <- untilEol
+  return $ Healthcheck args
 
 parseInstruction :: Parser Instruction
 parseInstruction
@@ -216,9 +228,11 @@ parseInstruction
     <|> try label
     <|> try stopsignal
     <|> try cmd
+    <|> try shell
     <|> try maintainer
     <|> try add
     <|> try comment
+    <|> try healthcheck
 
 contents :: Parser a -> Parser a
 contents p = do

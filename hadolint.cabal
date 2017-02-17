@@ -1,5 +1,5 @@
 name:                hadolint
-version:             1.2.0.0
+version:             1.2.1.0
 synopsis:            Dockerfile Linter JavaScript API
 homepage:            https://github.com/lukasmartinelli/hadolint
 license:             MIT
@@ -35,7 +35,7 @@ executable hadolint
   build-depends:       base >=4.8 && < 5
                      , hadolint
                      , parsec >=3.1
-                     , optparse-applicative
+                     , optparse-applicative <0.13.0.0
   default-language:    Haskell2010
 
 executable hadolint-api
