@@ -74,7 +74,7 @@ rules = [ absoluteWorkdir
         , aptGetNoRecommends
         , aptGetYes
         , wgetOrCurl
-        , hasMaintainer
+        , hasNoMaintainer
         , multipleCmds
         , multipleEntrypoints
         , useShell
@@ -103,11 +103,11 @@ absoluteWorkdir = instructionRule code severity message check
           check (Workdir dir) = head dir == '$' || head dir == '/'
           check _ = True
 
-hasMaintainer = dockerfileRule code severity message check
+hasNoMaintainer = dockerfileRule code severity message check
     where code = "DL4000"
-          severity = InfoC
-          message = "Specify a maintainer of the Dockerfile"
-          check dockerfile = any isMaintainer dockerfile
+          severity = ErrorC
+          message = "MAINTAINER is deprecated"
+          check dockerfile = not $ any isMaintainer dockerfile
           isMaintainer (Maintainer _) = True
           isMaintainer _              = False
 

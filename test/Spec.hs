@@ -181,7 +181,7 @@ main = hspec $ do
                          ]
         in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
 
-    it "has maintainer named" $ ruleCatchesNot hasMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
+    it "has deprecated maintainer" $ ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
 
   describe "EXPOSE rules" $ do
     it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
@@ -222,9 +222,9 @@ main = hspec $ do
     it "apt-get no install recommends" $ ruleCatches aptGetNoRecommends "RUN apt-get -y install python"
     it "apt-get version" $ ruleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
     it "apt-get pinned" $ ruleCatchesNot aptGetVersionPinned "RUN apt-get -y --no-install-recommends install nodejs=0.10"
-    it "has maintainer" $ ruleCatchesNot hasMaintainer "FROM debian\nMAINTAINER Lukas"
-    it "has maintainer first" $ ruleCatchesNot hasMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
-    it "has no maintainer" $ ruleCatches hasMaintainer "FROM debian"
+    it "has maintainer" $ ruleCatches hasNoMaintainer "FROM debian\nMAINTAINER Lukas"
+    it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
+    it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
     it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
     it "many cmds" $ ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
     it "single cmd" $ ruleCatchesNot multipleCmds "CMD /bin/true"
