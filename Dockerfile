@@ -12,6 +12,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
+RUN stack setup
 RUN stack install
 
 EXPOSE 8000
