@@ -184,6 +184,8 @@ main = hspec $ do
     it "has deprecated maintainer" $ ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
 
   describe "EXPOSE rules" $ do
+    it "has no arg" $ ruleCatches exposeMissingArgs "EXPOSE"
+    it "has one arg" $ ruleCatchesNot exposeMissingArgs "EXPOSE 80"
     it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
     it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
 

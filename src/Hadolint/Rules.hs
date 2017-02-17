@@ -77,6 +77,7 @@ rules = [ absoluteWorkdir
         , multipleCmds
         , multipleEntrypoints
         , useShell
+        , exposeMissingArgs
         ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -222,6 +223,13 @@ useAdd = instructionRule code severity message check
           check (Copy src dst) = and [not (format `isSuffixOf` src) | format <- archive_formats]
           check _ = True
           archive_formats = [".tar", ".gz", ".bz2", "xz"]
+
+exposeMissingArgs = instructionRule code severity message check
+    where code = "DL3021"
+          severity = ErrorC
+          message = "EXPOSE requires at least one argument"
+          check (Expose ports) = length ports > 0
+          check _ = True
 
 invalidPort = instructionRule code severity message check
     where code = "DL3011"
