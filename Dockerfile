@@ -19,5 +19,9 @@ COPY . /opt/hadolint
 RUN cp /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginT.o
 RUN stack install --install-ghc --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread'
 
+# COMPRESS WITH UPX
+RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
+  && chmod 755 /usr/local/bin/upx \
+  && upx --best --ultra-brute /root/.local/bin/hadolint
 ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
 CMD ["hadolint", "-"]
