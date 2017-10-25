@@ -23,5 +23,7 @@ RUN stack install --install-ghc --ghc-options '-optl-static -fPIC -optc-Os -optl
 RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
   && chmod 755 /usr/local/bin/upx \
   && upx --best --ultra-brute /root/.local/bin/hadolint
-ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
-CMD ["hadolint", "-"]
+
+FROM busybox:1.27.2-glibc
+COPY --from=builder /root/.local/bin/hadolint /bin/
+CMD ["/bin/hadolint", "-"]
