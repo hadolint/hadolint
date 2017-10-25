@@ -16,7 +16,8 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN stack install # --ghc-options='-optl-static -optl-pthread' --force-dirty
+RUN cp /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginT.o
+RUN stack install --install-ghc --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread'
 
 ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
 CMD ["hadolint", "-"]
