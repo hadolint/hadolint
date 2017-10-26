@@ -11,6 +11,7 @@ import Data.List (sort)
 import Text.Parsec (ParseError)
 import Control.Applicative
 import Options.Applicative hiding (ParseError)
+import Data.Semigroup
 
 type IgnoreRule = String
 data LintOptions = LintOptions { showVersion :: Bool

@@ -1,4 +1,4 @@
-FROM debian:stretch-slim as builder
+FROM debian:stretch-slim AS builder
 
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
@@ -17,13 +17,15 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
 RUN cp /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginT.o
-RUN stack install --install-ghc --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread'
+RUN stack install --install-ghc \
+  --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread' \
+  --force-dirty
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
   && chmod 755 /usr/local/bin/upx \
   && upx --best --ultra-brute /root/.local/bin/hadolint
 
-FROM busybox:1.27.2-glibc
+FROM busybox:1.27.2-glibc AS distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
