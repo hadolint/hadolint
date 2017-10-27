@@ -55,6 +55,27 @@ matrix:
     compiler: ": #stack nightly osx"
     os: osx
 
+  - env: Build_Docker_Image
+    sudo: required
+    services:
+      - docker
+    addons:
+      apt:
+        packages:
+          - docker-ce
+    before_install: true
+    install:
+      # Build image
+      - docker build -t hadolint:$(git describe --tags --dirty) .
+    script:
+      # List images
+      - docker image ls
+      # Lint its own Dockerfile
+      - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
+      # Check that version in hadolint in the same as its `git describe`
+      # This can be enabled when there is an annotated tag
+      # - grep $(git describe --dirty) <<< $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+
   allow_failures:
   - env: BUILD=stack ARGS="--resolver nightly"
 
