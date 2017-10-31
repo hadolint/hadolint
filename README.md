@@ -30,7 +30,7 @@ docker run --rm -i lukasmartinelli/hadolint < Dockerfile
 ## Install
 
 You can [**download prebuilt binaries for OSX, Windows and Linux from the latest release page**](https://github.com/lukasmartinelli/hadolint/releases/latest
-). However they may not run on your system configuration since I am not able to provide completly staticly linked binaries. Fall back to `brew`, source installation or Docker if it doesn't work for you.
+). However they may not run on your system configuration since I am not able to provide completely statically linked binaries. Fall back to `brew`, source installation or Docker if it doesn't work for you.
 
 If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
@@ -70,7 +70,7 @@ Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new)
 | [DL3009](https://github.com/lukasmartinelli/hadolint/wiki/DL3009) | Delete the apt-get lists after installing something.
 | [DL3010](https://github.com/lukasmartinelli/hadolint/wiki/DL3010) | Use ADD for extracting archives into an image.
 | [DL3011](https://github.com/lukasmartinelli/hadolint/wiki/DL3011) | Valid UNIX ports range from 0 to 65535.
-| [DL3012](https://github.com/lukasmartinelli/hadolint/wiki/DL3012) | Provide an email adress or URL as maintainer.
+| [DL3012](https://github.com/lukasmartinelli/hadolint/wiki/DL3012) | Provide an email address or URL as maintainer.
 | [DL3013](https://github.com/lukasmartinelli/hadolint/wiki/DL3013) | Pin versions in pip.
 | [DL3014](https://github.com/lukasmartinelli/hadolint/wiki/DL3014) | Use the `-y` switch.
 | [DL3015](https://github.com/lukasmartinelli/hadolint/wiki/DL3015) | Avoid additional packages by specifying --no-install-recommends.
@@ -115,7 +115,7 @@ Please [create an issue](https://github.com/lukasmartinelli/hadolint/issues/new)
 
 ## Develop
 
-This is my first Haskell program. If you are a experienced Haskeller I would be really thankful
+This is my first Haskell program. If you are an experienced Haskeller I would be really thankful
 if you would tear my code apart in a review.
 
 ### Setup
@@ -160,7 +160,7 @@ The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is 
 
 ### AST
 
-Dockerfile syntax is is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
+Dockerfile syntax is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
 
 
 ## Alternatives
