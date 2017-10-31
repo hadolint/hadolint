@@ -1,18 +1,25 @@
-FROM haskell:7.10
+FROM haskell:8.0.2 as build
 MAINTAINER Lukas Martinelli <me@lukasmartinelli.ch>
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689BEFB442" \
- && echo 'deb http://download.fpcomplete.com/debian jessie main' >> /etc/apt/sources.list.d/fpco.list \
- && apt-get update \
+RUN apt-get update \
  && apt-get install --no-install-recommends -y \
-    git=1:2.1.4-2.1+deb8u2 \
+    make=4.0-8.1 \
+    xz-utils=5.1.1alpha+20120614-2+b3 \
     hlint=1.8.61-1+b2 \
-    stack \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && cp /usr/lib/gcc/x86_64-linux-gnu/4.9/crtbeginS.o \
+       /usr/lib/gcc/x86_64-linux-gnu/4.9/crtbeginT.o
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN stack install # --ghc-options='-optl-static -optl-pthread' --force-dirty
+RUN stack setup \
+ && stack install --local-bin-path /bin --ghc-options='-optl-static -optl-pthread' --force-dirty
 
-ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
+ADD https://github.com/lalyos/docker-upx/releases/download/v3.91/upx /bin/upx
+RUN chmod 755 /bin/upx \
+ && upx --best --ultra-brute /bin/hadolint
+
+FROM busybox:1.27.1
+COPY --from=build /bin/hadolint /bin/hadolint
+
 CMD ["hadolint", "-"]

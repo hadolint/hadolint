@@ -7,6 +7,7 @@ resolver: lts-5.9
 packages:
 - '.'
 
+build: { split-objs: true }
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: [ShellCheck-0.4.4]
 
