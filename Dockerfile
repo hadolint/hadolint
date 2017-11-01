@@ -22,9 +22,9 @@ RUN stack install --install-ghc \
   --force-dirty
 
 # COMPRESS WITH UPX
-RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
-  && chmod 755 /usr/local/bin/upx \
-  && upx --best --ultra-brute /root/.local/bin/hadolint
+RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
+  | tar -x --xz --strip-components 1 upx-3.94-amd64_linux/upx \
+  && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
 FROM busybox:1.27.2-glibc AS distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
