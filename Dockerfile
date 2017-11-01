@@ -1,18 +1,31 @@
-FROM haskell:7.10
-MAINTAINER Lukas Martinelli <me@lukasmartinelli.ch>
+FROM debian:stretch-slim AS builder
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "575159689BEFB442" \
- && echo 'deb http://download.fpcomplete.com/debian jessie main' >> /etc/apt/sources.list.d/fpco.list \
- && apt-get update \
+RUN apt-get update \
  && apt-get install --no-install-recommends -y \
-    git=1:2.1.4-2.1+deb8u2 \
-    hlint=1.8.61-1+b2 \
-    stack \
+    build-essential=12.3 \
+    libffi-dev=3.2.1-6 \
+    libgmp-dev=2:6.1.2+dfsg-1 \
+    zlib1g-dev=1:1.2.8.dfsg-5 \
+    curl=7.52.1-5+deb9u2 \
+    ca-certificates=20161130+nmu1 \
+    git=1:2.11.0-3+deb9u2 \
+    netbase=5.4 \
  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN stack install # --ghc-options='-optl-static -optl-pthread' --force-dirty
+RUN cp /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginT.o
+RUN stack install --install-ghc \
+  --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread' \
+  --force-dirty
 
-ENV PATH="/opt/hadolint/.stack-work/install/x86_64-linux/lts-4.1/7.10.3/bin:$PATH"
-CMD ["hadolint", "-"]
+# COMPRESS WITH UPX
+RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
+  && chmod 755 /usr/local/bin/upx \
+  && upx --best --ultra-brute /root/.local/bin/hadolint
+
+FROM busybox:1.27.2-glibc AS distro
+COPY --from=builder /root/.local/bin/hadolint /bin/
+CMD ["/bin/hadolint", "-"]

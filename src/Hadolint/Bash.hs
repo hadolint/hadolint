@@ -6,7 +6,7 @@ import Data.Functor.Identity (runIdentity)
 
 shellcheck :: String -> [Comment]
 shellcheck bashScript = map comment $ crComments $ runIdentity $ checkScript si spec
-    where comment (PositionedComment _ c) = c
+    where comment (PositionedComment _ _ c) = c
           si = mockedSystemInterface [("","")]
           spec = CheckSpec filename script exclusions (Just Bash)
           script = "#!/bin/bash\n" ++ bashScript

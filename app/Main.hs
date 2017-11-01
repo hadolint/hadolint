@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main where
 
 import Hadolint.Parser
@@ -11,6 +13,8 @@ import Data.List (sort)
 import Text.Parsec (ParseError)
 import Control.Applicative
 import Options.Applicative hiding (ParseError)
+import Data.Semigroup
+import Development.GitRev (gitDescribe)
 
 type IgnoreRule = String
 data LintOptions = LintOptions { showVersion :: Bool
@@ -51,7 +55,11 @@ lintDockerfile ignoreRules dockerfile = do
     checkAst (ignoreFilter ignoreRules) ast
 
 lint :: LintOptions -> IO ()
-lint (LintOptions True _ _) = putStrLn "Haskell Dockerfile Linter v1.2.1" >> exitSuccess
+lint (LintOptions True _ _) =
+  let res = $(gitDescribe) in
+  let b = "Haskell Dockerfile Linter " in
+  let final_res = b ++ res in
+  putStrLn final_res >> exitSuccess
 lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitFailure
 lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 

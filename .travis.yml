@@ -27,26 +27,26 @@ matrix:
   # variable, such as using --stack-yaml to point to a different file.
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default"
-    addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-5"
-    compiler: ": #stack 7.10.3"
+  - env: BUILD=stack ARGS="--resolver lts-9.10"
+    compiler: ": #stack 8.0.2"
     addons:
       artifacts: {paths: [./releases]}
-      apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}
+      apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}
 
   # Nightly builds are allowed to fail
   - env: BUILD=stack ARGS="--resolver nightly"
     compiler: ": #stack nightly"
-    addons: {apt: {packages: [libgmp,libgmp-dev]}}
+    addons: {apt: {packages: [libgmp-dev]}}
 
   # Build on OS X in addition to Linux
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default osx"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver lts-5"
-    compiler: ": #stack 7.10.3 osx"
+  - env: BUILD=stack ARGS="--resolver lts-9.10"
+    compiler: ": #stack 8.0.2 osx"
     addons:
       artifacts: {paths: [./releases]}
     os: osx
@@ -54,6 +54,27 @@ matrix:
   - env: BUILD=stack ARGS="--resolver nightly"
     compiler: ": #stack nightly osx"
     os: osx
+
+  - env: Build_Docker_Image
+    sudo: required
+    services:
+      - docker
+    addons:
+      apt:
+        packages:
+          - docker-ce
+    before_install: true
+    install:
+      # Build image
+      - docker build -t hadolint:$(git describe --tags --dirty) .
+    script:
+      # List images
+      - docker image ls
+      # Lint its own Dockerfile
+      - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
+      # Check that version in hadolint in the same as its `git describe`
+      # This can be enabled when there is an annotated tag
+      # - grep $(git describe --dirty) <<< $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
 
   allow_failures:
   - env: BUILD=stack ARGS="--resolver nightly"
