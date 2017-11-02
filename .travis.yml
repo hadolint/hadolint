@@ -65,8 +65,8 @@ matrix:
       # Lint its own Dockerfile
       - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
       # Check that version in hadolint in the same as its `git describe`
-      # This can be enabled when there is an annotated tag
-      # - grep $(git describe --dirty) <<< $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+      - grep $(git describe --dirty) <<<
+        $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
 
   allow_failures:
   - env: ARGS="--resolver nightly"
