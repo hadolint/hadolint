@@ -25,7 +25,6 @@ matrix:
   include:
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
   - env: ARGS="--resolver lts"
     compiler: ": #stack lastest LTS Linux"
 
@@ -33,11 +32,9 @@ matrix:
     compiler: ": #stack 8.0.2"
     addons:
       artifacts: {paths: [./releases]}
-      apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}
 
   # Nightly builds are allowed to fail
   - env: ARGS="--resolver nightly"
-    addons: {apt: {packages: [libgmp-dev]}}
     compiler: ": #stack nightly Linux"
 
   # Build on OS X in addition to Linux
