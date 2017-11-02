@@ -67,6 +67,7 @@ matrix:
       # Check that version in hadolint in the same as its `git describe`
       - grep $(git describe --dirty) <<<
         $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+    after_success: true
 
   allow_failures:
   - env: ARGS="--resolver nightly"
@@ -90,5 +91,7 @@ install:
 
 script:
 - stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+
+after_success:
 - stack --no-terminal $ARGS install --ghc-options='-fPIC'
 - cp "$(which hadolint)" ./releases/
