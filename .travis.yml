@@ -25,9 +25,9 @@ matrix:
   include:
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: ARGS=""
-    compiler: ": #stack default"
     addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
+  - env: ARGS="--resolver lts"
+    compiler: ": #stack lastest LTS Linux"
 
   - env: ARGS="--resolver lts-9.10"
     compiler: ": #stack 8.0.2"
@@ -37,22 +37,22 @@ matrix:
 
   # Nightly builds are allowed to fail
   - env: ARGS="--resolver nightly"
-    compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
+    compiler: ": #stack nightly Linux"
 
   # Build on OS X in addition to Linux
-  - env: ARGS=""
-    compiler: ": #stack default osx"
+  - env: ARGS="--resolver lts"
+    compiler: ": #stack latest LTS OSX"
     os: osx
 
   - env: ARGS="--resolver lts-9.10"
-    compiler: ": #stack 8.0.2 osx"
+    compiler: ": #stack 8.0.2 OSX"
     addons:
       artifacts: {paths: [./releases]}
     os: osx
 
   - env: ARGS="--resolver nightly"
-    compiler: ": #stack nightly osx"
+    compiler: ": #stack nightly OSX"
     os: osx
 
   - env: Build_Docker_Image
