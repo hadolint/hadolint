@@ -16,9 +16,7 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN stack install --install-ghc \
-  --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread' \
-  --force-dirty
+RUN stack install --install-ghc --ghc-options="-fPIC"
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/lalyos/docker-upx/releases/download/v3.91/upx >/usr/local/bin/upx \
