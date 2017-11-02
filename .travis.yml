@@ -98,9 +98,6 @@ before_install:
   echo 'remote-repo: hackage.haskell.org:http://hackage.fpcomplete.com/' > $HOME/.cabal/config
   echo 'remote-repo-cache: $HOME/.cabal/packages' >> $HOME/.cabal/config
 
-# Get the list of packages from the stack.yaml file
-- PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
-
 install:
 - mkdir -p ./releases/
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
