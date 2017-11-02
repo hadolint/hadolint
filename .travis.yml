@@ -25,33 +25,33 @@ matrix:
   include:
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS=""
+  - env: ARGS=""
     compiler: ": #stack default"
     addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-9.10"
+  - env: ARGS="--resolver lts-9.10"
     compiler: ": #stack 8.0.2"
     addons:
       artifacts: {paths: [./releases]}
       apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}
 
   # Nightly builds are allowed to fail
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: ARGS="--resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
 
   # Build on OS X in addition to Linux
-  - env: BUILD=stack ARGS=""
+  - env: ARGS=""
     compiler: ": #stack default osx"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver lts-9.10"
+  - env: ARGS="--resolver lts-9.10"
     compiler: ": #stack 8.0.2 osx"
     addons:
       artifacts: {paths: [./releases]}
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: ARGS="--resolver nightly"
     compiler: ": #stack nightly osx"
     os: osx
 
@@ -77,7 +77,7 @@ matrix:
       # - grep $(git describe --dirty) <<< $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
 
   allow_failures:
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: ARGS="--resolver nightly"
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
