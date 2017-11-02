@@ -80,7 +80,6 @@ before_install:
 # Using compiler above sets CC to an invalid value, so unset it
 - unset CC
 # Download and unpack the stack executable
-- export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:/opt/alex/$ALEXVER/bin:/opt/happy/$HAPPYVER/bin:$HOME/.cabal/bin:$PATH
 - mkdir -p ~/.local/bin
 - |
   if [ `uname` = "Darwin" ]
@@ -92,8 +91,6 @@ before_install:
 
 install:
 - mkdir -p ./releases/
-- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-- if [ -f configure.ac ]; then autoreconf -i; fi
 - stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
 
 script:
