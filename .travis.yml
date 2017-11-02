@@ -8,13 +8,8 @@ language: c
 cache:
   directories:
   - $HOME/.ghc
-  - $HOME/.cabal
   - $HOME/.stack
 
-# The different configurations we want to test. We have BUILD=cabal which uses
-# cabal-install, and BUILD=stack which uses Stack. More documentation on each
-# of those below.
-#
 # We set the compiler values here to tell Travis to use a different
 # cache file per set of arguments.
 #
@@ -77,8 +72,6 @@ matrix:
   - env: ARGS="--resolver nightly"
 
 before_install:
-# Using compiler above sets CC to an invalid value, so unset it
-- unset CC
 # Download and unpack the stack executable
 - mkdir -p ~/.local/bin
 - |
