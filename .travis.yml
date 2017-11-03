@@ -3,6 +3,7 @@ sudo: false
 
 # Choose a lightweight base image; we provide our own build tools.
 language: c
+compiler: gcc
 
 # Caching so the next build will be fast too.
 cache:
@@ -21,30 +22,24 @@ matrix:
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
   - env: ARGS="--resolver lts"
-    compiler: ": #stack lastest LTS Linux"
 
   - env: ARGS="--resolver lts-9.10"
-    compiler: ": #stack 8.0.2"
     addons:
       artifacts: {paths: [./releases]}
 
   # Nightly builds are allowed to fail
   - env: ARGS="--resolver nightly"
-    compiler: ": #stack nightly Linux"
 
   # Build on OS X in addition to Linux
   - env: ARGS="--resolver lts"
-    compiler: ": #stack latest LTS OSX"
     os: osx
 
   - env: ARGS="--resolver lts-9.10"
-    compiler: ": #stack 8.0.2 OSX"
     addons:
       artifacts: {paths: [./releases]}
     os: osx
 
   - env: ARGS="--resolver nightly"
-    compiler: ": #stack nightly OSX"
     os: osx
 
   - env: Build_Docker_Image
