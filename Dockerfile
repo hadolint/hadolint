@@ -16,10 +16,7 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN cp /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginT.o
-RUN stack install --install-ghc \
-  --ghc-options '-optl-static -fPIC -optc-Os -optl-pthread' \
-  --force-dirty
+RUN stack install --install-ghc --ghc-options="-fPIC"
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
