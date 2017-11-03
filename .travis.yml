@@ -10,6 +10,7 @@ cache:
   directories:
   - $HOME/.ghc
   - $HOME/.stack
+  timeout: 300
 
 # We set the compiler values here to tell Travis to use a different
 # cache file per set of arguments.
