@@ -53,7 +53,7 @@ matrix:
     before_install: true
     install:
       # Build image
-      - docker build -t hadolint:$(git describe --tags --dirty) .
+      - travis_wait 30 docker build -t hadolint:$(git describe --tags --dirty) .
     script:
       # List images
       - docker image ls
@@ -82,7 +82,7 @@ before_install:
 
 install:
 - mkdir -p ./releases/
-- stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+- travis_retry stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
 
 script:
 - stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
