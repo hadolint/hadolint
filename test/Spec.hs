@@ -201,6 +201,10 @@ main = hspec $ do
     it "pip install upper bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster>=0.7'"
     it "pip install lower bound" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster<0.7'"
     it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
+    it "pip install user directory" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user"
+    it "pip install no pip version check" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --disable-pip-version-check"
+    it "pip install extra argument with '--'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user --extra-arg"
+    it "pip install extra argument with '-'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user -X"
 
   describe "use SHELL" $ do
     it "RUN ln" $ ruleCatches useShell "RUN ln -sfv /bin/bash /bin/sh"

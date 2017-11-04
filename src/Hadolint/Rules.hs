@@ -264,7 +264,9 @@ pipVersionPinned = instructionRule code severity message check
           versionFixed package = hasVersionSymbol package || isVersionedGit package
 
           packages :: [String] -> [String]
-          packages args = concat [drop 2 cmd | cmd <- bashCommands args, isPipInstall cmd]
+          packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]
+              where noOption arg = arg `notElem` options
+                    options = [ "pip" , "pip2" , "pip3" , "install" , "--user" , "--disable-pip-version-check" ]
 
           isPipInstall :: [String] -> Bool
           isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd || ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
