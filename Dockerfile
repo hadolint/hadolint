@@ -16,7 +16,8 @@ RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY . /opt/hadolint
-RUN stack install --install-ghc --ghc-options="-fPIC"
+RUN scripts/fetch_version.sh \
+  && stack install --install-ghc --ghc-options="-fPIC"
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
