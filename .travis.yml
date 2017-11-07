@@ -3,18 +3,14 @@ sudo: false
 
 # Choose a lightweight base image; we provide our own build tools.
 language: c
+compiler: gcc
 
 # Caching so the next build will be fast too.
 cache:
   directories:
-  - $HOME/.ghc
-  - $HOME/.cabal
   - $HOME/.stack
+  timeout: 300
 
-# The different configurations we want to test. We have BUILD=cabal which uses
-# cabal-install, and BUILD=stack which uses Stack. More documentation on each
-# of those below.
-#
 # We set the compiler values here to tell Travis to use a different
 # cache file per set of arguments.
 #
@@ -25,34 +21,25 @@ matrix:
   include:
   # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
   # variable, such as using --stack-yaml to point to a different file.
-  - env: BUILD=stack ARGS=""
-    compiler: ": #stack default"
-    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
+  - env: ARGS="--resolver lts"
 
-  - env: BUILD=stack ARGS="--resolver lts-9.10"
-    compiler: ": #stack 8.0.2"
+  - env: ARGS="--resolver lts-9.10"
     addons:
       artifacts: {paths: [./releases]}
-      apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}
 
   # Nightly builds are allowed to fail
-  - env: BUILD=stack ARGS="--resolver nightly"
-    compiler: ": #stack nightly"
-    addons: {apt: {packages: [libgmp-dev]}}
+  - env: ARGS="--resolver nightly"
 
   # Build on OS X in addition to Linux
-  - env: BUILD=stack ARGS=""
-    compiler: ": #stack default osx"
+  - env: ARGS="--resolver lts"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver lts-9.10"
-    compiler: ": #stack 8.0.2 osx"
+  - env: ARGS="--resolver lts-9.10"
     addons:
       artifacts: {paths: [./releases]}
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver nightly"
-    compiler: ": #stack nightly osx"
+  - env: ARGS="--resolver nightly"
     os: osx
 
   - env: Build_Docker_Image
@@ -66,48 +53,40 @@ matrix:
     before_install: true
     install:
       # Build image
-      - docker build -t hadolint:$(git describe --tags --dirty) .
+      - travis_wait 30 docker build -t hadolint:$(git describe --tags --dirty) .
     script:
       # List images
       - docker image ls
       # Lint its own Dockerfile
       - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
       # Check that version in hadolint in the same as its `git describe`
-      # This can be enabled when there is an annotated tag
-      # - grep $(git describe --dirty) <<< $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+      - grep $(git describe --dirty) <<<
+        $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+    after_success: true
 
   allow_failures:
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: ARGS="--resolver nightly"
 
 before_install:
-# Using compiler above sets CC to an invalid value, so unset it
-- unset CC
 # Download and unpack the stack executable
-- export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:/opt/alex/$ALEXVER/bin:/opt/happy/$HAPPYVER/bin:$HOME/.cabal/bin:$PATH
 - mkdir -p ~/.local/bin
 - |
   if [ `uname` = "Darwin" ]
   then
-    travis_retry curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+    travis_retry curl --insecure -L https://www.stackage.org/stack/osx-x86_64 \
+      | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
   else
-    travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+    travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 \
+      | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   fi
-
-  # Use the more reliable S3 mirror of Hackage
-  mkdir -p $HOME/.cabal
-  echo 'remote-repo: hackage.haskell.org:http://hackage.fpcomplete.com/' > $HOME/.cabal/config
-  echo 'remote-repo-cache: $HOME/.cabal/packages' >> $HOME/.cabal/config
-
-# Get the list of packages from the stack.yaml file
-- PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
 
 install:
 - mkdir -p ./releases/
-- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-- if [ -f configure.ac ]; then autoreconf -i; fi
-- stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+- travis_retry stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
 
 script:
 - stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+
+after_success:
 - stack --no-terminal $ARGS install --ghc-options='-fPIC'
 - cp "$(which hadolint)" ./releases/
