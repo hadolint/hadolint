@@ -154,8 +154,12 @@ noRootUser = instructionRule code severity message check
     where code = "DL3002"
           severity = ErrorC
           message = "Do not switch to root USER"
-          check (User "root") = False
-          check (User _) = True
+          check (User user) =
+            not
+              (isPrefixOf "root:" user ||
+               isPrefixOf "0:" user ||
+               user == "root" ||
+               user == "0")
           check _ = True
 
 noCd = instructionRule code severity message check
