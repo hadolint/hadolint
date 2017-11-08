@@ -191,8 +191,11 @@ noLatestTag = instructionRule code severity message check
     where code = "DL3007"
           severity = WarningC
           message = "Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag."
-          check (From (TaggedImage _ "latest")) = False
-          check (From (TaggedImage _ _)) = True
+          check (From (TaggedImage _ tag)) =
+            not
+              (isPrefixOf "latest AS" tag ||
+               isPrefixOf "latest as" tag ||
+               tag == "latest")
           check _ = True
 
 aptGetVersionPinned = instructionRule code severity message check
