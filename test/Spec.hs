@@ -206,6 +206,27 @@ main = hspec $ do
     it "pip install extra argument with '--'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user --extra-arg"
     it "pip install extra argument with '-'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user -X"
 
+  describe "npm pinning" $ do
+    it "version pinned in package.json" $ ruleCatchesNot npmVersionPinned "RUN npm install"
+    it "version pinned" $ ruleCatchesNot npmVersionPinned "RUN npm install express@4.1.1"
+    it "version pinned with scope" $ ruleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0\""
+    it "version pinned multiple packages" $ ruleCatchesNot npmVersionPinned "RUN npm install express@\"4.1.1\" sax@0.1.1"
+    it "version pinned with --global" $ ruleCatchesNot npmVersionPinned "RUN npm install --global express@\"4.1.1\""
+    it "commit pinned for git+ssh" $ ruleCatchesNot npmVersionPinned "RUN npm install git+ssh://git@github.com:npm/npm.git#v1.0.27"
+    it "commit pinned for git+http" $ ruleCatchesNot npmVersionPinned "RUN npm install git+http://isaacs@github.com/npm/npm#semver:^5.0"
+    it "commit pinned for git+https" $ ruleCatchesNot npmVersionPinned "RUN npm install git+https://isaacs@github.com/npm/npm.git#v1.0.27"
+    it "commit pinned for git" $ ruleCatchesNot npmVersionPinned "RUN npm install git://github.com/npm/npm.git#v1.0.27"
+    --version range is not supported
+    --it "version pinned with scope" $ ruleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0 <0.2.0\""
+    it "version not pinned" $ ruleCatches npmVersionPinned "RUN npm install express"
+    it "version not pinned with scope" $ ruleCatches npmVersionPinned "RUN npm install @myorg/privatepackage"
+    it "version not pinned multiple packages" $ ruleCatches npmVersionPinned "RUN npm install express sax@0.1.1"
+    it "version not pinned with --global" $ ruleCatches npmVersionPinned "RUN npm install --global express"
+    it "commit not pinned for git+ssh" $ ruleCatches npmVersionPinned "RUN npm install git+ssh://git@github.com:npm/npm.git"
+    it "commit not pinned for git+http" $ ruleCatches npmVersionPinned "RUN npm install git+http://isaacs@github.com/npm/npm"
+    it "commit not pinned for git+https" $ ruleCatches npmVersionPinned "RUN npm install git+https://isaacs@github.com/npm/npm.git"
+    it "commit not pinned for git" $ ruleCatches npmVersionPinned "RUN npm install git://github.com/npm/npm.git"
+
   describe "use SHELL" $ do
     it "RUN ln" $ ruleCatches useShell "RUN ln -sfv /bin/bash /bin/sh"
     it "RUN ln with unrelated symlinks" $ ruleCatchesNot useShell "RUN ln -sf /bin/true /sbin/initctl"
