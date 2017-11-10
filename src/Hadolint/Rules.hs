@@ -126,7 +126,7 @@ multipleCmds =dockerfileRule code severity message check
 multipleEntrypoints =dockerfileRule code severity message check
     where code = "DL4004"
           severity = ErrorC
-          message = "Multiple `ENTRYPOINT` instructions found. Only the first instruction will take effect."
+          message = "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then only the last `ENTRYPOINT` will take effect."
           check dockerfile = 1 >= length (filter (True==) $ map isEntrypoint dockerfile)
           isEntrypoint (Entrypoint _) = True
           isEntrypoint _       = False
