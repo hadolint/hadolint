@@ -275,6 +275,56 @@ pipVersionPinned = instructionRule code severity message check
           isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
 
 
+{-|
+  Rule for pinning NPM packages to version, tag, or commit
+  supported formats by Hadolint
+    npm install (with no args, in package dir)
+    npm install [<@scope>/]<name>
+    npm install [<@scope>/]<name>@<tag>
+    npm install [<@scope>/]<name>@<version>
+    npm install git[+http|+https]://<git-host>/<git-user>/<repo-name>[#<commit>|#semver:<semver>]
+    npm install git+ssh://<git-host>:<git-user>/<repo-name>[#<commit>|#semver:<semver>]
+-}
+npmVersionPinned = instructionRule code severity message check
+    where code = "DL3016"
+          severity = WarningC
+          message = "Pin versions in npm. Instead of `npm install <package>` use `npm install <package>@<version>`"
+
+          check (Run args) = all versionFixed (packages args)
+          check _          = True
+
+          packages :: [String] -> [String]
+          packages args =
+            concat [filter noOption cmd | cmd <- bashCommands args, isNpmInstall cmd]
+            where
+              noOption arg = arg `notElem` options
+              options = [ "npm", "install", "--global"]
+
+          isNpmInstall :: [String] -> Bool
+          isNpmInstall cmd = ["npm", "install"] `isInfixOf` cmd
+
+          versionFixed :: String -> Bool
+          versionFixed package =
+            if hasGitPrefix package
+              then isVersionedGit package
+              else hasVersionSymbol package
+
+          gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]
+          hasGitPrefix :: String -> Bool
+          hasGitPrefix package = or [p `isPrefixOf` package | p <- gitPrefixes]
+
+          isVersionedGit :: String -> Bool
+          isVersionedGit package = "#" `isInfixOf` package
+
+          hasVersionSymbol :: String -> Bool
+          hasVersionSymbol package = "@" `isInfixOf` dropScope package
+            where
+              dropScope package =
+                if "@" `isPrefixOf` package
+                  then dropWhile ('/'<) package
+                  else package
+
+
 isAptGetInstall cmd = ["apt-get"] `isInfixOf` cmd && ["install"] `isInfixOf` cmd
 aptGetYes = instructionRule code severity message check
     where code = "DL3014"
