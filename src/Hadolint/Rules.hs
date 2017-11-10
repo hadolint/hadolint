@@ -118,7 +118,7 @@ usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
 multipleCmds =dockerfileRule code severity message check
     where code = "DL4003"
           severity = WarningC
-          message = "Multiple `CMD` instructions found. Only the first instruction will take effect."
+          message = "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last `CMD` will take effect."
           check dockerfile = 1 >= length (filter (True==) $ map isCmd dockerfile)
           isCmd (Cmd _) = True
           isCmd _       = False
