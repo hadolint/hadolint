@@ -1,92 +1,116 @@
-# Use new container infrastructure to enable caching
+# Build starts faster without `sudo`
 sudo: false
 
-# Choose a lightweight base image; we provide our own build tools.
 language: c
 compiler: gcc
 
-# Caching so the next build will be fast too.
 cache:
   directories:
   - $HOME/.stack
   timeout: 300
 
-# We set the compiler values here to tell Travis to use a different
-# cache file per set of arguments.
-#
-# If you need to have different apt packages for each combination in the
-# matrix, you can use a line such as:
-#     addons: {apt: {packages: [libfcgi-dev,libgmp-dev]}}
+# Increase depth (from default 50) to preserve version from `git describe`
+git:
+  depth: 100
+
 matrix:
   include:
-  # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
-  # variable, such as using --stack-yaml to point to a different file.
-  - env: ARGS="--resolver lts"
+    # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
+    # variable, such as using --stack-yaml to point to a different file.
+    - env: ARGS="--resolver lts"
 
-  - env: ARGS="--resolver lts-9.10"
-    addons:
-      artifacts: {paths: [./releases]}
+    - env: ARGS="--resolver lts-9.10"
+      addons:
+        artifacts: {paths: [./releases]}
+      before_deploy:
+        # Show dynamic libraries `hadolint` depends on
+        - ldd $(which hadolint) || true
+        - curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz
+          | tar -x --xz --strip-components=1 -C ~/.local/bin upx-3.94-amd64_linux/upx
+        # Compress binary
+        - upx -q --best --ultra-brute "./releases/${BINARY_NAME}"
+      deploy: &release_deploy
+        provider: releases
+        api_key:
+          secure: mBAlUlWKILccrQK9S118syLIh17r6WNrQUqAZTMiKUS3cgGnPp514bSrS+0igfXgy0p87OT7DHy1MYs0AGcJbEwsE3NU3WMiKCyWR+WEXmjliHvdhIjwunEvHb1E3a6BPvC+rzLP4cMB6xfTJqYGHfdd8cp7MfFyjRA2njATRaeGL/vu17Z15lFxnq4iPECLDiRnyWS9vPj7szrzdYhbV603Awm3Oq+zmZM9etBfuZbwB6IJf8lTlw1c3EouIq2FklISWpoXivhz71nmshcLoUpXVuXL5mvBOePyVLLc9CHfrhwrOtyQ3adqWWLRkoKOJJ8M5x5Y5XODqDLlAEgkVz4DLFrnOnU9B49plwUcnQj617G2IMLGd2U/wbz6l28An2x5PgfJ1K8au4i52XDA+n28keH/2DzVDsmt9lafC6Ouvtzk8BzKYOdNbBkGXZFyLxNBHKoPUawi13WQe/Bo3+1EoXSst0AkDZkf/+Zi8tXq/ZLGkymt3AH2klMIVnki5krVzEOZAuo0KS3mugFwNmj/1ZGJ5M5+Ia3r557NYo+MkJQv55uFGtHDniMO0Xadp9MiOH1jiZUv6grTDJZ+wYHxZDFQHGa821Udpf6Y4U567gQTVrmk1vGz1/K7xrOeyJzTG1zCV5CcYEEQz02OBdnoSXSK3Gw6yNv/MMca7kk=
+        file: "./releases/${BINARY_NAME}"
+        skip_cleanup: true
+        draft: true
+        tag_name: "${TRAVIS_TAG}"
+        on:
+          tags: true
 
-  # Nightly builds are allowed to fail
-  - env: ARGS="--resolver nightly"
+    # Nightly builds are allowed to fail
+    - env: ARGS="--resolver nightly"
 
-  # Build on OS X in addition to Linux
-  - env: ARGS="--resolver lts"
-    os: osx
+    # Build on OS X in addition to Linux
+    - env: ARGS="--resolver lts"
+      os: osx
 
-  - env: ARGS="--resolver lts-9.10"
-    addons:
-      artifacts: {paths: [./releases]}
-    os: osx
+    - env: ARGS="--resolver lts-9.10"
+      addons:
+        artifacts: {paths: [./releases]}
+      before_deploy:
+        # Show dynamic libraries `hadolint` depends on
+        - otool -L $(which hadolint) || true
+        - brew update > /dev/null
+        - brew install upx
+        # Compress binary
+        - upx -q --best --ultra-brute "./releases/${BINARY_NAME}"
+      deploy:
+        <<: *release_deploy
+      os: osx
 
-  - env: ARGS="--resolver nightly"
-    os: osx
+    - env: ARGS="--resolver nightly"
+      os: osx
 
-  - env: Build_Docker_Image
-    sudo: required
-    services:
-      - docker
-    addons:
-      apt:
-        packages:
-          - docker-ce
-    before_install: true
-    install:
-      # Build image
-      - travis_wait 30 docker build -t hadolint:$(git describe --tags --dirty) .
-    script:
-      # List images
-      - docker image ls
-      # Lint its own Dockerfile
-      - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
-      # Check that version in hadolint in the same as its `git describe`
-      - grep $(git describe --dirty) <<<
-        $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
-    after_success: true
+    - env: Build_Docker_Image
+      sudo: required
+      services:
+        - docker
+      addons:
+        apt:
+          packages:
+            - docker-ce
+      before_install: true
+      install:
+        # Build image
+        - travis_wait 30 docker build -t hadolint:$(git describe --tags --dirty) .
+      script:
+        # List images
+        - docker image ls
+        # Lint its own Dockerfile
+        - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
+        # Check that version in hadolint in the same as its `git describe`
+        - grep $(git describe --dirty) <<<
+          $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+      after_success: true
 
   allow_failures:
-  - env: ARGS="--resolver nightly"
+    - env: ARGS="--resolver nightly"
 
 before_install:
-# Download and unpack the stack executable
-- mkdir -p ~/.local/bin
-- |
-  if [ `uname` = "Darwin" ]
-  then
-    travis_retry curl --insecure -L https://www.stackage.org/stack/osx-x86_64 \
-      | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
-  else
-    travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 \
-      | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-  fi
+  - export BINARY_NAME="hadolint-$(uname -s)-$(uname -m)"
+  # Download and unpack the stack executable
+  - mkdir -p ~/.local/bin
+  - |
+    if [[ "${TRAVIS_OS_NAME}" = "osx" ]]
+    then
+      travis_retry curl -sSL https://www.stackage.org/stack/${TRAVIS_OS_NAME}-x86_64 \
+        | tar xz --strip-components=1 -C ~/.local/bin --include   '*/stack'
+    else
+      travis_retry curl -sSL https://www.stackage.org/stack/${TRAVIS_OS_NAME}-x86_64 \
+        | tar xz --strip-components=1 -C ~/.local/bin --wildcards '*/stack'
+    fi
 
 install:
-- mkdir -p ./releases/
-- travis_retry stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+  - travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
+  - stack --no-terminal $ARGS install --ghc-options='-fPIC'
 
 script:
-- stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+  - stack --no-terminal $ARGS test
+  - hadolint Dockerfile
 
 after_success:
-- stack --no-terminal $ARGS install --ghc-options='-fPIC'
-- cp "$(which hadolint)" ./releases/
+  - mkdir -p ./releases/
+  - cp "$(which hadolint)" "./releases/${BINARY_NAME}"
