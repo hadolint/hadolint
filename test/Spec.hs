@@ -157,6 +157,10 @@ main = hspec $ do
   describe "no root or sudo rules" $ do
     it "sudo" $ ruleCatches noSudo "RUN sudo apt-get update"
     it "no root" $ ruleCatches noRootUser "USER root"
+    it "no root" $ ruleCatchesNot noRootUser "USER foo"
+    it "no root UID" $ ruleCatches noRootUser "USER 0"
+    it "no root:root" $ ruleCatches noRootUser "USER root:root"
+    it "no root UID:GID" $ ruleCatches noRootUser "USER 0:0"
     it "install sudo" $ ruleCatchesNot noSudo "RUN apt-get install sudo"
     it "sudo chained programs" $ ruleCatches noSudo "RUN apt-get update && sudo apt-get install"
 
