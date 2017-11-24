@@ -273,7 +273,15 @@ pipVersionPinned = instructionRule code severity message check
           packages :: [String] -> [String]
           packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]
               where noOption arg = arg `notElem` options
-                    options = [ "pip" , "pip2" , "pip3" , "install" , "--user" , "--disable-pip-version-check" ]
+                    options =
+                      [ "pip"
+                      , "pip2"
+                      , "pip3"
+                      , "install"
+                      , "--user"
+                      , "--disable-pip-version-check"
+                      , "--no-cache-dir"
+                      ]
 
           isPipInstall :: [String] -> Bool
           isPipInstall cmd = ["pip", "install"] `isInfixOf` cmd || ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
