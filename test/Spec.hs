@@ -147,8 +147,12 @@ main = hspec $ do
 
   describe "FROM rules" $ do
     it "no untagged" $ ruleCatches noUntagged "FROM debian"
+    it "no untagged with name" $ ruleCatches noUntagged "FROM debian AS builder"
     it "explicit latest" $ ruleCatches noLatestTag "FROM debian:latest"
+    it "explicit latest with name" $ ruleCatches noLatestTag "FROM debian:latest AS builder"
     it "explicit tagged" $ ruleCatchesNot noLatestTag "FROM debian:jessie"
+    it "explicit SHA" $ ruleCatchesNot noLatestTag "FROM debian@sha256:7959ed6f7e35f8b1aaa06d1d8259d4ee25aa85a086d5c125480c333183f9deeb"
+    it "explicit tagged with name" $ ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
 
   describe "no root or sudo rules" $ do
     it "sudo" $ ruleCatches noSudo "RUN sudo apt-get update"
