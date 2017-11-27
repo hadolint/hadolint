@@ -1,14 +1,38 @@
 build: off
 
+cache:
+  # Cache GHC
+  - 'C:\Users\appveyor\AppData\Local\Programs\stack'
+  # Cache cabal packages
+  - 'C:\Users\appveyor\AppData\Roaming\stack'
+
 before_build:
-- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-- 7z x stack.zip stack.exe
+  - choco install haskell-stack
 
 build_script:
-# Suppress output from stack setup, as there is a lot and it's not necessary.
-- stack setup --no-terminal > nul
-- stack build --only-snapshot --no-terminal
-- stack --local-bin-path . install hadolint
+  # Suppress output from stack, as there is a lot and it's not necessary.
+  - stack --no-terminal --install-ghc test --only-dependencies > nul
+  - stack --no-terminal --local-bin-path . install
+
+test_script:
+  - stack test
+  - hadolint.exe Dockerfile
+
+after_test:
+  - rename hadolint.exe hadolint-Windows-x86_64.exe
+
+before_deploy:
+  - choco install upx
+  - upx --best --ultra-brute hadolint-Windows-x86_64.exe
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: VRfoSAuhleshm1Fpe3Kq0ujYytPKodV+fu1kJHiBrZ8d1QW3kOBS89XZ+XVrxdhs
+  artifact: hadolint-Windows-x86_64.exe
+  on:
+    appveyor_repo_tag: true
 
 artifacts:
-- path: hadolint.exe
+  - path: hadolint-Windows-x86_64.exe
+    name: Releases
