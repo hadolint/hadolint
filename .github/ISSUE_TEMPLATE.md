@@ -1,12 +1,10 @@
-* [x] This is a bug report
-* [ ] This is a feature request
-* [ ] I searched existing issues before opening this one
+- [x] This is a bug report
+- [ ] This is a feature request
+- [ ] I searched existing issues before opening this one
 
 ### Expected behavior
 
-
 ### Actual behavior
-
 
 ### Steps to reproduce the behavior
 

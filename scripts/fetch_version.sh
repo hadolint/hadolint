@@ -11,7 +11,7 @@ set -evuo pipefail
 
 url=$(git remote get-url origin)
 # if URL is for SSH, change it to HTTPS format
-if [[ $url =~ "git@" ]]; then 
+if [[ $url =~ "git@" ]]; then
   url=https://github.com/$(cut -f 2 -d ":" <<< "$url")
 fi
 

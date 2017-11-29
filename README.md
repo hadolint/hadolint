@@ -2,17 +2,19 @@
 [![Windows Build status][appveyor-img]][appveyor]
 [![GPL-3 licensed][license-img]][license]
 
-<img align="right" alt="pipecat" width="150" src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
+<img align="right" alt="pipecat" width="150"
+src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
 # Haskell Dockerfile Linter
-A smarter Dockerfile linter that helps you build [best practice Docker images](https://docs.docker.com/engine/articles/dockerfile_best-practices/).
-The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
-It is standing on the shoulders of [Shellcheck](https://github.com/koalaman/shellcheck) to lint the Bash
-code inside `RUN` instructions.
 
-[:globe_with_meridians: **Check the online version on hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
+A smarter Dockerfile linter that helps you build [best practice][] Docker
+images. The linter is parsing the Dockerfile into an AST and performs rules on
+top of the AST. It is standing on the shoulders of [ShellCheck][] to lint
+the Bash code inside `RUN` instructions.
 
-[![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/)
+<!-- [:globe_with_meridians: **Check the online version on
+ hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
+[![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/) -->
 
 ## How to use
 
@@ -23,10 +25,11 @@ hadolint <Dockerfile>
 hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 ```
 
-Docker comes to the rescue to provide an easy way how to run `hadolint` on most platforms.
+Docker comes to the rescue to provide an easy way how to run `hadolint` on most
+platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
-```
+```bash
 docker run --rm -i hadolint/hadolint < Dockerfile
 ```
 
@@ -43,8 +46,8 @@ If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 brew install hadolint
 ```
 
-You can also build `hadolint` locally. You need [Haskell](https://www.haskell.org/platform/) and
-the [stack build tool](http://docs.haskellstack.org/en/stable/install_and_upgrade.html) to build the binary.
+You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
+build tool to build the binary.
 
 ```bash
 git clone https://github.com/hadolint/hadolint
@@ -124,16 +127,19 @@ Please [create an issue][] if you have an idea for a good rule.
 
 ## Develop
 
-This is my first Haskell program. If you are an experienced Haskeller I would be really thankful
-if you would tear my code apart in a review.
+This is my first Haskell program. If you are an experienced Haskeller I would
+be really thankful if you would tear my code apart in a review.
 
 ### Setup
 
-1. Clone repository
+1.  Clone repository
+
     ```bash
     git clone --recursive git@github.com:hadolint/hadolint.git
     ```
-2. Install the dependencies
+
+1.  Install the dependencies
+
     ```bash
     stack install
     ```
@@ -159,23 +165,36 @@ stack test
 
 Run integration tests.
 
-```
+```bash
 ./integration_test.sh
 ```
 
 ### Parsing
 
-The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is using the lexer `Lexer.hs` and parser `Parser.hs`.
+The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is
+using the lexer `Lexer.hs` and parser `Parser.hs`.
 
 ### AST
 
-Dockerfile syntax is fully described in the [Dockerfile reference](http://docs.docker.com/engine/reference/builder/).  Just take a look at `Syntax.hs` to see the AST definition.
-
+Dockerfile syntax is fully described in the [Dockerfile reference][]. Just take
+a look at `Syntax.hs` to see the AST definition.
 
 ## Alternatives
 
-- https://github.com/RedCoolBeans/dockerlint/
-- https://github.com/projectatomic/dockerfile_lint/
-- http://dockerfile-linter.com/
+- RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
+- projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
+
 <!-- References -->
+[travis-img]: https://travis-ci.org/hadolint/hadolint.svg?branch=master
+[travis]: https://travis-ci.org/hadolint/hadolint
+[appveyor-img]: https://ci.appveyor.com/api/projects/status//github/hadolint/hadolint?svg=true&branch=master
+[appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
+[license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
+[license]: https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)
+[best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
+[shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
+[haskell]: https://www.haskell.org/platform/
+[stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[create an issue]: https://github.com/hadolint/hadolint/issues/new
+[dockerfile reference]: http://docs.docker.com/engine/reference/builder/
