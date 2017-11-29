@@ -7,12 +7,12 @@ Only `master` branch is used for releases.
   ![draft](https://user-images.githubusercontent.com/18702153/32983073-f7477820-cc86-11e7-92c6-fabfc1223a25.png)
 
 2. Create an annotated tag with tag name as a message and push it back to
- `lukasmartinelli/hadolint` remote. Release notes should be in the draft not
  in a tag message.
   ```bash
   export TAG=v1.2.3
   git tag -a "$TAG" -m "$TAG" && git push origin "$TAG"
   ```
+    `hadolint/hadolint` remote. Release notes should be in the draft not
 
 3. Tag creation will trigger build in _Travis_ and _AppVeyor_ which will upload
   binaries to GitHub release draft with the same name as is the name of the tag

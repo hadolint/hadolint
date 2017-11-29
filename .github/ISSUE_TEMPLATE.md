@@ -19,7 +19,7 @@ REMOVE SENSITIVE DATA BEFORE POSTING (replace those parts with "REDACTED")
 -->
 
 **Output of `hadolint --version` or
-  `docker run --rm lukasmartinelli/hadolint hadolint --version`:**
+  `docker run --rm hadolint/hadolint hadolint --version`:**
 
 ```bash
 (paste your output here)
