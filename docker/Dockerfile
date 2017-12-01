@@ -15,9 +15,12 @@ RUN apt-get update \
 RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
+COPY hadolint.cabal stack.yaml /opt/hadolint/ 
+RUN stack --no-terminal --install-ghc test --only-dependencies
+
 COPY . /opt/hadolint
 RUN scripts/fetch_version.sh \
-  && stack install --install-ghc --ghc-options="-fPIC"
+  && stack install --ghc-options="-fPIC"
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "=> Tag the image"
+docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
+
+echo "=> Push the image"
+docker push "${DOCKER_REPO}"

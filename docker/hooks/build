@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "=> Building the container"
+docker build \
+  --tag $IMAGE_NAME \
+  --file Dockerfile ..
