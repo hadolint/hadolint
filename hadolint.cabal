@@ -1,5 +1,5 @@
 name:                hadolint
-version:             1.2.2
+version:             1.2.3
 synopsis:            Dockerfile Linter JavaScript API
 homepage:            https://github.com/lukasmartinelli/hadolint
 license:             GPL-3
