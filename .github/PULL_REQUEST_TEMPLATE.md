@@ -5,8 +5,8 @@ If this is a bug fix, make sure your description includes "fixes #xxxx", or
 Please provide the following information:
 -->
 
-**- What I did**
+### What I did
 
-**- How I did it**
+### How I did it
 
-**- How to verify it**
+### How to verify it

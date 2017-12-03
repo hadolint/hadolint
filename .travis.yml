@@ -75,12 +75,15 @@ matrix:
       before_install: true
       install:
         # Build image
-        - travis_wait 30 docker build -t hadolint:$(git describe --tags --dirty) .
+        - travis_wait 30 docker build
+          --tag hadolint:$(git describe --tags --dirty)
+          --file docker/Dockerfile .
       script:
         # List images
         - docker image ls
         # Lint its own Dockerfile
-        - docker run --rm -i hadolint:$(git describe --tags --dirty) < Dockerfile
+        - docker run --rm -i hadolint:$(git describe --tags --dirty) <
+          docker/Dockerfile
         # Check that version in hadolint in the same as its `git describe`
         - grep $(git describe --dirty) <<<
           $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
@@ -109,7 +112,7 @@ install:
 
 script:
   - stack --no-terminal $ARGS test
-  - hadolint Dockerfile
+  - hadolint docker/Dockerfile
 
 after_success:
   - mkdir -p ./releases/

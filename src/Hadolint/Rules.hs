@@ -29,8 +29,8 @@ instance Ord Check where
 link :: Metadata -> String
 link (Metadata code _ _)
     | "SC" `isPrefixOf` code  = "https://github.com/koalaman/shellcheck/wiki/" ++ code
-    | "DL" `isPrefixOf` code  = "https://github.com/lukasmartinelli/hadolint/wiki/" ++ code
-    | otherwise               = "https://github.com/lukasmartinelli/hadolint"
+    | "DL" `isPrefixOf` code  = "https://github.com/hadolint/hadolint/wiki/" ++ code
+    | otherwise               = "https://github.com/hadolint/hadolint"
 
 -- a Rule takes a Dockerfile and returns the executed checks
 type Rule =  Dockerfile -> [Check]

@@ -1,12 +1,10 @@
-* [x] This is a bug report
-* [ ] This is a feature request
-* [ ] I searched existing issues before opening this one
+- [x] This is a bug report
+- [ ] This is a feature request
+- [ ] I searched existing issues before opening this one
 
 ### Expected behavior
 
-
 ### Actual behavior
-
 
 ### Steps to reproduce the behavior
 
@@ -19,7 +17,7 @@ REMOVE SENSITIVE DATA BEFORE POSTING (replace those parts with "REDACTED")
 -->
 
 **Output of `hadolint --version` or
-  `docker run --rm lukasmartinelli/hadolint hadolint --version`:**
+  `docker run --rm hadolint/hadolint hadolint --version`:**
 
 ```bash
 (paste your output here)

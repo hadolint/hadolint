@@ -16,7 +16,7 @@ build_script:
 
 test_script:
   - stack test
-  - hadolint.exe Dockerfile
+  - hadolint.exe docker\Dockerfile
 
 after_test:
   - rename hadolint.exe hadolint-Windows-x86_64.exe
