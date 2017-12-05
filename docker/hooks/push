@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "=> Fetch unshallow origin"
+git fetch --unshallow origin || true
+
 echo "=> Tag the image"
 docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
 
