@@ -98,6 +98,7 @@ pair :: Parser (String, String)
 pair = do
   key <- rawValue
   oneOf "= "
+  spaces
   value <- singleValue
   return (key, value)
 
