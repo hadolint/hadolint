@@ -33,6 +33,9 @@ main = hspec $ do
         assertAst "ENV foo=bar" [Env [("foo", "bar")]]
     it "parse with space between key and value" $
         assertAst "ENV foo bar" [Env [("foo", "bar")] ]
+    it "parse with more then one (white)space between key and value" $
+        let dockerfile = "ENV          NODE_VERSION  \t   v5.7.1"
+        in assertAst dockerfile [Env[("NODE_VERSION",    "v5.7.1")]]
     it "parse quoted value pair" $
         assertAst "ENV foo=\"bar\"" [Env [("foo", "bar")]]
     it "parse multiple unquoted pairs" $
@@ -211,7 +214,7 @@ main = hspec $ do
     it "pip install excluded version" $ ruleCatchesNot pipVersionPinned "RUN pip install 'alabaster!=0.7'"
     it "pip install user directory" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user"
     it "pip install no pip version check" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --disable-pip-version-check"
-    it "pip install no cache dir" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir" 
+    it "pip install no cache dir" $ ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"
     it "pip install extra argument with '--'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user --extra-arg"
     it "pip install extra argument with '-'" $ ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user -X"
 
