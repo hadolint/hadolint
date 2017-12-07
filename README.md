@@ -37,9 +37,8 @@ docker run --rm -i hadolint/hadolint < Dockerfile
 ## Install
 
 You can download prebuilt binaries for OSX, Windows and Linux from the latest
-[release page][]. However, they may not run on your system configuration since
-I am not able to provide completely statically linked binaries. Fall back to
-`brew`, source installation or Docker if it doesn't work for you.
+[release page][]. However, if it doesn't work for you, please fall back to
+Docker, `brew` or source installation.
 
 If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
