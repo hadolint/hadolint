@@ -1,7 +1,8 @@
 [![Linux/OSX Build Status][travis-img]][travis]
 [![Windows Build status][appveyor-img]][appveyor]
 [![GPL-3 licensed][license-img]][license]
-
+[![GitHub release][release-img]][release]
+[![Github downloads][downloads-img]]()
 <img align="right" alt="pipecat" width="150"
 src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
@@ -191,6 +192,9 @@ a look at `Syntax.hs` to see the AST definition.
 [appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)
+[release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
+[release]: https://github.com/hadolint/hadolint/releases/latest
+[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
