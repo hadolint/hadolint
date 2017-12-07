@@ -53,6 +53,7 @@ build tool to build the binary.
 git clone https://github.com/hadolint/hadolint
 cd hadolint
 stack build
+stack install
 ```
 
 ## Rules
@@ -198,3 +199,4 @@ a look at `Syntax.hs` to see the AST definition.
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
+
