@@ -127,8 +127,8 @@ Please [create an issue][] if you have an idea for a good rule.
 
 ## Develop
 
-This is my first Haskell program. If you are an experienced Haskeller I would
-be really thankful if you would tear my code apart in a review.
+If you are an experienced Haskeller we would be really thankful if you would
+tear our code apart in a review.
 
 ### Setup
 
