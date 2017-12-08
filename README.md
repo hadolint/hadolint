@@ -52,7 +52,6 @@ build tool to build the binary.
 ```bash
 git clone https://github.com/hadolint/hadolint
 cd hadolint
-stack build
 stack install
 ```
 
