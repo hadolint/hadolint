@@ -55,6 +55,12 @@ cd hadolint
 stack build
 ```
 
+## Integrations
+
+To get most of `hadolint` it is useful to integrate it as a check to your CI
+or to your editor to lint your `Dockerfile` as you write it. See our
+[Integration][] docs.
+
 ## Rules
 
 An incomplete list of implemented rules. Click on the error code to get more
@@ -199,5 +205,6 @@ a look at `Syntax.hs` to see the AST definition.
 [release page]: https://github.com/hadolint/hadolint/releases/latest
 [haskell]: https://www.haskell.org/platform/
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[integration]: docs/INTEGRATION.md
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
