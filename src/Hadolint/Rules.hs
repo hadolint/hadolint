@@ -69,6 +69,7 @@ rules = [ absoluteWorkdir
         , aptGetVersionPinned
         , aptGetCleanup
         , apkAddVersionPinned
+        , apkAddNoCache
         , useAdd
         , pipVersionPinned
         , invalidPort
@@ -259,6 +260,14 @@ apkAddPackages args =
         ]
     where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
           options = ["apk", "add", "-q", "-p", "-v", "-f", "-t"]
+
+apkAddNoCache = instructionRule code severity message check
+    where code = "DL3019"
+          severity = InfoC
+          message = "Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages"
+          check (Run args) = not (isApkAdd args) || hasNoCacheOption args
+          check _ = True
+          hasNoCacheOption cmd = ["--no-cache"] `isInfixOf` cmd
 
 useAdd = instructionRule code severity message check
     where code = "DL3010"

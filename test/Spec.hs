@@ -219,6 +219,8 @@ main = hspec $ do
                          , "libbz2=1.0.6-r5"
                          ]
         in ruleCatches apkAddVersionPinned $ unlines dockerfile
+    it "apk add with --no-cache" $ ruleCatches apkAddNoCache "RUN apk add flex=2.6.4-r1"
+    it "apk add without --no-cache" $ ruleCatchesNot apkAddNoCache "RUN apk add --no-cache flex=2.6.4-r1"
     it "apk add virtual package" $
         let dockerfile = [ "RUN apk add \\"
                          , "--virtual build-dependencies \\"
