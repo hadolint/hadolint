@@ -28,7 +28,7 @@ before_deploy:
 deploy:
   provider: GitHub
   auth_token:
-    secure: VRfoSAuhleshm1Fpe3Kq0ujYytPKodV+fu1kJHiBrZ8d1QW3kOBS89XZ+XVrxdhs
+    secure: ZgaO92N+VQiLolP4K6/T410xutrUTfFdUWcJBueBinWaaM6yEnT0P5FFFTyV8XRf
   artifact: hadolint-Windows-x86_64.exe
   on:
     appveyor_repo_tag: true
