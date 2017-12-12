@@ -10,7 +10,7 @@ Images are based on [glibc-busybox](https://hub.docker.com/_/busybox/) and inclu
 
 - `hadolint/hadolint:latest` tracks master branch
 - `hadolint/hadolint:VERSION` refers release version, eg. `v1.2.3`
-- `hadolint/hadolint:EXTENDED_VERSION` refers to the same version as `hadolint --version` with short git sha, eg. `v1.2.2-65-g94e9c5d`
+- `hadolint/hadolint:EXTENDED_VERSION` refers to the same version as `hadolint --version` with short git sha, eg. `v1.2.3-0-g7df5f1c`
 
 Check out [Docker Hub](https://hub.docker.com/r/hadolint/hadolint/tags/) for available tags.
 
@@ -26,13 +26,14 @@ Verify the install
 
 ```bash
 docker run --rm hadolint/hadolint hadolint --version
-Haskell Dockerfile Linter v1.2.2-65-g94e9c5d
+Haskell Dockerfile Linter v1.2.3-2-gaf24cc3
 ```
 
 or use a particular version number:
 
 ```bash
 docker run --rm hadolint/hadolint:v1.2.3 hadolint --version
+Haskell Dockerfile Linter v1.2.3-0-g7df5f1c
 ```
 
 Lint your `Dockerfile`:

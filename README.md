@@ -1,7 +1,8 @@
 [![Linux/OSX Build Status][travis-img]][travis]
 [![Windows Build status][appveyor-img]][appveyor]
 [![GPL-3 licensed][license-img]][license]
-
+[![GitHub release][release-img]][release]
+[![Github downloads][downloads-img]]()
 <img align="right" alt="pipecat" width="150"
 src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
 
@@ -36,9 +37,8 @@ docker run --rm -i hadolint/hadolint < Dockerfile
 ## Install
 
 You can download prebuilt binaries for OSX, Windows and Linux from the latest
-[release page][]. However, they may not run on your system configuration since
-I am not able to provide completely statically linked binaries. Fall back to
-`brew`, source installation or Docker if it doesn't work for you.
+[release page][]. However, if it doesn't work for you, please fall back to
+Docker, `brew` or source installation.
 
 If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 
@@ -54,6 +54,12 @@ git clone https://github.com/hadolint/hadolint
 cd hadolint
 stack install
 ```
+
+## Integrations
+
+To get most of `hadolint` it is useful to integrate it as a check to your CI
+or to your editor to lint your `Dockerfile` as you write it. See our
+[Integration][] docs.
 
 ## Rules
 
@@ -127,8 +133,8 @@ Please [create an issue][] if you have an idea for a good rule.
 
 ## Develop
 
-This is my first Haskell program. If you are an experienced Haskeller I would
-be really thankful if you would tear my code apart in a review.
+If you are an experienced Haskeller we would be really thankful if you would
+tear our code apart in a review.
 
 ### Setup
 
@@ -191,11 +197,15 @@ a look at `Syntax.hs` to see the AST definition.
 [appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)
+[release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
+[release]: https://github.com/hadolint/hadolint/releases/latest
+[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
 [haskell]: https://www.haskell.org/platform/
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[integration]: docs/INTEGRATION.md
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
 
