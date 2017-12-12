@@ -172,7 +172,7 @@ main = hspec $ do
     it "install ssh" $ ruleCatchesNot invalidCmd "RUN apt-get install ssh"
 
   describe "apt-get rules" $ do
-    it "apt upgrade" $ ruleCatches noUpgrade "RUN apt-get update && apt-get upgrade"
+    it "apt upgrade" $ ruleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
     it "apt-get version pinning" $ ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
     it "apt-get no cleanup" $ ruleCatches aptGetCleanup "RUN apt-get update && apt-get install python"
     it "apt-get cleanup" $ ruleCatchesNot aptGetCleanup "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
@@ -194,6 +194,8 @@ main = hspec $ do
 
     it "has deprecated maintainer" $ ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
 
+  describe "apk add rules" $ do
+    it "apk upgrade" $ ruleCatches noApkUpgrade "RUN apk update && apk upgrade"
   describe "EXPOSE rules" $ do
     it "has no arg" $ ruleCatches exposeMissingArgs "EXPOSE"
     it "has one arg" $ ruleCatchesNot exposeMissingArgs "EXPOSE 80"

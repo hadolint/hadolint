@@ -62,7 +62,8 @@ rules = [ absoluteWorkdir
         , noRootUser
         , noCd
         , noSudo
-        , noUpgrade
+        , noAptGetUpgrade
+        , noApkUpgrade
         , noLatestTag
         , noUntagged
         , aptGetVersionPinned
@@ -176,7 +177,7 @@ noSudo = instructionRule code severity message check
           check (Run args) = not $ usingProgram "sudo" args
           check _ = True
 
-noUpgrade = instructionRule code severity message check
+noAptGetUpgrade = instructionRule code severity message check
     where code = "DL3005"
           severity = ErrorC
           message = "Do not use apt-get upgrade or dist-upgrade."
@@ -229,6 +230,13 @@ dropOptionsWithArg os [] = []
 dropOptionsWithArg os (x:xs)
     | x `elem` os = dropOptionsWithArg os (drop 1 xs)
     | otherwise  = x : dropOptionsWithArg os xs
+
+noApkUpgrade = instructionRule code severity message check
+    where code = "DL3017"
+          severity = ErrorC
+          message = "Do not use apk upgrade"
+          check (Run args) = not $ isInfixOf ["apk", "upgrade"] args
+          check _ = True
 
 useAdd = instructionRule code severity message check
     where code = "DL3010"
