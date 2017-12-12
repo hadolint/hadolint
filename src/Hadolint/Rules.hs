@@ -68,6 +68,7 @@ rules = [ absoluteWorkdir
         , noUntagged
         , aptGetVersionPinned
         , aptGetCleanup
+        , apkAddVersionPinned
         , useAdd
         , pipVersionPinned
         , invalidPort
@@ -237,6 +238,27 @@ noApkUpgrade = instructionRule code severity message check
           message = "Do not use apk upgrade"
           check (Run args) = not $ isInfixOf ["apk", "upgrade"] args
           check _ = True
+
+isApkAdd :: [String] -> Bool
+isApkAdd cmd = ["apk"] `isInfixOf` cmd && ["add"] `isInfixOf` cmd
+
+apkAddVersionPinned = instructionRule code severity message check
+    where code = "DL3018"
+          severity = WarningC
+          message = "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
+          check (Run args) = and [versionFixed p | p <- apkAddPackages args]
+          check _ = True
+          versionFixed package = "=" `isInfixOf` package
+
+apkAddPackages :: [String] -> [String]
+apkAddPackages args =
+    concat
+        [ filter noOption (dropOptionsWithArg ["-t", "--virtual"] cmd)
+        | cmd <- bashCommands args
+        , isApkAdd cmd
+        ]
+    where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
+          options = ["apk", "add", "-q", "-p", "-v", "-f", "-t"]
 
 useAdd = instructionRule code severity message check
     where code = "DL3010"
