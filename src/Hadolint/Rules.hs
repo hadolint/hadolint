@@ -224,6 +224,12 @@ aptGetCleanup = instructionRule code severity message check
           hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
           hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
 
+dropOptionsWithArg :: [String] -> [String] -> [String]
+dropOptionsWithArg os [] = []
+dropOptionsWithArg os (x:xs)
+    | x `elem` os = dropOptionsWithArg os (drop 1 xs)
+    | otherwise  = x : dropOptionsWithArg os xs
+
 useAdd = instructionRule code severity message check
     where code = "DL3010"
           severity = InfoC
