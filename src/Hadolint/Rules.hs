@@ -72,6 +72,7 @@ rules = [ absoluteWorkdir
         , apkAddNoCache
         , useAdd
         , pipVersionPinned
+        , npmVersionPinned
         , invalidPort
         , aptGetNoRecommends
         , aptGetYes
