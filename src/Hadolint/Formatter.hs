@@ -3,7 +3,7 @@ module Hadolint.Formatter (formatCheck, formatError) where
 import Data.Char (isSpace)
 import Control.Monad
 import Hadolint.Rules
-import Hadolint.Syntax
+import Language.Docker.Syntax
 import Text.Parsec.Error (Message, ParseError, messageString, errorPos, errorMessages, showErrorMessages)
 import Text.Parsec.Pos
 

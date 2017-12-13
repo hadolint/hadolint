@@ -17,15 +17,12 @@ library
   hs-source-dirs:      src
   exposed-modules:     Hadolint.Bash
                      , Hadolint.Formatter
-                     , Hadolint.Lexer
-                     , Hadolint.Normalize
-                     , Hadolint.Parser
                      , Hadolint.Rules
-                     , Hadolint.Syntax
   build-depends:       base >=4.8 && < 5
                      , parsec >=3.1
                      , bytestring >=0.10
                      , split >= 0.2
+                     , language-docker >= 1.0.0
                      , ShellCheck >= 0.4.6
   default-language:    Haskell2010
 
@@ -34,6 +31,7 @@ executable hadolint
   main-is:             Main.hs
   build-depends:       base >=4.8 && < 5
                      , hadolint
+                     , language-docker >= 1.0.0
                      , parsec >=3.1
                      , optparse-applicative <=0.14.0.0
                      , gitrev >= 1.3.1
@@ -50,6 +48,7 @@ test-suite hadolint-unit-tests
                      , parsec >=3.1
                      , bytestring >=0.10
                      , split >= 0.2
+                     , language-docker >= 1.0.0
                      , ShellCheck >= 0.4.6
                      , HUnit >= 1.2
                      , hspec
