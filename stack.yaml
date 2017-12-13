@@ -4,4 +4,4 @@ packages:
 - .
 extra-deps:
 - language-docker-1.0.0
-resolver: lts-9.14
+resolver: lts-9.18

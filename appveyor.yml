@@ -1,6 +1,10 @@
 build: off
 
 cache:
+  # Cache GHC
+  - 'C:\Users\appveyor\AppData\Local\Programs\stack'
+  # Cache cabal packages
+  - 'C:\Users\appveyor\AppData\Roaming\stack'
 
 before_build:
   - choco install haskell-stack
