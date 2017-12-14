@@ -213,7 +213,7 @@ aptGetVersionPinned = instructionRule code severity message check
 aptGetPackages :: [String] -> [String]
 aptGetPackages args = concat [filter noOption cmd | cmd <- bashCommands args, isAptGetInstall cmd]
     where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
-          options = [ "-f" , "install" , "apt-get" , "-d" , "-f" , "-m" , "-q" , "-y" ]
+          options = [ "apt-get" , "install" , "-d" , "-f" , "-m" , "-q" , "-y", "-qq" ]
 
 aptGetCleanup = instructionRule code severity message check
     where code = "DL3009"
@@ -348,7 +348,7 @@ aptGetYes = instructionRule code severity message check
           message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
           check (Run args) = not (isAptGetInstall args) || hasYesOption args
           check _ = True
-          hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd || startsWithYesFlag cmd
+          hasYesOption cmd = ["-y"] `isInfixOf` cmd || ["--yes"] `isInfixOf` cmd || ["-qq"] `isInfixOf` cmd || startsWithYesFlag cmd
           startsWithYesFlag cmd = True `elem` ["-y" `isInfixOf` arg | arg <- cmd]
 
 aptGetNoRecommends = instructionRule code severity message check
