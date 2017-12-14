@@ -116,6 +116,7 @@ main = hspec $ do
   describe "other rules" $ do
     it "apt-get auto yes" $ ruleCatches aptGetYes "RUN apt-get install python"
     it "apt-get yes shortflag" $ ruleCatchesNot aptGetYes "RUN apt-get install -yq python"
+    it "apt-get yes quiet level 2 implies -y" $ ruleCatchesNot aptGetYes "RUN apt-get install -qq python"
     it "apt-get yes different pos" $ ruleCatchesNot aptGetYes "RUN apt-get install -y python"
     it "apt-get with auto yes" $ ruleCatchesNot aptGetYes "RUN apt-get -y install python"
     it "apt-get with auto expanded yes" $ ruleCatchesNot aptGetYes "RUN apt-get --yes install python"
