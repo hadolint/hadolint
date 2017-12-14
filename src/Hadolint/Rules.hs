@@ -1,6 +1,6 @@
 module Hadolint.Rules where
 
-import Hadolint.Syntax
+import Language.Docker.Syntax
 import Hadolint.Bash
 import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.List (intercalate, isInfixOf, isSuffixOf, isPrefixOf)
@@ -236,7 +236,8 @@ exposeMissingArgs = instructionRule code severity message check
     where code = "DL3021"
           severity = ErrorC
           message = "EXPOSE requires at least one argument"
-          check (Expose ports) = length ports > 0
+          check (Expose (Ports ports)) = length ports > 0
+          check (Expose (PortStr "")) = False
           check _ = True
 
 copyMissingArgs = instructionRule code severity message check
@@ -250,7 +251,7 @@ invalidPort = instructionRule code severity message check
     where code = "DL3011"
           severity = ErrorC
           message = "Valid UNIX ports range from 0 to 65535"
-          check (Expose ports) = and [p <= 65535 | p <- ports]
+          check (Expose (Ports ports)) = and [p <= 65535 | p <- ports]
           check _ = True
 
 pipVersionPinned = instructionRule code severity message check

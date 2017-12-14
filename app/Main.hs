@@ -2,10 +2,10 @@
 
 module Main where
 
-import Hadolint.Parser
+import Language.Docker.Parser
+import Language.Docker.Syntax
 import Hadolint.Rules
 import Hadolint.Formatter
-import Hadolint.Syntax
 
 import System.Environment (getArgs)
 import System.Exit hiding (die)

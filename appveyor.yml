@@ -4,14 +4,17 @@ cache:
   # Cache GHC
   - 'C:\Users\appveyor\AppData\Local\Programs\stack'
   # Cache cabal packages
-  - 'C:\Users\appveyor\AppData\Roaming\stack'
+  - 'C:\stack'
+
+environment:
+  stack_root: 'C:\stack'
 
 before_build:
   - choco install haskell-stack
 
 build_script:
   # Suppress output from stack, as there is a lot and it's not necessary.
-  - stack --no-terminal --install-ghc test --only-dependencies > nul
+  - stack --no-terminal --install-ghc test --only-dependencies --keep-going > nul
   - stack --no-terminal --local-bin-path . install
 
 test_script:
