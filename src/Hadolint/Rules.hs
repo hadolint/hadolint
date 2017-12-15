@@ -42,7 +42,7 @@ mapInstructions metadata f = map applyRule
     where applyRule (InstructionPos i source linenumber) = Check metadata source linenumber (f i)
 
 instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
-instructionRule code severity message f = mapInstructions (Metadata code severity message) f
+instructionRule code severity message = mapInstructions $ Metadata code severity message
 
 dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
@@ -89,7 +89,7 @@ commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) = Metadata ("SC" ++ show code) severity message
 
 shellcheckBash :: Dockerfile -> [Check]
-shellcheckBash dockerfile = concatMap check dockerfile
+shellcheckBash = concatMap check
     where check (InstructionPos (Run args) source linenumber) = rmDup [Check m source linenumber False | m <- convert args]
           check _ = []
           convert args = [commentMetadata c | c <- shellcheck $ unwords args]
@@ -282,7 +282,7 @@ exposeMissingArgs = instructionRule code severity message check
     where code = "DL3021"
           severity = ErrorC
           message = "EXPOSE requires at least one argument"
-          check (Expose (Ports ports)) = length ports > 0
+          check (Expose (Ports ports)) = not (null ports)
           check (Expose (PortStr "")) = False
           check _ = True
 
@@ -290,7 +290,7 @@ copyMissingArgs = instructionRule code severity message check
     where code = "DL3022"
           severity = ErrorC
           message = "COPY requires source and target"
-          check (Copy src target) = length src > 0 && length target > 0
+          check (Copy src target) = not (null src) && not (null target)
           check _ = True
 
 invalidPort = instructionRule code severity message check
