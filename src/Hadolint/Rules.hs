@@ -152,7 +152,7 @@ invalidCmd = instructionRule code severity message check
 
 noRootUser = instructionRule code severity message check
     where code = "DL3002"
-          severity = ErrorC
+          severity = WarningC
           message = "Do not switch to root USER"
           check (User user) =
             not
