@@ -19,7 +19,7 @@ matrix:
     # variable, such as using --stack-yaml to point to a different file.
     - env: ARGS="--resolver lts"
 
-    - env: ARGS="--resolver lts-9.14"
+    - env: ARGS="--resolver lts-9.18"
       addons:
         artifacts: {paths: [./releases]}
       before_deploy:
@@ -47,7 +47,7 @@ matrix:
     - env: ARGS="--resolver lts"
       os: osx
 
-    - env: ARGS="--resolver lts-9.14"
+    - env: ARGS="--resolver lts-9.18"
       addons:
         artifacts: {paths: [./releases]}
       before_deploy:
