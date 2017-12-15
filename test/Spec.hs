@@ -35,7 +35,7 @@ main = hspec $ do
     it "install ssh" $ ruleCatchesNot invalidCmd "RUN apt-get install ssh"
 
   describe "apt-get rules" $ do
-    it "apt upgrade" $ ruleCatches noUpgrade "RUN apt-get update && apt-get upgrade"
+    it "apt upgrade" $ ruleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
     it "apt-get version pinning" $ ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
     it "apt-get no cleanup" $ ruleCatches aptGetCleanup "RUN apt-get update && apt-get install python"
     it "apt-get cleanup" $ ruleCatchesNot aptGetCleanup "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
@@ -56,6 +56,43 @@ main = hspec $ do
         in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
 
     it "has deprecated maintainer" $ ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
+
+  describe "apk add rules" $ do
+    it "apk upgrade" $ ruleCatches noApkUpgrade "RUN apk update && apk upgrade"
+    it "apk add version pinning single" $ ruleCatches apkAddVersionPinned "RUN apk add flex"
+    it "apk add no version pinning single" $ ruleCatchesNot apkAddVersionPinned "RUN apk add flex=2.6.4-r1"
+    it "apk add version pinned chained" $
+      let dockerfile = [ "RUN apk add --no-cache flex=2.6.4-r1 \\"
+                         , " && pip install -r requirements.txt"
+                       ]
+      in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
+    it "apk add version pinned regression" $
+        let dockerfile = [ "RUN apk add --no-cache \\"
+                         , "flex=2.6.4-r1 \\"
+                         , "libffi=3.2.1-r3 \\"
+                         , "python2=2.7.13-r1 \\"
+                         , "libbz2=1.0.6-r5"
+                         ]
+        in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
+    it "apk add version pinned regression - one missed" $
+        let dockerfile = [ "RUN apk add --no-cache \\"
+                         , "flex=2.6.4-r1 \\"
+                         , "libffi \\"
+                         , "python2=2.7.13-r1 \\"
+                         , "libbz2=1.0.6-r5"
+                         ]
+        in ruleCatches apkAddVersionPinned $ unlines dockerfile
+    it "apk add with --no-cache" $ ruleCatches apkAddNoCache "RUN apk add flex=2.6.4-r1"
+    it "apk add without --no-cache" $ ruleCatchesNot apkAddNoCache "RUN apk add --no-cache flex=2.6.4-r1"
+    it "apk add virtual package" $
+        let dockerfile = [ "RUN apk add \\"
+                         , "--virtual build-dependencies \\"
+                         , "python-dev=1.1.1 build-base=2.2.2 wget=3.3.3 \\"
+                         , "&& pip install -r requirements.txt \\"
+                         , "&& python setup.py install \\"
+                         , "&& apk del build-dependencies"
+                         ]
+        in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
 
   describe "EXPOSE rules" $ do
     it "has no arg" $ ruleCatches exposeMissingArgs "EXPOSE"

@@ -62,13 +62,17 @@ rules = [ absoluteWorkdir
         , noRootUser
         , noCd
         , noSudo
-        , noUpgrade
+        , noAptGetUpgrade
+        , noApkUpgrade
         , noLatestTag
         , noUntagged
         , aptGetVersionPinned
         , aptGetCleanup
+        , apkAddVersionPinned
+        , apkAddNoCache
         , useAdd
         , pipVersionPinned
+        , npmVersionPinned
         , invalidPort
         , aptGetNoRecommends
         , aptGetYes
@@ -176,7 +180,7 @@ noSudo = instructionRule code severity message check
           check (Run args) = not $ usingProgram "sudo" args
           check _ = True
 
-noUpgrade = instructionRule code severity message check
+noAptGetUpgrade = instructionRule code severity message check
     where code = "DL3005"
           severity = ErrorC
           message = "Do not use apt-get upgrade or dist-upgrade."
@@ -223,6 +227,48 @@ aptGetCleanup = instructionRule code severity message check
           check _ = True
           hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
           hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
+
+dropOptionsWithArg :: [String] -> [String] -> [String]
+dropOptionsWithArg os [] = []
+dropOptionsWithArg os (x:xs)
+    | x `elem` os = dropOptionsWithArg os (drop 1 xs)
+    | otherwise  = x : dropOptionsWithArg os xs
+
+noApkUpgrade = instructionRule code severity message check
+    where code = "DL3017"
+          severity = ErrorC
+          message = "Do not use apk upgrade"
+          check (Run args) = not $ isInfixOf ["apk", "upgrade"] args
+          check _ = True
+
+isApkAdd :: [String] -> Bool
+isApkAdd cmd = ["apk"] `isInfixOf` cmd && ["add"] `isInfixOf` cmd
+
+apkAddVersionPinned = instructionRule code severity message check
+    where code = "DL3018"
+          severity = WarningC
+          message = "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
+          check (Run args) = and [versionFixed p | p <- apkAddPackages args]
+          check _ = True
+          versionFixed package = "=" `isInfixOf` package
+
+apkAddPackages :: [String] -> [String]
+apkAddPackages args =
+    concat
+        [ filter noOption (dropOptionsWithArg ["-t", "--virtual"] cmd)
+        | cmd <- bashCommands args
+        , isApkAdd cmd
+        ]
+    where noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
+          options = ["apk", "add", "-q", "-p", "-v", "-f", "-t"]
+
+apkAddNoCache = instructionRule code severity message check
+    where code = "DL3019"
+          severity = InfoC
+          message = "Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages"
+          check (Run args) = not (isApkAdd args) || hasNoCacheOption args
+          check _ = True
+          hasNoCacheOption cmd = ["--no-cache"] `isInfixOf` cmd
 
 useAdd = instructionRule code severity message check
     where code = "DL3010"
