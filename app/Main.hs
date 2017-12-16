@@ -2,27 +2,29 @@
 
 module Main where
 
+import Hadolint.Formatter
+import Hadolint.Rules
 import Language.Docker.Parser
 import Language.Docker.Syntax
-import Hadolint.Rules
-import Hadolint.Formatter
 
+import Control.Applicative
+import Data.List (sort)
+import Data.Semigroup
+import qualified Data.Version as V (showVersion)
+import Development.GitRev (gitDescribe)
+import Options.Applicative hiding (ParseError)
+import Paths_hadolint (version) -- version from hadolint.cabal file
 import System.Environment (getArgs)
 import System.Exit hiding (die)
-import Data.List (sort)
 import Text.Parsec (ParseError)
-import Control.Applicative
-import Options.Applicative hiding (ParseError)
-import Data.Semigroup
-import Development.GitRev (gitDescribe)
-import Paths_hadolint (version) -- version from hadolint.cabal file
-import qualified Data.Version as V (showVersion)
 
 type IgnoreRule = String
-data LintOptions = LintOptions { showVersion :: Bool
-                               , ignoreRules :: [IgnoreRule]
-                               , dockerfiles :: [String]
-                               }
+
+data LintOptions = LintOptions
+    { showVersion :: Bool
+    , ignoreRules :: [IgnoreRule]
+    , dockerfiles :: [String]
+    }
 
 ignoreFilter :: [IgnoreRule] -> Check -> Bool
 ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
@@ -30,21 +32,24 @@ ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ign
 printChecks :: [Check] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
-    if null checks then exitSuccess else die
+    if null checks
+        then exitSuccess
+        else die
 
 parseOptions :: Parser LintOptions
-parseOptions = LintOptions
-    <$> switch (long "version" <> short 'v' <> help "Show version")
-    <*> many (strOption (long "ignore" <> help "Ignore rule" <> metavar "RULECODE"))
-    <*> many (argument str (metavar "DOCKERFILE..."))
+parseOptions =
+    LintOptions <$> switch (long "version" <> short 'v' <> help "Show version") <*>
+    many (strOption (long "ignore" <> help "Ignore rule" <> metavar "RULECODE")) <*>
+    many (argument str (metavar "DOCKERFILE..."))
 
 main :: IO ()
 main = execParser opts >>= lint
-    where
-        opts = info (helper <*> parseOptions)
-          ( fullDesc
-         <> progDesc "Lint Dockerfile for errors and best practices"
-         <> header "hadolint - Dockerfile Linter written in Haskell" )
+  where
+    opts =
+        info
+            (helper <*> parseOptions)
+            (fullDesc <> progDesc "Lint Dockerfile for errors and best practices" <>
+             header "hadolint - Dockerfile Linter written in Haskell")
 
 -- | Support UNIX convention of passing "-" instead of "/dev/stdin"
 parseFilename :: String -> String
@@ -60,8 +65,7 @@ getVersion :: String
 getVersion
     | $(gitDescribe) == "UNKNOWN" =
         "Haskell Dockerfile Linter " ++ V.showVersion version ++ "-no-git"
-    | otherwise =
-        "Haskell Dockerfile Linter " ++ $(gitDescribe)
+    | otherwise = "Haskell Dockerfile Linter " ++ $(gitDescribe)
 
 lint :: LintOptions -> IO ()
 lint (LintOptions True _ _) = putStrLn getVersion >> exitSuccess
@@ -69,14 +73,18 @@ lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitFailur
 lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
 checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
-checkAst checkFilter ast = case ast of
-    Left err         -> putStrLn (formatError err) >> exitFailure
-    Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
+checkAst checkFilter ast =
+    case ast of
+        Left err -> putStrLn (formatError err) >> exitFailure
+        Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
 
+analyzeAll :: Dockerfile -> [Check]
 analyzeAll = analyze rules
 
 -- Helper to analyze AST quickly in GHCI
+analyzeEither :: Either t Dockerfile -> [Check]
 analyzeEither (Left err) = []
-analyzeEither (Right dockerfile)  = analyzeAll dockerfile
+analyzeEither (Right dockerfile) = analyzeAll dockerfile
 
-die     = exitWith (ExitFailure 1)
+die :: IO a
+die = exitWith (ExitFailure 1)
