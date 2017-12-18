@@ -9,7 +9,8 @@ shellcheck bashScript = map comment $ crComments $ runIdentity $ checkScript si 
   where
     comment (PositionedComment _ _ c) = c
     si = mockedSystemInterface [("", "")]
-    spec = CheckSpec filename script exclusions (Just Bash)
+    spec = CheckSpec filename script sourced exclusions (Just Bash)
     script = "#!/bin/bash\n" ++ bashScript
     filename = "" -- filename can be ommited because we only want the parse results back
+    sourced = False
     exclusions = []
