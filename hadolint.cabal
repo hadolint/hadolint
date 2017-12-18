@@ -23,7 +23,7 @@ library
                      , bytestring >=0.10
                      , split >= 0.2
                      , language-docker >= 1.0.0
-                     , ShellCheck >= 0.4.6
+                     , ShellCheck >= 0.4.7
   default-language:    Haskell2010
 
 executable hadolint
@@ -49,7 +49,7 @@ test-suite hadolint-unit-tests
                      , bytestring >=0.10
                      , split >= 0.2
                      , language-docker >= 1.0.0
-                     , ShellCheck >= 0.4.6
+                     , ShellCheck >= 0.4.7
                      , HUnit >= 1.2
                      , hspec
                      , hadolint
