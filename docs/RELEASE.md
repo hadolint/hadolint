@@ -2,7 +2,7 @@
 
 Only `master` branch is used for releases.
 
-1.  Create branch to update release number in `hadolint.cabal` and
+1.  Create branch to update release number in `package.yaml` and
     [integration](docs/INTEGRATION.md) guide and merge it when it pass CI.
 
 1.  Write a **draft** of release where _tag version_ and _release title_ are

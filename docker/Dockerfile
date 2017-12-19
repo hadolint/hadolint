@@ -15,7 +15,7 @@ RUN apt-get update \
 RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
-COPY hadolint.cabal stack.yaml /opt/hadolint/ 
+COPY stack.yaml package.yaml /opt/hadolint/
 RUN stack --no-terminal --install-ghc test --only-dependencies
 
 COPY . /opt/hadolint
