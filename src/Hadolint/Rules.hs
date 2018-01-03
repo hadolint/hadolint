@@ -465,7 +465,7 @@ copyInsteadAdd = instructionRule code severity message check
     code = "DL3020"
     severity = ErrorC
     message = "Use COPY instead of ADD for files and folders"
-    check (Add (AddArgs srcs _ _)) = or [isArchive src || isUrl src | SourcePath src <- toList srcs]
+    check (Add (AddArgs srcs _ _)) = and [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
 
 useShell = instructionRule code severity message check
