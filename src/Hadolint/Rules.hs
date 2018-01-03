@@ -226,8 +226,7 @@ noLatestTag = instructionRule code severity message check
     message =
         "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
         \to a release tag."
-    check (From (TaggedImage _ tag _)) =
-        not (isPrefixOf "latest AS" tag || isPrefixOf "latest as" tag || tag == "latest")
+    check (From (TaggedImage _ tag _)) = tag /= "latest"
     check _ = True
 
 aptGetVersionPinned = instructionRule code severity message check
@@ -465,7 +464,8 @@ copyInsteadAdd = instructionRule code severity message check
     code = "DL3020"
     severity = ErrorC
     message = "Use COPY instead of ADD for files and folders"
-    check (Add (AddArgs srcs _ _)) = and [isArchive src || isUrl src | SourcePath src <- toList srcs]
+    check (Add (AddArgs srcs _ _)) =
+        and [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
 
 useShell = instructionRule code severity message check
