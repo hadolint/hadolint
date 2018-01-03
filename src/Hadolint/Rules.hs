@@ -1,6 +1,7 @@
 module Hadolint.Rules where
 
 import Data.List (intercalate, isInfixOf, isPrefixOf, isSuffixOf)
+import Data.List.NonEmpty (toList)
 import Data.List.Split (splitOn, splitOneOf)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Hadolint.Bash
@@ -19,14 +20,14 @@ data Metadata = Metadata
 -- position only records the linenumber at the moment to keep it easy
 -- and simple to develop new rules
 -- line numbers in the negative range are meant for the global context
-data Check = Check
+data RuleCheck = RuleCheck
     { metadata :: Metadata
     , filename :: Filename
     , linenumber :: Linenumber
     , success :: Bool
     } deriving (Eq)
 
-instance Ord Check where
+instance Ord RuleCheck where
     a `compare` b = linenumber a `compare` linenumber b
 
 link :: Metadata -> String
@@ -36,14 +37,14 @@ link (Metadata code _ _)
     | otherwise = "https://github.com/hadolint/hadolint"
 
 -- a Rule takes a Dockerfile and returns the executed checks
-type Rule = Dockerfile -> [Check]
+type Rule = Dockerfile -> [RuleCheck]
 
 -- Apply a function on each instruction and create a check
 -- for the according line number
 mapInstructions :: Metadata -> (Instruction -> Bool) -> Rule
 mapInstructions metadata f = map applyRule
   where
-    applyRule (InstructionPos i source linenumber) = Check metadata source linenumber (f i)
+    applyRule (InstructionPos i source linenumber) = RuleCheck metadata source linenumber (f i)
 
 instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
 instructionRule code severity message = mapInstructions $ Metadata code severity message
@@ -51,15 +52,16 @@ instructionRule code severity message = mapInstructions $ Metadata code severity
 dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
   where
-    rule dockerfile = [Check metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
+    rule dockerfile =
+        [RuleCheck metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
     metadata = Metadata code severity message
     filename dockerfile = sourcename $ head dockerfile
 
 -- Enforce rules on a dockerfile and return failed checks
-analyze :: [Rule] -> Dockerfile -> [Check]
+analyze :: [Rule] -> Dockerfile -> [RuleCheck]
 analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
   where
-    failed (Check _ _ _ success) = not success
+    failed (RuleCheck _ _ _ success) = not success
 
 rules =
     [ absoluteWorkdir
@@ -88,22 +90,20 @@ rules =
     , multipleCmds
     , multipleEntrypoints
     , useShell
-    , exposeMissingArgs
-    , copyMissingArgs
     ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) =
     Metadata ("SC" ++ show code) severity message
 
-shellcheckBash :: Dockerfile -> [Check]
+shellcheckBash :: Dockerfile -> [RuleCheck]
 shellcheckBash = concatMap check
   where
     check (InstructionPos (Run args) source linenumber) =
-        rmDup [Check m source linenumber False | m <- convert args]
+        rmDup [RuleCheck m source linenumber False | m <- convert args]
     check _ = []
     convert args = [commentMetadata c | c <- shellcheck $ unwords args]
-    rmDup :: [Check] -> [Check]
+    rmDup :: [RuleCheck] -> [RuleCheck]
     rmDup [] = []
     rmDup (x:xs) = x : rmDup (filter (\y -> metadata x /= metadata y) xs)
 
@@ -215,8 +215,8 @@ noUntagged = instructionRule code severity message check
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly."
-    check (From (UntaggedImage image)) = image == "scratch"
-    check (From (TaggedImage _ _)) = True
+    check (From (UntaggedImage image _)) = image == "scratch"
+    check (From TaggedImage {}) = True
     check _ = True
 
 noLatestTag = instructionRule code severity message check
@@ -226,7 +226,7 @@ noLatestTag = instructionRule code severity message check
     message =
         "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
         \to a release tag."
-    check (From (TaggedImage _ tag)) =
+    check (From (TaggedImage _ tag _)) =
         not (isPrefixOf "latest AS" tag || isPrefixOf "latest as" tag || tag == "latest")
     check _ = True
 
@@ -311,33 +311,23 @@ useAdd = instructionRule code severity message check
     code = "DL3010"
     severity = InfoC
     message = "Use ADD for extracting archives into an image"
-    check (Copy src dst) = and [not (format `isSuffixOf` src) | format <- archive_formats]
+    check (Copy (CopyArgs srcs _ _ _)) =
+        and
+            [ not (format `isSuffixOf` src)
+            | SourcePath src <- toList srcs
+            , format <- archiveFormats
+            ]
     check _ = True
-    archive_formats = [".tar", ".gz", ".bz2", "xz"]
-
-exposeMissingArgs = instructionRule code severity message check
-  where
-    code = "DL3021"
-    severity = ErrorC
-    message = "EXPOSE requires at least one argument"
-    check (Expose (Ports ports)) = not (null ports)
-    check (Expose (PortStr "")) = False
-    check _ = True
-
-copyMissingArgs = instructionRule code severity message check
-  where
-    code = "DL3022"
-    severity = ErrorC
-    message = "COPY requires source and target"
-    check (Copy src target) = not (null src) && not (null target)
-    check _ = True
+    archiveFormats = [".tar", ".gz", ".bz2", "xz"]
 
 invalidPort = instructionRule code severity message check
   where
     code = "DL3011"
     severity = ErrorC
     message = "Valid UNIX ports range from 0 to 65535"
-    check (Expose (Ports ports)) = and [p <= 65535 | p <- ports]
+    check (Expose (Ports ports)) =
+        and [p <= 65535 | Port p _ <- ports] &&
+        and [l <= 65535 && m <= 65535 | PortRange l m <- ports]
     check _ = True
 
 pipVersionPinned = instructionRule code severity message check
@@ -475,7 +465,7 @@ copyInsteadAdd = instructionRule code severity message check
     code = "DL3020"
     severity = ErrorC
     message = "Use COPY instead of ADD for files and folders"
-    check (Add src _) = isArchive src || isUrl src
+    check (Add (AddArgs srcs _ _)) = or [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
 
 useShell = instructionRule code severity message check

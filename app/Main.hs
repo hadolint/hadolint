@@ -26,10 +26,10 @@ data LintOptions = LintOptions
     , dockerfiles :: [String]
     }
 
-ignoreFilter :: [IgnoreRule] -> Check -> Bool
-ignoreFilter ignoredRules (Check (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
+ignoreFilter :: [IgnoreRule] -> RuleCheck -> Bool
+ignoreFilter ignoredRules (RuleCheck (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
 
-printChecks :: [Check] -> IO ()
+printChecks :: [RuleCheck] -> IO ()
 printChecks checks = do
     mapM_ (putStrLn . formatCheck) $ sort checks
     if null checks
@@ -72,17 +72,17 @@ lint (LintOptions True _ _) = putStrLn getVersion >> exitSuccess
 lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitFailure
 lint (LintOptions _ ignored dfiles) = mapM_ (lintDockerfile ignored) dfiles
 
-checkAst :: (Check -> Bool) -> Either ParseError Dockerfile -> IO ()
+checkAst :: (RuleCheck -> Bool) -> Either ParseError Dockerfile -> IO ()
 checkAst checkFilter ast =
     case ast of
         Left err -> putStrLn (formatError err) >> exitFailure
         Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
 
-analyzeAll :: Dockerfile -> [Check]
+analyzeAll :: Dockerfile -> [RuleCheck]
 analyzeAll = analyze rules
 
 -- Helper to analyze AST quickly in GHCI
-analyzeEither :: Either t Dockerfile -> [Check]
+analyzeEither :: Either t Dockerfile -> [RuleCheck]
 analyzeEither (Left err) = []
 analyzeEither (Right dockerfile) = analyzeAll dockerfile
 
