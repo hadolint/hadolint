@@ -123,8 +123,8 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC1097](https://github.com/koalaman/shellcheck/wiki/SC1097) | Unexpected `==`. For assignment, use `=`. For comparison, use `[/[[`.                                                                               |
 | [SC1098](https://github.com/koalaman/shellcheck/wiki/SC1098) | Quote/escape special characters when using `eval`, e.g. `eval "a=(b)"`.                                                                             |
 | [SC1099](https://github.com/koalaman/shellcheck/wiki/SC1099) | You need a space before the `#`.                                                                                                                    |
-| [SC2002](https://github.com/koalaman/shellcheck/wiki/SC2002) | Useless cat. Consider `cmd < file | ..` or `cmd file | ..` instead.                                                                                 |
-| [SC2015](https://github.com/koalaman/shellcheck/wiki/SC2015) | Note that `A && B || C` is not if-then-else. C may run when A is true.                                                                              |
+| [SC2002](https://github.com/koalaman/shellcheck/wiki/SC2002) | Useless cat. Consider <code>cmd < file &#124; ..</code> or <code>cmd file &#124; ..</code> instead.                                                 |
+| [SC2015](https://github.com/koalaman/shellcheck/wiki/SC2015) | Note that <code>A && B &#124;&#124; C</code> is not if-then-else. C may run when A is true.                                                         |
 | [SC2026](https://github.com/koalaman/shellcheck/wiki/SC2026) | This word is outside of quotes. Did you intend to 'nest '"'single quotes'"' instead'?                                                               |
 | [SC2028](https://github.com/koalaman/shellcheck/wiki/SC2028) | `echo` won't expand escape sequences. Consider `printf`.                                                                                            |
 | [SC2035](https://github.com/koalaman/shellcheck/wiki/SC2035) | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.                                                                            |
@@ -132,7 +132,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC2086](https://github.com/koalaman/shellcheck/wiki/SC2086) | Double quote to prevent globbing and word splitting.                                                                                                |
 | [SC2140](https://github.com/koalaman/shellcheck/wiki/SC2140) | Word is in the form `"A"B"C"` (B indicated). Did you mean `"ABC"` or `"A\"B\"C"`?                                                                   |
 | [SC2154](https://github.com/koalaman/shellcheck/wiki/SC2154) | var is referenced but not assigned.                                                                                                                 |
-| [SC2164](https://github.com/koalaman/shellcheck/wiki/SC2164) | Use `cd ... || exit` in case `cd` fails.                                                                                                            |
+| [SC2164](https://github.com/koalaman/shellcheck/wiki/SC2164) | Use <code>cd ... &#124;&#124; exit</code> in case `cd` fails.                                                                                       |
 
 ## Develop
 
