@@ -32,8 +32,8 @@ formatError err = posPart ++ stripNewlines msgPart
                      then ' '
                      else c)
 
-formatCheck :: Check -> String
-formatCheck (Check metadata source linenumber _) =
+formatCheck :: RuleCheck -> String
+formatCheck (RuleCheck metadata source linenumber _) =
     formatPos source linenumber ++ code metadata ++ " " ++ message metadata
 
 formatPos :: Filename -> Linenumber -> String

@@ -2,5 +2,6 @@ flags: {}
 extra-package-dbs: []
 packages:
 - .
-extra-deps: []
+extra-deps:
+- language-docker-2.0.0
 resolver: lts-10.0

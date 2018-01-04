@@ -113,8 +113,6 @@ main =
                 in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
         --
         describe "EXPOSE rules" $ do
-            it "has no arg" $ ruleCatches exposeMissingArgs "EXPOSE"
-            it "has one arg" $ ruleCatchesNot exposeMissingArgs "EXPOSE 80"
             it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
             it "valid port" $ ruleCatchesNot invalidPort "EXPOSE 60000"
         --
@@ -214,9 +212,6 @@ main =
                 ruleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
         --
         describe "COPY rules" $ do
-            it "has source" $ ruleCatches copyMissingArgs "COPY packaged-app.tar"
-            it "has source and target" $
-                ruleCatchesNot copyMissingArgs "COPY packaged-app.tar /usr/src/app"
             it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
             it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
         --
@@ -270,7 +265,7 @@ main =
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"
-                    expectedMsg = "<string>:1:2 unexpected \"O\" expecting \"FROM\""
+                    expectedMsg = "<string>:1:2 unexpected \"O\" expecting FROM"
                 case ast of
                     Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
                     Right _ -> assertFailure "AST should fail parsing"

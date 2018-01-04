@@ -13,7 +13,7 @@ extra-source-files: README.md
 dependencies:
   - base >=4.8 && <5
   - parsec >=3.1
-  - language-docker >=1.0.0
+  - language-docker >=2.0.0
 library:
   source-dirs: src
   exposed-modules:
