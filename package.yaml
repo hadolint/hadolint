@@ -32,6 +32,9 @@ executables:
       - hadolint
       - optparse-applicative <=0.14.0.0
       - gitrev >=1.3.1
+      - filepath
+      - directory >= 1.3.0
+      - yaml
     when:
     # OS X does not support static build https://developer.apple.com/library/content/qa/qa1118
     - condition: '!(os(osx))'
