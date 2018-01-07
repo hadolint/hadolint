@@ -79,7 +79,7 @@ applyConfig o = do
         Just config -> parseAndApply config
   where
     findConfig = do
-        localConfigFile <- (</> "hadolint.yaml") <$> getCurrentDirectory
+        localConfigFile <- (</> ".hadolint.yaml") <$> getCurrentDirectory
         configFile <- getXdgDirectory XdgConfig "hadolint.yaml"
         listToMaybe <$> filterM doesFileExist [localConfigFile, configFile]
     parseAndApply config = do
@@ -98,7 +98,7 @@ applyConfig o = do
             _ ->
                 error $
                 "Error parsing your config file in  '" ++
-                config ++ "': " ++ (Yaml.prettyPrintParseException err)
+                config ++ "': " ++ Yaml.prettyPrintParseException err
 
 -- | Support UNIX convention of passing "-" instead of "/dev/stdin"
 parseFilename :: String -> String

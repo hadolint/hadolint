@@ -55,6 +55,30 @@ cd hadolint
 stack install
 ```
 
+## Configure
+
+hadolint supports specifying the ignored rules using a configuration file. The configuration
+file should be in `yaml` format. This is one valid configuration file as an example:
+
+```yaml
+ignored:
+  - DL3000
+  - SC1010
+```
+
+Configuration files can be used globally or per project. By default, hadolint will look for
+a configuration file in the current directory with the name `.hadolint.yaml`
+
+The global configuration file should be placed in the folder specified by `XDG_CONFIG_HOME`,
+with the name `hadolint.yaml`. In summary, the following locations are valid for the configuration
+file, in order or preference:
+
+- `$PWD/.hadolint.yaml`
+- `$XDG_CONFIG_HOME/hadolint.yaml`
+- `~/.config/hadolint.yaml`
+
+In windows, the `%LOCALAPPDATA%` environment variable is used instead of `XDG_CONFIG_HOME`
+
 ## Integrations
 
 To get most of `hadolint` it is useful to integrate it as a check to your CI
@@ -178,15 +202,11 @@ Run integration tests.
 ./integration_test.sh
 ```
 
-### Parsing
-
-The Dockerfile is parsed using [Parsec](https://wiki.haskell.org/Parsec) and is
-using the lexer `Lexer.hs` and parser `Parser.hs`.
-
 ### AST
 
 Dockerfile syntax is fully described in the [Dockerfile reference][]. Just take
-a look at `Syntax.hs` to see the AST definition.
+a look at [Syntax.hs](https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html)
+in the `language-docker` project to see the AST definition.
 
 ## Alternatives
 
