@@ -388,8 +388,8 @@ npmVersionPinned = instructionRule code severity message check
     packages :: [String] -> [String]
     packages args = concat [filter noOption cmd | cmd <- bashCommands args, isNpmInstall cmd]
       where
-        noOption arg = arg `notElem` options
-        options = ["npm", "install", "--global"]
+        noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
+        options = ["npm", "install", "-g", "-f"]
     isNpmInstall :: [String] -> Bool
     isNpmInstall cmd = ["npm", "install"] `isInfixOf` cmd
     versionFixed :: String -> Bool
