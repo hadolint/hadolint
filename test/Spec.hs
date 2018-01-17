@@ -160,6 +160,8 @@ main =
         --
         describe "npm pinning" $ do
             it "version pinned in package.json" $ ruleCatchesNot npmVersionPinned "RUN npm install"
+            it "version pinned in package.json with arguments" $
+                ruleCatchesNot npmVersionPinned "RUN npm install --progress=false"
             it "version pinned" $ ruleCatchesNot npmVersionPinned "RUN npm install express@4.1.1"
             it "version pinned with scope" $
                 ruleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0\""
@@ -167,6 +169,8 @@ main =
                 ruleCatchesNot npmVersionPinned "RUN npm install express@\"4.1.1\" sax@0.1.1"
             it "version pinned with --global" $
                 ruleCatchesNot npmVersionPinned "RUN npm install --global express@\"4.1.1\""
+            it "version pinned with -g" $
+                ruleCatchesNot npmVersionPinned "RUN npm install -g express@\"4.1.1\""
             it "commit pinned for git+ssh" $
                 ruleCatchesNot
                     npmVersionPinned
