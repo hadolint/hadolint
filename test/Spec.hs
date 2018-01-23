@@ -266,6 +266,11 @@ main =
             it "add for tgz" $ ruleCatchesNot copyInsteadAdd "ADD file.tgz /usr/src/app/"
             it "add for url" $ ruleCatchesNot copyInsteadAdd "ADD http://file.com /usr/src/app/"
         --
+        describe "copy last argument" $ do
+            it "no warn on 2 args" $ ruleCatchesNot copyEndingSlash "COPY foo bar"
+            it "warn on 3 args" $ ruleCatches copyEndingSlash "COPY foo bar baz"
+            it "no warn on 3 args" $ ruleCatchesNot copyEndingSlash "COPY foo bar baz/"
+        --
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"
