@@ -477,6 +477,7 @@ copyEndingSlash = instructionRule code severity message check
     check (Copy (CopyArgs sources t _ _))
         | length sources > 1 = endsWithSlash t
         | otherwise = True
+    check _ = True
     endsWithSlash (TargetPath t) = last t == '/' -- it is safe to use last, as the target is never empty
 
 useShell = instructionRule code severity message check
