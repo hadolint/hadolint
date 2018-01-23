@@ -346,25 +346,20 @@ pipVersionPinned = instructionRule code severity message check
     hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
     versionFixed :: String -> Bool
     versionFixed package = hasVersionSymbol package || isVersionedGit package
-    packages :: [String] -> [String]
-    packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]
-      where
-        noOption arg = arg `notElem` options
-        options =
-            [ "pip"
-            , "pip2"
-            , "pip3"
-            , "install"
-            , "--user"
-            , "--disable-pip-version-check"
-            , "--no-cache-dir"
-            ]
     isPipInstall :: [String] -> Bool
     isPipInstall cmd =
         ["pip", "install"] `isInfixOf` cmd ||
         ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
     isRecursiveInstall :: [String] -> Bool
     isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
+    -- | Returns all the packages after pip install
+    packages :: [String] -> [String]
+    packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]
+      where
+        noOption arg = arg `notElem` commandName && not (isFlag arg)
+        commandName = ["pip", "pip2", "pip3", "install"]
+        isFlag ('-':_) = True
+        isFlag _ = False
 
 {-|
   Rule for pinning NPM packages to version, tag, or commit
