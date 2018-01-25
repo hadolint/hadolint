@@ -68,6 +68,7 @@ rules =
     , shellcheckBash
     , invalidCmd
     , copyInsteadAdd
+    , copyEndingSlash
     , noRootUser
     , noCd
     , noSudo
@@ -467,6 +468,17 @@ copyInsteadAdd = instructionRule code severity message check
     check (Add (AddArgs srcs _ _)) =
         and [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
+
+copyEndingSlash = instructionRule code severity message check
+  where
+    code = "DL3021"
+    severity = ErrorC
+    message = "COPY with more than 2 arguments requires the last argument to end with /"
+    check (Copy (CopyArgs sources t _ _))
+        | length sources > 1 = endsWithSlash t
+        | otherwise = True
+    check _ = True
+    endsWithSlash (TargetPath t) = last t == '/' -- it is safe to use last, as the target is never empty
 
 useShell = instructionRule code severity message check
   where
