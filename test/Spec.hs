@@ -129,6 +129,8 @@ main =
                 ruleCatches pipVersionPinned "RUN pip install MySQL_python"
             it "pip version pinned" $
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
+            it "pip version pinned with flag" $
+                ruleCatchesNot pipVersionPinned "RUN pip install --ignore-installed MySQL_python==1.2.2"
             it "pip install git" $
                 ruleCatchesNot
                     pipVersionPinned
@@ -151,12 +153,6 @@ main =
                     "RUN pip install MySQL_python==1.2.2 --disable-pip-version-check"
             it "pip install no cache dir" $
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"
-            it "pip install extra argument with '--'" $
-                ruleCatches
-                    pipVersionPinned
-                    "RUN pip install MySQL_python==1.2.2 --user --extra-arg"
-            it "pip install extra argument with '-'" $
-                ruleCatches pipVersionPinned "RUN pip install MySQL_python==1.2.2 --user -X"
         --
         describe "npm pinning" $ do
             it "version pinned in package.json" $ ruleCatchesNot npmVersionPinned "RUN npm install"
