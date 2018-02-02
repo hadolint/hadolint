@@ -23,7 +23,27 @@ main =
                     "FROM debian@sha256:\
                     \7959ed6f7e35f8b1aaa06d1d8259d4ee25aa85a086d5c125480c333183f9deeb"
             it "explicit tagged with name" $
-                ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
+              ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
+            it "local aliases are OK to be untagged" $
+                let dockerfile =
+                        [ "FROM golang:1.9.3-alpine3.7 AS build"
+                        , "RUN foo"
+                        , "FROM build as unit-test"
+                        , "RUN bar"
+                        , "FROM alpine:3.7"
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot noUntagged $ unlines dockerfile
+            it "other untagged cases are not ok" $
+                let dockerfile =
+                        [ "FROM golang:1.9.3-alpine3.7 AS build"
+                        , "RUN foo"
+                        , "FROM node as unit-test"
+                        , "RUN bar"
+                        , "FROM alpine:3.7"
+                        , "RUN baz"
+                        ]
+                in ruleCatches noUntagged $ unlines dockerfile
         --
         describe "no root or sudo rules" $ do
             it "sudo" $ ruleCatches noSudo "RUN sudo apt-get update"
