@@ -211,14 +211,20 @@ noAptGetUpgrade = instructionRule code severity message check
     check (Run args) = not $ isInfixOf ["apt-get", "upgrade"] args
     check _ = True
 
-noUntagged = instructionRule code severity message check
+noUntagged dockerfile = instructionRule code severity message check dockerfile
   where
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly."
-    check (From (UntaggedImage image _)) = image == "scratch"
+    check (From (UntaggedImage image _)) = image == "scratch" || image `elem` aliasedImages
     check (From TaggedImage {}) = True
     check _ = True
+    aliasedImages =
+        unImageAlias <$>
+        [a | From (UntaggedImage _ (Just a)) <- instr] ++
+        [a | From (TaggedImage _ _ (Just a)) <- instr] ++
+        [a | From (DigestedImage _ _ (Just a)) <- instr]
+    instr = instruction <$> dockerfile
 
 noLatestTag = instructionRule code severity message check
   where
