@@ -287,6 +287,26 @@ main =
             it "warn on 3 args" $ ruleCatches copyEndingSlash "COPY foo bar baz"
             it "no warn on 3 args" $ ruleCatchesNot copyEndingSlash "COPY foo bar baz/"
         --
+        describe "copy from existing alias" $ do
+            it "warn on missing alias" $ ruleCatches copyFromExists "COPY --from=foo bar ."
+            it "warn on alias defined after" $
+                let dockerfile =
+                        [ "FROM scratch"
+                        , "COPY --from=build foo ."
+                        , "FROM node as build"
+                        , "RUN baz"
+                        ]
+                in ruleCatches copyFromExists $ unlines dockerfile
+            it "don't warn on correctly defined aliases" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node"
+                        , "COPY --from=build foo ."
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot copyFromExists $ unlines dockerfile
+        --
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"

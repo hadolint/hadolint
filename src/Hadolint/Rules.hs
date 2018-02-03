@@ -1,5 +1,6 @@
 module Hadolint.Rules where
 
+import Control.Arrow ((&&&))
 import Data.List (intercalate, isInfixOf, isPrefixOf, isSuffixOf)
 import Data.List.NonEmpty (toList)
 import Data.List.Split (splitOn, splitOneOf)
@@ -41,13 +42,18 @@ type Rule = Dockerfile -> [RuleCheck]
 
 -- Apply a function on each instruction and create a check
 -- for the according line number
-mapInstructions :: Metadata -> (Instruction -> Bool) -> Rule
+mapInstructions :: Metadata -> (Linenumber -> Instruction -> Bool) -> Rule
 mapInstructions metadata f = map applyRule
   where
-    applyRule (InstructionPos i source linenumber) = RuleCheck metadata source linenumber (f i)
+    applyRule (InstructionPos i source linenumber) =
+        RuleCheck metadata source linenumber (f linenumber i)
 
 instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
-instructionRule code severity message = mapInstructions $ Metadata code severity message
+instructionRule code severity message check =
+    instructionRuleLine code severity message (const check)
+
+instructionRuleLine :: String -> Severity -> String -> (Linenumber -> Instruction -> Bool) -> Rule
+instructionRuleLine code severity message = mapInstructions (Metadata code severity message)
 
 dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
@@ -69,6 +75,7 @@ rules =
     , invalidCmd
     , copyInsteadAdd
     , copyEndingSlash
+    , copyFromExists
     , noRootUser
     , noCd
     , noSudo
@@ -111,6 +118,14 @@ shellcheckBash = concatMap check
 -- Split different bash commands
 bashCommands :: [String] -> [[String]]
 bashCommands = splitOneOf [";", "|", "&&"]
+
+allAliasedImages :: Dockerfile -> [(Linenumber, ImageAlias)]
+allAliasedImages dockerfile =
+    [(l, a) | (l, From (UntaggedImage _ (Just a))) <- instr] ++
+    [(l, a) | (l, From (TaggedImage _ _ (Just a))) <- instr] ++
+    [(l, a) | (l, From (DigestedImage _ _ (Just a))) <- instr]
+  where
+    instr = fmap (lineNumber &&& instruction) dockerfile
 
 absoluteWorkdir = instructionRule code severity message check
   where
@@ -219,12 +234,7 @@ noUntagged dockerfile = instructionRule code severity message check dockerfile
     check (From (UntaggedImage image _)) = image == "scratch" || image `elem` aliasedImages
     check (From TaggedImage {}) = True
     check _ = True
-    aliasedImages =
-        unImageAlias <$>
-        [a | From (UntaggedImage _ (Just a)) <- instr] ++
-        [a | From (TaggedImage _ _ (Just a)) <- instr] ++
-        [a | From (DigestedImage _ _ (Just a)) <- instr]
-    instr = instruction <$> dockerfile
+    aliasedImages = fmap (unImageAlias . snd) (allAliasedImages dockerfile)
 
 noLatestTag = instructionRule code severity message check
   where
@@ -480,6 +490,15 @@ copyEndingSlash = instructionRule code severity message check
         | otherwise = True
     check _ = True
     endsWithSlash (TargetPath t) = last t == '/' -- it is safe to use last, as the target is never empty
+
+copyFromExists dockerfile = instructionRuleLine code severity message check dockerfile
+  where
+    code = "DL3022"
+    severity = WarningC
+    message = "COPY --from should reference a previously defined FROM alias"
+    check line (Copy (CopyArgs _ _ _ (CopySource s))) = s `elem` previouslyDefinedAliases line
+    check _ _ = True
+    previouslyDefinedAliases line = [i | (l, ImageAlias i) <- allAliasedImages dockerfile, l < line]
 
 useShell = instructionRule code severity message check
   where
