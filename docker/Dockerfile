@@ -3,12 +3,12 @@ FROM debian:stretch-slim AS builder
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
     build-essential=12.3 \
-    libffi-dev=3.2.1-6 \
-    libgmp-dev=2:6.1.2+dfsg-1 \
-    zlib1g-dev=1:1.2.8.dfsg-5 \
-    curl=7.52.1-5+deb9u3 \
+    libffi-dev=3.2.* \
+    libgmp-dev=2:6.1.* \
+    zlib1g-dev=1:1.2.* \
+    curl=7.52.* \
     ca-certificates=20161130+nmu1 \
-    git=1:2.11.0-3+deb9u2 \
+    git=1:2.11.* \
     netbase=5.4 \
  && rm -rf /var/lib/apt/lists/*
 
