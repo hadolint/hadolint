@@ -1,7 +1,8 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List (intercalate, isInfixOf, isPrefixOf, isSuffixOf)
+import Data.List
+       (intercalate, isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
 import Data.List.NonEmpty (toList)
 import Data.List.Split (splitOn, splitOneOf)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
@@ -42,18 +43,34 @@ type Rule = Dockerfile -> [RuleCheck]
 
 -- Apply a function on each instruction and create a check
 -- for the according line number
-mapInstructions :: Metadata -> (Linenumber -> Instruction -> Bool) -> Rule
-mapInstructions metadata f = map applyRule
+mapInstructions ::
+       Metadata -> (state -> Linenumber -> Instruction -> (state, Bool)) -> state -> Rule
+mapInstructions metadata f initialState dockerfile =
+    let (_, results) = mapAccumL applyRule initialState dockerfile
+    in results
   where
-    applyRule (InstructionPos i source linenumber) =
-        RuleCheck metadata source linenumber (f linenumber i)
+    applyRule state (InstructionPos i source linenumber) =
+        let (newState, res) = f state linenumber i
+        in (newState, RuleCheck metadata source linenumber res)
 
 instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
 instructionRule code severity message check =
     instructionRuleLine code severity message (const check)
 
 instructionRuleLine :: String -> Severity -> String -> (Linenumber -> Instruction -> Bool) -> Rule
-instructionRuleLine code severity message = mapInstructions (Metadata code severity message)
+instructionRuleLine code severity message check =
+    instructionRuleState code severity message checkAndDropState ()
+  where
+    checkAndDropState state line instr = (state, check line instr)
+
+instructionRuleState ::
+       String
+    -> Severity
+    -> String
+    -> (state -> Linenumber -> Instruction -> (state, Bool))
+    -> state
+    -> Rule
+instructionRuleState code severity message = mapInstructions (Metadata code severity message)
 
 dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
 dockerfileRule code severity message f = rule
@@ -76,6 +93,7 @@ rules =
     , copyInsteadAdd
     , copyEndingSlash
     , copyFromExists
+    , copyFromAnother
     , noRootUser
     , noCd
     , noSudo
@@ -126,6 +144,12 @@ allAliasedImages dockerfile =
     [(l, a) | (l, From (DigestedImage _ _ (Just a))) <- instr]
   where
     instr = fmap (lineNumber &&& instruction) dockerfile
+
+-- | Returns a list of all image aliases in FROM instructions that
+--  are defined before the given line number.
+previouslyDefinedAliases :: Linenumber -> Dockerfile -> [String]
+previouslyDefinedAliases line dockerfile =
+    [i | (l, ImageAlias i) <- allAliasedImages dockerfile, l < line]
 
 absoluteWorkdir = instructionRule code severity message check
   where
@@ -226,15 +250,14 @@ noAptGetUpgrade = instructionRule code severity message check
     check (Run args) = not $ isInfixOf ["apt-get", "upgrade"] args
     check _ = True
 
-noUntagged dockerfile = instructionRule code severity message check dockerfile
+noUntagged dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly."
-    check (From (UntaggedImage image _)) = image == "scratch" || image `elem` aliasedImages
-    check (From TaggedImage {}) = True
-    check _ = True
-    aliasedImages = fmap (unImageAlias . snd) (allAliasedImages dockerfile)
+    check line (From (UntaggedImage "scratch" _)) = True
+    check line (From (UntaggedImage i _)) = i `elem` previouslyDefinedAliases line dockerfile
+    check _ _ = True
 
 noLatestTag = instructionRule code severity message check
   where
@@ -496,9 +519,27 @@ copyFromExists dockerfile = instructionRuleLine code severity message check dock
     code = "DL3022"
     severity = WarningC
     message = "COPY --from should reference a previously defined FROM alias"
-    check line (Copy (CopyArgs _ _ _ (CopySource s))) = s `elem` previouslyDefinedAliases line
+    check l (Copy (CopyArgs _ _ _ (CopySource s))) = s `elem` previouslyDefinedAliases l dockerfile
     check _ _ = True
-    previouslyDefinedAliases line = [i | (l, ImageAlias i) <- allAliasedImages dockerfile, l < line]
+
+copyFromAnother = instructionRuleState code severity message check Nothing
+  where
+    code = "DL3023"
+    severity = ErrorC
+    message = "COPY --from should reference a previously defined FROM alias"
+    withState st res = (st, res)
+    -- | 'check' returns a tuple (state, check_result)
+    --   The state in this case is the FROM instruction where the current instruction we are
+    --   inspecting is nested in.
+    check _ _ f@(From _) = withState (Just f) True -- Remember the last FROM instruction found
+    check st@(Just state) _ (Copy (CopyArgs _ _ _ (CopySource s))) =
+        withState st $ -- Wrap the result in the case statement in a tuple (state, result)
+        case state of
+            From (UntaggedImage _ (Just (ImageAlias current))) -> current /= s -- Cannot copy --from itself!
+            From (TaggedImage _ _ (Just (ImageAlias current))) -> current /= s
+            From (DigestedImage _ _ (Just (ImageAlias current))) -> current /= s
+            _ -> True
+    check state _ _ = withState state True
 
 useShell = instructionRule code severity message check
   where

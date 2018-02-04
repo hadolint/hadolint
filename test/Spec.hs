@@ -307,6 +307,23 @@ main =
                         ]
                 in ruleCatchesNot copyFromExists $ unlines dockerfile
         --
+        describe "copy from own FROM" $ do
+            it "warn on copying from your the same FROM" $
+                let dockerfile =
+                        [ "FROM node as foo"
+                        , "COPY --from=foo bar ."
+                        ]
+                in ruleCatches copyFromAnother $ unlines dockerfile
+            it "don't warn on copying form other sources" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node as run"
+                        , "COPY --from=build foo ."
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot copyFromAnother $ unlines dockerfile
+        --
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"
