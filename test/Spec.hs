@@ -287,6 +287,61 @@ main =
             it "warn on 3 args" $ ruleCatches copyEndingSlash "COPY foo bar baz"
             it "no warn on 3 args" $ ruleCatchesNot copyEndingSlash "COPY foo bar baz/"
         --
+        describe "copy from existing alias" $ do
+            it "warn on missing alias" $ ruleCatches copyFromExists "COPY --from=foo bar ."
+            it "warn on alias defined after" $
+                let dockerfile =
+                        [ "FROM scratch"
+                        , "COPY --from=build foo ."
+                        , "FROM node as build"
+                        , "RUN baz"
+                        ]
+                in ruleCatches copyFromExists $ unlines dockerfile
+            it "don't warn on correctly defined aliases" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node"
+                        , "COPY --from=build foo ."
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot copyFromExists $ unlines dockerfile
+        --
+        describe "copy from own FROM" $ do
+            it "warn on copying from your the same FROM" $
+                let dockerfile =
+                        [ "FROM node as foo"
+                        , "COPY --from=foo bar ."
+                        ]
+                in ruleCatches copyFromAnother $ unlines dockerfile
+            it "don't warn on copying form other sources" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node as run"
+                        , "COPY --from=build foo ."
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot copyFromAnother $ unlines dockerfile
+        --
+        describe "Duplicate aliases" $ do
+            it "warn on duplicate aliases" $
+                let dockerfile =
+                        [ "FROM node as foo"
+                        , "RUN something"
+                        , "FROM scratch as foo"
+                        , "RUN something"
+                        ]
+                in ruleCatches fromAliasUnique $ unlines dockerfile
+            it "don't warn on unique aliases" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node as run"
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot fromAliasUnique $ unlines dockerfile
+        --
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"
