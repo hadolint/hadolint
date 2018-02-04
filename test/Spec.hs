@@ -324,6 +324,24 @@ main =
                         ]
                 in ruleCatchesNot copyFromAnother $ unlines dockerfile
         --
+        describe "Duplicate aliases" $ do
+            it "warn on duplicate aliases" $
+                let dockerfile =
+                        [ "FROM node as foo"
+                        , "RUN something"
+                        , "FROM scratch as foo"
+                        , "RUN something"
+                        ]
+                in ruleCatches fromAliasUnique $ unlines dockerfile
+            it "don't warn on unique aliases" $
+                let dockerfile =
+                        [ "FROM scratch as build"
+                        , "RUN foo"
+                        , "FROM node as run"
+                        , "RUN baz"
+                        ]
+                in ruleCatchesNot fromAliasUnique $ unlines dockerfile
+        --
         describe "format error" $
             it "display error after line pos" $ do
                 let ast = parseString "FOM debian:jessie"

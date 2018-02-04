@@ -94,6 +94,7 @@ rules =
     , copyEndingSlash
     , copyFromExists
     , copyFromAnother
+    , fromAliasUnique
     , noRootUser
     , noCd
     , noSudo
@@ -150,6 +151,17 @@ allAliasedImages dockerfile =
 previouslyDefinedAliases :: Linenumber -> Dockerfile -> [String]
 previouslyDefinedAliases line dockerfile =
     [i | (l, ImageAlias i) <- allAliasedImages dockerfile, l < line]
+
+-- | Returns the result of running the check function on the image alias
+--   name, if the passed instruction is a FROM instruction with a stage alias.
+--   Otherwise, returns True.
+aliasMustBe :: (String -> Bool) -> Instruction -> Bool
+aliasMustBe predicate fromInstr =
+    case fromInstr of
+        From (UntaggedImage _ (Just (ImageAlias alias))) -> predicate alias
+        From (TaggedImage _ _ (Just (ImageAlias alias))) -> predicate alias
+        From (DigestedImage _ _ (Just (ImageAlias alias))) -> predicate alias
+        _ -> True
 
 absoluteWorkdir = instructionRule code severity message check
   where
@@ -532,14 +544,17 @@ copyFromAnother = instructionRuleState code severity message check Nothing
     --   The state in this case is the FROM instruction where the current instruction we are
     --   inspecting is nested in.
     check _ _ f@(From _) = withState (Just f) True -- Remember the last FROM instruction found
-    check st@(Just state) _ (Copy (CopyArgs _ _ _ (CopySource s))) =
-        withState st $ -- Wrap the result in the case statement in a tuple (state, result)
-        case state of
-            From (UntaggedImage _ (Just (ImageAlias current))) -> current /= s -- Cannot copy --from itself!
-            From (TaggedImage _ _ (Just (ImageAlias current))) -> current /= s
-            From (DigestedImage _ _ (Just (ImageAlias current))) -> current /= s
-            _ -> True
+    check st@(Just fromInstr) _ (Copy (CopyArgs _ _ _ (CopySource stageName))) =
+        withState st (aliasMustBe (/= stageName) fromInstr) -- Cannot copy from itself!
     check state _ _ = withState state True
+
+fromAliasUnique dockerfile = instructionRuleLine code severity message check dockerfile
+  where
+    code = "DL3024"
+    severity = ErrorC
+    message = "FROM aliases (stage names) must be unique"
+    check line = aliasMustBe (not . alreadyTaken line)
+    alreadyTaken line alias = alias `elem` previouslyDefinedAliases line dockerfile
 
 useShell = instructionRule code severity message check
   where
