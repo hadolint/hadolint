@@ -15,7 +15,7 @@ import GHC.Generics
 import Hadolint.Formatter.Format (Result(..), formatErrorReason)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
-import Text.Parsec.Error (            errorPos)
+import Text.Parsec.Error (errorPos)
 import Text.Parsec.Pos
 
 data Issue = Issue
