@@ -8,7 +8,6 @@ module Hadolint.Formatter.Codeclimate
     ) where
 
 import Data.Aeson hiding (Result)
-import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import Data.DList (DList)
 import Data.Monoid ((<>))
@@ -16,8 +15,7 @@ import GHC.Generics
 import Hadolint.Formatter.Format (Result(..), formatErrorReason)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
-import Text.Parsec (ParseError)
-import Text.Parsec.Error (ParseError, errorPos)
+import Text.Parsec.Error (            errorPos)
 import Text.Parsec.Pos
 
 data Issue = Issue

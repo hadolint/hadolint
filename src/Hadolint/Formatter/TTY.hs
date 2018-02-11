@@ -6,8 +6,7 @@ module Hadolint.Formatter.TTY
 import Hadolint.Formatter.Format
 import Hadolint.Rules
 import Language.Docker.Syntax
-import Text.Parsec.Error
-       (ParseError, errorMessages, errorPos, showErrorMessages)
+import Text.Parsec.Error (ParseError, errorPos)
 import Text.Parsec.Pos
 
 formatErrors :: Functor t => t ParseError -> t String

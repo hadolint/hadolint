@@ -6,13 +6,10 @@ module Hadolint.Formatter.Checkstyle
     , formatResult
     ) where
 
-import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Builder as Builder
-import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
 import Data.DList (toList)
-import Data.Foldable (msum)
 import Data.List (groupBy)
 import Data.Monoid ((<>), mconcat)
 import Hadolint.Formatter.Format

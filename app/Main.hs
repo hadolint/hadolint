@@ -10,7 +10,6 @@ import Language.Docker.Syntax
 
 import Control.Applicative
 import Control.Monad (filterM)
-import Data.List (sort)
 import Data.Maybe (listToMaybe)
 import Data.Semigroup ((<>))
 import qualified Data.Version as V (showVersion)
@@ -22,7 +21,6 @@ import Paths_hadolint (version) -- version from hadolint.cabal file
 import System.Directory
        (XdgDirectory(..), doesFileExist, getCurrentDirectory,
         getXdgDirectory)
-import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)

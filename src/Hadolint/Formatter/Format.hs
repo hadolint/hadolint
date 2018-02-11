@@ -10,10 +10,9 @@ import Data.DList (DList, fromList, singleton)
 import Data.List (sort)
 import Data.Monoid
 import Hadolint.Rules
-import Language.Docker.Syntax
 import ShellCheck.Interface
 import Text.Parsec.Error
-       (ParseError, errorMessages, errorPos, showErrorMessages)
+       (ParseError, errorMessages, showErrorMessages)
 
 data Result = Result
     { errors :: DList ParseError

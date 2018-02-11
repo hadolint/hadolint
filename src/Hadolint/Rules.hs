@@ -1,11 +1,9 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List
-       (intercalate, isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
+import Data.List (isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
 import Data.List.NonEmpty (toList)
-import Data.List.Split (splitOn, splitOneOf)
-import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.List.Split (splitOneOf)
 import Hadolint.Bash
 import Language.Docker.Syntax
 

@@ -7,9 +7,7 @@ module Hadolint.Formatter.Json
     ) where
 
 import Data.Aeson hiding (Result)
-import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.DList (DList)
 import Data.Monoid ((<>))
 import Hadolint.Formatter.Format
        (Result(..), formatErrorReason, severityText)
