@@ -2,29 +2,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hadolint.Formatter.Json
-    ( formatChecks
-    , formatError
-    , printResults
+    ( printResult
+    , formatResult
     ) where
 
-import Data.Aeson
+import Data.Aeson hiding (Result)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Hadolint.Formatter.Format (formatErrorReason, severityText)
+import Data.Monoid ((<>))
+import Hadolint.Formatter.Format
+       (Result(..), formatErrorReason, severityText)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
 import Text.Parsec (ParseError)
 import Text.Parsec.Error (ParseError, errorPos)
 import Text.Parsec.Pos
 
-newtype JsonFormat =
-    JsonFormat RuleCheck
-
-newtype JsonParseError =
-    JsonParseError ParseError
+data JsonFormat
+    = JsonCheck RuleCheck
+    | JsonParseError ParseError
 
 instance ToJSON JsonFormat where
-    toJSON (JsonFormat RuleCheck {..}) =
+    toJSON (JsonCheck RuleCheck {..}) =
         object
             [ "file" .= filename
             , "line" .= linenumber
@@ -33,8 +32,6 @@ instance ToJSON JsonFormat where
             , "code" .= code metadata
             , "message" .= message metadata
             ]
-
-instance ToJSON JsonParseError where
     toJSON (JsonParseError err) =
         object
             [ "file" .= sourceName pos
@@ -47,14 +44,12 @@ instance ToJSON JsonParseError where
       where
         pos = errorPos err
 
-formatError :: ParseError -> ByteString
-formatError err = encode (JsonParseError err)
-
-formatChecks :: [RuleCheck] -> ByteString
-formatChecks checks = encode (map JsonFormat checks)
-
-printResults :: Either ParseError [RuleCheck] -> IO ()
-printResults = either printError printChecks
+formatResult :: Result -> Value
+formatResult (Result errors checks) = toJSON allMessages
   where
-    printError = B.putStrLn . formatError
-    printChecks = B.putStrLn . formatChecks
+    allMessages = errorMessages <> checkMessages
+    errorMessages = fmap JsonParseError errors
+    checkMessages = fmap JsonCheck checks
+
+printResult :: Result -> IO ()
+printResult result = B.putStrLn (encode (formatResult result))

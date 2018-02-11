@@ -1,7 +1,5 @@
 module Hadolint.Formatter.TTY
-    ( formatError
-    , formatChecks
-    , printResults
+    ( printResult
     ) where
 
 import Hadolint.Formatter.Format
@@ -11,14 +9,23 @@ import Text.Parsec.Error
        (ParseError, errorMessages, errorPos, showErrorMessages)
 import Text.Parsec.Pos
 
+formatErrors :: Functor t => t ParseError -> t String
+formatErrors = fmap formatError
+
 formatError :: ParseError -> String
-formatError err = posPart ++ formatErrorReason err
+formatError err = posPart ++ stripNewlines (formatErrorReason err)
   where
     pos = errorPos err
     posPart = sourceName pos ++ ":" ++ show (sourceLine pos) ++ ":" ++ show (sourceColumn pos)
+    stripNewlines =
+        map
+            (\c ->
+                 if c == '\n'
+                     then ' '
+                     else c)
 
-formatChecks :: [RuleCheck] -> [String]
-formatChecks = map formatCheck
+formatChecks :: Functor t => t RuleCheck -> t String
+formatChecks = fmap formatCheck
   where
     formatCheck (RuleCheck metadata source linenumber _) =
         formatPos source linenumber ++ code metadata ++ " " ++ message metadata
@@ -29,8 +36,8 @@ formatPos source linenumber =
         then source ++ ":" ++ show linenumber ++ " "
         else source ++ " "
 
-printResults :: Either ParseError [RuleCheck] -> IO ()
-printResults = either printError printChecks
+printResult :: Result -> IO ()
+printResult (Result errors checks) = printErrors >> printChecks
   where
-    printError = putStrLn . formatError
-    printChecks checks = mapM_ putStrLn (formatChecks checks)
+    printErrors = mapM_ putStrLn (formatErrors errors)
+    printChecks = mapM_ putStrLn (formatChecks checks)

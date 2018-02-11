@@ -29,6 +29,7 @@ library:
     - aeson
     - text
     - bytestring
+    - dlist
 executables:
   hadolint:
     main: Main.hs
