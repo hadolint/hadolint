@@ -18,12 +18,6 @@ formatError err = posPart ++ stripNewlines (formatErrorReason err)
   where
     pos = errorPos err
     posPart = sourceName pos ++ ":" ++ show (sourceLine pos) ++ ":" ++ show (sourceColumn pos)
-    stripNewlines =
-        map
-            (\c ->
-                 if c == '\n'
-                     then ' '
-                     else c)
 
 formatChecks :: Functor t => t RuleCheck -> t String
 formatChecks = fmap formatCheck

@@ -27,6 +27,7 @@ import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
 
+import qualified Hadolint.Formatter.Checkstyle as Checkstyle
 import qualified Hadolint.Formatter.Codeclimate as Codeclimate
 import Hadolint.Formatter.Format (toResult)
 import qualified Hadolint.Formatter.Json as Json
@@ -38,6 +39,7 @@ data OutputFormat
     = Json
     | Plain
     | CodeclimateJson
+    | Checkstyle
     deriving (Show, Eq)
 
 data LintOptions = LintOptions
@@ -60,12 +62,14 @@ toOutputFormat :: String -> Maybe OutputFormat
 toOutputFormat "json" = Just Json
 toOutputFormat "text" = Just Plain
 toOutputFormat "codeclimate" = Just CodeclimateJson
+toOutputFormat "checkstyle" = Just Checkstyle
 toOutputFormat _ = Nothing
 
 showFormat :: OutputFormat -> String
 showFormat Json = "json"
 showFormat Plain = "text"
 showFormat CodeclimateJson = "codeclimate"
+showFormat Checkstyle = "checkstyle"
 
 parseOptions :: Parser LintOptions
 parseOptions =
@@ -83,10 +87,10 @@ parseOptions =
             (maybeReader toOutputFormat)
             (long "format" <> -- options for the output format
              short 'f' <>
-             help "The output format for the results [text | json | codeclimate]" <>
+             help "The output format for the results [text | json | checkstyle | codeclimate]" <>
              value Plain <> -- The default value
              showDefaultWith showFormat <>
-             completeWith ["text", "json", "codeclimate"])
+             completeWith ["text", "json", "checkstyle", "codeclimate"])
     --
     -- | Parse a list of ignored rules
     ignoreList =
@@ -175,6 +179,7 @@ lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format} = do
         case format of
             Plain -> TTY.printResult res
             Json -> Json.printResult res
+            Checkstyle -> Checkstyle.printResult res
             CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
 
 analyzeAll :: Dockerfile -> [RuleCheck]

@@ -1,6 +1,7 @@
 module Hadolint.Formatter.Format
     ( formatErrorReason
     , severityText
+    , stripNewlines
     , Result(..)
     , toResult
     ) where
@@ -29,7 +30,6 @@ toResult res =
         Left err -> Result (singleton err) mempty
         Right c -> Result mempty (fromList (sort c))
 
-
 severityText :: Severity -> String
 severityText severity =
     case severity of
@@ -47,3 +47,11 @@ formatErrorReason err =
         "unexpected"
         "end of input"
         (errorMessages err)
+
+stripNewlines :: String -> String
+stripNewlines =
+    map
+        (\c ->
+             if c == '\n'
+                 then ' '
+                 else c)

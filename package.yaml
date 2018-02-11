@@ -23,6 +23,7 @@ library:
     - Hadolint.Formatter.Json
     - Hadolint.Formatter.TTY
     - Hadolint.Formatter.Codeclimate
+    - Hadolint.Formatter.Checkstyle
   dependencies:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
