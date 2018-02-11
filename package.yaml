@@ -22,6 +22,7 @@ library:
     - Hadolint.Formatter.Format
     - Hadolint.Formatter.Json
     - Hadolint.Formatter.TTY
+    - Hadolint.Formatter.Codeclimate
   dependencies:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
