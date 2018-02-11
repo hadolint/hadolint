@@ -3,7 +3,6 @@
 
 module Main where
 
-import Hadolint.Formatter
 import Hadolint.Rules
 import Language.Docker.Parser
 import Language.Docker.Syntax
@@ -23,9 +22,12 @@ import System.Directory
        (XdgDirectory(..), doesFileExist, getCurrentDirectory,
         getXdgDirectory)
 import System.Environment (getArgs)
-import System.Exit hiding (die)
+import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
+
+import qualified Hadolint.Formatter.Json as Json
+import qualified Hadolint.Formatter.TTY as TTY
 
 type IgnoreRule = String
 
@@ -43,13 +45,6 @@ instance Yaml.FromJSON ConfigFile
 
 ignoreFilter :: [IgnoreRule] -> RuleCheck -> Bool
 ignoreFilter ignoredRules (RuleCheck (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
-
-printChecks :: [RuleCheck] -> IO ()
-printChecks checks = do
-    mapM_ (putStrLn . formatCheck) $ sort checks
-    if null checks
-        then exitSuccess
-        else die
 
 parseOptions :: Parser LintOptions
 parseOptions =
@@ -122,10 +117,12 @@ lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitFailur
 lint (LintOptions _ ignore dfiles) = mapM_ (lintDockerfile ignore) dfiles
 
 checkAst :: (RuleCheck -> Bool) -> Either ParseError Dockerfile -> IO ()
-checkAst checkFilter ast =
-    case ast of
-        Left err -> putStrLn (formatError err) >> exitFailure
-        Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
+checkAst checkFilter ast = printResults >> exitWithSignal
+  where
+    printResults = TTY.printResults processedFile
+    exitWithSignal = either (const exitFailure) (const exitSuccess) ast
+    processedFile = fmap processRules ast
+    processRules dockerfile = filter checkFilter (analyzeAll dockerfile)
 
 analyzeAll :: Dockerfile -> [RuleCheck]
 analyzeAll = analyze rules
@@ -134,6 +131,3 @@ analyzeAll = analyze rules
 analyzeEither :: Either t Dockerfile -> [RuleCheck]
 analyzeEither (Left err) = []
 analyzeEither (Right dockerfile) = analyzeAll dockerfile
-
-die :: IO a
-die = exitWith (ExitFailure 1)

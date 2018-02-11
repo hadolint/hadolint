@@ -18,12 +18,17 @@ library:
   source-dirs: src
   exposed-modules:
     - Hadolint.Bash
-    - Hadolint.Formatter
     - Hadolint.Rules
+    - Hadolint.Formatter.Format
+    - Hadolint.Formatter.Json
+    - Hadolint.Formatter.TTY
   dependencies:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
     - &ShellCheck ShellCheck >=0.4.7
+    - aeson
+    - text
+    - bytestring
 executables:
   hadolint:
     main: Main.hs
@@ -49,6 +54,7 @@ tests:
       - *bytestring
       - *split
       - *ShellCheck
+      - aeson
       - HUnit >=1.2
       - hspec
       - hadolint
