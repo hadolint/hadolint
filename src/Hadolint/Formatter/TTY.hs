@@ -1,5 +1,6 @@
 module Hadolint.Formatter.TTY
     ( printResult
+    , formatError
     ) where
 
 import Hadolint.Formatter.Format
