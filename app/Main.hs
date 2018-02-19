@@ -35,7 +35,7 @@ type IgnoreRule = String
 
 data OutputFormat
     = Json
-    | Plain
+    | TTY
     | CodeclimateJson
     | Checkstyle
     deriving (Show, Eq)
@@ -58,14 +58,14 @@ ignoreFilter ignoredRules (RuleCheck (Metadata code _ _) _ _ _) = code `notElem`
 
 toOutputFormat :: String -> Maybe OutputFormat
 toOutputFormat "json" = Just Json
-toOutputFormat "text" = Just Plain
+toOutputFormat "tty" = Just TTY
 toOutputFormat "codeclimate" = Just CodeclimateJson
 toOutputFormat "checkstyle" = Just Checkstyle
 toOutputFormat _ = Nothing
 
 showFormat :: OutputFormat -> String
 showFormat Json = "json"
-showFormat Plain = "text"
+showFormat TTY = "tty"
 showFormat CodeclimateJson = "codeclimate"
 showFormat Checkstyle = "checkstyle"
 
@@ -85,10 +85,10 @@ parseOptions =
             (maybeReader toOutputFormat)
             (long "format" <> -- options for the output format
              short 'f' <>
-             help "The output format for the results [text | json | checkstyle | codeclimate]" <>
-             value Plain <> -- The default value
+             help "The output format for the results [tty | json | checkstyle | codeclimate]" <>
+             value TTY <> -- The default value
              showDefaultWith showFormat <>
-             completeWith ["text", "json", "checkstyle", "codeclimate"])
+             completeWith ["tty", "json", "checkstyle", "codeclimate"])
     --
     -- | Parse a list of ignored rules
     ignoreList =
@@ -175,7 +175,7 @@ lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format} = do
                                -- the result of the previous dockerfile results
     printResult res =
         case format of
-            Plain -> TTY.printResult res
+            TTY -> TTY.printResult res
             Json -> Json.printResult res
             Checkstyle -> Checkstyle.printResult res
             CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
