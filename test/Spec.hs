@@ -1,7 +1,7 @@
 import Test.HUnit hiding (Label)
 import Test.Hspec
 
-import Hadolint.Formatter
+import Hadolint.Formatter.TTY (formatError)
 import Hadolint.Rules
 
 import Language.Docker.Parser

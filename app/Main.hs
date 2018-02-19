@@ -1,18 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Main where
 
-import Hadolint.Formatter
 import Hadolint.Rules
 import Language.Docker.Parser
 import Language.Docker.Syntax
 
 import Control.Applicative
 import Control.Monad (filterM)
-import Data.List (sort)
 import Data.Maybe (listToMaybe)
-import Data.Semigroup
+import Data.Semigroup ((<>))
 import qualified Data.Version as V (showVersion)
 import qualified Data.Yaml as Yaml
 import Development.GitRev (gitDescribe)
@@ -22,15 +21,28 @@ import Paths_hadolint (version) -- version from hadolint.cabal file
 import System.Directory
        (XdgDirectory(..), doesFileExist, getCurrentDirectory,
         getXdgDirectory)
-import System.Environment (getArgs)
-import System.Exit hiding (die)
+import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 import Text.Parsec (ParseError)
 
+import qualified Hadolint.Formatter.Checkstyle as Checkstyle
+import qualified Hadolint.Formatter.Codeclimate as Codeclimate
+import Hadolint.Formatter.Format (toResult)
+import qualified Hadolint.Formatter.Json as Json
+import qualified Hadolint.Formatter.TTY as TTY
+
 type IgnoreRule = String
+
+data OutputFormat
+    = Json
+    | TTY
+    | CodeclimateJson
+    | Checkstyle
+    deriving (Show, Eq)
 
 data LintOptions = LintOptions
     { showVersion :: Bool
+    , format :: OutputFormat
     , ignoreRules :: [IgnoreRule]
     , dockerfiles :: [String]
     } deriving (Show)
@@ -44,22 +56,49 @@ instance Yaml.FromJSON ConfigFile
 ignoreFilter :: [IgnoreRule] -> RuleCheck -> Bool
 ignoreFilter ignoredRules (RuleCheck (Metadata code _ _) _ _ _) = code `notElem` ignoredRules
 
-printChecks :: [RuleCheck] -> IO ()
-printChecks checks = do
-    mapM_ (putStrLn . formatCheck) $ sort checks
-    if null checks
-        then exitSuccess
-        else die
+toOutputFormat :: String -> Maybe OutputFormat
+toOutputFormat "json" = Just Json
+toOutputFormat "tty" = Just TTY
+toOutputFormat "codeclimate" = Just CodeclimateJson
+toOutputFormat "checkstyle" = Just Checkstyle
+toOutputFormat _ = Nothing
+
+showFormat :: OutputFormat -> String
+showFormat Json = "json"
+showFormat TTY = "tty"
+showFormat CodeclimateJson = "codeclimate"
+showFormat Checkstyle = "checkstyle"
 
 parseOptions :: Parser LintOptions
 parseOptions =
     LintOptions <$> -- CLI options parser definition
-    switch (long "version" <> short 'v' <> help "Show version") <*>
-    many
-        (strOption
-             (long "ignore" <> help "Ignore rule. If present, config file is ignored" <>
-              metavar "RULECODE")) <*>
-    many (argument str (metavar "DOCKERFILE..."))
+    version <*>
+    outputFormat <*>
+    ignoreList <*>
+    files
+  where
+    version = switch (long "version" <> short 'v' <> help "Show version")
+    --
+    -- | Parse the output format option
+    outputFormat =
+        option
+            (maybeReader toOutputFormat)
+            (long "format" <> -- options for the output format
+             short 'f' <>
+             help "The output format for the results [tty | json | checkstyle | codeclimate]" <>
+             value TTY <> -- The default value
+             showDefaultWith showFormat <>
+             completeWith ["tty", "json", "checkstyle", "codeclimate"])
+    --
+    -- | Parse a list of ignored rules
+    ignoreList =
+        many
+            (strOption
+                 (long "ignore" <> help "Ignore rule. If present, config file is ignored" <>
+                  metavar "RULECODE"))
+    --
+    -- | Parse a list of dockerfile names
+    files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
 
 main :: IO ()
 main = execParser opts >>= applyConfig >>= lint
@@ -71,7 +110,7 @@ main = execParser opts >>= applyConfig >>= lint
              header "hadolint - Dockerfile Linter written in Haskell")
 
 applyConfig :: LintOptions -> IO LintOptions
-applyConfig o@(LintOptions _ (_:_) _) = return o
+applyConfig o@LintOptions {ignoreRules = (_:_)} = return o
 applyConfig o = do
     theConfig <- findConfig
     case theConfig of
@@ -105,10 +144,14 @@ parseFilename :: String -> String
 parseFilename "-" = "/dev/stdin"
 parseFilename s = s
 
-lintDockerfile :: [IgnoreRule] -> String -> IO ()
+lintDockerfile :: [IgnoreRule] -> String -> IO (Either ParseError [RuleCheck])
 lintDockerfile ignoreRules dockerfile = do
     ast <- parseFile $ parseFilename dockerfile
-    checkAst (ignoreFilter ignoreRules) ast
+    return (processedFile ast)
+  where
+    processedFile = fmap processRules
+    processRules dockerfile = filter ignored (analyzeAll dockerfile)
+    ignored = ignoreFilter ignoreRules
 
 getVersion :: String
 getVersion
@@ -117,15 +160,25 @@ getVersion
     | otherwise = "Haskell Dockerfile Linter " ++ $(gitDescribe)
 
 lint :: LintOptions -> IO ()
-lint (LintOptions True _ _) = putStrLn getVersion >> exitSuccess
-lint (LintOptions _ _ []) = putStrLn "Please provide a Dockerfile" >> exitFailure
-lint (LintOptions _ ignore dfiles) = mapM_ (lintDockerfile ignore) dfiles
-
-checkAst :: (RuleCheck -> Bool) -> Either ParseError Dockerfile -> IO ()
-checkAst checkFilter ast =
-    case ast of
-        Left err -> putStrLn (formatError err) >> exitFailure
-        Right dockerfile -> printChecks $ filter checkFilter $ analyzeAll dockerfile
+lint LintOptions {showVersion = True} = putStrLn getVersion >> exitSuccess
+lint LintOptions {dockerfiles = []} = putStrLn "Please provide a Dockerfile" >> exitFailure
+lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format} = do
+    processedFiles <- mapM (lintDockerfile ignoreList) dFiles
+    let allResults = results processedFiles
+    printResult allResults
+    if allResults /= mempty
+        then exitFailure
+        else exitSuccess
+  where
+    results = foldMap toResult -- Parse and check rules for each dockerfile,
+                               -- then convert them to a Result and combine with
+                               -- the result of the previous dockerfile results
+    printResult res =
+        case format of
+            TTY -> TTY.printResult res
+            Json -> Json.printResult res
+            Checkstyle -> Checkstyle.printResult res
+            CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
 
 analyzeAll :: Dockerfile -> [RuleCheck]
 analyzeAll = analyze rules
@@ -134,6 +187,3 @@ analyzeAll = analyze rules
 analyzeEither :: Either t Dockerfile -> [RuleCheck]
 analyzeEither (Left err) = []
 analyzeEither (Right dockerfile) = analyzeAll dockerfile
-
-die :: IO a
-die = exitWith (ExitFailure 1)
