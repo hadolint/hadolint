@@ -99,7 +99,7 @@ common rules are listed, there are dozens more)
 Please [create an issue][] if you have an idea for a good rule.
 
 | Rule                                                         | Description                                                                                                                                         |
-|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+|:-------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|
 | [DL3000](https://github.com/hadolint/hadolint/wiki/DL3000)   | Use absolute WORKDIR.                                                                                                                               |
 | [DL3001](https://github.com/hadolint/hadolint/wiki/DL3001)   | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig. |
 | [DL3002](https://github.com/hadolint/hadolint/wiki/DL3002)   | Do not switch to root USER.                                                                                                                         |
@@ -121,7 +121,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3018](https://github.com/hadolint/hadolint/wiki/DL3018)   | Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`.                                                          |
 | [DL3019](https://github.com/hadolint/hadolint/wiki/DL3019)   | Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages.                        |
 | [DL3020](https://github.com/hadolint/hadolint/wiki/DL3020)   | Use `COPY` instead of `ADD` for files and folders.                                                                                                  |
-| [DL3021](https://github.com/hadolint/hadolint/wiki/DL3021)   | `COPY` with more than 2 arguments requires the last argument to end with `/`                                                                                                |
+| [DL3021](https://github.com/hadolint/hadolint/wiki/DL3021)   | `COPY` with more than 2 arguments requires the last argument to end with `/`                                                                        |
 | [DL3022](https://github.com/hadolint/hadolint/wiki/DL3022)   | `COPY --from` should reference a previously defined `FROM` alias                                                                                    |
 | [DL3023](https://github.com/hadolint/hadolint/wiki/DL3023)   | `COPY --from` cannot reference its own `FROM` alias                                                                                                 |
 | [DL3024](https://github.com/hadolint/hadolint/wiki/DL3024)   | `FROM` aliases (stage names) must be unique                                                                                                         |
@@ -209,8 +209,7 @@ Run integration tests.
 ### AST
 
 Dockerfile syntax is fully described in the [Dockerfile reference][]. Just take
-a look at [Syntax.hs](https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html)
-in the `language-docker` project to see the AST definition.
+a look at [Syntax.hs][] in the `language-docker` project to see the AST definition.
 
 ## Alternatives
 
@@ -223,7 +222,7 @@ in the `language-docker` project to see the AST definition.
 [appveyor-img]: https://ci.appveyor.com/api/projects/status//github/hadolint/hadolint?svg=true&branch=master
 [appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
-[license]: https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)
+[license]: https://tldrlegal.com/l/gpl-3.0
 [release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
 [release]: https://github.com/hadolint/hadolint/releases/latest
 [downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
@@ -235,3 +234,4 @@ in the `language-docker` project to see the AST definition.
 [integration]: docs/INTEGRATION.md
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
+[syntax.hs]: https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html
