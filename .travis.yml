@@ -89,6 +89,17 @@ matrix:
           $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
       after_success: true
 
+    - env: Version_Check_and_Linting
+      sudo: required
+      services:
+        - docker
+      before_install: true
+      install:
+        # Pull Markdown linting image
+        - docker pull zemanlx/remark-lint:0.1.0
+      script:
+        # Lint Markdown files
+        - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.0 --frail .
   allow_failures:
     - env: ARGS="--resolver nightly"
 
