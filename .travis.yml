@@ -102,6 +102,15 @@ matrix:
         - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.0 --frail .
         # Lint Haskell files
         - curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
+        # Hardcoded version check - a version in package.yaml has to higher(before release)
+        #   or same as git tag (after release).
+        - |
+          GIT_VERSION=$(git describe | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+          HARDCODED_VERSION=$(grep version package.yaml | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+          echo "${GIT_VERSION}\n${HARDCODED_VERSION}" | sort --check --version-sort \
+            || ( echo "Update version in package.yaml and then tag git commit." && false )
+      after_success: true
+
   allow_failures:
     - env: ARGS="--resolver nightly"
 
