@@ -100,6 +100,8 @@ matrix:
       script:
         # Lint Markdown files
         - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.0 --frail .
+        # Lint Haskell files
+        - curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
   allow_failures:
     - env: ARGS="--resolver nightly"
 
