@@ -1,0 +1,11 @@
+plugins:
+  preset-lint-consistent:
+  preset-lint-markdown-style-guide:
+  preset-lint-recommended:
+  validate-links:
+
+  # Customized settings
+  lint-list-item-indent: mixed
+  # Docker Hub is not able to unwrap lines
+  lint-maximum-line-length: false
+  lint-emphasis-marker: '_'

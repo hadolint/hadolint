@@ -1,0 +1,9 @@
+plugins:
+  preset-lint-consistent:
+  preset-lint-markdown-style-guide:
+  preset-lint-recommended:
+  validate-links:
+  # Customized settings
+  lint-list-item-indent: mixed
+  lint-maximum-line-length: 100
+  lint-emphasis-marker: '_'
