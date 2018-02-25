@@ -15,7 +15,7 @@ env:
   HADOLINT: "${HOME}/hadolint"
 install:
   # Download hadolint binary and set it as executable
-  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.2.4/hadolint-$(uname -s)-$(uname -m)"
+  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.5.0/hadolint-$(uname -s)-$(uname -m)"
     && chmod 700 ${HADOLINT}
 script:
   # List files which name starts with 'Dockerfile'
