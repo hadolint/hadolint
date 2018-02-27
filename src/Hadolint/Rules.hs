@@ -387,7 +387,8 @@ pipVersionPinned = instructionRule code severity message check
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
     check (Run args) =
-        not (isPipInstall args && not (isRecursiveInstall args)) || all versionFixed (packages args)
+        not (isPipInstall args) ||
+        (isRecursiveInstall args || isSetupPyInstall args || all versionFixed (packages args))
     check _ = True
     isVersionedGit :: String -> Bool
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
@@ -402,6 +403,8 @@ pipVersionPinned = instructionRule code severity message check
         ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
     isRecursiveInstall :: [String] -> Bool
     isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
+    isSetupPyInstall :: [String] -> Bool
+    isSetupPyInstall cmd = ["."] `isInfixOf` cmd
     -- | Returns all the packages after pip install
     packages :: [String] -> [String]
     packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]

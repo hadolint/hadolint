@@ -145,6 +145,8 @@ main =
                 ruleCatchesNot pipVersionPinned "RUN pip3 install MySQL_python==1.2.2"
             it "pip install requirements" $
                 ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
+            it "pip install use setup.py" $
+                ruleCatchesNot pipVersionPinned "RUN pip install ."
             it "pip version not pinned" $
                 ruleCatches pipVersionPinned "RUN pip install MySQL_python"
             it "pip version pinned" $
