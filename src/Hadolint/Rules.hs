@@ -187,7 +187,7 @@ multipleCmds = dockerfileRule code severity message check
     severity = WarningC
     message =
         "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last \
-        \`CMD` will take effect."
+        \`CMD` will take effect"
     check dockerfile = 1 >= length (filter (True ==) $ map isCmd dockerfile)
     isCmd (Cmd _) = True
     isCmd _ = False
@@ -198,7 +198,7 @@ multipleEntrypoints = dockerfileRule code severity message check
     severity = ErrorC
     message =
         "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then \
-        \only the last `ENTRYPOINT` will take effect."
+        \only the last `ENTRYPOINT` will take effect"
     check dockerfile = 1 >= length (filter (True ==) $ map isEntrypoint dockerfile)
     isEntrypoint (Entrypoint _) = True
     isEntrypoint _ = False
@@ -248,7 +248,7 @@ noSudo = instructionRule code severity message check
     severity = ErrorC
     message =
         "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce \
-        \root."
+        \root"
     check (Run args) = not $ usingProgram "sudo" args
     check _ = True
 
@@ -256,7 +256,7 @@ noAptGetUpgrade = instructionRule code severity message check
   where
     code = "DL3005"
     severity = ErrorC
-    message = "Do not use apt-get upgrade or dist-upgrade."
+    message = "Do not use apt-get upgrade or dist-upgrade"
     check (Run args) = not $ isInfixOf ["apt-get", "upgrade"] args
     check _ = True
 
@@ -264,7 +264,7 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
   where
     code = "DL3006"
     severity = WarningC
-    message = "Always tag the version of an image explicitly."
+    message = "Always tag the version of an image explicitly"
     check line (From (UntaggedImage "scratch" _)) = True
     check line (From (UntaggedImage i _)) = i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
@@ -275,7 +275,7 @@ noLatestTag = instructionRule code severity message check
     severity = WarningC
     message =
         "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
-        \to a release tag."
+        \to a release tag"
     check (From (TaggedImage _ tag _)) = tag /= "latest"
     check _ = True
 
