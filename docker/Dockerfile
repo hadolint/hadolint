@@ -29,6 +29,11 @@ RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_
   | tar -x --xz --strip-components 1 upx-3.94-amd64_linux/upx \
   && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
-FROM busybox:1.27.2-glibc AS distro
+FROM busybox:1.28.1-glibc AS distro-busybox
+COPY --from=builder /root/.local/bin/hadolint /bin/
+CMD ["/bin/hadolint", "-"]
+
+FROM debian:stretch-slim AS distro-debian
+ENV LC_ALL=C.UTF-8
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
