@@ -1,5 +1,7 @@
 FROM debian:stretch-slim AS builder
 
+ENV LC_ALL=C.UTF-8
+
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
     build-essential=12.3 \
