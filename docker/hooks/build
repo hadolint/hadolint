@@ -1,6 +1,13 @@
 #!/bin/bash
 
-echo "=> Building the container"
+echo "=> Building the busybox image"
 docker build \
   --tag $IMAGE_NAME \
+  --target distro-busybox \
+  --file Dockerfile ..
+
+echo "=> Building the debian image"
+docker build \
+  --tag $IMAGE_NAME-debian \
+  --target distro-debian \
   --file Dockerfile ..

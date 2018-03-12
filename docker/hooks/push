@@ -3,8 +3,11 @@
 echo "=> Fetch unshallow origin"
 git fetch --unshallow origin || true
 
-echo "=> Tag the image"
+echo "=> Tag the busybox image"
 docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
+
+echo "=> Tag the debian image"
+docker tag "${IMAGE_NAME}-debian" "${DOCKER_REPO}:$(git describe --long --always)-debian"
 
 echo "=> Push the image"
 docker push "${DOCKER_REPO}"
