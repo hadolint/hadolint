@@ -124,7 +124,7 @@ commentMetadata (ShellCheck.Interface.Comment severity code message) =
 shellcheckBash :: Dockerfile -> [RuleCheck]
 shellcheckBash = concatMap check
   where
-    check (InstructionPos (Run args) source linenumber) =
+    check (InstructionPos (Run (Arguments args)) source linenumber) =
         rmDup [RuleCheck m source linenumber False | m <- convert args]
     check _ = []
     convert args = [commentMetadata c | c <- shellcheck $ unwords args]
@@ -211,7 +211,7 @@ wgetOrCurl = dockerfileRule code severity message check
     check dockerfile = not $ anyCurl dockerfile && anyWget dockerfile
     anyCurl = any $ usingCmd "curl"
     anyWget = any $ usingCmd "wget"
-    usingCmd cmd (Run args) = cmd `elem` args
+    usingCmd cmd (Run (Arguments args)) = cmd `elem` args
     usingCmd _ _ = False
 
 invalidCmd = instructionRule code severity message check
@@ -221,7 +221,7 @@ invalidCmd = instructionRule code severity message check
     message =
         "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
         \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-    check (Run args) = head args `notElem` invalidCmds
+    check (Run (Arguments args)) = head args `notElem` invalidCmds
     check _ = True
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
@@ -239,7 +239,7 @@ noCd = instructionRule code severity message check
     code = "DL3003"
     severity = WarningC
     message = "Use WORKDIR to switch to a directory"
-    check (Run args) = not $ usingProgram "cd" args
+    check (Run (Arguments args)) = not $ usingProgram "cd" args
     check _ = True
 
 noSudo = instructionRule code severity message check
@@ -249,7 +249,7 @@ noSudo = instructionRule code severity message check
     message =
         "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce \
         \root"
-    check (Run args) = not $ usingProgram "sudo" args
+    check (Run (Arguments args)) = not $ usingProgram "sudo" args
     check _ = True
 
 noAptGetUpgrade = instructionRule code severity message check
@@ -257,7 +257,7 @@ noAptGetUpgrade = instructionRule code severity message check
     code = "DL3005"
     severity = ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
-    check (Run args) = not $ isInfixOf ["apt-get", "upgrade"] args
+    check (Run (Arguments args)) = not $ isInfixOf ["apt-get", "upgrade"] args
     check _ = True
 
 noUntagged dockerfile = instructionRuleLine code severity message check dockerfile
@@ -265,8 +265,8 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly"
-    check line (From (UntaggedImage "scratch" _)) = True
-    check line (From (UntaggedImage i _)) = i `elem` previouslyDefinedAliases line dockerfile
+    check line (From (UntaggedImage (Image _ "scratch") _)) = True
+    check line (From (UntaggedImage (Image _ i) _)) = i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
 noLatestTag = instructionRule code severity message check
@@ -286,7 +286,7 @@ aptGetVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
         \install <package>=<version>`"
-    check (Run args) = and [versionFixed p | p <- aptGetPackages args]
+    check (Run (Arguments args)) = and [versionFixed p | p <- aptGetPackages args]
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
@@ -301,7 +301,7 @@ aptGetCleanup = instructionRule code severity message check
     code = "DL3009"
     severity = InfoC
     message = "Delete the apt-get lists after installing something"
-    check (Run args) = not (hasUpdate args) || hasCleanup args
+    check (Run (Arguments args)) = not (hasUpdate args) || hasCleanup args
     check _ = True
     hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
     hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
@@ -317,7 +317,7 @@ noApkUpgrade = instructionRule code severity message check
     code = "DL3017"
     severity = ErrorC
     message = "Do not use apk upgrade"
-    check (Run args) = not $ isInfixOf ["apk", "upgrade"] args
+    check (Run (Arguments args)) = not $ isInfixOf ["apk", "upgrade"] args
     check _ = True
 
 isApkAdd :: [String] -> Bool
@@ -329,7 +329,7 @@ apkAddVersionPinned = instructionRule code severity message check
     severity = WarningC
     message =
         "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
-    check (Run args) = and [versionFixed p | p <- apkAddPackages args]
+    check (Run (Arguments args)) = and [versionFixed p | p <- apkAddPackages args]
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
@@ -351,7 +351,7 @@ apkAddNoCache = instructionRule code severity message check
     message =
         "Use the `--no-cache` switch to avoid the need to use `--update` and remove \
         \`/var/cache/apk/*` when done installing packages"
-    check (Run args) = not (isApkAdd args) || hasNoCacheOption args
+    check (Run (Arguments args)) = not (isApkAdd args) || hasNoCacheOption args
     check _ = True
     hasNoCacheOption cmd = ["--no-cache"] `isInfixOf` cmd
 
@@ -386,7 +386,7 @@ pipVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
-    check (Run args) =
+    check (Run (Arguments args)) =
         not (isPipInstall args) ||
         (isRecursiveInstall args || isSetupPyInstall args || all versionFixed (packages args))
     check _ = True
@@ -431,7 +431,7 @@ npmVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in npm. Instead of `npm install <package>` use `npm install \
         \<package>@<version>`"
-    check (Run args) = all versionFixed (packages args)
+    check (Run (Arguments args)) = all versionFixed (packages args)
     check _ = True
     packages :: [String] -> [String]
     packages args = concat [filter noOption cmd | cmd <- bashCommands args, isNpmInstall cmd]
@@ -465,7 +465,7 @@ aptGetYes = instructionRule code severity message check
     code = "DL3014"
     severity = WarningC
     message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-    check (Run args) = not (isAptGetInstall args) || hasYesOption args
+    check (Run (Arguments args)) = not (isAptGetInstall args) || hasYesOption args
     check _ = True
     hasYesOption cmd =
         ["-y"] `isInfixOf` cmd ||
@@ -477,7 +477,7 @@ aptGetNoRecommends = instructionRule code severity message check
     code = "DL3015"
     severity = InfoC
     message = "Avoid additional packages by specifying `--no-install-recommends`"
-    check (Run args) = not (isAptGetInstall args) || hasNoRecommendsOption args
+    check (Run (Arguments args)) = not (isAptGetInstall args) || hasNoRecommendsOption args
     check _ = True
     hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
@@ -562,6 +562,6 @@ useShell = instructionRule code severity message check
     code = "DL4005"
     severity = WarningC
     message = "Use SHELL to change the default shell"
-    check (Run args) = not $ any shellSymlink (bashCommands args)
+    check (Run (Arguments args)) = not $ any shellSymlink (bashCommands args)
     check _ = True
     shellSymlink args = usingProgram "ln" args && isInfixOf ["/bin/sh"] args

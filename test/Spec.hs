@@ -20,7 +20,7 @@ main =
             it "explicit tagged" $ ruleCatchesNot noLatestTag "FROM debian:jessie"
             it "explicit SHA" $
                 ruleCatchesNot noLatestTag
-                    "FROM debian@sha256:\
+                    "FROM hub.docker.io/debian@sha256:\
                     \7959ed6f7e35f8b1aaa06d1d8259d4ee25aa85a086d5c125480c333183f9deeb"
             it "explicit tagged with name" $
               ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
