@@ -3,5 +3,5 @@ extra-package-dbs: []
 packages:
 - .
 extra-deps:
-- language-docker-2.0.0
-resolver: lts-10.7
+- language-docker-3.0.1
+resolver: lts-10.9
