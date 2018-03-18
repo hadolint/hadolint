@@ -70,16 +70,26 @@ matrix:
         - docker
       before_install: true
       install:
-        # Build image
-        - travis_wait 30 docker build
+        # Build BusyBox image
+        - travis_wait 40 docker build
           --tag hadolint:$(git describe --tags --dirty)
+          --target distro-busybox
+          --file docker/Dockerfile .
+        # Build Debian image
+        - docker build
+          --tag hadolint:$(git describe --tags --dirty)-debian
+          --target distro-debian
           --file docker/Dockerfile .
       script:
         # List images
         - docker image ls
         # Lint its own Dockerfile
-        - docker run --rm -i hadolint:$(git describe --tags --dirty) <
-          docker/Dockerfile
+        - docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint
+           --ignore DL4003
+           - < docker/Dockerfile
+        - docker run --rm -i hadolint:$(git describe --tags --dirty)-debian hadolint
+          --ignore DL4003
+          - < docker/Dockerfile
         # Check that version in hadolint in the same as its `git describe`
         - grep $(git describe --dirty) <<<
           $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)

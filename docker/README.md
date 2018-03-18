@@ -4,13 +4,15 @@
 
 This is Docker image for the [hadolint](https://github.com/hadolint/hadolint).
 
-Images are based on [glibc-busybox](https://hub.docker.com/_/busybox/) and include only `hadolint` static binary.
+Images are based on [BusyBox with glibc](https://hub.docker.com/_/busybox/)  or [Debian](https://hub.docker.com/_/debian/) and include only `hadolint` static binary.
 
 ## Supported tags
 
 - `hadolint/hadolint:latest` tracks master branch
 - `hadolint/hadolint:VERSION` refers release version, eg. `v1.2.3`
 - `hadolint/hadolint:EXTENDED_VERSION` refers to the same version as `hadolint --version` with short git sha, eg. `v1.2.3-0-g7df5f1c`
+
+For each image, there is a Debian alternative with `-debian` suffix in a tag which can be useful in some corner cases, eg. UTF-8 characters in `Dockerfile`.
 
 Check out [Docker Hub](https://hub.docker.com/r/hadolint/hadolint/tags/) for available tags.
 
