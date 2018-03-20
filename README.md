@@ -79,6 +79,22 @@ file, in order or preference:
 
 In windows, the `%LOCALAPPDATA%` environment variable is used instead of `XDG_CONFIG_HOME`
 
+## Inline ignores
+
+It is also possible to ignore rules by using a special comment directly above the Dockerfile
+instruction you want to make an exception for. Ignore rule comments look like
+`# hadolint ignore=DL3001,SC1081`. For example:
+
+```dockerfile
+# hadolint ignore=DL3006
+FROM ubuntu
+
+# hadolint ignore=DL3003,SC1035
+RUN cd /tmp && echo "hello!"
+```
+
+Inline ignores will only work if place directly above the instruction.
+
 ## Integrations
 
 To get most of `hadolint` it is useful to integrate it as a check to your CI

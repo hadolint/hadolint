@@ -351,6 +351,49 @@ main =
                 case ast of
                     Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
                     Right _ -> assertFailure "AST should fail parsing"
+        --
+        describe "Rules can be ignored with inline comments" $ do
+            it "ignores single rule" $
+                let dockerfile =
+                        [ "FROM ubuntu"
+                        , "# hadolint ignore=DL3002"
+                        , "USER root"
+                        ]
+                in ruleCatchesNot noRootUser $ unlines dockerfile
+            it "ignores only the given rule" $
+                let dockerfile =
+                        [ "# hadolint ignore=DL3001"
+                        , "USER root"
+                        ]
+                in ruleCatches noRootUser $ unlines dockerfile
+            it "ignores only the given rule, when multiple passed" $
+                let dockerfile =
+                        [ "# hadolint ignore=DL3001,DL3002"
+                        , "USER root"
+                        ]
+                in ruleCatchesNot noRootUser $ unlines dockerfile
+            it "ignores the rule only if directly above the instruction" $
+                let dockerfile =
+                        [ "# hadolint ignore=DL3001,DL3002"
+                        , "FROM ubuntu"
+                        , "USER root"
+                        ]
+                in ruleCatches noRootUser $ unlines dockerfile
+            it "won't ignore the rule if passed invalid rule names" $
+                let dockerfile =
+                        [ "# hadolint ignore=crazy,DL3002"
+                        , "USER root"
+                        ]
+                in ruleCatches noRootUser $ unlines dockerfile
+            it "ignores multiple rules correctly, even with some extra whitespace" $
+                let dockerfile =
+                        [ "FROM node as foo"
+                        , "# hadolint ignore=DL3023, DL3021"
+                        , "COPY --from=foo bar baz ."
+                        ]
+                in do
+                  ruleCatchesNot copyFromAnother $ unlines dockerfile
+                  ruleCatchesNot copyEndingSlash $ unlines dockerfile
 
 assertChecks rule s f =
     case parseString (s ++ "\n") of
