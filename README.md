@@ -81,8 +81,9 @@ In windows, the `%LOCALAPPDATA%` environment variable is used instead of `XDG_CO
 
 ## Inline ignores
 
-It is also possible to ignore rules by using a special comment directly above the Dockerfile instruction you want
-to make an exception for. Ignore rule comments look like `# hadolint ignore=DL3001,SC1081`. For example:
+It is also possible to ignore rules by using a special comment directly above the Dockerfile
+instruction you want to make an exception for. Ignore rule comments look like
+`# hadolint ignore=DL3001,SC1081`. For example:
 
 ```dockerfile
 # hadolint ignore=DL3006
