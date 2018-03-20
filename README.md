@@ -93,7 +93,7 @@ FROM ubuntu
 RUN cd /tmp && echo "hello!"
 ```
 
-Inline ingnores will only work if place directly above the instruction.
+Inline ignores will only work if place directly above the instruction.
 
 ## Integrations
 
