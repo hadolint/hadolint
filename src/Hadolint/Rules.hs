@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
@@ -7,7 +9,10 @@ import Data.List.Split (splitOneOf)
 import Hadolint.Bash
 import Language.Docker.Syntax
 
-import ShellCheck.Interface
+import qualified ShellCheck.Interface
+import ShellCheck.Interface (Severity(..))
+import qualified Text.Parsec as Parsec
+import Text.Parsec ((<|>))
 
 data Metadata = Metadata
     { code :: String
@@ -70,7 +75,12 @@ instructionRuleState ::
     -> Rule
 instructionRuleState code severity message = mapInstructions (Metadata code severity message)
 
-dockerfileRule :: String -> Severity -> String -> ([Instruction] -> Bool) -> Rule
+dockerfileRule ::
+       String -- ^ The rule code name
+    -> ShellCheck.Interface.Severity -- ^ The rule severity
+    -> String -- ^ The error message associated with the rule
+    -> ([Instruction] -> Bool) -- ^ The function that will check the rule
+    -> Rule
 dockerfileRule code severity message f = rule
   where
     rule dockerfile =
@@ -82,7 +92,30 @@ dockerfileRule code severity message f = rule
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
 analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
   where
-    failed (RuleCheck _ _ _ success) = not success
+    failed RuleCheck {metadata = Metadata {code}, linenumber, success} =
+        not success && not (wasIgnored code linenumber)
+    wasIgnored c ln = not $ null [line | (line, codes) <- allIgnores, line == ln, c `elem` codes]
+    allIgnores = ignored dockerfile
+
+ignored :: Dockerfile -> [(Linenumber, [String])]
+ignored dockerfile =
+    [(l + 1, ignores) | (l, Just ignores) <- map (lineNumber &&& extractIgnored) dockerfile]
+  where
+    extractIgnored = ignoreFromInstruction . instruction
+    ignoreFromInstruction (Comment comment) = either (const Nothing) Just (parseComment comment)
+    ignoreFromInstruction _ = Nothing
+    -- | Parses the comment text and extracts the ignored rule names
+    parseComment :: String -> Either Parsec.ParseError [String]
+    parseComment = Parsec.parse commentParser ""
+    commentParser =
+        Parsec.skipMany space >> -- The parser for the ignored rules
+        Parsec.string "hadolint" >>
+        Parsec.skipMany1 space >>
+        Parsec.string "ignore=" >>
+        Parsec.skipMany space >>
+        Parsec.sepBy1 ruleName (Parsec.many space >> Parsec.char ',' >> Parsec.many space)
+    space = Parsec.char ' ' <|> Parsec.char '\t'
+    ruleName = Parsec.many1 (Parsec.choice $ map Parsec.char "DLSC0123456789")
 
 rules =
     [ absoluteWorkdir
@@ -266,7 +299,8 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
     severity = WarningC
     message = "Always tag the version of an image explicitly"
     check line (From (UntaggedImage (Image _ "scratch") _)) = True
-    check line (From (UntaggedImage (Image _ i) _)) = i `elem` previouslyDefinedAliases line dockerfile
+    check line (From (UntaggedImage (Image _ i) _)) =
+        i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
 noLatestTag = instructionRule code severity message check
