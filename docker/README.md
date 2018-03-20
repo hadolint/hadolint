@@ -4,7 +4,7 @@
 
 This is Docker image for the [hadolint](https://github.com/hadolint/hadolint).
 
-Images are based on [glibc-busybox](https://hub.docker.com/_/busybox/) and include only `hadolint` static binary.
+Images are based on [Debian](https://hub.docker.com/_/debian/) and include only `hadolint` static binary.
 
 ## Supported tags
 
