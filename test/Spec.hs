@@ -261,6 +261,18 @@ main =
                 ruleCatchesNot
                     aptGetVersionPinned
                     "RUN apt-get -y --no-install-recommends install nodejs=0.10"
+            it "apt-get tolerate target-release" $
+                let dockerfile =
+                        [ "RUN set -e &&\\"
+                        , " echo \"deb http://http.debian.net/debian jessie-backports main\" \
+                          \> /etc/apt/sources.list.d/jessie-backports.list &&\\"
+                        , " apt-get update &&\\"
+                        , " apt-get install -y --no-install-recommends -t jessie-backports \
+                          \openjdk-8-jdk=8u131-b11-1~bpo8+1 &&\\"
+                        , " rm -rf /var/lib/apt/lists/*"
+                        ]
+                in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
+
             it "has maintainer" $ ruleCatches hasNoMaintainer "FROM debian\nMAINTAINER Lukas"
             it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
             it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
