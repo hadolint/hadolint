@@ -325,7 +325,12 @@ aptGetVersionPinned = instructionRule code severity message check
     versionFixed package = "=" `isInfixOf` package
 
 aptGetPackages :: [String] -> [String]
-aptGetPackages args = concat [filter noOption cmd | cmd <- bashCommands args, isAptGetInstall cmd]
+aptGetPackages args =
+    concat
+        [ filter noOption (dropOptionsWithArg ["-t", "--target-release"] cmd)
+        | cmd <- bashCommands args
+        , isAptGetInstall cmd
+        ]
   where
     noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
     options = ["apt-get", "install", "-d", "-f", "-m", "-q", "-y", "-qq"]
