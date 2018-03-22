@@ -169,13 +169,19 @@ shellcheckBash = concatMap check
 bashCommands :: [String] -> [[String]]
 bashCommands = splitOneOf [";", "|", "&&"]
 
-allAliasedImages :: Dockerfile -> [(Linenumber, ImageAlias)]
-allAliasedImages dockerfile =
-    [(l, a) | (l, From (UntaggedImage _ (Just a))) <- instr] ++
-    [(l, a) | (l, From (TaggedImage _ _ (Just a))) <- instr] ++
-    [(l, a) | (l, From (DigestedImage _ _ (Just a))) <- instr]
+allFromImages :: Dockerfile -> [(Linenumber, BaseImage)]
+allFromImages dockerfile = [(l, f) | (l, From f) <- instr]
   where
     instr = fmap (lineNumber &&& instruction) dockerfile
+
+allAliasedImages :: Dockerfile -> [(Linenumber, ImageAlias)]
+allAliasedImages dockerfile =
+    [(l, alias) | (l, Just alias) <- map extractAlias (allFromImages dockerfile)]
+  where
+    extractAlias (l, f) = (l, fromAlias f)
+
+allImageNames :: Dockerfile -> [(Linenumber, String)]
+allImageNames dockerfile = [(l, fromName baseImage) | (l, baseImage) <- allFromImages dockerfile]
 
 -- | Returns a list of all image aliases in FROM instructions that
 --  are defined before the given line number.
@@ -193,6 +199,16 @@ aliasMustBe predicate fromInstr =
         From (TaggedImage _ _ (Just (ImageAlias alias))) -> predicate alias
         From (DigestedImage _ _ (Just (ImageAlias alias))) -> predicate alias
         _ -> True
+
+fromName :: BaseImage -> String
+fromName (UntaggedImage Image {imageName} _) = imageName
+fromName (TaggedImage Image {imageName} _ _) = imageName
+fromName (DigestedImage Image {imageName} _ _) = imageName
+
+fromAlias :: BaseImage -> Maybe ImageAlias
+fromAlias (UntaggedImage _ alias) = alias
+fromAlias (TaggedImage _ _ alias) = alias
+fromAlias (DigestedImage _ _ alias) = alias
 
 absoluteWorkdir = instructionRule code severity message check
   where
@@ -335,15 +351,33 @@ aptGetPackages args =
     noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
     options = ["apt-get", "install", "-d", "-f", "-m", "-q", "-y", "-qq"]
 
-aptGetCleanup = instructionRule code severity message check
+aptGetCleanup dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL3009"
     severity = InfoC
     message = "Delete the apt-get lists after installing something"
-    check (Run (Arguments args)) = not (hasUpdate args) || hasCleanup args
-    check _ = True
+    withState st res = (st, res)
+    -- | 'check' returns a tuple (state, check_result)
+    --   The state in this case is the FROM instruction where the current instruction we are
+    --   inspecting is nested in.
+    --   We only care for users to delete the lists folder if the FROM clase we're is is the last one
+    --   or if it is used as the base image for another FROM clause.
+    check _ line f@(From _) = withState (Just (line, f)) True -- Remember the last FROM instruction found
+    check st@(Just (line, From baseimage)) _ (Run (Arguments args))
+        | not (hasUpdate args) || not (imageIsUsed line baseimage) = withState st True
+        | otherwise = withState st (hasCleanup args)
+    check st _ _ = withState st True
     hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
     hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
+    imageIsUsed line baseimage = isLastImage line baseimage || imageIsUsedLater line baseimage
+    isLastImage line baseimage =
+        case reverse (allFromImages dockerfile) of
+            lst:_ -> (line, baseimage) == lst
+            _ -> True
+    imageIsUsedLater line baseimage =
+        case fromAlias baseimage of
+            Nothing -> True
+            Just (ImageAlias alias) -> alias `elem` [i | (l, i) <- allImageNames dockerfile, l > line]
 
 dropOptionsWithArg :: [String] -> [String] -> [String]
 dropOptionsWithArg os [] = []
