@@ -65,11 +65,58 @@ main =
             it "apt-get version pinning" $
                 ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
             it "apt-get no cleanup" $
-                ruleCatches aptGetCleanup "RUN apt-get update && apt-get install python"
+                let dockerfile =
+                        [ "FROM scratch"
+                        , "RUN apt-get update && apt-get install python"
+                        ]
+                in ruleCatches aptGetCleanup $ unlines dockerfile
+            it "apt-get cleanup in stage image" $
+                let dockerfile =
+                        [ "FROM ubuntu as foo"
+                        , "RUN apt-get update && apt-get install python"
+                        , "FROM scratch"
+                        , "RUN echo hey!"
+                        ]
+                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+            it "apt-get no cleanup in last stage" $
+                let dockerfile =
+                        [ "FROM ubuntu as foo"
+                        , "RUN hey!"
+                        , "FROM scratch"
+                        , "RUN apt-get update && apt-get install python"
+                        ]
+                in ruleCatches aptGetCleanup $ unlines dockerfile
+            it "apt-get no cleanup in intermediate stage" $
+                let dockerfile =
+                        [ "FROM ubuntu as foo"
+                        , "RUN apt-get update && apt-get install python"
+                        , "FROM foo"
+                        , "RUN hey!"
+                        ]
+                in ruleCatches aptGetCleanup $ unlines dockerfile
+            it "now warn apt-get cleanup in intermediate stage that cleans lists" $
+                let dockerfile =
+                        [ "FROM ubuntu as foo"
+                        , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
+                        , "FROM foo"
+                        , "RUN hey!"
+                        ]
+                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+            it "no warn apt-get cleanup in intermediate stage when stage not used later" $
+                let dockerfile =
+                        [ "FROM ubuntu as foo"
+                        , "RUN apt-get update && apt-get install python"
+                        , "FROM scratch"
+                        , "RUN hey!"
+                        ]
+                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
             it "apt-get cleanup" $
-                ruleCatchesNot
-                    aptGetCleanup
-                    "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
+                let dockerfile =
+                        [ "FROM scratch"
+                        , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
+                        ]
+                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+
             it "apt-get pinned chained" $
                 let dockerfile =
                         [ "RUN apt-get update \\"
