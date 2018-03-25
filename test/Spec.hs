@@ -200,6 +200,8 @@ main =
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
             it "pip version pinned with flag" $
                 ruleCatchesNot pipVersionPinned "RUN pip install --ignore-installed MySQL_python==1.2.2"
+            it "pip version pinned with python -m" $
+                ruleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
             it "pip install git" $
                 ruleCatchesNot
                     pipVersionPinned
