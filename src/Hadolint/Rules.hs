@@ -3,7 +3,8 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List (isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
+import Data.List
+       (dropWhile, isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
 import Data.List.NonEmpty (toList)
 import Data.List.Split (splitOneOf)
 import Hadolint.Bash
@@ -377,7 +378,8 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
     imageIsUsedLater line baseimage =
         case fromAlias baseimage of
             Nothing -> True
-            Just (ImageAlias alias) -> alias `elem` [i | (l, i) <- allImageNames dockerfile, l > line]
+            Just (ImageAlias alias) ->
+                alias `elem` [i | (l, i) <- allImageNames dockerfile, l > line]
 
 dropOptionsWithArg :: [String] -> [String] -> [String]
 dropOptionsWithArg os [] = []
@@ -459,33 +461,45 @@ pipVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
-    check (Run (Arguments args)) =
-        not (isPipInstall args) ||
-        (isRecursiveInstall args || isSetupPyInstall args || all versionFixed (packages args))
+    check (Run (Arguments args)) = not (isPipInstall args) || all versionFixed (packages args)
     check _ = True
-    isVersionedGit :: String -> Bool
-    isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
-    versionSymbols = ["==", ">=", "<=", ">", "<", "!="]
-    hasVersionSymbol :: String -> Bool
-    hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
-    versionFixed :: String -> Bool
-    versionFixed package = hasVersionSymbol package || isVersionedGit package
     isPipInstall :: [String] -> Bool
     isPipInstall cmd =
-        ["pip", "install"] `isInfixOf` cmd ||
-        ["pip3", "install"] `isInfixOf` cmd || ["pip2", "install"] `isInfixOf` cmd
-    isRecursiveInstall :: [String] -> Bool
-    isRecursiveInstall cmd = ["-r"] `isInfixOf` cmd
-    isSetupPyInstall :: [String] -> Bool
-    isSetupPyInstall cmd = ["."] `isInfixOf` cmd
-    -- | Returns all the packages after pip install
-    packages :: [String] -> [String]
-    packages args = concat [filter noOption cmd | cmd <- bashCommands args, isPipInstall cmd]
-      where
-        noOption arg = arg `notElem` commandName && not (isFlag arg)
-        commandName = ["pip", "pip2", "pip3", "install"]
-        isFlag ('-':_) = True
-        isFlag _ = False
+        case getInstallArgs cmd of
+            Nothing -> False
+            Just args -> not (["-r"] `isInfixOf` args || ["."] `isInfixOf` args)
+    packages cmd =
+        case getInstallArgs cmd of
+            Nothing -> []
+            Just args -> findPackages args
+    getInstallArgs = stripInstallPrefix isInstallCommand
+    isInstallCommand ('p':'i':'p':_) = True
+    isInstallCommand _ = False
+    versionFixed package = hasVersionSymbol package || isVersionedGit package
+    isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
+    versionSymbols = ["==", ">=", "<=", ">", "<", "!="]
+    hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
+
+-- | Returns all the packages after pip install
+findPackages :: [String] -> [String]
+findPackages = takeWhile (not . isEnd) . dropWhile isFlag
+  where
+    isEnd word = isFlag word || word `elem` ["&&", "||", ";", "|"]
+    isFlag ('-':_) = True
+    isFlag _ = False
+
+stripInstallPrefix :: (String -> Bool) -> [String] -> Maybe [String]
+stripInstallPrefix isCommand args =
+    if ["install"] `isPrefixOf` dropUntilInstall
+        then dropUntilInstall |> drop 1 |> Just
+        else Nothing
+  where
+    dropUntilInstall =
+        args |> -- using a pipiline for readability
+        dropWhile (not . isCommand) |>
+        drop 1 |>
+        dropWhile (/= "install")
+    a |> f = f a
 
 {-|
   Rule for pinning NPM packages to version, tag, or commit
@@ -506,24 +520,18 @@ npmVersionPinned = instructionRule code severity message check
         \<package>@<version>`"
     check (Run (Arguments args)) = all versionFixed (packages args)
     check _ = True
-    packages :: [String] -> [String]
-    packages args = concat [filter noOption cmd | cmd <- bashCommands args, isNpmInstall cmd]
-      where
-        noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
-        options = ["npm", "install", "-g", "-f"]
-    isNpmInstall :: [String] -> Bool
-    isNpmInstall cmd = ["npm", "install"] `isInfixOf` cmd
-    versionFixed :: String -> Bool
+    packages cmd =
+        case getInstallArgs cmd of
+            Nothing -> []
+            Just args -> findPackages args
+    getInstallArgs = stripInstallPrefix (== "npm")
     versionFixed package =
         if hasGitPrefix package
             then isVersionedGit package
             else hasVersionSymbol package
     gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]
-    hasGitPrefix :: String -> Bool
     hasGitPrefix package = or [p `isPrefixOf` package | p <- gitPrefixes]
-    isVersionedGit :: String -> Bool
     isVersionedGit package = "#" `isInfixOf` package
-    hasVersionSymbol :: String -> Bool
     hasVersionSymbol package = "@" `isInfixOf` dropScope package
       where
         dropScope package =
