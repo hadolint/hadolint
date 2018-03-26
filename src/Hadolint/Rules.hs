@@ -484,7 +484,7 @@ pipVersionPinned = instructionRule code severity message check
 findPackages :: [String] -> [String]
 findPackages = takeWhile (not . isEnd) . dropWhile isFlag
   where
-    isEnd word = isFlag word || word == "&&"
+    isEnd word = isFlag word || word `elem` ["&&", "||", ";"]
     isFlag ('-':_) = True
     isFlag _ = False
 
