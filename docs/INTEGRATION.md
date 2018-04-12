@@ -27,7 +27,7 @@ script:
 
 Add the following job to your projects `.gitlab-ci.yml`:
 
-```
+```yaml
 lint_dockerfile:
   stage: lint
   image: docker:latest
