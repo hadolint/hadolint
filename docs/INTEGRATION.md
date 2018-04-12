@@ -23,6 +23,20 @@ script:
   - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 ${HADOLINT}
 ```
 
+## Gitlab CI
+
+Add the following job to your projects `.gitlab-ci.yml`:
+
+```yaml
+lint_dockerfile:
+  stage: lint
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker run --rm -i hadolint/hadolint < Dockerfile
+```
+
 ## Editors
 
 Using hadolint in your terminal is not always the most convinient way, but it
