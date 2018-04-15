@@ -349,8 +349,8 @@ aptGetPackages args =
         , isAptGetInstall cmd
         ]
   where
-    noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
-    options = ["apt-get", "install", "-d", "-f", "-m", "-q", "-y", "-qq"]
+    noOption arg = arg `notElem` words && not ("-" `isPrefixOf` arg)
+    words = ["apt-get", "install"]
 
 aptGetCleanup dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
