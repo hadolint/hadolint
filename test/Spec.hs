@@ -120,7 +120,7 @@ main =
             it "apt-get pinned chained" $
                 let dockerfile =
                         [ "RUN apt-get update \\"
-                        , " && apt-get -y --no-install-recommends install nodejs=0.10 \\"
+                        , " && apt-get -yqq --no-install-recommends install nodejs=0.10 \\"
                         , " && rm -rf /var/lib/apt/lists/*"
                         ]
                 in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
