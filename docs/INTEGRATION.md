@@ -43,15 +43,6 @@ Using hadolint in your terminal is not always the most convinient way, but it
 can be integrated into your editor to give you a feedback as you write your
 Dockerfile.
 
-### VS Code
-
-> Visual Studio Code is a lightweight but powerful source code editor which 
-> runs on your desktop and is available for Windows, macOS and Linux. 
-
-There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
-
-![vscode-hadolint-gif][]
-
 ### Atom
 
 > Atom is a text editor that's modern, approachable, yet hackable to the core—a
@@ -92,3 +83,12 @@ Hadolint is used in two plugins:
 [vscode-hadolint-gif]: https://i.gyazo.com/a701460ccdda13a1a449b2c3e8da40bc.gif
 [vs code]: https://code.visualstudio.com/
 [exiasr]: https://github.com/ExiaSR
+
+### VS Code
+
+> Visual Studio Code is a lightweight but powerful source code editor which 
+> runs on your desktop and is available for Windows, macOS and Linux. 
+
+There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
+
+![vscode-hadolint-gif][]
