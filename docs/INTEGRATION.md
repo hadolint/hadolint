@@ -79,7 +79,6 @@ There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][
 
 ![vscode-hadolint-gif][]
 
-
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
 [linter-hadolint-img]: https://user-images.githubusercontent.com/18702153/33764234-7abc1f24-dc0b-11e7-96b6-4f08207b6950.png
 [lucasdf]: https://github.com/lucasdf
