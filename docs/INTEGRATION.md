@@ -90,5 +90,5 @@ Hadolint is used in two plugins:
 [ale]: https://github.com/w0rp/ale
 [vscode-hadolint]: https://marketplace.visualstudio.com/items?itemName=exiasr.hadolint
 [vscode-hadolint-gif]: https://i.gyazo.com/a701460ccdda13a1a449b2c3e8da40bc.gif
-[VS Code]: https://code.visualstudio.com/
-[ExiaSR]: https://github.com/ExiaSR
+[vs code]: https://code.visualstudio.com/
+[exiasr]: https://github.com/ExiaSR
