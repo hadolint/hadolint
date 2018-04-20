@@ -69,6 +69,16 @@ Hadolint is used in two plugins:
 
 -   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
     and Vim 8 while you edit your text files.
+    
+### VS Code
+
+> Visual Studio Code is a lightweight but powerful source code editor which 
+> runs on your desktop and is available for Windows, macOS and Linux. 
+
+There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
+
+![vscode-hadolint-gif][]
+
 
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
 [linter-hadolint-img]: https://user-images.githubusercontent.com/18702153/33764234-7abc1f24-dc0b-11e7-96b6-4f08207b6950.png
@@ -79,3 +89,7 @@ Hadolint is used in two plugins:
 [niksite]: https://github.com/niksite
 [syntastic]: https://github.com/vim-syntastic/syntastic
 [ale]: https://github.com/w0rp/ale
+[vscode-hadolint]: https://marketplace.visualstudio.com/items?itemName=exiasr.hadolint
+[vscode-hadolint-gif]: https://i.gyazo.com/a701460ccdda13a1a449b2c3e8da40bc.gif
+[vs code]: https://code.visualstudio.com/
+[exiasr]: https://github.com/ExiaSR
