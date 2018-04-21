@@ -92,7 +92,7 @@ dockerfileRule code severity message f = rule
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
-analyze rules dockerfile = filter failed $ concat [r dockerfile | r <- rules]
+analyze list dockerfile = filter failed $ concat [r dockerfile | r <- list]
   where
     failed RuleCheck {metadata = Metadata {code}, linenumber, success} =
         not success && not (wasIgnored code linenumber)
@@ -119,6 +119,7 @@ ignored dockerfile =
     space = Parsec.char ' ' <|> Parsec.char '\t'
     ruleName = Parsec.many1 (Parsec.choice $ map Parsec.char "DLSC0123456789")
 
+rules :: [Rule]
 rules =
     [ absoluteWorkdir
     , shellcheckBash
@@ -212,6 +213,7 @@ fromAlias (UntaggedImage _ alias) = alias
 fromAlias (TaggedImage _ _ alias) = alias
 fromAlias (DigestedImage _ _ alias) = alias
 
+absoluteWorkdir :: Rule
 absoluteWorkdir = instructionRule code severity message check
   where
     code = "DL3000"
@@ -222,6 +224,7 @@ absoluteWorkdir = instructionRule code severity message check
     check (Workdir _) = False
     check _ = True
 
+hasNoMaintainer :: Rule
 hasNoMaintainer = dockerfileRule code severity message check
   where
     code = "DL4000"
@@ -232,8 +235,10 @@ hasNoMaintainer = dockerfileRule code severity message check
     isMaintainer _ = False
 
 -- Check if a command contains a program call in the Run instruction
+usingProgram :: String -> [String] -> Bool
 usingProgram prog args = or [True | cmd:_ <- bashCommands args, cmd == prog]
 
+multipleCmds :: Rule
 multipleCmds = dockerfileRule code severity message check
   where
     code = "DL4003"
@@ -245,6 +250,7 @@ multipleCmds = dockerfileRule code severity message check
     isCmd (Cmd _) = True
     isCmd _ = False
 
+multipleEntrypoints :: Rule
 multipleEntrypoints = dockerfileRule code severity message check
   where
     code = "DL4004"
@@ -256,6 +262,7 @@ multipleEntrypoints = dockerfileRule code severity message check
     isEntrypoint (Entrypoint _) = True
     isEntrypoint _ = False
 
+wgetOrCurl :: Rule
 wgetOrCurl = dockerfileRule code severity message check
   where
     code = "DL4001"
@@ -267,6 +274,7 @@ wgetOrCurl = dockerfileRule code severity message check
     usingCmd cmd (Run (Arguments args)) = cmd `elem` args
     usingCmd _ _ = False
 
+invalidCmd :: Rule
 invalidCmd = instructionRule code severity message check
   where
     code = "DL3001"
@@ -278,6 +286,7 @@ invalidCmd = instructionRule code severity message check
     check _ = True
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
+noRootUser :: Rule
 noRootUser = instructionRule code severity message check
   where
     code = "DL3002"
@@ -287,6 +296,7 @@ noRootUser = instructionRule code severity message check
         not (isPrefixOf "root:" user || isPrefixOf "0:" user || user == "root" || user == "0")
     check _ = True
 
+noCd :: Rule
 noCd = instructionRule code severity message check
   where
     code = "DL3003"
@@ -295,6 +305,7 @@ noCd = instructionRule code severity message check
     check (Run (Arguments args)) = not $ usingProgram "cd" args
     check _ = True
 
+noSudo :: Rule
 noSudo = instructionRule code severity message check
   where
     code = "DL3004"
@@ -305,6 +316,7 @@ noSudo = instructionRule code severity message check
     check (Run (Arguments args)) = not $ usingProgram "sudo" args
     check _ = True
 
+noAptGetUpgrade :: Rule
 noAptGetUpgrade = instructionRule code severity message check
   where
     code = "DL3005"
@@ -313,16 +325,18 @@ noAptGetUpgrade = instructionRule code severity message check
     check (Run (Arguments args)) = not $ isInfixOf ["apt-get", "upgrade"] args
     check _ = True
 
+noUntagged :: Rule
 noUntagged dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly"
-    check line (From (UntaggedImage (Image _ "scratch") _)) = True
+    check _ (From (UntaggedImage (Image _ "scratch") _)) = True
     check line (From (UntaggedImage (Image _ i) _)) =
         i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
+noLatestTag :: Rule
 noLatestTag = instructionRule code severity message check
   where
     code = "DL3007"
@@ -333,6 +347,7 @@ noLatestTag = instructionRule code severity message check
     check (From (TaggedImage _ tag _)) = tag /= "latest"
     check _ = True
 
+aptGetVersionPinned :: Rule
 aptGetVersionPinned = instructionRule code severity message check
   where
     code = "DL3008"
@@ -354,6 +369,7 @@ aptGetPackages args =
   where
     noOption arg = arg `notElem` ["apt-get", "install"] && not ("-" `isPrefixOf` arg)
 
+aptGetCleanup :: Rule
 aptGetCleanup dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL3009"
@@ -384,11 +400,12 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
                 alias `elem` [i | (l, i) <- allImageNames dockerfile, l > line]
 
 dropOptionsWithArg :: [String] -> [String] -> [String]
-dropOptionsWithArg os [] = []
+dropOptionsWithArg _ [] = []
 dropOptionsWithArg os (x:xs)
     | x `elem` os = dropOptionsWithArg os (drop 1 xs)
     | otherwise = x : dropOptionsWithArg os xs
 
+noApkUpgrade :: Rule
 noApkUpgrade = instructionRule code severity message check
   where
     code = "DL3017"
@@ -400,6 +417,7 @@ noApkUpgrade = instructionRule code severity message check
 isApkAdd :: [String] -> Bool
 isApkAdd cmd = ["apk"] `isInfixOf` cmd && ["add"] `isInfixOf` cmd
 
+apkAddVersionPinned :: Rule
 apkAddVersionPinned = instructionRule code severity message check
   where
     code = "DL3018"
@@ -421,6 +439,7 @@ apkAddPackages args =
     noOption arg = arg `notElem` options && not ("--" `isPrefixOf` arg)
     options = ["apk", "add", "-q", "-p", "-v", "-f", "-t"]
 
+apkAddNoCache :: Rule
 apkAddNoCache = instructionRule code severity message check
   where
     code = "DL3019"
@@ -432,6 +451,7 @@ apkAddNoCache = instructionRule code severity message check
     check _ = True
     hasNoCacheOption cmd = ["--no-cache"] `isInfixOf` cmd
 
+useAdd :: Rule
 useAdd = instructionRule code severity message check
   where
     code = "DL3010"
@@ -446,6 +466,7 @@ useAdd = instructionRule code severity message check
     check _ = True
     archiveFormats = [".tar", ".gz", ".bz2", "xz"]
 
+invalidPort :: Rule
 invalidPort = instructionRule code severity message check
   where
     code = "DL3011"
@@ -453,9 +474,10 @@ invalidPort = instructionRule code severity message check
     message = "Valid UNIX ports range from 0 to 65535"
     check (Expose (Ports ports)) =
         and [p <= 65535 | Port p _ <- ports] &&
-        and [l <= 65535 && m <= 65535 | PortRange l m <- ports]
+        and [l <= 65535 && m <= 65535 | PortRange l m _ <- ports]
     check _ = True
 
+pipVersionPinned :: Rule
 pipVersionPinned = instructionRule code severity message check
   where
     code = "DL3013"
@@ -513,6 +535,7 @@ stripInstallPrefix isCommand args =
     npm install git[+http|+https]://<git-host>/<git-user>/<repo-name>[#<commit>|#semver:<semver>]
     npm install git+ssh://<git-host>:<git-user>/<repo-name>[#<commit>|#semver:<semver>]
 -}
+npmVersionPinned :: Rule
 npmVersionPinned = instructionRule code severity message check
   where
     code = "DL3016"
@@ -536,13 +559,15 @@ npmVersionPinned = instructionRule code severity message check
     isVersionedGit package = "#" `isInfixOf` package
     hasVersionSymbol package = "@" `isInfixOf` dropScope package
       where
-        dropScope package =
-            if "@" `isPrefixOf` package
-                then dropWhile ('/' <) package
-                else package
+        dropScope pkg =
+            if "@" `isPrefixOf` pkg
+                then dropWhile ('/' <) pkg
+                else pkg
 
+isAptGetInstall :: [String] -> Bool
 isAptGetInstall cmd = ["apt-get"] `isInfixOf` cmd && ["install"] `isInfixOf` cmd
 
+aptGetYes :: Rule
 aptGetYes = instructionRule code severity message check
   where
     code = "DL3014"
@@ -555,6 +580,7 @@ aptGetYes = instructionRule code severity message check
         ["--yes"] `isInfixOf` cmd || ["-qq"] `isInfixOf` cmd || startsWithYesFlag cmd
     startsWithYesFlag cmd = True `elem` ["-y" `isInfixOf` arg | arg <- cmd]
 
+aptGetNoRecommends :: Rule
 aptGetNoRecommends = instructionRule code severity message check
   where
     code = "DL3015"
@@ -590,6 +616,7 @@ isArchive path =
 isUrl :: String -> Bool
 isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
 
+copyInsteadAdd :: Rule
 copyInsteadAdd = instructionRule code severity message check
   where
     code = "DL3020"
@@ -599,6 +626,7 @@ copyInsteadAdd = instructionRule code severity message check
         and [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
 
+copyEndingSlash :: Rule
 copyEndingSlash = instructionRule code severity message check
   where
     code = "DL3021"
@@ -610,6 +638,7 @@ copyEndingSlash = instructionRule code severity message check
     check _ = True
     endsWithSlash (TargetPath t) = last t == '/' -- it is safe to use last, as the target is never empty
 
+copyFromExists :: Rule
 copyFromExists dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3022"
@@ -618,6 +647,7 @@ copyFromExists dockerfile = instructionRuleLine code severity message check dock
     check l (Copy (CopyArgs _ _ _ (CopySource s))) = s `elem` previouslyDefinedAliases l dockerfile
     check _ _ = True
 
+copyFromAnother :: Rule
 copyFromAnother = instructionRuleState code severity message check Nothing
   where
     code = "DL3023"
@@ -632,6 +662,7 @@ copyFromAnother = instructionRuleState code severity message check Nothing
         withState st (aliasMustBe (/= stageName) fromInstr) -- Cannot copy from itself!
     check state _ _ = withState state True
 
+fromAliasUnique :: Rule
 fromAliasUnique dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3024"
@@ -640,6 +671,7 @@ fromAliasUnique dockerfile = instructionRuleLine code severity message check doc
     check line = aliasMustBe (not . alreadyTaken line)
     alreadyTaken line alias = alias `elem` previouslyDefinedAliases line dockerfile
 
+useShell :: Rule
 useShell = instructionRule code severity message check
   where
     code = "DL4005"

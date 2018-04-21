@@ -6,9 +6,6 @@ import Hadolint.Rules
 
 import Language.Docker.Parser
 
-import Data.List (find)
-import Data.Maybe (fromMaybe, isJust)
-
 main :: IO ()
 main =
     hspec $ do
@@ -25,7 +22,7 @@ main =
             it "explicit tagged with name" $
               ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
             it "local aliases are OK to be untagged" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM golang:1.9.3-alpine3.7 AS build"
                         , "RUN foo"
                         , "FROM build as unit-test"
@@ -33,9 +30,9 @@ main =
                         , "FROM alpine:3.7"
                         , "RUN baz"
                         ]
-                in ruleCatchesNot noUntagged $ unlines dockerfile
+                in ruleCatchesNot noUntagged $ unlines dockerFile
             it "other untagged cases are not ok" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM golang:1.9.3-alpine3.7 AS build"
                         , "RUN foo"
                         , "FROM node as unit-test"
@@ -43,7 +40,7 @@ main =
                         , "FROM alpine:3.7"
                         , "RUN baz"
                         ]
-                in ruleCatches noUntagged $ unlines dockerfile
+                in ruleCatches noUntagged $ unlines dockerFile
         --
         describe "no root or sudo rules" $ do
             it "sudo" $ ruleCatches noSudo "RUN sudo apt-get update"
@@ -65,74 +62,74 @@ main =
             it "apt-get version pinning" $
                 ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
             it "apt-get no cleanup" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch"
                         , "RUN apt-get update && apt-get install python"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerfile
+                in ruleCatches aptGetCleanup $ unlines dockerFile
             it "apt-get cleanup in stage image" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN apt-get update && apt-get install python"
                         , "FROM scratch"
                         , "RUN echo hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
             it "apt-get no cleanup in last stage" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN hey!"
                         , "FROM scratch"
                         , "RUN apt-get update && apt-get install python"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerfile
+                in ruleCatches aptGetCleanup $ unlines dockerFile
             it "apt-get no cleanup in intermediate stage" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN apt-get update && apt-get install python"
                         , "FROM foo"
                         , "RUN hey!"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerfile
+                in ruleCatches aptGetCleanup $ unlines dockerFile
             it "now warn apt-get cleanup in intermediate stage that cleans lists" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
                         , "FROM foo"
                         , "RUN hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
             it "no warn apt-get cleanup in intermediate stage when stage not used later" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN apt-get update && apt-get install python"
                         , "FROM scratch"
                         , "RUN hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
             it "apt-get cleanup" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch"
                         , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerfile
+                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
 
             it "apt-get pinned chained" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apt-get update \\"
                         , " && apt-get -yqq --no-install-recommends install nodejs=0.10 \\"
                         , " && rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
+                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
             it "apt-get pinned regression" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apt-get update && apt-get install --no-install-recommends -y \\"
                         , "python-demjson=2.2.2* \\"
                         , "wget=1.16.1* \\"
                         , "git=1:2.5.0* \\"
                         , "ruby=1:2.1.*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
+                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
             it "has deprecated maintainer" $
                 ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
         --
@@ -142,34 +139,34 @@ main =
             it "apk add no version pinning single" $
                 ruleCatchesNot apkAddVersionPinned "RUN apk add flex=2.6.4-r1"
             it "apk add version pinned chained" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apk add --no-cache flex=2.6.4-r1 \\"
                         , " && pip install -r requirements.txt"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
+                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
             it "apk add version pinned regression" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apk add --no-cache \\"
                         , "flex=2.6.4-r1 \\"
                         , "libffi=3.2.1-r3 \\"
                         , "python2=2.7.13-r1 \\"
                         , "libbz2=1.0.6-r5"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
+                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
             it "apk add version pinned regression - one missed" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apk add --no-cache \\"
                         , "flex=2.6.4-r1 \\"
                         , "libffi \\"
                         , "python2=2.7.13-r1 \\"
                         , "libbz2=1.0.6-r5"
                         ]
-                in ruleCatches apkAddVersionPinned $ unlines dockerfile
+                in ruleCatches apkAddVersionPinned $ unlines dockerFile
             it "apk add with --no-cache" $ ruleCatches apkAddNoCache "RUN apk add flex=2.6.4-r1"
             it "apk add without --no-cache" $
                 ruleCatchesNot apkAddNoCache "RUN apk add --no-cache flex=2.6.4-r1"
             it "apk add virtual package" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN apk add \\"
                         , "--virtual build-dependencies \\"
                         , "python-dev=1.1.1 build-base=2.2.2 wget=3.3.3 \\"
@@ -177,7 +174,7 @@ main =
                         , "&& python setup.py install \\"
                         , "&& apk del build-dependencies"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerfile
+                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
         --
         describe "EXPOSE rules" $ do
             it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
@@ -311,7 +308,7 @@ main =
                     aptGetVersionPinned
                     "RUN apt-get -y --no-install-recommends install nodejs=0.10"
             it "apt-get tolerate target-release" $
-                let dockerfile =
+                let dockerFile =
                         [ "RUN set -e &&\\"
                         , " echo \"deb http://http.debian.net/debian jessie-backports main\" \
                           \> /etc/apt/sources.list.d/jessie-backports.list &&\\"
@@ -320,7 +317,7 @@ main =
                           \openjdk-8-jdk=8u131-b11-1~bpo8+1 &&\\"
                         , " rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerfile
+                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
 
             it "has maintainer" $ ruleCatches hasNoMaintainer "FROM debian\nMAINTAINER Lukas"
             it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
@@ -353,57 +350,57 @@ main =
         describe "copy from existing alias" $ do
             it "warn on missing alias" $ ruleCatches copyFromExists "COPY --from=foo bar ."
             it "warn on alias defined after" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch"
                         , "COPY --from=build foo ."
                         , "FROM node as build"
                         , "RUN baz"
                         ]
-                in ruleCatches copyFromExists $ unlines dockerfile
+                in ruleCatches copyFromExists $ unlines dockerFile
             it "don't warn on correctly defined aliases" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch as build"
                         , "RUN foo"
                         , "FROM node"
                         , "COPY --from=build foo ."
                         , "RUN baz"
                         ]
-                in ruleCatchesNot copyFromExists $ unlines dockerfile
+                in ruleCatchesNot copyFromExists $ unlines dockerFile
         --
         describe "copy from own FROM" $ do
             it "warn on copying from your the same FROM" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM node as foo"
                         , "COPY --from=foo bar ."
                         ]
-                in ruleCatches copyFromAnother $ unlines dockerfile
+                in ruleCatches copyFromAnother $ unlines dockerFile
             it "don't warn on copying form other sources" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch as build"
                         , "RUN foo"
                         , "FROM node as run"
                         , "COPY --from=build foo ."
                         , "RUN baz"
                         ]
-                in ruleCatchesNot copyFromAnother $ unlines dockerfile
+                in ruleCatchesNot copyFromAnother $ unlines dockerFile
         --
         describe "Duplicate aliases" $ do
             it "warn on duplicate aliases" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM node as foo"
                         , "RUN something"
                         , "FROM scratch as foo"
                         , "RUN something"
                         ]
-                in ruleCatches fromAliasUnique $ unlines dockerfile
+                in ruleCatches fromAliasUnique $ unlines dockerFile
             it "don't warn on unique aliases" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM scratch as build"
                         , "RUN foo"
                         , "FROM node as run"
                         , "RUN baz"
                         ]
-                in ruleCatchesNot fromAliasUnique $ unlines dockerfile
+                in ruleCatchesNot fromAliasUnique $ unlines dockerFile
         --
         describe "format error" $
             it "display error after line pos" $ do
@@ -415,51 +412,52 @@ main =
         --
         describe "Rules can be ignored with inline comments" $ do
             it "ignores single rule" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM ubuntu"
                         , "# hadolint ignore=DL3002"
                         , "USER root"
                         ]
-                in ruleCatchesNot noRootUser $ unlines dockerfile
+                in ruleCatchesNot noRootUser $ unlines dockerFile
             it "ignores only the given rule" $
-                let dockerfile =
+                let dockerFile =
                         [ "# hadolint ignore=DL3001"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerfile
+                in ruleCatches noRootUser $ unlines dockerFile
             it "ignores only the given rule, when multiple passed" $
-                let dockerfile =
+                let dockerFile =
                         [ "# hadolint ignore=DL3001,DL3002"
                         , "USER root"
                         ]
-                in ruleCatchesNot noRootUser $ unlines dockerfile
+                in ruleCatchesNot noRootUser $ unlines dockerFile
             it "ignores the rule only if directly above the instruction" $
-                let dockerfile =
+                let dockerFile =
                         [ "# hadolint ignore=DL3001,DL3002"
                         , "FROM ubuntu"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerfile
+                in ruleCatches noRootUser $ unlines dockerFile
             it "won't ignore the rule if passed invalid rule names" $
-                let dockerfile =
+                let dockerFile =
                         [ "# hadolint ignore=crazy,DL3002"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerfile
+                in ruleCatches noRootUser $ unlines dockerFile
             it "ignores multiple rules correctly, even with some extra whitespace" $
-                let dockerfile =
+                let dockerFile =
                         [ "FROM node as foo"
                         , "# hadolint ignore=DL3023, DL3021"
                         , "COPY --from=foo bar baz ."
                         ]
                 in do
-                  ruleCatchesNot copyFromAnother $ unlines dockerfile
-                  ruleCatchesNot copyEndingSlash $ unlines dockerfile
+                  ruleCatchesNot copyFromAnother $ unlines dockerFile
+                  ruleCatchesNot copyEndingSlash $ unlines dockerFile
 
+assertChecks :: Rule -> String -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s f =
     case parseString (s ++ "\n") of
         Left err -> assertFailure $ show err
-        Right dockerfile -> f $ analyze [rule] dockerfile
+        Right dockerFile -> f $ analyze [rule] dockerFile
 
 -- Assert a failed check exists for rule
 ruleCatches :: Rule -> String -> Assertion

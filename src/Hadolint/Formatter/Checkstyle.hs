@@ -16,7 +16,7 @@ import Hadolint.Formatter.Format
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
 import Text.Parsec (ParseError)
-import Text.Parsec.Error (ParseError, errorPos)
+import Text.Parsec.Error (errorPos)
 import Text.Parsec.Pos
 
 data CheckStyle = CheckStyle
@@ -64,12 +64,15 @@ toXml checks = wrap fileName (foldMap convert checks)
         attr "message" msg <>
         attr "source" source <>
         "/>"
-    fileName = case checks of
-      [] -> ""
-      h:_ -> file h
+    fileName =
+        case checks of
+            [] -> ""
+            h:_ -> file h
 
+attr :: String -> String -> Builder.Builder
 attr name value = Builder.string8 name <> "='" <> Builder.string8 (escape value) <> "' "
 
+escape :: String -> String
 escape = concatMap doEscape
   where
     doEscape c =
