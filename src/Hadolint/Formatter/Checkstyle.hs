@@ -64,7 +64,9 @@ toXml checks = wrap fileName (foldMap convert checks)
         attr "message" msg <>
         attr "source" source <>
         "/>"
-    fileName = file (head checks)
+    fileName = case checks of
+      [] -> ""
+      h:_ -> file h
 
 attr name value = Builder.string8 name <> "='" <> Builder.string8 (escape value) <> "' "
 
