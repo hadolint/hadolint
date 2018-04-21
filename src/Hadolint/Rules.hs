@@ -87,7 +87,8 @@ dockerfileRule code severity message f = rule
     rule dockerfile =
         [RuleCheck metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
     metadata = Metadata code severity message
-    filename dockerfile = sourcename $ head dockerfile
+    filename (inst:_) = sourcename inst
+    filename [] = ""
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
@@ -216,7 +217,9 @@ absoluteWorkdir = instructionRule code severity message check
     code = "DL3000"
     severity = ErrorC
     message = "Use absolute WORKDIR"
-    check (Workdir dir) = head dir == '$' || head dir == '/'
+    check (Workdir ('$':_)) = True
+    check (Workdir ('/':_)) = True
+    check (Workdir _) = False
     check _ = True
 
 hasNoMaintainer = dockerfileRule code severity message check
@@ -229,7 +232,7 @@ hasNoMaintainer = dockerfileRule code severity message check
     isMaintainer _ = False
 
 -- Check if a command contains a program call in the Run instruction
-usingProgram prog args = or [head cmds == prog | cmds <- bashCommands args]
+usingProgram prog args = or [True | cmd:_ <- bashCommands args, cmd == prog]
 
 multipleCmds = dockerfileRule code severity message check
   where
@@ -271,7 +274,7 @@ invalidCmd = instructionRule code severity message check
     message =
         "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
         \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-    check (Run (Arguments args)) = head args `notElem` invalidCmds
+    check (Run (Arguments (arg:_))) = arg `notElem` invalidCmds
     check _ = True
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
