@@ -10,10 +10,16 @@ license: GPL-3
 homepage: https://github.com/hadolint/hadolint
 git: git@github.com:hadolint/hadolint.git
 extra-source-files: README.md
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wredundant-constraints
 dependencies:
   - base >=4.8 && <5
   - parsec >=3.1
-  - language-docker >=3.0.0
+  - language-docker >=5.0.0
 library:
   source-dirs: src
   exposed-modules:

@@ -15,7 +15,7 @@ import GHC.Generics
 import Hadolint.Formatter.Format (Result(..), formatErrorReason)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
-import Text.Parsec.Error (errorPos)
+import Text.Parsec.Error (ParseError, errorPos)
 import Text.Parsec.Pos
 
 data Issue = Issue
@@ -54,16 +54,21 @@ instance ToJSON Issue where
             , "severity" .= impact
             ]
 
+errorToIssue :: ParseError -> Issue
 errorToIssue err =
     Issue
     { checkName = "DL1000"
     , description = formatErrorReason err
-    , location = LocPos (sourceName pos) (Pos (sourceLine pos) (sourceColumn pos))
+    , location = LocPos (sourceName pos) Pos{..}
     , impact = severityText ErrorC
     }
   where
     pos = errorPos err
+    line = sourceLine pos
+    column = sourceColumn pos
 
+
+checkToIssue :: RuleCheck -> Issue
 checkToIssue RuleCheck {..} =
     Issue
     { checkName = code metadata

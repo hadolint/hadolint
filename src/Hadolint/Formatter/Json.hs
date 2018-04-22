@@ -14,7 +14,7 @@ import Hadolint.Formatter.Format
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
 import Text.Parsec (ParseError)
-import Text.Parsec.Error (ParseError, errorPos)
+import Text.Parsec.Error (errorPos)
 import Text.Parsec.Pos
 
 data JsonFormat

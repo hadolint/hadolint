@@ -17,7 +17,7 @@ import qualified Data.Yaml as Yaml
 import Development.GitRev (gitDescribe)
 import GHC.Generics
 import Options.Applicative hiding (ParseError)
-import Paths_hadolint (version) -- version from hadolint.cabal file
+import qualified Paths_hadolint as Version -- version from hadolint.cabal file
 import System.Directory
        (XdgDirectory(..), doesFileExist, getCurrentDirectory,
         getXdgDirectory)
@@ -145,18 +145,18 @@ parseFilename "-" = "/dev/stdin"
 parseFilename s = s
 
 lintDockerfile :: [IgnoreRule] -> String -> IO (Either ParseError [RuleCheck])
-lintDockerfile ignoreRules dockerfile = do
-    ast <- parseFile $ parseFilename dockerfile
+lintDockerfile ignoreRules dockerFile = do
+    ast <- parseFile $ parseFilename dockerFile
     return (processedFile ast)
   where
     processedFile = fmap processRules
-    processRules dockerfile = filter ignored (analyzeAll dockerfile)
-    ignored = ignoreFilter ignoreRules
+    processRules fileLines = filter ignoredRules (analyzeAll fileLines)
+    ignoredRules = ignoreFilter ignoreRules
 
 getVersion :: String
 getVersion
     | $(gitDescribe) == "UNKNOWN" =
-        "Haskell Dockerfile Linter " ++ V.showVersion version ++ "-no-git"
+        "Haskell Dockerfile Linter " ++ V.showVersion Version.version ++ "-no-git"
     | otherwise = "Haskell Dockerfile Linter " ++ $(gitDescribe)
 
 lint :: LintOptions -> IO ()
@@ -185,5 +185,5 @@ analyzeAll = analyze rules
 
 -- Helper to analyze AST quickly in GHCI
 analyzeEither :: Either t Dockerfile -> [RuleCheck]
-analyzeEither (Left err) = []
-analyzeEither (Right dockerfile) = analyzeAll dockerfile
+analyzeEither (Left _) = []
+analyzeEither (Right dockerFile) = analyzeAll dockerFile

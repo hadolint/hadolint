@@ -8,7 +8,8 @@ module Hadolint.Formatter.Format
 
 import Data.DList (DList, fromList, singleton)
 import Data.List (sort)
-import Data.Monoid
+import Data.Monoid (Monoid)
+import Data.Semigroup
 import Hadolint.Rules
 import ShellCheck.Interface
 import Text.Parsec.Error
@@ -19,9 +20,12 @@ data Result = Result
     , checks :: DList RuleCheck
     } deriving (Eq)
 
+instance Semigroup Result where
+    (Result e1 c1) <> (Result e2 c2) = Result (e1 <> e2) (c1 <> c2)
+
 instance Monoid Result where
+    mappend = (<>)
     mempty = Result mempty mempty
-    mappend (Result e1 c1) (Result e2 c2) = Result (e1 <> e2) (c1 <> c2)
 
 toResult :: Either ParseError [RuleCheck] -> Result
 toResult res =
@@ -30,8 +34,8 @@ toResult res =
         Right c -> Result mempty (fromList (sort c))
 
 severityText :: Severity -> String
-severityText severity =
-    case severity of
+severityText s =
+    case s of
         ErrorC -> "error"
         WarningC -> "warning"
         InfoC -> "info"
