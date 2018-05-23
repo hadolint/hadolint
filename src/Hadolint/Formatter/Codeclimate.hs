@@ -9,8 +9,8 @@ module Hadolint.Formatter.Codeclimate
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
-import Data.DList (DList)
 import Data.Monoid ((<>))
+import Data.Sequence (Seq)
 import GHC.Generics
 import Hadolint.Formatter.Format (Result(..), formatErrorReason)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
@@ -59,14 +59,13 @@ errorToIssue err =
     Issue
     { checkName = "DL1000"
     , description = formatErrorReason err
-    , location = LocPos (sourceName pos) Pos{..}
+    , location = LocPos (sourceName pos) Pos {..}
     , impact = severityText ErrorC
     }
   where
     pos = errorPos err
     line = sourceLine pos
     column = sourceColumn pos
-
 
 checkToIssue :: RuleCheck -> Issue
 checkToIssue RuleCheck {..} =
@@ -85,7 +84,7 @@ severityText severity =
         InfoC -> "info"
         StyleC -> "minor"
 
-formatResult :: Result -> DList Issue
+formatResult :: Result -> Seq Issue
 formatResult (Result errors checks) = allIssues
   where
     allIssues = errorMessages <> checkMessages

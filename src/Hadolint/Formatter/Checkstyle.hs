@@ -9,7 +9,7 @@ module Hadolint.Formatter.Checkstyle
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
-import Data.DList (toList)
+import Data.Foldable (toList)
 import Data.List (groupBy)
 import Data.Monoid ((<>), mconcat)
 import Hadolint.Formatter.Format
