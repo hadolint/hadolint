@@ -453,19 +453,21 @@ main =
                   ruleCatchesNot copyFromAnother $ unlines dockerFile
                   ruleCatchesNot copyEndingSlash $ unlines dockerFile
 
-assertChecks :: Rule -> String -> ([RuleCheck] -> IO a) -> IO a
-assertChecks rule s f =
+assertChecks :: HasCallStack => Rule -> String -> ([RuleCheck] -> IO a) -> IO a
+assertChecks rule s makeAssertions =
     case parseString (s ++ "\n") of
         Left err -> assertFailure $ show err
-        Right dockerFile -> f $ analyze [rule] dockerFile
+        Right dockerFile -> makeAssertions $ analyze [rule] dockerFile
 
 -- Assert a failed check exists for rule
-ruleCatches :: Rule -> String -> Assertion
+ruleCatches :: HasCallStack => Rule -> String -> Assertion
 ruleCatches rule s = assertChecks rule s f
   where
-    f checks = assertEqual "No check for rule found" 1 $ length checks
+    f checks = do
+      assertEqual "No check for rule found" 1 $ length checks
+      assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
-ruleCatchesNot :: Rule -> String -> Assertion
+ruleCatchesNot :: HasCallStack => Rule -> String -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
   where
     f checks = assertEqual "Found check of rule" 0 $ length checks
