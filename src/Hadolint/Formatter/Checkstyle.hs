@@ -79,7 +79,7 @@ escape = concatMap doEscape
         if isOk c
             then [c]
             else "&#" ++ show (ord c) ++ ";"
-    isOk x = any ($x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
+    isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
 
 formatResult :: Result -> Builder.Builder
 formatResult (Result errors checks) =
