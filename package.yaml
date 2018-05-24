@@ -37,7 +37,7 @@ library:
     - aeson
     - text
     - bytestring
-    - dlist
+    - containers
 executables:
   hadolint:
     main: Main.hs

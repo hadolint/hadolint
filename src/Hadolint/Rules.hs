@@ -10,6 +10,7 @@ import Data.List.Split (splitOneOf)
 import Hadolint.Bash
 import Language.Docker.Syntax
 
+import qualified Data.Set as Set
 import qualified ShellCheck.Interface
 import ShellCheck.Interface (Severity(..))
 import qualified Text.Parsec as Parsec
@@ -76,19 +77,8 @@ instructionRuleState ::
     -> Rule
 instructionRuleState code severity message = mapInstructions (Metadata code severity message)
 
-dockerfileRule ::
-       String -- ^ The rule code name
-    -> ShellCheck.Interface.Severity -- ^ The rule severity
-    -> String -- ^ The error message associated with the rule
-    -> ([Instruction] -> Bool) -- ^ The function that will check the rule
-    -> Rule
-dockerfileRule code severity message f = rule
-  where
-    rule dockerfile =
-        [RuleCheck metadata (filename dockerfile) (-1) (f (map instruction dockerfile))]
-    metadata = Metadata code severity message
-    filename (inst:_) = sourcename inst
-    filename [] = ""
+withState :: a -> b -> (a, b)
+withState st res = (st, res)
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
@@ -225,54 +215,55 @@ absoluteWorkdir = instructionRule code severity message check
     check _ = True
 
 hasNoMaintainer :: Rule
-hasNoMaintainer = dockerfileRule code severity message check
+hasNoMaintainer = instructionRule code severity message check
   where
     code = "DL4000"
     severity = ErrorC
     message = "MAINTAINER is deprecated"
-    check dockerfile = not $ any isMaintainer dockerfile
-    isMaintainer (Maintainer _) = True
-    isMaintainer _ = False
+    check (Maintainer _) = False
+    check _ = True
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram :: String -> [String] -> Bool
 usingProgram prog args = or [True | cmd:_ <- bashCommands args, cmd == prog]
 
 multipleCmds :: Rule
-multipleCmds = dockerfileRule code severity message check
+multipleCmds = instructionRuleState code severity message check Nothing
   where
     code = "DL4003"
     severity = WarningC
     message =
         "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last \
         \`CMD` will take effect"
-    check dockerfile = 1 >= length (filter (True ==) $ map isCmd dockerfile)
-    isCmd (Cmd _) = True
-    isCmd _ = False
+    check Nothing line (Cmd _) = withState (Just line) True -- Remember the first CMD found
+    check (Just l) _ (Cmd _) = withState (Just l) False -- Fail the rule, CMD is duplicated
+    check st _ _ = withState st True
 
 multipleEntrypoints :: Rule
-multipleEntrypoints = dockerfileRule code severity message check
+multipleEntrypoints = instructionRuleState code severity message check Nothing
   where
     code = "DL4004"
     severity = ErrorC
     message =
         "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then \
         \only the last `ENTRYPOINT` will take effect"
-    check dockerfile = 1 >= length (filter (True ==) $ map isEntrypoint dockerfile)
-    isEntrypoint (Entrypoint _) = True
-    isEntrypoint _ = False
+    check Nothing line (Entrypoint _) = withState (Just line) True -- Remember the first ENTRYPOINT found
+    check (Just l) _ (Entrypoint _) = withState (Just l) False -- Fail the rule, ENTRYPOINT is duplicated
+    check st _ _ = withState st True
 
 wgetOrCurl :: Rule
-wgetOrCurl = dockerfileRule code severity message check
+wgetOrCurl = instructionRuleState code severity message check Set.empty
   where
     code = "DL4001"
     severity = WarningC
     message = "Either use Wget or Curl but not both"
-    check dockerfile = not $ anyCurl dockerfile && anyWget dockerfile
-    anyCurl = any $ usingCmd "curl"
-    anyWget = any $ usingCmd "wget"
-    usingCmd cmd (Run (Arguments args)) = cmd `elem` args
-    usingCmd _ _ = False
+    check state _ (Run (Arguments args)) = detectDoubleUsage state args
+    check state _ _ = withState state True
+    detectDoubleUsage state args =
+        let newArgs = extractCommands args
+            newState = Set.union state newArgs
+        in withState newState (Set.size newState < 2)
+    extractCommands args = Set.fromList [w | w <- args, w == "curl" || w == "wget"]
 
 invalidCmd :: Rule
 invalidCmd = instructionRule code severity message check
@@ -375,7 +366,6 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
     code = "DL3009"
     severity = InfoC
     message = "Delete the apt-get lists after installing something"
-    withState st res = (st, res)
     -- | 'check' returns a tuple (state, check_result)
     --   The state in this case is the FROM instruction where the current instruction we are
     --   inspecting is nested in.
@@ -653,7 +643,6 @@ copyFromAnother = instructionRuleState code severity message check Nothing
     code = "DL3023"
     severity = ErrorC
     message = "COPY --from should reference a previously defined FROM alias"
-    withState st res = (st, res)
     -- | 'check' returns a tuple (state, check_result)
     --   The state in this case is the FROM instruction where the current instruction we are
     --   inspecting is nested in.

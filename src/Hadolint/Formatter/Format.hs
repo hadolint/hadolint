@@ -6,18 +6,18 @@ module Hadolint.Formatter.Format
     , toResult
     ) where
 
-import Data.DList (DList, fromList, singleton)
 import Data.List (sort)
 import Data.Monoid (Monoid)
 import Data.Semigroup
+import Data.Sequence (Seq, fromList, singleton)
 import Hadolint.Rules
 import ShellCheck.Interface
 import Text.Parsec.Error
        (ParseError, errorMessages, showErrorMessages)
 
 data Result = Result
-    { errors :: DList ParseError
-    , checks :: DList RuleCheck
+    { errors :: Seq ParseError
+    , checks :: Seq RuleCheck
     } deriving (Eq)
 
 instance Semigroup Result where

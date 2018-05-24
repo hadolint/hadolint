@@ -10,9 +10,8 @@ RUN apt-get update \
     ca-certificates=20161130+nmu1 \
     git=1:2.11.* \
     netbase=5.4 \
+ && curl -sSL https://get.haskellstack.org/ | sh \
  && rm -rf /var/lib/apt/lists/*
-
-RUN curl -sSL https://get.haskellstack.org/ | sh
 
 WORKDIR /opt/hadolint/
 COPY stack.yaml package.yaml /opt/hadolint/

@@ -9,7 +9,7 @@ module Hadolint.Formatter.Checkstyle
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
-import Data.DList (toList)
+import Data.Foldable (toList)
 import Data.List (groupBy)
 import Data.Monoid ((<>), mconcat)
 import Hadolint.Formatter.Format
@@ -79,7 +79,7 @@ escape = concatMap doEscape
         if isOk c
             then [c]
             else "&#" ++ show (ord c) ++ ";"
-    isOk x = any ($x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
+    isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
 
 formatResult :: Result -> Builder.Builder
 formatResult (Result errors checks) =

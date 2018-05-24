@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+
 module Hadolint.Formatter.TTY
     ( printResult
     , formatError
@@ -26,13 +27,10 @@ formatChecks = fmap formatCheck
         formatPos source line ++ code meta ++ " " ++ message meta
 
 formatPos :: Filename -> Linenumber -> String
-formatPos source line =
-    if line >= 0
-        then source ++ ":" ++ show line ++ " "
-        else source ++ " "
+formatPos source line = source ++ ":" ++ show line ++ " "
 
 printResult :: Result -> IO ()
-printResult Result{errors, checks} = printErrors >> printChecks
+printResult Result {errors, checks} = printErrors >> printChecks
   where
     printErrors = mapM_ putStrLn (formatErrors errors)
     printChecks = mapM_ putStrLn (formatChecks checks)
