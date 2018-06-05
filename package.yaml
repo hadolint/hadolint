@@ -66,6 +66,7 @@ tests:
       - *split
       - *ShellCheck
       - aeson
+      - text
       - HUnit >=1.2
       - hspec
       - hadolint
