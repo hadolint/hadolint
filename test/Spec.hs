@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 import Test.HUnit hiding (Label)
 import Test.Hspec
 
@@ -5,6 +6,8 @@ import Hadolint.Formatter.TTY (formatError)
 import Hadolint.Rules
 
 import Language.Docker.Parser
+import Data.Semigroup ((<>))
+import qualified Data.Text as Text
 
 main :: IO ()
 main =
@@ -30,7 +33,7 @@ main =
                         , "FROM alpine:3.7"
                         , "RUN baz"
                         ]
-                in ruleCatchesNot noUntagged $ unlines dockerFile
+                in ruleCatchesNot noUntagged $ Text.unlines dockerFile
             it "other untagged cases are not ok" $
                 let dockerFile =
                         [ "FROM golang:1.9.3-alpine3.7 AS build"
@@ -40,7 +43,7 @@ main =
                         , "FROM alpine:3.7"
                         , "RUN baz"
                         ]
-                in ruleCatches noUntagged $ unlines dockerFile
+                in ruleCatches noUntagged $ Text.unlines dockerFile
         --
         describe "no root or sudo rules" $ do
             it "sudo" $ ruleCatches noSudo "RUN sudo apt-get update"
@@ -66,7 +69,7 @@ main =
                         [ "FROM scratch"
                         , "RUN apt-get update && apt-get install python"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerFile
+                in ruleCatches aptGetCleanup $ Text.unlines dockerFile
             it "apt-get cleanup in stage image" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
@@ -74,7 +77,7 @@ main =
                         , "FROM scratch"
                         , "RUN echo hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
+                in ruleCatchesNot aptGetCleanup $ Text.unlines dockerFile
             it "apt-get no cleanup in last stage" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
@@ -82,7 +85,7 @@ main =
                         , "FROM scratch"
                         , "RUN apt-get update && apt-get install python"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerFile
+                in ruleCatches aptGetCleanup $ Text.unlines dockerFile
             it "apt-get no cleanup in intermediate stage" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
@@ -90,7 +93,7 @@ main =
                         , "FROM foo"
                         , "RUN hey!"
                         ]
-                in ruleCatches aptGetCleanup $ unlines dockerFile
+                in ruleCatches aptGetCleanup $ Text.unlines dockerFile
             it "now warn apt-get cleanup in intermediate stage that cleans lists" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
@@ -98,7 +101,7 @@ main =
                         , "FROM foo"
                         , "RUN hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
+                in ruleCatchesNot aptGetCleanup $ Text.unlines dockerFile
             it "no warn apt-get cleanup in intermediate stage when stage not used later" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
@@ -106,13 +109,13 @@ main =
                         , "FROM scratch"
                         , "RUN hey!"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
+                in ruleCatchesNot aptGetCleanup $ Text.unlines dockerFile
             it "apt-get cleanup" $
                 let dockerFile =
                         [ "FROM scratch"
                         , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetCleanup $ unlines dockerFile
+                in ruleCatchesNot aptGetCleanup $ Text.unlines dockerFile
 
             it "apt-get pinned chained" $
                 let dockerFile =
@@ -120,7 +123,7 @@ main =
                         , " && apt-get -yqq --no-install-recommends install nodejs=0.10 \\"
                         , " && rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
+                in ruleCatchesNot aptGetVersionPinned $ Text.unlines dockerFile
             it "apt-get pinned regression" $
                 let dockerFile =
                         [ "RUN apt-get update && apt-get install --no-install-recommends -y \\"
@@ -129,7 +132,7 @@ main =
                         , "git=1:2.5.0* \\"
                         , "ruby=1:2.1.*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
+                in ruleCatchesNot aptGetVersionPinned $ Text.unlines dockerFile
             it "has deprecated maintainer" $
                 ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
         --
@@ -143,7 +146,7 @@ main =
                         [ "RUN apk add --no-cache flex=2.6.4-r1 \\"
                         , " && pip install -r requirements.txt"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
+                in ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
             it "apk add version pinned regression" $
                 let dockerFile =
                         [ "RUN apk add --no-cache \\"
@@ -152,7 +155,7 @@ main =
                         , "python2=2.7.13-r1 \\"
                         , "libbz2=1.0.6-r5"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
+                in ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
             it "apk add version pinned regression - one missed" $
                 let dockerFile =
                         [ "RUN apk add --no-cache \\"
@@ -161,7 +164,7 @@ main =
                         , "python2=2.7.13-r1 \\"
                         , "libbz2=1.0.6-r5"
                         ]
-                in ruleCatches apkAddVersionPinned $ unlines dockerFile
+                in ruleCatches apkAddVersionPinned $ Text.unlines dockerFile
             it "apk add with --no-cache" $ ruleCatches apkAddNoCache "RUN apk add flex=2.6.4-r1"
             it "apk add without --no-cache" $
                 ruleCatchesNot apkAddNoCache "RUN apk add --no-cache flex=2.6.4-r1"
@@ -174,7 +177,7 @@ main =
                         , "&& python setup.py install \\"
                         , "&& apk del build-dependencies"
                         ]
-                in ruleCatchesNot apkAddVersionPinned $ unlines dockerFile
+                in ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
         --
         describe "EXPOSE rules" $ do
             it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
@@ -317,7 +320,7 @@ main =
                           \openjdk-8-jdk=8u131-b11-1~bpo8+1 &&\\"
                         , " rm -rf /var/lib/apt/lists/*"
                         ]
-                in ruleCatchesNot aptGetVersionPinned $ unlines dockerFile
+                in ruleCatchesNot aptGetVersionPinned $ Text.unlines dockerFile
 
             it "has maintainer" $ ruleCatches hasNoMaintainer "FROM debian\nMAINTAINER Lukas"
             it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
@@ -356,7 +359,7 @@ main =
                         , "FROM node as build"
                         , "RUN baz"
                         ]
-                in ruleCatches copyFromExists $ unlines dockerFile
+                in ruleCatches copyFromExists $ Text.unlines dockerFile
             it "don't warn on correctly defined aliases" $
                 let dockerFile =
                         [ "FROM scratch as build"
@@ -365,7 +368,7 @@ main =
                         , "COPY --from=build foo ."
                         , "RUN baz"
                         ]
-                in ruleCatchesNot copyFromExists $ unlines dockerFile
+                in ruleCatchesNot copyFromExists $ Text.unlines dockerFile
         --
         describe "copy from own FROM" $ do
             it "warn on copying from your the same FROM" $
@@ -373,7 +376,7 @@ main =
                         [ "FROM node as foo"
                         , "COPY --from=foo bar ."
                         ]
-                in ruleCatches copyFromAnother $ unlines dockerFile
+                in ruleCatches copyFromAnother $ Text.unlines dockerFile
             it "don't warn on copying form other sources" $
                 let dockerFile =
                         [ "FROM scratch as build"
@@ -382,7 +385,7 @@ main =
                         , "COPY --from=build foo ."
                         , "RUN baz"
                         ]
-                in ruleCatchesNot copyFromAnother $ unlines dockerFile
+                in ruleCatchesNot copyFromAnother $ Text.unlines dockerFile
         --
         describe "Duplicate aliases" $ do
             it "warn on duplicate aliases" $
@@ -392,7 +395,7 @@ main =
                         , "FROM scratch as foo"
                         , "RUN something"
                         ]
-                in ruleCatches fromAliasUnique $ unlines dockerFile
+                in ruleCatches fromAliasUnique $ Text.unlines dockerFile
             it "don't warn on unique aliases" $
                 let dockerFile =
                         [ "FROM scratch as build"
@@ -400,12 +403,14 @@ main =
                         , "FROM node as run"
                         , "RUN baz"
                         ]
-                in ruleCatchesNot fromAliasUnique $ unlines dockerFile
+                in ruleCatchesNot fromAliasUnique $ Text.unlines dockerFile
         --
         describe "format error" $
             it "display error after line pos" $ do
-                let ast = parseString "FOM debian:jessie"
-                    expectedMsg = "<string>:1:2 unexpected \"O\" expecting FROM"
+                let ast = parseText "FOM debian:jessie"
+                    expectedMsg = "<string>:1:1 unexpected 'F' expecting '#', ADD, ARG, CMD, COPY, ENTRYPOINT, " <>
+                                  "ENV, EXPOSE, FROM, HEALTHCHECK, LABEL, MAINTAINER, ONBUILD, RUN, SHELL, STOPSIGNAL, " <>
+                                  "USER, VOLUME, WORKDIR, or end of input "
                 case ast of
                     Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
                     Right _ -> assertFailure "AST should fail parsing"
@@ -417,32 +422,32 @@ main =
                         , "# hadolint ignore=DL3002"
                         , "USER root"
                         ]
-                in ruleCatchesNot noRootUser $ unlines dockerFile
+                in ruleCatchesNot noRootUser $ Text.unlines dockerFile
             it "ignores only the given rule" $
                 let dockerFile =
                         [ "# hadolint ignore=DL3001"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerFile
+                in ruleCatches noRootUser $ Text.unlines dockerFile
             it "ignores only the given rule, when multiple passed" $
                 let dockerFile =
                         [ "# hadolint ignore=DL3001,DL3002"
                         , "USER root"
                         ]
-                in ruleCatchesNot noRootUser $ unlines dockerFile
+                in ruleCatchesNot noRootUser $ Text.unlines dockerFile
             it "ignores the rule only if directly above the instruction" $
                 let dockerFile =
                         [ "# hadolint ignore=DL3001,DL3002"
                         , "FROM ubuntu"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerFile
+                in ruleCatches noRootUser $ Text.unlines dockerFile
             it "won't ignore the rule if passed invalid rule names" $
                 let dockerFile =
                         [ "# hadolint ignore=crazy,DL3002"
                         , "USER root"
                         ]
-                in ruleCatches noRootUser $ unlines dockerFile
+                in ruleCatches noRootUser $ Text.unlines dockerFile
             it "ignores multiple rules correctly, even with some extra whitespace" $
                 let dockerFile =
                         [ "FROM node as foo"
@@ -450,24 +455,24 @@ main =
                         , "COPY --from=foo bar baz ."
                         ]
                 in do
-                  ruleCatchesNot copyFromAnother $ unlines dockerFile
-                  ruleCatchesNot copyEndingSlash $ unlines dockerFile
+                  ruleCatchesNot copyFromAnother $ Text.unlines dockerFile
+                  ruleCatchesNot copyEndingSlash $ Text.unlines dockerFile
 
-assertChecks :: HasCallStack => Rule -> String -> ([RuleCheck] -> IO a) -> IO a
+assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
-    case parseString (s ++ "\n") of
+    case parseText (s <> "\n") of
         Left err -> assertFailure $ show err
         Right dockerFile -> makeAssertions $ analyze [rule] dockerFile
 
 -- Assert a failed check exists for rule
-ruleCatches :: HasCallStack => Rule -> String -> Assertion
+ruleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatches rule s = assertChecks rule s f
   where
     f checks = do
       assertEqual "No check for rule found" 1 $ length checks
       assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
-ruleCatchesNot :: HasCallStack => Rule -> String -> Assertion
+ruleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
   where
     f checks = assertEqual "Found check of rule" 0 $ length checks

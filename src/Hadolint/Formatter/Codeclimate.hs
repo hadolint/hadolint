@@ -9,14 +9,19 @@ module Hadolint.Formatter.Codeclimate
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.List.NonEmpty as NE
 import Data.Monoid ((<>))
 import Data.Sequence (Seq)
+import qualified Data.Text as Text
 import GHC.Generics
-import Hadolint.Formatter.Format (Result(..), formatErrorReason)
+import Hadolint.Formatter.Format (Result(..))
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
-import Text.Parsec.Error (ParseError, errorPos)
-import Text.Parsec.Pos
+import Text.Megaparsec.Error
+       (ParseError, ShowErrorComponent, ShowToken, errorPos,
+        parseErrorTextPretty)
+import Text.Megaparsec.Pos
+       (sourceColumn, sourceLine, sourceName, unPos)
 
 data Issue = Issue
     { checkName :: String
@@ -54,25 +59,25 @@ instance ToJSON Issue where
             , "severity" .= impact
             ]
 
-errorToIssue :: ParseError -> Issue
+errorToIssue :: (ShowToken t, Ord t, ShowErrorComponent e) => ParseError t e -> Issue
 errorToIssue err =
     Issue
     { checkName = "DL1000"
-    , description = formatErrorReason err
+    , description = parseErrorTextPretty err
     , location = LocPos (sourceName pos) Pos {..}
     , impact = severityText ErrorC
     }
   where
-    pos = errorPos err
-    line = sourceLine pos
-    column = sourceColumn pos
+    pos = NE.head (errorPos err)
+    line = unPos (sourceLine pos)
+    column = unPos (sourceColumn pos)
 
 checkToIssue :: RuleCheck -> Issue
 checkToIssue RuleCheck {..} =
     Issue
-    { checkName = code metadata
-    , description = message metadata
-    , location = LocLine filename linenumber
+    { checkName = Text.unpack (code metadata)
+    , description = Text.unpack (message metadata)
+    , location = LocLine (Text.unpack filename) linenumber
     , impact = severityText (severity metadata)
     }
 
@@ -84,14 +89,14 @@ severityText severity =
         InfoC -> "info"
         StyleC -> "minor"
 
-formatResult :: Result -> Seq Issue
+formatResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> Seq Issue
 formatResult (Result errors checks) = allIssues
   where
     allIssues = errorMessages <> checkMessages
     errorMessages = fmap errorToIssue errors
     checkMessages = fmap checkToIssue checks
 
-printResult :: Result -> IO ()
+printResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> IO ()
 printResult result = mapM_ output (formatResult result)
   where
     output value = do
