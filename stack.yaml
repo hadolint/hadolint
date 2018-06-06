@@ -4,4 +4,5 @@ packages:
 - .
 extra-deps:
 - language-docker-6.0.0
+- ShellCheck-0.5.0
 resolver: lts-11.12
