@@ -1,25 +1,28 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List
-       (dropWhile, isInfixOf, isPrefixOf, isSuffixOf, mapAccumL)
+import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL)
 import Data.List.NonEmpty (toList)
 import Data.List.Split (splitOneOf)
 import Hadolint.Bash
 import Language.Docker.Syntax
 
+import Data.Semigroup ((<>))
 import qualified Data.Set as Set
+import qualified Data.Text as Text
+import Data.Void (Void)
 import qualified ShellCheck.Interface
 import ShellCheck.Interface (Severity(..))
-import qualified Text.Parsec as Parsec
-import Text.Parsec ((<|>))
+import qualified Text.Megaparsec as Megaparsec
+import qualified Text.Megaparsec.Char as Megaparsec
 
 data Metadata = Metadata
-    { code :: String
+    { code :: Text.Text
     , severity :: Severity
-    , message :: String
+    , message :: Text.Text
     } deriving (Eq)
 
 -- a check is the application of a rule on a specific part of code
@@ -37,10 +40,12 @@ data RuleCheck = RuleCheck
 instance Ord RuleCheck where
     a `compare` b = linenumber a `compare` linenumber b
 
-link :: Metadata -> String
+type IgnoreRuleParser = Megaparsec.Parsec Void Text.Text
+
+link :: Metadata -> Text.Text
 link (Metadata code _ _)
-    | "SC" `isPrefixOf` code = "https://github.com/koalaman/shellcheck/wiki/" ++ code
-    | "DL" `isPrefixOf` code = "https://github.com/hadolint/hadolint/wiki/" ++ code
+    | "SC" `Text.isPrefixOf` code = "https://github.com/koalaman/shellcheck/wiki/" <> code
+    | "DL" `Text.isPrefixOf` code = "https://github.com/hadolint/hadolint/wiki/" <> code
     | otherwise = "https://github.com/hadolint/hadolint"
 
 -- a Rule takes a Dockerfile and returns the executed checks
@@ -49,7 +54,7 @@ type Rule = Dockerfile -> [RuleCheck]
 -- Apply a function on each instruction and create a check
 -- for the according line number
 mapInstructions ::
-       Metadata -> (state -> Linenumber -> Instruction -> (state, Bool)) -> state -> Rule
+       Metadata -> (state -> Linenumber -> Instruction Text.Text -> (state, Bool)) -> state -> Rule
 mapInstructions metadata f initialState dockerfile =
     let (_, results) = mapAccumL applyRule initialState dockerfile
     in results
@@ -58,27 +63,36 @@ mapInstructions metadata f initialState dockerfile =
         let (newState, res) = f state linenumber i
         in (newState, RuleCheck metadata source linenumber res)
 
-instructionRule :: String -> Severity -> String -> (Instruction -> Bool) -> Rule
+instructionRule :: Text.Text -> Severity -> Text.Text -> (Instruction Text.Text -> Bool) -> Rule
 instructionRule code severity message check =
     instructionRuleLine code severity message (const check)
 
-instructionRuleLine :: String -> Severity -> String -> (Linenumber -> Instruction -> Bool) -> Rule
+instructionRuleLine ::
+       Text.Text -> Severity -> Text.Text -> (Linenumber -> Instruction Text.Text -> Bool) -> Rule
 instructionRuleLine code severity message check =
     instructionRuleState code severity message checkAndDropState ()
   where
     checkAndDropState state line instr = (state, check line instr)
 
 instructionRuleState ::
-       String
+       Text.Text
     -> Severity
-    -> String
-    -> (state -> Linenumber -> Instruction -> (state, Bool))
+    -> Text.Text
+    -> (state -> Linenumber -> Instruction Text.Text -> (state, Bool))
     -> state
     -> Rule
 instructionRuleState code severity message = mapInstructions (Metadata code severity message)
 
 withState :: a -> b -> (a, b)
 withState st res = (st, res)
+
+argumentsRule :: ([String] -> a) -> Arguments Text.Text -> a
+argumentsRule applyRule args =
+    case args of
+        ArgumentsText as -> applyRule . normalizeArgs $ as
+        ArgumentsList as -> applyRule . normalizeArgs $ as
+  where
+    normalizeArgs = words . Text.unpack
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
@@ -89,25 +103,29 @@ analyze list dockerfile = filter failed $ concat [r dockerfile | r <- list]
     wasIgnored c ln = not $ null [line | (line, codes) <- allIgnores, line == ln, c `elem` codes]
     allIgnores = ignored dockerfile
 
-ignored :: Dockerfile -> [(Linenumber, [String])]
+ignored :: Dockerfile -> [(Linenumber, [Text.Text])]
 ignored dockerfile =
     [(l + 1, ignores) | (l, Just ignores) <- map (lineNumber &&& extractIgnored) dockerfile]
   where
     extractIgnored = ignoreFromInstruction . instruction
-    ignoreFromInstruction (Comment comment) = either (const Nothing) Just (parseComment comment)
+    ignoreFromInstruction (Comment comment) = parseComment comment
     ignoreFromInstruction _ = Nothing
     -- | Parses the comment text and extracts the ignored rule names
-    parseComment :: String -> Either Parsec.ParseError [String]
-    parseComment = Parsec.parse commentParser ""
+    parseComment :: Text.Text -> Maybe [Text.Text]
+    parseComment = Megaparsec.parseMaybe commentParser
+    commentParser :: IgnoreRuleParser [Text.Text]
     commentParser =
-        Parsec.skipMany space >> -- The parser for the ignored rules
-        Parsec.string "hadolint" >>
-        Parsec.skipMany1 space >>
-        Parsec.string "ignore=" >>
-        Parsec.skipMany space >>
-        Parsec.sepBy1 ruleName (Parsec.many space >> Parsec.char ',' >> Parsec.many space)
-    space = Parsec.char ' ' <|> Parsec.char '\t'
-    ruleName = Parsec.many1 (Parsec.choice $ map Parsec.char "DLSC0123456789")
+        spaces >> -- The parser for the ignored rules
+        string "hadolint" >>
+        spaces1 >>
+        string "ignore=" >>
+        spaces >>
+        Megaparsec.sepBy1 ruleName (spaces >> string "," >> spaces)
+    string = Megaparsec.string
+    spaces = Megaparsec.takeWhileP Nothing space
+    spaces1 = Megaparsec.takeWhile1P Nothing space
+    space c = c == ' ' || c == '\t'
+    ruleName = Megaparsec.takeWhile1P Nothing (\c -> c `elem` ("DLSC0123456789" :: String))
 
 rules :: [Rule]
 rules =
@@ -145,14 +163,16 @@ rules =
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) =
-    Metadata ("SC" ++ show code) severity message
+    Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
 
 shellcheckBash :: Dockerfile -> [RuleCheck]
 shellcheckBash = concatMap check
   where
-    check (InstructionPos (Run (Arguments args)) source linenumber) =
-        rmDup [RuleCheck m source linenumber False | m <- convert args]
+    check (InstructionPos (Run args) source linenumber) =
+        argumentsRule (applyRule source linenumber) args
     check _ = []
+    applyRule source linenumber args =
+        rmDup [RuleCheck m source linenumber False | m <- convert args]
     convert args = [commentMetadata c | c <- shellcheck $ unwords args]
     rmDup :: [RuleCheck] -> [RuleCheck]
     rmDup [] = []
@@ -173,19 +193,19 @@ allAliasedImages dockerfile =
   where
     extractAlias (l, f) = (l, fromAlias f)
 
-allImageNames :: Dockerfile -> [(Linenumber, String)]
+allImageNames :: Dockerfile -> [(Linenumber, Text.Text)]
 allImageNames dockerfile = [(l, fromName baseImage) | (l, baseImage) <- allFromImages dockerfile]
 
 -- | Returns a list of all image aliases in FROM instructions that
 --  are defined before the given line number.
-previouslyDefinedAliases :: Linenumber -> Dockerfile -> [String]
+previouslyDefinedAliases :: Linenumber -> Dockerfile -> [Text.Text]
 previouslyDefinedAliases line dockerfile =
     [i | (l, ImageAlias i) <- allAliasedImages dockerfile, l < line]
 
 -- | Returns the result of running the check function on the image alias
 --   name, if the passed instruction is a FROM instruction with a stage alias.
 --   Otherwise, returns True.
-aliasMustBe :: (String -> Bool) -> Instruction -> Bool
+aliasMustBe :: (Text.Text -> Bool) -> Instruction a -> Bool
 aliasMustBe predicate fromInstr =
     case fromInstr of
         From (UntaggedImage _ (Just (ImageAlias alias))) -> predicate alias
@@ -193,7 +213,7 @@ aliasMustBe predicate fromInstr =
         From (DigestedImage _ _ (Just (ImageAlias alias))) -> predicate alias
         _ -> True
 
-fromName :: BaseImage -> String
+fromName :: BaseImage -> Text.Text
 fromName (UntaggedImage Image {imageName} _) = imageName
 fromName (TaggedImage Image {imageName} _ _) = imageName
 fromName (DigestedImage Image {imageName} _ _) = imageName
@@ -209,9 +229,10 @@ absoluteWorkdir = instructionRule code severity message check
     code = "DL3000"
     severity = ErrorC
     message = "Use absolute WORKDIR"
-    check (Workdir ('$':_)) = True
-    check (Workdir ('/':_)) = True
-    check (Workdir _) = False
+    check (Workdir loc)
+        | "$" `Text.isPrefixOf` loc = True
+        | "/" `Text.isPrefixOf` loc = True
+        | otherwise = False
     check _ = True
 
 hasNoMaintainer :: Rule
@@ -257,7 +278,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     code = "DL4001"
     severity = WarningC
     message = "Either use Wget or Curl but not both"
-    check state _ (Run (Arguments args)) = detectDoubleUsage state args
+    check state _ (Run args) = argumentsRule (detectDoubleUsage state) args
     check state _ _ = withState state True
     detectDoubleUsage state args =
         let newArgs = extractCommands args
@@ -273,8 +294,10 @@ invalidCmd = instructionRule code severity message check
     message =
         "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
         \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-    check (Run (Arguments (arg:_))) = arg `notElem` invalidCmds
+    check (Run args) = argumentsRule applyRule args
     check _ = True
+    applyRule (arg:_) = arg `notElem` invalidCmds
+    applyRule _ = True
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
 noRootUser :: Rule
@@ -284,7 +307,9 @@ noRootUser = instructionRule code severity message check
     severity = WarningC
     message = "Do not switch to root USER"
     check (User user) =
-        not (isPrefixOf "root:" user || isPrefixOf "0:" user || user == "root" || user == "0")
+        not
+            (Text.isPrefixOf "root:" user ||
+             Text.isPrefixOf "0:" user || user == "root" || user == "0")
     check _ = True
 
 noCd :: Rule
@@ -293,7 +318,7 @@ noCd = instructionRule code severity message check
     code = "DL3003"
     severity = WarningC
     message = "Use WORKDIR to switch to a directory"
-    check (Run (Arguments args)) = not $ usingProgram "cd" args
+    check (Run args) = argumentsRule (not . usingProgram "cd") args
     check _ = True
 
 noSudo :: Rule
@@ -304,7 +329,7 @@ noSudo = instructionRule code severity message check
     message =
         "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce \
         \root"
-    check (Run (Arguments args)) = not $ usingProgram "sudo" args
+    check (Run args) = argumentsRule (not . usingProgram "sudo") args
     check _ = True
 
 noAptGetUpgrade :: Rule
@@ -313,7 +338,7 @@ noAptGetUpgrade = instructionRule code severity message check
     code = "DL3005"
     severity = ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
-    check (Run (Arguments args)) = not $ isInfixOf ["apt-get", "upgrade"] args
+    check (Run args) = argumentsRule (not . isInfixOf ["apt-get", "upgrade"]) args
     check _ = True
 
 noUntagged :: Rule
@@ -346,7 +371,7 @@ aptGetVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
         \install <package>=<version>`"
-    check (Run (Arguments args)) = and [versionFixed p | p <- aptGetPackages args]
+    check (Run args) = argumentsRule (\as -> and [versionFixed p | p <- aptGetPackages as]) args
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
@@ -372,10 +397,12 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
     --   We only care for users to delete the lists folder if the FROM clase we're is is the last one
     --   or if it is used as the base image for another FROM clause.
     check _ line f@(From _) = withState (Just (line, f)) True -- Remember the last FROM instruction found
-    check st@(Just (line, From baseimage)) _ (Run (Arguments args))
-        | not (hasUpdate args) || not (imageIsUsed line baseimage) = withState st True
-        | otherwise = withState st (hasCleanup args)
+    check st@(Just (line, From baseimage)) _ (Run args) =
+        withState st (argumentsRule (applyRule line baseimage) args)
     check st _ _ = withState st True
+    applyRule line baseimage args
+        | not (hasUpdate args) || not (imageIsUsed line baseimage) = True
+        | otherwise = hasCleanup args
     hasCleanup cmd = ["rm", "-rf", "/var/lib/apt/lists/*"] `isInfixOf` cmd
     hasUpdate cmd = ["apt-get", "update"] `isInfixOf` cmd
     imageIsUsed line baseimage = isLastImage line baseimage || imageIsUsedLater line baseimage
@@ -401,7 +428,7 @@ noApkUpgrade = instructionRule code severity message check
     code = "DL3017"
     severity = ErrorC
     message = "Do not use apk upgrade"
-    check (Run (Arguments args)) = not $ isInfixOf ["apk", "upgrade"] args
+    check (Run args) = argumentsRule (not . isInfixOf ["apk", "upgrade"]) args
     check _ = True
 
 isApkAdd :: [String] -> Bool
@@ -414,7 +441,7 @@ apkAddVersionPinned = instructionRule code severity message check
     severity = WarningC
     message =
         "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
-    check (Run (Arguments args)) = and [versionFixed p | p <- apkAddPackages args]
+    check (Run args) = argumentsRule (\as -> and [versionFixed p | p <- apkAddPackages as]) args
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
@@ -437,7 +464,7 @@ apkAddNoCache = instructionRule code severity message check
     message =
         "Use the `--no-cache` switch to avoid the need to use `--update` and remove \
         \`/var/cache/apk/*` when done installing packages"
-    check (Run (Arguments args)) = not (isApkAdd args) || hasNoCacheOption args
+    check (Run args) = argumentsRule (\as -> not (isApkAdd as) || hasNoCacheOption as) args
     check _ = True
     hasNoCacheOption cmd = ["--no-cache"] `isInfixOf` cmd
 
@@ -449,7 +476,7 @@ useAdd = instructionRule code severity message check
     message = "Use ADD for extracting archives into an image"
     check (Copy (CopyArgs srcs _ _ _)) =
         and
-            [ not (format `isSuffixOf` src)
+            [ not (format `Text.isSuffixOf` src)
             | SourcePath src <- toList srcs
             , format <- archiveFormats
             ]
@@ -475,7 +502,8 @@ pipVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
-    check (Run (Arguments args)) = not (isPipInstall args) || all versionFixed (packages args)
+    check (Run args) =
+        argumentsRule (\as -> not (isPipInstall as) || all versionFixed (packages as)) args
     check _ = True
     isPipInstall :: [String] -> Bool
     isPipInstall cmd =
@@ -533,7 +561,7 @@ npmVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in npm. Instead of `npm install <package>` use `npm install \
         \<package>@<version>`"
-    check (Run (Arguments args)) = all versionFixed (packages args)
+    check (Run args) = argumentsRule (all versionFixed . packages) args
     check _ = True
     packages cmd =
         case getInstallArgs cmd of
@@ -563,7 +591,7 @@ aptGetYes = instructionRule code severity message check
     code = "DL3014"
     severity = WarningC
     message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-    check (Run (Arguments args)) = not (isAptGetInstall args) || hasYesOption args
+    check (Run args) = argumentsRule (\as -> not (isAptGetInstall as) || hasYesOption as) args
     check _ = True
     hasYesOption cmd =
         ["-y"] `isInfixOf` cmd ||
@@ -576,14 +604,15 @@ aptGetNoRecommends = instructionRule code severity message check
     code = "DL3015"
     severity = InfoC
     message = "Avoid additional packages by specifying `--no-install-recommends`"
-    check (Run (Arguments args)) = not (isAptGetInstall args) || hasNoRecommendsOption args
+    check (Run args) =
+        argumentsRule (\as -> not (isAptGetInstall as) || hasNoRecommendsOption as) args
     check _ = True
     hasNoRecommendsOption cmd = ["--no-install-recommends"] `isInfixOf` cmd
 
-isArchive :: String -> Bool
+isArchive :: Text.Text -> Bool
 isArchive path =
     True `elem`
-    [ ftype `isSuffixOf` path
+    [ ftype `Text.isSuffixOf` path
     | ftype <-
           [ ".tar"
           , ".gz"
@@ -603,8 +632,8 @@ isArchive path =
           ]
     ]
 
-isUrl :: String -> Bool
-isUrl path = True `elem` [proto `isPrefixOf` path | proto <- ["https://", "http://"]]
+isUrl :: Text.Text -> Bool
+isUrl path = True `elem` [proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]]
 
 copyInsteadAdd :: Rule
 copyInsteadAdd = instructionRule code severity message check
@@ -626,7 +655,7 @@ copyEndingSlash = instructionRule code severity message check
         | length sources > 1 = endsWithSlash t
         | otherwise = True
     check _ = True
-    endsWithSlash (TargetPath t) = last t == '/' -- it is safe to use last, as the target is never empty
+    endsWithSlash (TargetPath t) = Text.last t == '/' -- it is safe to use last, as the target is never empty
 
 copyFromExists :: Rule
 copyFromExists dockerfile = instructionRuleLine code severity message check dockerfile
@@ -666,6 +695,6 @@ useShell = instructionRule code severity message check
     code = "DL4005"
     severity = WarningC
     message = "Use SHELL to change the default shell"
-    check (Run (Arguments args)) = not $ any shellSymlink (bashCommands args)
+    check (Run args) = argumentsRule (not . any shellSymlink . bashCommands) args
     check _ = True
     shellSymlink args = usingProgram "ln" args && isInfixOf ["/bin/sh"] args

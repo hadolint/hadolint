@@ -23,15 +23,15 @@ import System.Directory
         getXdgDirectory)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
-import Text.Parsec (ParseError)
 
+import Data.Text (Text)
 import qualified Hadolint.Formatter.Checkstyle as Checkstyle
 import qualified Hadolint.Formatter.Codeclimate as Codeclimate
 import Hadolint.Formatter.Format (toResult)
 import qualified Hadolint.Formatter.Json as Json
 import qualified Hadolint.Formatter.TTY as TTY
 
-type IgnoreRule = String
+type IgnoreRule = Text
 
 data OutputFormat
     = Json
@@ -144,15 +144,6 @@ parseFilename :: String -> String
 parseFilename "-" = "/dev/stdin"
 parseFilename s = s
 
-lintDockerfile :: [IgnoreRule] -> String -> IO (Either ParseError [RuleCheck])
-lintDockerfile ignoreRules dockerFile = do
-    ast <- parseFile $ parseFilename dockerFile
-    return (processedFile ast)
-  where
-    processedFile = fmap processRules
-    processRules fileLines = filter ignoredRules (analyzeAll fileLines)
-    ignoredRules = ignoreFilter ignoreRules
-
 getVersion :: String
 getVersion
     | $(gitDescribe) == "UNKNOWN" =
@@ -179,6 +170,13 @@ lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format} = do
             Json -> Json.printResult res
             Checkstyle -> Checkstyle.printResult res
             CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
+    lintDockerfile ignoreRules dockerFile = do
+        ast <- parseFile $ parseFilename dockerFile
+        return (processedFile ast)
+      where
+        processedFile = fmap processRules
+        processRules fileLines = filter ignoredRules (analyzeAll fileLines)
+        ignoredRules = ignoreFilter ignoreRules
 
 analyzeAll :: Dockerfile -> [RuleCheck]
 analyzeAll = analyze rules

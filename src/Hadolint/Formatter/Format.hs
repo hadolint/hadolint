@@ -1,6 +1,5 @@
 module Hadolint.Formatter.Format
-    ( formatErrorReason
-    , severityText
+    ( severityText
     , stripNewlines
     , Result(..)
     , toResult
@@ -12,22 +11,21 @@ import Data.Semigroup
 import Data.Sequence (Seq, fromList, singleton)
 import Hadolint.Rules
 import ShellCheck.Interface
-import Text.Parsec.Error
-       (ParseError, errorMessages, showErrorMessages)
+import Text.Megaparsec.Error (ParseError)
 
-data Result = Result
-    { errors :: Seq ParseError
+data Result t e = Result
+    { errors :: Seq (ParseError t e)
     , checks :: Seq RuleCheck
     } deriving (Eq)
 
-instance Semigroup Result where
+instance Semigroup (Result t e) where
     (Result e1 c1) <> (Result e2 c2) = Result (e1 <> e2) (c1 <> c2)
 
-instance Monoid Result where
+instance Monoid (Result t e) where
     mappend = (<>)
     mempty = Result mempty mempty
 
-toResult :: Either ParseError [RuleCheck] -> Result
+toResult :: Either (ParseError t e) [RuleCheck] -> Result t e
 toResult res =
     case res of
         Left err -> Result (singleton err) mempty
@@ -40,16 +38,6 @@ severityText s =
         WarningC -> "warning"
         InfoC -> "info"
         StyleC -> "style"
-
-formatErrorReason :: ParseError -> String
-formatErrorReason err =
-    showErrorMessages
-        "or"
-        "unknown parse error"
-        "expecting"
-        "unexpected"
-        "end of input"
-        (errorMessages err)
 
 stripNewlines :: String -> String
 stripNewlines =

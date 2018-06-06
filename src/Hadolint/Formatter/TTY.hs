@@ -1,36 +1,43 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hadolint.Formatter.TTY
     ( printResult
     , formatError
     ) where
 
+import qualified Data.List.NonEmpty as NE
+import Data.Semigroup ((<>))
+import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules
 import Language.Docker.Syntax
-import Text.Parsec.Error (ParseError, errorPos)
-import Text.Parsec.Pos
+import Text.Megaparsec.Error
+       (ParseError, ShowErrorComponent, ShowToken, errorPos,
+        parseErrorTextPretty)
+import Text.Megaparsec.Pos (sourcePosPretty)
 
-formatErrors :: Functor t => t ParseError -> t String
+formatErrors ::
+       (ShowToken t, Ord t, ShowErrorComponent e, Functor f) => f (ParseError t e) -> f String
 formatErrors = fmap formatError
 
-formatError :: ParseError -> String
-formatError err = posPart ++ stripNewlines (formatErrorReason err)
+formatError :: (ShowToken t, Ord t, ShowErrorComponent e) => ParseError t e -> String
+formatError err = posPart ++ " " ++ stripNewlines (parseErrorTextPretty err)
   where
-    pos = errorPos err
-    posPart = sourceName pos ++ ":" ++ show (sourceLine pos) ++ ":" ++ show (sourceColumn pos)
+    pos = NE.head (errorPos err)
+    posPart = sourcePosPretty pos
 
-formatChecks :: Functor t => t RuleCheck -> t String
+formatChecks :: Functor f => f RuleCheck -> f Text.Text
 formatChecks = fmap formatCheck
   where
     formatCheck (RuleCheck meta source line _) =
-        formatPos source line ++ code meta ++ " " ++ message meta
+        formatPos source line <> code meta <> " " <> message meta
 
-formatPos :: Filename -> Linenumber -> String
-formatPos source line = source ++ ":" ++ show line ++ " "
+formatPos :: Filename -> Linenumber -> Text.Text
+formatPos source line = source <> ":" <> Text.pack (show line) <> " "
 
-printResult :: Result -> IO ()
+printResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> IO ()
 printResult Result {errors, checks} = printErrors >> printChecks
   where
     printErrors = mapM_ putStrLn (formatErrors errors)
-    printChecks = mapM_ putStrLn (formatChecks checks)
+    printChecks = mapM_ (putStrLn . Text.unpack) (formatChecks checks)
