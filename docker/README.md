@@ -1,10 +1,10 @@
-[![Docker Pulls](https://img.shields.io/docker/pulls/hadolint/hadolint.svg)]() [![Docker Automated buil](https://img.shields.io/docker/automated/hadolint/hadolint.svg)]() [![Docker Build Status](https://img.shields.io/docker/build/hadolint/hadolint.svg)]()
+[![Docker Pulls](https://img.shields.io/docker/pulls/hadolint/hadolint.svg)]() [![Docker Automated Build](https://img.shields.io/docker/automated/hadolint/hadolint.svg)]() [![Docker Build Status](https://img.shields.io/docker/build/hadolint/hadolint.svg)]()
 
 # Hadolint Docker
 
 This is Docker image for the [hadolint](https://github.com/hadolint/hadolint).
 
-Images are based on [Debian](https://hub.docker.com/_/debian/) and include only `hadolint` static binary.
+Images include only `hadolint` static binary.
 
 ## Supported tags
 
