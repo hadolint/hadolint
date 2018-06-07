@@ -1,6 +1,12 @@
 #!/bin/bash
 
-echo "=> Building the container"
+echo "=> Building main container"
 docker build \
   --tag $IMAGE_NAME \
   --file Dockerfile ..
+
+echo "=> Building debian container"
+docker build \
+    --build-arg image_name $IMAGE_NAME \
+    --tag ${IMAGE_NAME/:/:debian-slim}
+    --file Dockerfile-debian-slim ..
