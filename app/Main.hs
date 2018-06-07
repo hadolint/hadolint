@@ -5,8 +5,8 @@
 module Main where
 
 import Hadolint.Rules
-import Language.Docker.Parser
-import Language.Docker.Syntax
+import Language.Docker (parseFile)
+import Language.Docker.Syntax (Dockerfile)
 
 import Control.Applicative
 import Control.Monad (filterM)
