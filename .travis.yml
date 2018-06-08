@@ -128,12 +128,12 @@ before_install:
     fi
 
 install:
-  - LC_ALL= travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
-  - LC_ALL= stack --no-terminal $ARGS install --ghc-options='-fPIC'
+  - travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
+  - stack --no-terminal $ARGS install --ghc-options='-fPIC'
 
 script:
-  - LC_ALL= stack --no-terminal $ARGS test
-  - LC_ALL= hadolint docker/Dockerfile
+  - stack --no-terminal $ARGS test
+  - hadolint docker/Dockerfile
 
 after_success:
   - mkdir -p ./releases/
