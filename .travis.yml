@@ -17,9 +17,9 @@ matrix:
   include:
     # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
     # variable, such as using --stack-yaml to point to a different file.
-    - env: &lts-latest ARGS="--resolver lts" LC_ALL=
+    - env: &lts-latest ARGS="--resolver lts"
 
-    - env: &lts-fixed ARGS="--resolver lts-11.12" LC_ALL=
+    - env: &lts-fixed ARGS="--resolver lts-11.12"
       addons:
         artifacts: {paths: [./releases]}
       before_deploy:
@@ -41,7 +41,7 @@ matrix:
           tags: true
 
     # Nightly builds are allowed to fail
-    - env: &nightly ARGS="--resolver nightly" LC_ALL=
+    - env: &nightly ARGS="--resolver nightly"
 
     # Build on OS X in addition to Linux
     - env: *lts-latest
@@ -125,12 +125,12 @@ before_install:
     fi
 
 install:
-  - travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
-  - stack --no-terminal $ARGS install --ghc-options='-fPIC'
+  - LC_ALL= travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
+  - LC_ALL= stack --no-terminal $ARGS install --ghc-options='-fPIC'
 
 script:
-  - stack --no-terminal $ARGS test
-  - hadolint docker/Dockerfile
+  - LC_ALL= stack --no-terminal $ARGS test
+  - LC_ALL= hadolint docker/Dockerfile
 
 after_success:
   - mkdir -p ./releases/
