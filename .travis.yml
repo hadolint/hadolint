@@ -17,9 +17,9 @@ matrix:
   include:
     # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
     # variable, such as using --stack-yaml to point to a different file.
-    - env: ARGS="--resolver lts"
+    - env: &lts-latest ARGS="--resolver lts" LC_ALL=
 
-    - env: &lts-fixed ARGS="--resolver lts-11.12"
+    - env: &lts-fixed ARGS="--resolver lts-11.12" LC_ALL=
       addons:
         artifacts: {paths: [./releases]}
       before_deploy:
@@ -41,10 +41,10 @@ matrix:
           tags: true
 
     # Nightly builds are allowed to fail
-    - env: ARGS="--resolver nightly"
+    - env: &nightly ARGS="--resolver nightly" LC_ALL=
 
     # Build on OS X in addition to Linux
-    - env: ARGS="--resolver lts"
+    - env: *lts-latest
       os: osx
 
     - env: *lts-fixed
@@ -61,7 +61,7 @@ matrix:
         <<: *release_deploy
       os: osx
 
-    - env: ARGS="--resolver nightly"
+    - env: *nightly
       os: osx
 
     - env: Build_Docker_Image
@@ -108,7 +108,7 @@ matrix:
       after_success: true
 
   allow_failures:
-    - env: ARGS="--resolver nightly"
+    - env: *nightly
 
 before_install:
   - export BINARY_NAME="hadolint-$(uname -s)-$(uname -m)"
