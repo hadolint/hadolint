@@ -39,6 +39,7 @@ library:
     - bytestring
     - containers
     - void
+    - mtl
 executables:
   hadolint:
     main: Main.hs

@@ -94,7 +94,7 @@ main =
                         , "RUN hey!"
                         ]
                 in ruleCatches aptGetCleanup $ Text.unlines dockerFile
-            it "now warn apt-get cleanup in intermediate stage that cleans lists" $
+            it "no warn apt-get cleanup in intermediate stage that cleans lists" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
                         , "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/*"
