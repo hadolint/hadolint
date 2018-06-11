@@ -359,8 +359,9 @@ main =
                     "RUN npm install git://github.com/npm/npm.git#v1.0.27"
 
       --version range is not supported
-      --it "version pinned with scope" $
-      --  ruleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0 <0.2.0\""
+            it "version pinned with scope" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0 <0.2.0\""
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install @myorg/privatepackage@\">=0.1.0 <0.2.0\""
             it "version not pinned" $ do
                 ruleCatches npmVersionPinned "RUN npm install express"
                 onBuildRuleCatches npmVersionPinned "RUN npm install express"
