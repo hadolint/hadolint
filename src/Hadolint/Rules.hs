@@ -63,8 +63,14 @@ mapInstructions metadata f initialState dockerfile =
     let (_, results) = mapAccumL applyRule initialState dockerfile
     in results
   where
+    applyRule state (InstructionPos (OnBuild i) source linenumber) =
+        applyWithState state source linenumber i -- All rules applying to instructions also apply to ONBUILD,
+                                                 -- so we unwrap the OnBuild constructor and check directly the inner
+                                                 -- instruction
     applyRule state (InstructionPos i source linenumber) =
-        let (newState, res) = f state linenumber i
+        applyWithState state source linenumber i -- Otherwise, normal instructions are not unwrapped
+    applyWithState state source linenumber instruction =
+        let (newState, res) = f state linenumber instruction
         in (newState, RuleCheck metadata source linenumber res)
 
 instructionRule ::
