@@ -198,6 +198,10 @@ main =
                 ruleCatches pipVersionPinned "RUN pip install MySQL_python"
             it "pip version pinned" $
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2"
+            it "pip version pinned with ~= operator" $
+                ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python~=1.2.2"
+            it "pip version pinned with === operator" $
+                ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python===1.2.2"
             it "pip version pinned with flag" $
                 ruleCatchesNot pipVersionPinned "RUN pip install --ignore-installed MySQL_python==1.2.2"
             it "pip version pinned with python -m" $

@@ -517,7 +517,7 @@ pipVersionPinned = instructionRule code severity message check
     packages cmd = stripInstallPrefix (Bash.getArgsNoFlags cmd)
     versionFixed package = hasVersionSymbol package || isVersionedGit package
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
-    versionSymbols = ["==", ">=", "<=", ">", "<", "!="]
+    versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
     hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
 
 stripInstallPrefix :: [String] -> [String]
