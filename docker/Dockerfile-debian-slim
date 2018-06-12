@@ -1,0 +1,10 @@
+ARG image_name
+FROM $image_name as builder
+FROM debian:stretch-slim
+
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y git=1:2.11.*
+
+COPY --from=builder /bin/hadolint /bin/hadolint
+
+CMD ["/bin/hadolint", "-"]

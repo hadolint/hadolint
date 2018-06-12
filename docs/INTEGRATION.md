@@ -37,6 +37,15 @@ lint_dockerfile:
     - docker run --rm -i hadolint/hadolint < Dockerfile
 ```
 
+Alternatively if you would rather run the hadolint image directly, there is a `debian-slim` variant available:
+```yaml
+lint_dockerfile:
+  stage: lint
+  image: hadolint/debian-slim-<version>
+  script:
+    - hadolint < Dockerfile
+```
+
 ## Editors
 
 Using hadolint in your terminal is not always the most convinient way, but it
