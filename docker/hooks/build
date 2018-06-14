@@ -2,7 +2,7 @@
 
 echo "=> Building container: 'scratch' (default)"
 docker build \
-  --tag $IMAGE_NAME-scratch \
+  --tag $IMAGE_NAME \
   --file scratch/Dockerfile ..
 
 echo "=> Building container: 'debian-slim"
