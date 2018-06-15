@@ -25,7 +25,8 @@ script:
 
 ## Gitlab CI
 
-For GitLab CI you need a basic shell in your docker image so you have to use the _debian-slim_ images of hadolint.
+For GitLab CI you need a basic shell in your docker image so you have to use
+the _debian-slim_ images of hadolint.
 Add the following job to your projects `.gitlab-ci.yml`:
 
 ```yaml
