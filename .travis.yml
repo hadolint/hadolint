@@ -88,7 +88,7 @@ matrix:
         - grep $(git describe --dirty) <<<
           $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
         - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:debian-distro hadolint --version)
+          $(docker run --rm -i hadolint:debian hadolint --version)
       after_success: true
 
     - env: Version_Check_and_Linting

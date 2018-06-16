@@ -54,7 +54,6 @@ docker pull hadolint/hadolint
 
 If you need a docker container with shell access, use the debian variant of the docker image:
 
-
 ```bash
 docker pull hadolint/hadolint:latest-debian
 ```
