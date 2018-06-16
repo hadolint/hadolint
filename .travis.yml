@@ -67,7 +67,7 @@ matrix:
     - env: *nightly
       os: osx
 
-    - env: Build_Scratch_Docker_Image
+    - env: Build_Docker_Image
       sudo: required
       services:
         - docker
@@ -76,37 +76,19 @@ matrix:
         # Build image
         - travis_wait 30 docker build
           --tag hadolint:$(git describe --tags --dirty)
-          --file docker/scratch/Dockerfile .
+          --file docker/Dockerfile .
+        - docker build --tag hadolint:debian --file docker/Dockerfile --target debian-distro .
       script:
         # List images
         - docker image ls
         # Lint its own Dockerfile
         - docker run --rm -i hadolint:$(git describe --tags --dirty) <
-          docker/scratch/Dockerfile
+          docker/Dockerfile
         # Check that version in hadolint in the same as its `git describe`
         - grep $(git describe --dirty) <<<
           $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
-      after_success: true
-
-    - env: Build_DebianSlim_Docker_Image
-      sudo: required
-      services:
-        - docker
-      before_install: true
-      install:
-        # Build image
-        - travis_wait 30 docker build
-          --tag hadolint:$(git describe --tags --dirty)-debian-slim
-          --file docker/debian-slim/Dockerfile .
-      script:
-        # List images
-        - docker image ls
-        # Lint its own Dockerfile
-        - docker run --rm -i hadolint:$(git describe --tags --dirty)-debian-slim <
-          docker/debian-slim/Dockerfile
-        # Check that version in hadolint in the same as its `git describe`
         - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:$(git describe --tags --dirty)-debian-slim hadolint --version)
+          $(docker run --rm -i hadolint:debian-distro hadolint --version)
       after_success: true
 
     - env: Version_Check_and_Linting
@@ -154,8 +136,7 @@ install:
 
 script:
   - stack --no-terminal $ARGS test
-  - hadolint docker/scratch/Dockerfile
-  - hadolint docker/debian-slim/Dockerfile
+  - hadolint docker/Dockerfile
 
 after_success:
   - mkdir -p ./releases/

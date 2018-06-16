@@ -6,8 +6,8 @@ git fetch --unshallow origin || true
 echo "=> Tag image: 'scratch' (default)"
 docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
 
-echo "=> Tag image: 'debian-slim'"
-docker tag "${IMAGE_NAME}-debian-slim" "${DOCKER_REPO}:$(git describe --long --always)-debian-slim"
+echo "=> Tag image: 'debian'"
+docker tag "${DOCKER_REPO}:$CACHE_TAG-debian" "${DOCKER_REPO}:$(git describe --long --always)-debian"
 
 echo "=> Push images"
 docker push "${DOCKER_REPO}"

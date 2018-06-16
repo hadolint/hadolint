@@ -46,6 +46,19 @@ If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
 brew install hadolint
 ```
 
+As shwon before, hadolint ia available as a docker container:
+
+```bash
+docker pull hadolint/hadolint
+```
+
+If you need a docker container with shell access, use the debian variant of the docker image:
+
+
+```bash
+docker pull hadolint/hadolint:latest-debian
+```
+
 You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
 build tool to build the binary.
 
