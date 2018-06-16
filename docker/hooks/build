@@ -1,6 +1,11 @@
 #!/bin/bash
 
-echo "=> Building the container"
+echo "=> Building container: 'scratch' (default)"
 docker build \
   --tag $IMAGE_NAME \
-  --file Dockerfile ..
+  --file scratch/Dockerfile ..
+
+echo "=> Building container: 'debian-slim'"
+docker build \
+  --tag $IMAGE_NAME-debian-slim \
+  --file debian-slim/Dockerfile ..

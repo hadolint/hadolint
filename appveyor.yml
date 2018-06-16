@@ -19,7 +19,8 @@ build_script:
 
 test_script:
   - stack test
-  - hadolint.exe docker\Dockerfile
+  - hadolint.exe docker\scratch\Dockerfile
+  - hadolint.exe docker\debian-slim\Dockerfile
 
 after_test:
   - rename hadolint.exe hadolint-Windows-x86_64.exe

@@ -3,8 +3,11 @@
 echo "=> Fetch unshallow origin"
 git fetch --unshallow origin || true
 
-echo "=> Tag the image"
+echo "=> Tag image: 'scratch' (default)"
 docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
 
-echo "=> Push the image"
+echo "=> Tag image: 'debian-slim'"
+docker tag "${IMAGE_NAME}-debian-slim" "${DOCKER_REPO}:$(git describe --long --always)-debian-slim"
+
+echo "=> Push images"
 docker push "${DOCKER_REPO}"

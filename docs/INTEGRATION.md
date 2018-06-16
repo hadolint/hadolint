@@ -25,16 +25,16 @@ script:
 
 ## Gitlab CI
 
+For GitLab CI you need a basic shell in your docker image so you have to use
+the _debian-slim_ images of hadolint.
 Add the following job to your projects `.gitlab-ci.yml`:
 
 ```yaml
 lint_dockerfile:
   stage: lint
-  image: docker:latest
-  services:
-    - docker:dind
+  image: hadolint/hadolint:debian-slim
   script:
-    - docker run --rm -i hadolint/hadolint < Dockerfile
+    - hadolint Dockerfile
 ```
 
 ## Editors
