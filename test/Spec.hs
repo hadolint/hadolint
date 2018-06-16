@@ -466,11 +466,69 @@ main =
             it "has maintainer first" $ ruleCatches hasNoMaintainer "MAINTAINER Lukas\nFROM DEBIAN"
             it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
             it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
-            it "many cmds" $ ruleCatches multipleCmds "CMD /bin/true\nCMD /bin/true"
+
+            it "many cmds" $
+                let dockerFile =
+                        [ "FROM debian"
+                        , "CMD bash"
+                        , "RUN foo"
+                        , "CMD another"
+                        ]
+                in ruleCatches multipleCmds $ Text.unlines dockerFile
+
+            it "single cmds, different stages" $
+                let dockerFile =
+                        [ "FROM debian as distro1"
+                        , "CMD bash"
+                        , "RUN foo"
+                        , "FROM debian as distro2"
+                        , "CMD another"
+                        ]
+                in ruleCatchesNot multipleCmds $ Text.unlines dockerFile
+
+            it "many cmds, different stages" $
+                let dockerFile =
+                        [ "FROM debian as distro1"
+                        , "CMD bash"
+                        , "RUN foo"
+                        , "CMD another"
+                        , "FROM debian as distro2"
+                        , "CMD another"
+                        ]
+                in ruleCatches multipleCmds $ Text.unlines dockerFile
+
             it "single cmd" $ ruleCatchesNot multipleCmds "CMD /bin/true"
             it "no cmd" $ ruleCatchesNot multipleEntrypoints "FROM busybox"
-            it "many entries" $
-                ruleCatches multipleEntrypoints "ENTRYPOINT /bin/true\nENTRYPOINT /bin/true"
+
+            it "many entrypoints" $
+                let dockerFile =
+                        [ "FROM debian"
+                        , "ENTRYPOINT bash"
+                        , "RUN foo"
+                        , "ENTRYPOINT another"
+                        ]
+                in ruleCatches multipleEntrypoints $ Text.unlines dockerFile
+
+            it "single entrypoint, different stages" $
+                let dockerFile =
+                        [ "FROM debian as distro1"
+                        , "ENTRYPOINT bash"
+                        , "RUN foo"
+                        , "FROM debian as distro2"
+                        , "ENTRYPOINT another"
+                        ]
+                in ruleCatchesNot multipleEntrypoints $ Text.unlines dockerFile
+
+            it "many entrypoints, different stages" $
+                let dockerFile =
+                        [ "FROM debian as distro1"
+                        , "ENTRYPOINT bash"
+                        , "RUN foo"
+                        , "ENTRYPOINT another"
+                        , "FROM debian as distro2"
+                        , "ENTRYPOINT another"
+                        ]
+                in ruleCatches multipleEntrypoints $ Text.unlines dockerFile
             it "single entry" $ ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
             it "no entry" $ ruleCatchesNot multipleEntrypoints "FROM busybox"
             it "workdir variable" $ ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"

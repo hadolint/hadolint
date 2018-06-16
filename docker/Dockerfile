@@ -26,6 +26,10 @@ RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_
   | tar -x --xz --strip-components 1 upx-3.94-amd64_linux/upx \
   && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
-FROM debian:stable-slim AS distro
+FROM debian:stable-slim AS debian-distro
+COPY --from=builder /root/.local/bin/hadolint /bin/
+CMD ["/bin/hadolint", "-"]
+
+FROM scratch AS distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
