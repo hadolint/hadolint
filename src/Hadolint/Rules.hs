@@ -259,27 +259,28 @@ usingProgram :: String -> Bash.ParsedBash -> Bool
 usingProgram prog args = not $ null [cmd | cmd <- Bash.findCommandNames args, cmd == prog]
 
 multipleCmds :: Rule
-multipleCmds = instructionRuleState code severity message check Nothing
+multipleCmds = instructionRuleState code severity message check False
   where
     code = "DL4003"
     severity = WarningC
     message =
         "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last \
         \`CMD` will take effect"
-    check Nothing line (Cmd _) = withState (Just line) True -- Remember the first CMD found
-    check (Just l) _ (Cmd _) = withState (Just l) False -- Fail the rule, CMD is duplicated
+    check _ _ From {} = withState False True -- Reset the state each time we find a FROM
+    check st _ Cmd {} = withState True (not st) -- Remember we found a CMD, fail if we found a CMD before
     check st _ _ = withState st True
 
 multipleEntrypoints :: Rule
-multipleEntrypoints = instructionRuleState code severity message check Nothing
+multipleEntrypoints = instructionRuleState code severity message check False
   where
     code = "DL4004"
     severity = ErrorC
     message =
         "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then \
         \only the last `ENTRYPOINT` will take effect"
-    check Nothing line (Entrypoint _) = withState (Just line) True -- Remember the first ENTRYPOINT found
-    check (Just l) _ (Entrypoint _) = withState (Just l) False -- Fail the rule, ENTRYPOINT is duplicated
+    check _ _ From {} = withState False True -- Reset the state each time we find a FROM
+    check st _ Entrypoint {} = withState True (not st) -- Remember we found an ENTRYPOINT
+                                                       -- and fail if we found another one before
     check st _ _ = withState st True
 
 wgetOrCurl :: Rule
