@@ -6,6 +6,6 @@ docker build \
   --file Dockerfile ..
 
 docker build \
-  --tag "$DOCKER_REPO":"$CACHE_TAG"-debian \
+  --tag "${IMAGE_NAME}-debian" \
   --file Dockerfile .. \
   --target debian-distro
