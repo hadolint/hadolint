@@ -6,6 +6,7 @@ module Hadolint.Rules where
 import Control.Arrow ((&&&))
 import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL)
 import Data.List.NonEmpty (toList)
+import Data.Maybe (catMaybes)
 import qualified Hadolint.Bash as Bash
 import Language.Docker.Syntax
 
@@ -312,16 +313,35 @@ invalidCmd = instructionRule code severity message check
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
 noRootUser :: Rule
-noRootUser = instructionRule code severity message check
+noRootUser dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL3002"
     severity = WarningC
-    message = "Do not switch to root USER"
-    check (User user) =
-        not
-            (Text.isPrefixOf "root:" user ||
-             Text.isPrefixOf "0:" user || user == "root" || user == "0")
-    check _ = True
+    message = "Last USER should not be root"
+    check _ _ (From from) = withState (Just from) True -- Remember the last FROM instruction found
+    check st@(Just _) line (User user)
+        | isRoot user && lastUserIsRoot line = withState st False
+        | otherwise = withState st True
+    check st _ _ = withState st True
+    --
+    --
+    lastUserIsRoot line = (line, True) `elem` rootStages
+    --
+    --
+    rootStages :: [(Linenumber, Bool)]
+    rootStages =
+        let (_, userTuples) =
+                mapAccumL buildMap Nothing (map (instruction &&& lineNumber) dockerfile)
+        in catMaybes userTuples
+    --
+    --
+    buildMap _ (From from, _) = withState (Just from) Nothing
+    buildMap st@(Just _) (User user, line) = withState st (Just (line, isRoot user))
+    buildMap st _ = withState st Nothing
+    --
+    --
+    isRoot user =
+        Text.isPrefixOf "root:" user || Text.isPrefixOf "0:" user || user == "root" || user == "0"
 
 noCd :: Rule
 noCd = instructionRule code severity message check

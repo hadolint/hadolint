@@ -54,11 +54,83 @@ main =
             it "sudo" $ do
               ruleCatches noSudo "RUN sudo apt-get update"
               onBuildRuleCatches noSudo "RUN sudo apt-get update"
-            it "no root" $ ruleCatches noRootUser "USER root"
-            it "no root" $ ruleCatchesNot noRootUser "USER foo"
-            it "no root UID" $ ruleCatches noRootUser "USER 0"
-            it "no root:root" $ ruleCatches noRootUser "USER root:root"
-            it "no root UID:GID" $ ruleCatches noRootUser "USER 0:0"
+
+            it "last user should not be root" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER root"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "no root" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER foo"
+                        ]
+                in ruleCatchesNot noRootUser $ Text.unlines dockerFile
+
+            it "no root UID" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER 0"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "no root:root" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER root:root"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "no UID:GID" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER 0:0"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "can switch back to non root" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "USER root"
+                        , "RUN something"
+                        , "USER foo"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "warns on transitive root user" $
+                let dockerFile =
+                        [ "FROM debian as base"
+                        , "USER root"
+                        , "RUN something"
+                        , "FROM base"
+                        , "RUN something else"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "warns on multiple stages" $
+                let dockerFile =
+                        [ "FROM debian as base"
+                        , "USER root"
+                        , "RUN something"
+                        , "FROM scratch"
+                        , "USER foo"
+                        , "RUN something else"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
+            it "does not warn when switching in multiple stages" $
+                let dockerFile =
+                        [ "FROM debian as base"
+                        , "USER root"
+                        , "RUN something"
+                        , "USER foo"
+                        , "FROM scratch"
+                        , "RUN something else"
+                        ]
+                in ruleCatches noRootUser $ Text.unlines dockerFile
+
             it "install sudo" $ do
                 ruleCatchesNot noSudo "RUN apt-get install sudo"
                 onBuildRuleCatchesNot noSudo "RUN apt-get install sudo"
@@ -623,13 +695,15 @@ main =
                 in ruleCatchesNot noRootUser $ Text.unlines dockerFile
             it "ignores only the given rule" $
                 let dockerFile =
-                        [ "# hadolint ignore=DL3001"
+                        [ "FROM scratch"
+                        , "# hadolint ignore=DL3001"
                         , "USER root"
                         ]
                 in ruleCatches noRootUser $ Text.unlines dockerFile
             it "ignores only the given rule, when multiple passed" $
                 let dockerFile =
-                        [ "# hadolint ignore=DL3001,DL3002"
+                        [ "FROM scratch"
+                        , "# hadolint ignore=DL3001,DL3002"
                         , "USER root"
                         ]
                 in ruleCatchesNot noRootUser $ Text.unlines dockerFile
@@ -642,7 +716,8 @@ main =
                 in ruleCatches noRootUser $ Text.unlines dockerFile
             it "won't ignore the rule if passed invalid rule names" $
                 let dockerFile =
-                        [ "# hadolint ignore=crazy,DL3002"
+                        [ "FROM scratch"
+                        , "# hadolint ignore=crazy,DL3002"
                         , "USER root"
                         ]
                 in ruleCatches noRootUser $ Text.unlines dockerFile
