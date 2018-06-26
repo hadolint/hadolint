@@ -174,6 +174,7 @@ rules =
     , multipleCmds
     , multipleEntrypoints
     , useShell
+    , useJsonArgs
     ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -701,4 +702,14 @@ useShell = instructionRule code severity message check
     severity = WarningC
     message = "Use SHELL to change the default shell"
     check (Run args) = argumentsRule (Bash.noCommands (Bash.cmdHasArgs "ln" ["/bin/sh"])) args
+    check _ = True
+
+useJsonArgs :: Rule
+useJsonArgs = instructionRule code severity message check
+  where
+    code = "DL3025"
+    severity = WarningC
+    message = "Use argumens JSON notation for CMD and ENTRYPOINT arguments"
+    check (Cmd (ArgumentsText _ )) = False
+    check (Entrypoint (ArgumentsText _ )) = False
     check _ = True

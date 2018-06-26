@@ -730,6 +730,32 @@ main =
                 in do
                   ruleCatchesNot copyFromAnother $ Text.unlines dockerFile
                   ruleCatchesNot copyEndingSlash $ Text.unlines dockerFile
+        --
+        describe "JSON notation in ENTRYPOINT and CMD" $ do
+            it "warn on ENTRYPOINT" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "ENTRYPOINT something"
+                        ]
+                in ruleCatches useJsonArgs $ Text.unlines dockerFile
+            it "don't warn on ENTRYPOINT json notation" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "ENTRYPOINT [\"foo\", \"bar\"]"
+                        ]
+                in ruleCatchesNot useJsonArgs $ Text.unlines dockerFile
+            it "warn on CMD" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "CMD something"
+                        ]
+                in ruleCatches useJsonArgs $ Text.unlines dockerFile
+            it "don't warn on CMD json notation" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "CMD [\"foo\", \"bar\"]"
+                        ]
+                in ruleCatchesNot useJsonArgs $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
