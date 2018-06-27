@@ -757,6 +757,27 @@ main =
                         ]
                 in ruleCatchesNot useJsonArgs $ Text.unlines dockerFile
 
+        --
+        describe "Detects missing pipefail option" $ do
+            it "warn on missing pipefail" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        , "RUN wget -O - https://some.site | wc -l > /number"
+                        ]
+                in ruleCatches usePipefail $ Text.unlines dockerFile
+            it "don't warn on commands with no pipes" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "RUN wget -O - https://some.site && wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "don't warn on commands with pipes and the pipefail option" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "RUN set -o pipefail && wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
     case parseText (s <> "\n") of

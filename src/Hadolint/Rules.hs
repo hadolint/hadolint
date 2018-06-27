@@ -175,6 +175,7 @@ rules =
     , multipleEntrypoints
     , useShell
     , useJsonArgs
+    , usePipefail
     ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -710,6 +711,26 @@ useJsonArgs = instructionRule code severity message check
     code = "DL3025"
     severity = WarningC
     message = "Use argumens JSON notation for CMD and ENTRYPOINT arguments"
-    check (Cmd (ArgumentsText _ )) = False
-    check (Entrypoint (ArgumentsText _ )) = False
+    check (Cmd (ArgumentsText _)) = False
+    check (Entrypoint (ArgumentsText _)) = False
     check _ = True
+
+usePipefail :: Rule
+usePipefail = instructionRule code severity message check
+  where
+    code = "DL4006"
+    severity = WarningC
+    message = "Use set -o pipefail when piping the output of a command to another"
+    check (Run args) = argumentsRule detectMissingPipefail args
+    check _ = True
+    detectMissingPipefail script = not (Bash.hasPipes script) || hasPipefailOption script
+    hasPipefailOption script =
+        not $
+        null
+            [ True
+            | cmd <- Bash.findCommands script
+            , Bash.getCommandName cmd == Just "set"
+            , Bash.hasFlag "o" cmd
+            , arg <- Bash.getAllArgs cmd
+            , arg == "pipefail"
+            ]
