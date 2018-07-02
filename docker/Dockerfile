@@ -1,7 +1,8 @@
 FROM debian:stretch-slim AS builder
 
-RUN set -o pipefail \
- && apt-get update \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
  && apt-get install --no-install-recommends -y \
     build-essential=12.3 \
     libffi-dev=3.2.* \
@@ -23,8 +24,7 @@ RUN scripts/fetch_version.sh \
   && stack install --ghc-options="-fPIC"
 
 # COMPRESS WITH UPX
-RUN set -o pipefail \
- && curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
+RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
   | tar -x --xz --strip-components 1 upx-3.94-amd64_linux/upx \
   && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
