@@ -774,9 +774,38 @@ main =
             it "don't warn on commands with pipes and the pipefail option" $
                 let dockerFile =
                         [ "FROM scratch as build"
-                        , "RUN set -o pipefail && wget -O - https://some.site | wc -l file > /number"
+                        , "SHELL [\"/bin/bash\", \"-eo\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
                         ]
                 in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "don't warn on commands with pipes and the pipefail option 2" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "don't warn on commands with pipes and the pipefail option 3" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/bash\", \"-o\", \"errexit\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "don't warn on commands with pipes and the pipefail zsh" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/zsh\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "warns when using plain sh" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/sh\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatches usePipefail $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =

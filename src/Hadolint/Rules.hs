@@ -716,20 +716,22 @@ useJsonArgs = instructionRule code severity message check
     check _ = True
 
 usePipefail :: Rule
-usePipefail = instructionRule code severity message check
+usePipefail = instructionRuleState code severity message check False
   where
     code = "DL4006"
     severity = WarningC
-    message = "Use set -o pipefail when piping the output of a command to another"
-    check (Run args) = argumentsRule detectMissingPipefail args
-    check _ = True
-    detectMissingPipefail script = not (Bash.hasPipes script) || hasPipefailOption script
+    message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
+    check _ _ (Shell args) = (argumentsRule hasPipefailOption args, True)
+    check False _ (Run args) = (False, argumentsRule notHasPipes args)
+    check st _ _ = (st, True)
+    notHasPipes script = not (Bash.hasPipes script)
     hasPipefailOption script =
         not $
         null
             [ True
             | cmd <- Bash.findCommands script
-            , Bash.getCommandName cmd == Just "set"
+            , validShell <- ["/bin/bash", "/bin/zsh", "bash", "zsh"]
+            , Bash.getCommandName cmd == Just validShell
             , Bash.hasFlag "o" cmd
             , arg <- Bash.getAllArgs cmd
             , arg == "pipefail"
