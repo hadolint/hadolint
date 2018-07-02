@@ -710,7 +710,7 @@ useJsonArgs = instructionRule code severity message check
   where
     code = "DL3025"
     severity = WarningC
-    message = "Use argumens JSON notation for CMD and ENTRYPOINT arguments"
+    message = "Use arguments JSON notation for CMD and ENTRYPOINT arguments"
     check (Cmd (ArgumentsText _)) = False
     check (Entrypoint (ArgumentsText _)) = False
     check _ = True
