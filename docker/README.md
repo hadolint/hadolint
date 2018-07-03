@@ -4,13 +4,19 @@
 
 This is Docker image for the [hadolint](https://github.com/hadolint/hadolint).
 
-Images include only `hadolint` static binary.
+Default images include only `hadolint` static binary. All supported tags have also Debian based image alternative with `-debian` suffinx in tags.
 
 ## Supported tags
 
+`scratch` based tiny images:
 - `hadolint/hadolint:latest` tracks master branch
 - `hadolint/hadolint:VERSION` refers release version, eg. `v1.9.0`
 - `hadolint/hadolint:EXTENDED_VERSION` refers to the same version as `hadolint --version` with short git sha, eg. `v1.9.0-0-g4c4881a`
+
+`debian` based images:
+- `hadolint/hadolint:latest-debian` tracks master branch
+- `hadolint/hadolint:VERSION-debian` refers release version, eg. `v1.9.0-debian`
+- `hadolint/hadolint:EXTENDED_VERSION-debian` refers to the same version as `hadolint --version` with short git sha, eg. `v1.9.0-0-g4c4881a-debian`
 
 Check out [Docker Hub](https://hub.docker.com/r/hadolint/hadolint/tags/) for available tags.
 
