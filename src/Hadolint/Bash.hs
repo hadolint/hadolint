@@ -43,17 +43,31 @@ parseShell txt =
               }
     }
 
-findCommands :: ParsedBash -> [Token]
-findCommands (ParsedBash _ ast) =
+extractTokensWith :: (Token -> Maybe Token) -> ParsedBash -> [Token]
+extractTokensWith extractor (ParsedBash _ ast) =
     case prRoot ast of
         Nothing -> []
         Just script -> nub . execWriter $ ShellCheck.AST.doAnalysis extract script
   where
     extract :: Token -> Writer [Token] ()
-    extract t =
-        case ShellCheck.ASTLib.getCommand t of
-            Nothing -> return ()
-            Just cmd -> tell [cmd]
+    extract token =
+      case extractor token of
+        Nothing -> return ()
+        Just t -> tell [t]
+
+findPipes :: ParsedBash -> [Token]
+findPipes = extractTokensWith pipesExtractor
+  where
+    pipesExtractor pipe@T_Pipe{} = Just pipe
+    pipesExtractor _ = Nothing
+
+hasPipes :: ParsedBash -> Bool
+hasPipes = not . null . findPipes
+
+findCommands :: ParsedBash -> [Token]
+findCommands = extractTokensWith commandsExtractor
+  where
+    commandsExtractor = ShellCheck.ASTLib.getCommand
 
 allCommands :: (Token -> Bool) -> ParsedBash -> Bool
 allCommands check script = all check (findCommands script)

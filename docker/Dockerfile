@@ -1,5 +1,7 @@
 FROM debian:stretch-slim AS builder
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
     build-essential=12.3 \

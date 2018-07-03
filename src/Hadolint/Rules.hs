@@ -175,6 +175,7 @@ rules =
     , multipleEntrypoints
     , useShell
     , useJsonArgs
+    , usePipefail
     ]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
@@ -709,7 +710,30 @@ useJsonArgs = instructionRule code severity message check
   where
     code = "DL3025"
     severity = WarningC
-    message = "Use argumens JSON notation for CMD and ENTRYPOINT arguments"
-    check (Cmd (ArgumentsText _ )) = False
-    check (Entrypoint (ArgumentsText _ )) = False
+    message = "Use arguments JSON notation for CMD and ENTRYPOINT arguments"
+    check (Cmd (ArgumentsText _)) = False
+    check (Entrypoint (ArgumentsText _)) = False
     check _ = True
+
+usePipefail :: Rule
+usePipefail = instructionRuleState code severity message check False
+  where
+    code = "DL4006"
+    severity = WarningC
+    message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
+    check _ _ From {} = (False, True) -- Reset the state each time we find a new FROM
+    check _ _ (Shell args) = (argumentsRule hasPipefailOption args, True)
+    check False _ (Run args) = (False, argumentsRule notHasPipes args)
+    check st _ _ = (st, True)
+    notHasPipes script = not (Bash.hasPipes script)
+    hasPipefailOption script =
+        not $
+        null
+            [ True
+            | cmd <- Bash.findCommands script
+            , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"]
+            , Bash.getCommandName cmd == Just validShell
+            , Bash.hasFlag "o" cmd
+            , arg <- Bash.getAllArgs cmd
+            , arg == "pipefail"
+            ]
