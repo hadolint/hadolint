@@ -806,6 +806,24 @@ main =
                         , "RUN wget -O - https://some.site | wc -l file > /number"
                         ]
                 in ruleCatches usePipefail $ Text.unlines dockerFile
+            it "warn on missing pipefail in the next image" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        , "FROM scratch as build2"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatches usePipefail $ Text.unlines dockerFile
+            it "warn on missing pipefail if next SHELL is not using it" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        , "SHELL [\"/bin/sh\", \"-c\"]"
+                        , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatches usePipefail $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =

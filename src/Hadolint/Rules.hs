@@ -721,6 +721,7 @@ usePipefail = instructionRuleState code severity message check False
     code = "DL4006"
     severity = WarningC
     message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
+    check _ _ From {} = (False, True) -- Reset the state each time we find a new FROM
     check _ _ (Shell args) = (argumentsRule hasPipefailOption args, True)
     check False _ (Run args) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
@@ -730,7 +731,7 @@ usePipefail = instructionRuleState code severity message check False
         null
             [ True
             | cmd <- Bash.findCommands script
-            , validShell <- ["/bin/bash", "/bin/zsh", "bash", "zsh"]
+            , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"]
             , Bash.getCommandName cmd == Just validShell
             , Bash.hasFlag "o" cmd
             , arg <- Bash.getAllArgs cmd
