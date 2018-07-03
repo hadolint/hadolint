@@ -15,7 +15,7 @@ env:
   HADOLINT: "${HOME}/hadolint"
 install:
   # Download hadolint binary and set it as executable
-  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.5.0/hadolint-$(uname -s)-$(uname -m)"
+  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.9.0/hadolint-$(uname -s)-$(uname -m)"
     && chmod 700 ${HADOLINT}
 script:
   # List files which name starts with 'Dockerfile'
@@ -70,11 +70,11 @@ Hadolint is used in two plugins:
 
 -   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
     and Vim 8 while you edit your text files.
-    
+
 ### VS Code
 
-> Visual Studio Code is a lightweight but powerful source code editor which 
-> runs on your desktop and is available for Windows, macOS and Linux. 
+> Visual Studio Code is a lightweight but powerful source code editor which
+> runs on your desktop and is available for Windows, macOS and Linux.
 
 There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
 
