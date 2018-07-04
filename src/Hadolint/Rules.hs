@@ -737,3 +737,15 @@ usePipefail = instructionRuleState code severity message check False
             , arg <- Bash.getAllArgs cmd
             , arg == "pipefail"
             ]
+
+allowedRegistry :: Set.Set Registry -> Rule
+allowedRegistry allowed = instructionRule code severity message check
+  where
+    code = "DL3026"
+    severity = ErrorC
+    message = "Only use one of the allowed registries in the FROM image"
+    check (From (UntaggedImage img _)) = Set.null allowed || isAllowed img
+    check (From (TaggedImage img _ _)) = Set.null allowed || isAllowed img
+    check _ = True
+    isAllowed Image {registryName = Just registry} = Set.member registry allowed
+    isAllowed Image {registryName = Nothing, imageName} = imageName == "scratch" || Set.member "docker.io"  allowed || Set.member "hub.docker.com" allowed
