@@ -44,18 +44,20 @@ type IgnoreRuleParser = Megaparsec.Parsec Void Text.Text
 
 type ParsedFile = [InstructionPos Bash.ParsedBash]
 
--- | An instructions checker function that gets the current state and a line number.
--- It should return the new state and whether or not the check passed for the given instruction.
+-- | A funtion to check individual dockerfile instructions.
+-- It gets the current state and a line number.
+-- It should return the new state and whether or not the check passes for the given instruction.
 type SimpleCheckerWithState state
      = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, Bool)
 
--- | An instructions checker function that gets the line number.
--- It should whether or not the check passed for the given instruction.
+-- | A funtion to check individual dockerfile instructions.
+-- It gets the current line number.
+-- It should return True if the check passes for the given instruction.
 type SimpleCheckerWithLine = (Linenumber -> Instruction Bash.ParsedBash -> Bool)
 
--- | An instructions checker function that gets the current state and a line number.
--- It should return the new state and list Metadata record with the data explaining all the
--- reasons the instruction failed
+-- | A funtion to check individual dockerfile instructions.
+-- It should return the new state and a list of Metadata records.
+-- Each Metadata record signifies a failing check for the given instruction.
 type CheckerWithState state
      = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, [Metadata])
 
