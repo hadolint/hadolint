@@ -831,22 +831,22 @@ main =
                 let dockerFile =
                         [ "FROM random.com/debian"
                         ]
-                in ruleCatches (allowedRegistry ["docker.io"]) $ Text.unlines dockerFile
+                in ruleCatches (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
             it "don't warn on empty allowed registries" $
                 let dockerFile =
                         [ "FROM random.com/debian"
                         ]
-                in ruleCatchesNot (allowedRegistry []) $ Text.unlines dockerFile
+                in ruleCatchesNot (registryIsAllowed []) $ Text.unlines dockerFile
             it "don't warn on allowed registries" $
                 let dockerFile =
                         [ "FROM random.com/debian"
                         ]
-                in ruleCatchesNot (allowedRegistry ["x.com", "random.com"]) $ Text.unlines dockerFile
+                in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
             it "don't warn on scratch image" $
                 let dockerFile =
                         [ "FROM scratch"
                         ]
-                in ruleCatchesNot (allowedRegistry ["x.com", "random.com"]) $ Text.unlines dockerFile
+                in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =

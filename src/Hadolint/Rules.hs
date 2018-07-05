@@ -10,7 +10,7 @@ import Data.Maybe (catMaybes)
 import qualified Hadolint.Bash as Bash
 import Language.Docker.Syntax
 
-import Data.Semigroup ((<>))
+import Data.Semigroup (Semigroup, (<>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -37,8 +37,20 @@ data RuleCheck = RuleCheck
     , success :: Bool
     } deriving (Eq)
 
+-- | Contains the required parameters for optional rules
+newtype RulesConfig = RulesConfig
+    { allowedRegistries :: Set.Set Registry -- ^ The docker registries that are allowed in FROM
+    } deriving (Show, Eq)
+
 instance Ord RuleCheck where
     a `compare` b = linenumber a `compare` linenumber b
+
+instance Semigroup RulesConfig where
+    RulesConfig a <> RulesConfig b = RulesConfig (a <> b)
+
+instance Monoid RulesConfig where
+    mempty = RulesConfig mempty
+    mappend = (<>)
 
 type IgnoreRuleParser = Megaparsec.Parsec Void Text.Text
 
@@ -177,6 +189,9 @@ rules =
     , useJsonArgs
     , usePipefail
     ]
+
+optionalRules :: RulesConfig -> [Rule]
+optionalRules RulesConfig {allowedRegistries} = [registryIsAllowed allowedRegistries]
 
 commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) =
@@ -738,8 +753,8 @@ usePipefail = instructionRuleState code severity message check False
             , arg == "pipefail"
             ]
 
-allowedRegistry :: Set.Set Registry -> Rule
-allowedRegistry allowed = instructionRule code severity message check
+registryIsAllowed :: Set.Set Registry -> Rule
+registryIsAllowed allowed = instructionRule code severity message check
   where
     code = "DL3026"
     severity = ErrorC
@@ -748,4 +763,6 @@ allowedRegistry allowed = instructionRule code severity message check
     check (From (TaggedImage img _ _)) = Set.null allowed || isAllowed img
     check _ = True
     isAllowed Image {registryName = Just registry} = Set.member registry allowed
-    isAllowed Image {registryName = Nothing, imageName} = imageName == "scratch" || Set.member "docker.io"  allowed || Set.member "hub.docker.com" allowed
+    isAllowed Image {registryName = Nothing, imageName} =
+        imageName == "scratch" ||
+        Set.member "docker.io" allowed || Set.member "hub.docker.com" allowed
