@@ -4,7 +4,7 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL)
+import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import Data.Maybe (catMaybes)
 import qualified Hadolint.Bash as Bash
@@ -44,6 +44,21 @@ type IgnoreRuleParser = Megaparsec.Parsec Void Text.Text
 
 type ParsedFile = [InstructionPos Bash.ParsedBash]
 
+-- | An instructions checker function that gets the current state and a line number.
+-- It should return the new state and whether or not the check passed for the given instruction.
+type SimpleCheckerWithState state
+     = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, Bool)
+
+-- | An instructions checker function that gets the line number.
+-- It should whether or not the check passed for the given instruction.
+type SimpleCheckerWithLine = (Linenumber -> Instruction Bash.ParsedBash -> Bool)
+
+-- | An instructions checker function that gets the current state and a line number.
+-- It should return the new state and list Metadata record with the data explaining all the
+-- reasons the instruction failed
+type CheckerWithState state
+     = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, [Metadata])
+
 link :: Metadata -> Text.Text
 link (Metadata code _ _)
     | "SC" `Text.isPrefixOf` code = "https://github.com/koalaman/shellcheck/wiki/" <> code
@@ -55,14 +70,10 @@ type Rule = ParsedFile -> [RuleCheck]
 
 -- Apply a function on each instruction and create a check
 -- for the according line number
-mapInstructions ::
-       Metadata
-    -> (state -> Linenumber -> Instruction Bash.ParsedBash -> (state, Bool))
-    -> state
-    -> Rule
-mapInstructions metadata f initialState dockerfile =
+mapInstructions :: CheckerWithState state -> state -> Rule
+mapInstructions f initialState dockerfile =
     let (_, results) = mapAccumL applyRule initialState dockerfile
-    in results
+    in concat results
   where
     applyRule state (InstructionPos (OnBuild i) source linenumber) =
         applyWithState state source linenumber i -- All rules applying to instructions also apply to ONBUILD,
@@ -72,32 +83,29 @@ mapInstructions metadata f initialState dockerfile =
         applyWithState state source linenumber i -- Otherwise, normal instructions are not unwrapped
     applyWithState state source linenumber instruction =
         let (newState, res) = f state linenumber instruction
-        in (newState, RuleCheck metadata source linenumber res)
+        in (newState, [RuleCheck m source linenumber False | m <- res])
 
 instructionRule ::
        Text.Text -> Severity -> Text.Text -> (Instruction Bash.ParsedBash -> Bool) -> Rule
 instructionRule code severity message check =
     instructionRuleLine code severity message (const check)
 
-instructionRuleLine ::
-       Text.Text
-    -> Severity
-    -> Text.Text
-    -> (Linenumber -> Instruction Bash.ParsedBash -> Bool)
-    -> Rule
+instructionRuleLine :: Text.Text -> Severity -> Text.Text -> SimpleCheckerWithLine -> Rule
 instructionRuleLine code severity message check =
     instructionRuleState code severity message checkAndDropState ()
   where
     checkAndDropState state line instr = (state, check line instr)
 
 instructionRuleState ::
-       Text.Text
-    -> Severity
-    -> Text.Text
-    -> (state -> Linenumber -> Instruction Bash.ParsedBash -> (state, Bool))
-    -> state
-    -> Rule
-instructionRuleState code severity message = mapInstructions (Metadata code severity message)
+       Text.Text -> Severity -> Text.Text -> SimpleCheckerWithState state -> state -> Rule
+instructionRuleState code severity message f = mapInstructions constMetadataCheck
+  where
+    meta = Metadata code severity message
+    constMetadataCheck st ln instr =
+        let (newSt, success) = f st ln instr
+        in if not success
+               then (newSt, [meta])
+               else (newSt, [])
 
 withState :: a -> b -> (a, b)
 withState st res = (st, res)
@@ -110,10 +118,14 @@ argumentsRule applyRule args =
 
 -- Enforce rules on a dockerfile and return failed checks
 analyze :: [Rule] -> Dockerfile -> [RuleCheck]
-analyze list dockerfile = filter failed $ concat [r parsedFile | r <- list]
+analyze list dockerfile =
+    [ result -- Keep the result
+    | rule <- list -- for each rule in the list
+    , result <- rule parsedFile -- after applying the rule to the file
+    , notIgnored result -- and only keep failures that were not ignored
+    ]
   where
-    failed RuleCheck {metadata = Metadata {code}, linenumber, success} =
-        not success && not (wasIgnored code linenumber)
+    notIgnored RuleCheck {metadata = Metadata {code}, linenumber} = not (wasIgnored code linenumber)
     wasIgnored c ln = not $ null [line | (line, codes) <- allIgnores, line == ln, c `elem` codes]
     allIgnores = ignored dockerfile
     parsedFile = map (fmap Bash.parseShell) dockerfile
@@ -182,18 +194,14 @@ commentMetadata :: ShellCheck.Interface.Comment -> Metadata
 commentMetadata (ShellCheck.Interface.Comment severity code message) =
     Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
 
-shellcheckBash :: ParsedFile -> [RuleCheck]
-shellcheckBash = concatMap check
+shellcheckBash :: Rule
+shellcheckBash = mapInstructions checkBash ()
   where
-    check (InstructionPos (Run args) source linenumber) =
-        argumentsRule (applyRule source linenumber) args
-    check _ = []
-    applyRule source linenumber args =
-        rmDup [RuleCheck m source linenumber False | m <- convert args]
-    convert args = [commentMetadata c | c <- Bash.shellcheck args]
-    rmDup :: [RuleCheck] -> [RuleCheck]
-    rmDup [] = []
-    rmDup (x:xs) = x : rmDup (filter (\y -> metadata x /= metadata y) xs)
+    checkBash :: CheckerWithState ()
+    checkBash st _ (Run (ArgumentsList script)) = (st, doCheck script)
+    checkBash st _ (Run (ArgumentsText script)) = (st, doCheck script)
+    checkBash st _ _ = (st, [])
+    doCheck script = nub [commentMetadata c | c <- Bash.shellcheck script]
 
 allFromImages :: ParsedFile -> [(Linenumber, BaseImage)]
 allFromImages dockerfile = [(l, f) | (l, From f) <- instr]
