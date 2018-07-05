@@ -842,11 +842,17 @@ main =
                         [ "FROM random.com/debian"
                         ]
                 in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
-            it "don't warn on scratch image" $
+            it "doesn't warn on scratch image" $
                 let dockerFile =
                         [ "FROM scratch"
                         ]
                 in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
+            it "allows boths forms of docker.io" $
+                let dockerFile =
+                        [ "FROM ubuntu:18.04 AS builder1"
+                        , "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
+                        ]
+                in ruleCatchesNot (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =

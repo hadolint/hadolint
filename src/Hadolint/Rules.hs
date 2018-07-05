@@ -758,7 +758,7 @@ registryIsAllowed allowed = instructionRule code severity message check
   where
     code = "DL3026"
     severity = ErrorC
-    message = "Only use one of the allowed registries in the FROM image"
+    message = "Use only an allowed registry in the FROM image"
     check (From (UntaggedImage img _)) = Set.null allowed || isAllowed img
     check (From (TaggedImage img _ _)) = Set.null allowed || isAllowed img
     check _ = True
