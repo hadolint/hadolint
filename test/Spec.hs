@@ -847,9 +847,10 @@ main =
                         [ "FROM scratch"
                         ]
                 in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
-            it "allows boths forms of docker.io" $
+            it "allows boths all forms of docker.io" $
                 let dockerFile =
                         [ "FROM ubuntu:18.04 AS builder1"
+                        , "FROM zemanlx/ubuntu:18.04 AS builder2"
                         , "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
                         ]
                 in ruleCatchesNot (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
