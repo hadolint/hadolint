@@ -207,19 +207,6 @@ rules =
 optionalRules :: RulesConfig -> [Rule]
 optionalRules RulesConfig {allowedRegistries} = [registryIsAllowed allowedRegistries]
 
-commentMetadata :: ShellCheck.Interface.Comment -> Metadata
-commentMetadata (ShellCheck.Interface.Comment severity code message) =
-    Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
-
-shellcheckBash :: Rule
-shellcheckBash = mapInstructions checkBash ()
-  where
-    checkBash :: CheckerWithState ()
-    checkBash st _ (Run (ArgumentsList script)) = (st, doCheck script)
-    checkBash st _ (Run (ArgumentsText script)) = (st, doCheck script)
-    checkBash st _ _ = (st, [])
-    doCheck script = nub [commentMetadata c | c <- Bash.shellcheck script]
-
 allFromImages :: ParsedFile -> [(Linenumber, BaseImage)]
 allFromImages dockerfile = [(l, f) | (l, From f) <- instr]
   where
@@ -260,6 +247,27 @@ fromAlias :: BaseImage -> Maybe ImageAlias
 fromAlias (UntaggedImage _ alias) = alias
 fromAlias (TaggedImage _ _ alias) = alias
 fromAlias (DigestedImage _ _ alias) = alias
+
+-------------
+--  RULES  --
+-------------
+shellcheckBash :: Rule
+shellcheckBash = mapInstructions checkBash Bash.defaultShellOpts
+  where
+    checkBash :: CheckerWithState Bash.ShellOpts
+    checkBash _ _ (From _) = (Bash.defaultShellOpts, []) -- Reset the state
+    checkBash st _ (Arg name _) = (Bash.addVars [name] st, [])
+    checkBash st _ (Env pairs) = (Bash.addVars (map fst pairs) st, [])
+    checkBash st _ (Shell (ArgumentsList script)) = (Bash.setShell (Bash.original script) st, [])
+    checkBash st _ (Shell (ArgumentsText script)) = (Bash.setShell (Bash.original script) st, [])
+    checkBash st _ (Run (ArgumentsList script)) = (st, doCheck st script)
+    checkBash st _ (Run (ArgumentsText script)) = (st, doCheck st script)
+    checkBash st _ _ = (st, [])
+    doCheck opts script = nub [commentMetadata c | c <- Bash.shellcheck opts script]
+    -- | Converts ShellCheck errors into our own errors type
+    commentMetadata :: ShellCheck.Interface.Comment -> Metadata
+    commentMetadata (ShellCheck.Interface.Comment severity code message) =
+        Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
 
 absoluteWorkdir :: Rule
 absoluteWorkdir = instructionRule code severity message check
