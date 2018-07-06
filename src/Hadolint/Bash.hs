@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hadolint.Bash where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
 import Data.List (nub)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (listToMaybe, mapMaybe)
+import Data.Semigroup ((<>))
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified ShellCheck.AST
 import ShellCheck.AST (Id(..), Token(..))
@@ -17,16 +21,50 @@ data ParsedBash = ParsedBash
     , parsed :: ParseResult
     }
 
-shellcheck :: ParsedBash -> [Comment]
-shellcheck (ParsedBash txt _) = map comment $ crComments $ runIdentity $ checkScript si spec
+data ShellOpts = ShellOpts
+    { shellName :: Text.Text
+    , envVars :: Set.Set Text.Text
+    }
+
+defaultShellOpts :: ShellOpts
+defaultShellOpts = ShellOpts "/bin/sh -c" defaultVars
   where
+    defaultVars =
+        Set.fromList
+            [ "HTTP_PROXY"
+            , "http_proxy"
+            , "HTTPS_PROXY"
+            , "https_proxy"
+            , "FTP_PROXY"
+            , "ftp_proxy"
+            , "NO_PROXY"
+            , "no_proxy"
+            ]
+
+addVars :: [Text.Text] -> ShellOpts -> ShellOpts
+addVars vars (ShellOpts n v) = ShellOpts n (v <> Set.fromList vars)
+
+setShell :: Text.Text -> ShellOpts -> ShellOpts
+setShell s (ShellOpts _ v) = ShellOpts s v
+
+shellcheck :: ShellOpts -> ParsedBash -> [Comment]
+shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
+  where
+    runShellCheck = crComments $ runIdentity $ checkScript si spec
     comment (PositionedComment _ _ c) = c
     si = mockedSystemInterface [("", "")]
-    spec = CheckSpec filename script sourced exclusions (Just Bash)
-    script = "#!/bin/bash\n" ++ Text.unpack txt
+    spec = CheckSpec filename script sourced exclusions Nothing
+    script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     filename = "" -- filename can be ommited because we only want the parse results back
     sourced = False
     exclusions = []
+    -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
+    extractShell s =
+        case listToMaybe . Text.words $ s of
+            Nothing -> ""
+            Just shell -> Text.unpack shell
+    -- | Inject all the collected env vars as exported variables so they can be used
+    printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
 parseShell :: Text.Text -> ParsedBash
 parseShell txt =
@@ -51,14 +89,14 @@ extractTokensWith extractor (ParsedBash _ ast) =
   where
     extract :: Token -> Writer [Token] ()
     extract token =
-      case extractor token of
-        Nothing -> return ()
-        Just t -> tell [t]
+        case extractor token of
+            Nothing -> return ()
+            Just t -> tell [t]
 
 findPipes :: ParsedBash -> [Token]
 findPipes = extractTokensWith pipesExtractor
   where
-    pipesExtractor pipe@T_Pipe{} = Just pipe
+    pipesExtractor pipe@T_Pipe {} = Just pipe
     pipesExtractor _ = Nothing
 
 hasPipes :: ParsedBash -> Bool
