@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLists #-}
 import Test.HUnit hiding (Label)
 import Test.Hspec
 
@@ -910,6 +911,35 @@ main =
                         , "RUN wget -O - https://some.site | wc -l file > /number"
                         ]
                 in ruleCatches usePipefail $ Text.unlines dockerFile
+        --
+        describe "Allowed docker registries" $ do
+            it "warn on non-allowed registry" $
+                let dockerFile =
+                        [ "FROM random.com/debian"
+                        ]
+                in ruleCatches (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
+            it "don't warn on empty allowed registries" $
+                let dockerFile =
+                        [ "FROM random.com/debian"
+                        ]
+                in ruleCatchesNot (registryIsAllowed []) $ Text.unlines dockerFile
+            it "don't warn on allowed registries" $
+                let dockerFile =
+                        [ "FROM random.com/debian"
+                        ]
+                in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
+            it "doesn't warn on scratch image" $
+                let dockerFile =
+                        [ "FROM scratch"
+                        ]
+                in ruleCatchesNot (registryIsAllowed ["x.com", "random.com"]) $ Text.unlines dockerFile
+            it "allows boths all forms of docker.io" $
+                let dockerFile =
+                        [ "FROM ubuntu:18.04 AS builder1"
+                        , "FROM zemanlx/ubuntu:18.04 AS builder2"
+                        , "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
+                        ]
+                in ruleCatchesNot (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
