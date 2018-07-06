@@ -474,6 +474,16 @@ main =
                 ruleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
                 onBuildRuleCatchesNot useShell "RUN ln -s foo bar && unrelated && something_with /bin/sh"
         --
+        --
+        describe "Shellcheck" $ do
+            it "runs shellchek on RUN instructions" $ do
+                ruleCatches shellcheckBash "RUN echo $MISSING_QUOTES"
+                onBuildRuleCatches shellcheckBash "RUN echo $MISSING_QUOTES"
+            it "not warns on valid scripts" $ do
+                ruleCatchesNot shellcheckBash "RUN echo foo"
+                onBuildRuleCatchesNot shellcheckBash "RUN echo foo"
+        --
+        --
         describe "COPY rules" $ do
             it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
             it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
