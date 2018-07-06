@@ -5,7 +5,7 @@ module Hadolint.Bash where
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
 import Data.List (nub)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Semigroup ((<>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -54,10 +54,16 @@ shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
     comment (PositionedComment _ _ c) = c
     si = mockedSystemInterface [("", "")]
     spec = CheckSpec filename script sourced exclusions Nothing
-    script = "#!" ++ Text.unpack sh ++ "\n" ++ printVars ++ Text.unpack txt
+    script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     filename = "" -- filename can be ommited because we only want the parse results back
     sourced = False
     exclusions = []
+    -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
+    extractShell s =
+        case listToMaybe . Text.words $ s of
+            Nothing -> ""
+            Just shell -> Text.unpack shell
+    -- | Inject all the collected env vars as exported variables so they can be used
     printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
 parseShell :: Text.Text -> ParsedBash

@@ -482,6 +482,82 @@ main =
             it "not warns on valid scripts" $ do
                 ruleCatchesNot shellcheckBash "RUN echo foo"
                 onBuildRuleCatchesNot shellcheckBash "RUN echo foo"
+
+            it "Does not complain on default env vars" $
+                let dockerFile = Text.unlines
+                        [ "RUN echo \"$HTTP_PROXY\""
+                        , "RUN echo \"$http_proxy\""
+                        , "RUN echo \"$HTTPS_PROXY\""
+                        , "RUN echo \"$https_proxy\""
+                        , "RUN echo \"$FTP_PROXY\""
+                        , "RUN echo \"$ftp_proxy\""
+                        , "RUN echo \"$NO_PROXY\""
+                        , "RUN echo \"$no_proxy\""
+                        ]
+                in do
+                  ruleCatchesNot shellcheckBash dockerFile
+                  onBuildRuleCatchesNot shellcheckBash dockerFile
+
+            it "Complain on missing env vars" $
+                let dockerFile = Text.unlines
+                        [ "RUN echo \"$RTTP_PROXY\""
+                        ]
+                in do
+                  ruleCatches shellcheckBash dockerFile
+                  onBuildRuleCatches shellcheckBash dockerFile
+
+            it "Is aware of ARGS and ENV" $
+                let dockerFile = Text.unlines
+                        [ "ARG foo=bar"
+                        , "ARG another_foo"
+                        , "ENV bar=10 baz=20"
+                        , "RUN echo \"$foo\""
+                        , "RUN echo \"$another_foo\""
+                        , "RUN echo \"$bar\""
+                        , "RUN echo \"$baz\""
+                        ]
+                in do
+                  ruleCatchesNot shellcheckBash dockerFile
+                  onBuildRuleCatchesNot shellcheckBash dockerFile
+
+            it "Resets env vars after a FROM" $
+                let dockerFile = Text.unlines
+                        [ "ARG foo=bar"
+                        , "ARG another_foo"
+                        , "ENV bar=10 baz=20"
+                        , "FROM debian"
+                        , "RUN echo \"$foo\""
+                        ]
+                in do
+                  ruleCatches shellcheckBash dockerFile
+                  onBuildRuleCatches shellcheckBash dockerFile
+
+            it "Defaults the shell to sh" $
+                let dockerFile = Text.unlines
+                        [ "RUN echo $RANDOM" -- $RANDOM is not available in sh
+                        ]
+                in do
+                  ruleCatches shellcheckBash dockerFile
+                  onBuildRuleCatches shellcheckBash dockerFile
+
+            it "Can change the shell check to bash" $
+                let dockerFile = Text.unlines
+                        [ "SHELL [\"/bin/bash\", \"-eo\", \"pipefail\", \"-c\"]"
+                        , "RUN echo $RANDOM" -- $RANDOM is available in bash
+                        ]
+                in do
+                  ruleCatchesNot shellcheckBash dockerFile
+                  onBuildRuleCatchesNot shellcheckBash dockerFile
+
+            it "Resets the SHELL to sh after a FROM" $
+                let dockerFile = Text.unlines
+                        [ "SHELL [\"/bin/bash\", \"-eo\", \"pipefail\", \"-c\"]"
+                        , "FROM debian"
+                        , "RUN echo $RANDOM"
+                        ]
+                in do
+                  ruleCatches shellcheckBash dockerFile
+                  onBuildRuleCatches shellcheckBash dockerFile
         --
         --
         describe "COPY rules" $ do
@@ -870,9 +946,11 @@ onBuildRuleCatches rule s = assertOnBuildChecks rule s f
 ruleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
   where
-    f checks = assertEqual "Found check of rule" 0 $ length checks
+    f checks = assertEqual ("Error: " ++ errorMessages checks) 0 $ length checks
+    errorMessages checks = Text.unpack . Text.unlines $ map (message . metadata) checks
 
 onBuildRuleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 onBuildRuleCatchesNot rule s = assertOnBuildChecks rule s f
   where
-    f checks = assertEqual "Found check of rule" 0 $ length checks
+    f checks = assertEqual ("Error: " ++ errorMessages checks) 0 $ length checks
+    errorMessages checks = Text.unpack . Text.unlines $ map (message . metadata) checks
