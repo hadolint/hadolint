@@ -559,6 +559,15 @@ main =
                 in do
                   ruleCatches shellcheckBash dockerFile
                   onBuildRuleCatches shellcheckBash dockerFile
+
+            it "Does not complain on ash shell" $
+                let dockerFile = Text.unlines
+                        [ "SHELL [\"/bin/ash\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN echo hello"
+                        ]
+                in do
+                  ruleCatchesNot shellcheckBash dockerFile
+                  onBuildRuleCatchesNot shellcheckBash dockerFile
         --
         --
         describe "COPY rules" $ do

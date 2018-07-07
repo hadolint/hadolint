@@ -57,7 +57,9 @@ shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
     script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     filename = "" -- filename can be ommited because we only want the parse results back
     sourced = False
-    exclusions = []
+    exclusions =
+        [ 2187 -- exclude the warning about the ash shell not being supported
+        ]
     -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
     extractShell s =
         case listToMaybe . Text.words $ s of
