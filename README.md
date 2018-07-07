@@ -24,6 +24,7 @@ You can run `hadolint` locally to lint your Dockerfile.
 ```bash
 hadolint <Dockerfile>
 hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
+hadolint --trusted-registry my-company.com:500 <Dockerfile> # Warn when using untrusted FROM images
 ```
 
 Docker comes to the rescue to provide an easy way how to run `hadolint` on most
@@ -76,6 +77,20 @@ file should be in `yaml` format. This is one valid configuration file as an exam
 ignored:
   - DL3000
   - SC1010
+```
+
+Additionally, Hadolint can warn you when images from untrusted repositories are being
+used in Dockerfiles, you can append the `trustedRegistries` keys to the configuration
+file as shown below:
+
+```yaml
+ignored:
+  - DL3000
+  - SC1010
+
+trustedRegistries:
+  - docker.io
+  - my-company.com:5000
 ```
 
 Configuration files can be used globally or per project. By default, hadolint will look for
@@ -154,6 +169,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3023](https://github.com/hadolint/hadolint/wiki/DL3023)   | `COPY --from` cannot reference its own `FROM` alias                                                                                                 |
 | [DL3024](https://github.com/hadolint/hadolint/wiki/DL3024)   | `FROM` aliases (stage names) must be unique                                                                                                         |
 | [DL3025](https://github.com/hadolint/hadolint/wiki/DL3025)   | Use arguments JSON notation for CMD and ENTRYPOINT arguments                                                                                        |
+| [DL3025](https://github.com/hadolint/hadolint/wiki/DL3026)   | Use only an allowed registry in the FROM image                                                                                                      |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | MAINTAINER is deprecated.                                                                                                                           |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Multiple `CMD` instructions found.                                                                                                                  |

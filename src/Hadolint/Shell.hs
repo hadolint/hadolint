@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hadolint.Bash where
+module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
@@ -16,7 +16,7 @@ import ShellCheck.Checker
 import ShellCheck.Interface
 import qualified ShellCheck.Parser
 
-data ParsedBash = ParsedBash
+data ParsedShell = ParsedShell
     { original :: Text.Text
     , parsed :: ParseResult
     }
@@ -47,8 +47,8 @@ addVars vars (ShellOpts n v) = ShellOpts n (v <> Set.fromList vars)
 setShell :: Text.Text -> ShellOpts -> ShellOpts
 setShell s (ShellOpts _ v) = ShellOpts s v
 
-shellcheck :: ShellOpts -> ParsedBash -> [Comment]
-shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
+shellcheck :: ShellOpts -> ParsedShell -> [Comment]
+shellcheck (ShellOpts sh env) (ParsedShell txt _) = map comment runShellCheck
   where
     runShellCheck = crComments $ runIdentity $ checkScript si spec
     comment (PositionedComment _ _ c) = c
@@ -57,7 +57,9 @@ shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
     script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     filename = "" -- filename can be ommited because we only want the parse results back
     sourced = False
-    exclusions = []
+    exclusions =
+        [ 2187 -- exclude the warning about the ash shell not being supported
+        ]
     -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
     extractShell s =
         case listToMaybe . Text.words $ s of
@@ -66,9 +68,9 @@ shellcheck (ShellOpts sh env) (ParsedBash txt _) = map comment runShellCheck
     -- | Inject all the collected env vars as exported variables so they can be used
     printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
-parseShell :: Text.Text -> ParsedBash
+parseShell :: Text.Text -> ParsedShell
 parseShell txt =
-    ParsedBash
+    ParsedShell
     { original = txt
     , parsed =
           runIdentity $
@@ -81,8 +83,8 @@ parseShell txt =
               }
     }
 
-extractTokensWith :: (Token -> Maybe Token) -> ParsedBash -> [Token]
-extractTokensWith extractor (ParsedBash _ ast) =
+extractTokensWith :: (Token -> Maybe Token) -> ParsedShell -> [Token]
+extractTokensWith extractor (ParsedShell _ ast) =
     case prRoot ast of
         Nothing -> []
         Just script -> nub . execWriter $ ShellCheck.AST.doAnalysis extract script
@@ -93,30 +95,30 @@ extractTokensWith extractor (ParsedBash _ ast) =
             Nothing -> return ()
             Just t -> tell [t]
 
-findPipes :: ParsedBash -> [Token]
+findPipes :: ParsedShell -> [Token]
 findPipes = extractTokensWith pipesExtractor
   where
     pipesExtractor pipe@T_Pipe {} = Just pipe
     pipesExtractor _ = Nothing
 
-hasPipes :: ParsedBash -> Bool
+hasPipes :: ParsedShell -> Bool
 hasPipes = not . null . findPipes
 
-findCommands :: ParsedBash -> [Token]
+findCommands :: ParsedShell -> [Token]
 findCommands = extractTokensWith commandsExtractor
   where
     commandsExtractor = ShellCheck.ASTLib.getCommand
 
-allCommands :: (Token -> Bool) -> ParsedBash -> Bool
+allCommands :: (Token -> Bool) -> ParsedShell -> Bool
 allCommands check script = all check (findCommands script)
 
-noCommands :: (Token -> Bool) -> ParsedBash -> Bool
+noCommands :: (Token -> Bool) -> ParsedShell -> Bool
 noCommands check = allCommands (not . check)
 
 getCommandName :: Token -> Maybe String
 getCommandName = ShellCheck.ASTLib.getCommandName
 
-findCommandNames :: ParsedBash -> [String]
+findCommandNames :: ParsedShell -> [String]
 findCommandNames = mapMaybe getCommandName . findCommands
 
 cmdHasArgs :: String -> [String] -> Token -> Bool

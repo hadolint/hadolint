@@ -478,11 +478,11 @@ main =
         --
         describe "Shellcheck" $ do
             it "runs shellchek on RUN instructions" $ do
-                ruleCatches shellcheckBash "RUN echo $MISSING_QUOTES"
-                onBuildRuleCatches shellcheckBash "RUN echo $MISSING_QUOTES"
+                ruleCatches shellcheck "RUN echo $MISSING_QUOTES"
+                onBuildRuleCatches shellcheck "RUN echo $MISSING_QUOTES"
             it "not warns on valid scripts" $ do
-                ruleCatchesNot shellcheckBash "RUN echo foo"
-                onBuildRuleCatchesNot shellcheckBash "RUN echo foo"
+                ruleCatchesNot shellcheck "RUN echo foo"
+                onBuildRuleCatchesNot shellcheck "RUN echo foo"
 
             it "Does not complain on default env vars" $
                 let dockerFile = Text.unlines
@@ -496,16 +496,16 @@ main =
                         , "RUN echo \"$no_proxy\""
                         ]
                 in do
-                  ruleCatchesNot shellcheckBash dockerFile
-                  onBuildRuleCatchesNot shellcheckBash dockerFile
+                  ruleCatchesNot shellcheck dockerFile
+                  onBuildRuleCatchesNot shellcheck dockerFile
 
             it "Complain on missing env vars" $
                 let dockerFile = Text.unlines
                         [ "RUN echo \"$RTTP_PROXY\""
                         ]
                 in do
-                  ruleCatches shellcheckBash dockerFile
-                  onBuildRuleCatches shellcheckBash dockerFile
+                  ruleCatches shellcheck dockerFile
+                  onBuildRuleCatches shellcheck dockerFile
 
             it "Is aware of ARGS and ENV" $
                 let dockerFile = Text.unlines
@@ -518,8 +518,8 @@ main =
                         , "RUN echo \"$baz\""
                         ]
                 in do
-                  ruleCatchesNot shellcheckBash dockerFile
-                  onBuildRuleCatchesNot shellcheckBash dockerFile
+                  ruleCatchesNot shellcheck dockerFile
+                  onBuildRuleCatchesNot shellcheck dockerFile
 
             it "Resets env vars after a FROM" $
                 let dockerFile = Text.unlines
@@ -530,16 +530,16 @@ main =
                         , "RUN echo \"$foo\""
                         ]
                 in do
-                  ruleCatches shellcheckBash dockerFile
-                  onBuildRuleCatches shellcheckBash dockerFile
+                  ruleCatches shellcheck dockerFile
+                  onBuildRuleCatches shellcheck dockerFile
 
             it "Defaults the shell to sh" $
                 let dockerFile = Text.unlines
                         [ "RUN echo $RANDOM" -- $RANDOM is not available in sh
                         ]
                 in do
-                  ruleCatches shellcheckBash dockerFile
-                  onBuildRuleCatches shellcheckBash dockerFile
+                  ruleCatches shellcheck dockerFile
+                  onBuildRuleCatches shellcheck dockerFile
 
             it "Can change the shell check to bash" $
                 let dockerFile = Text.unlines
@@ -547,8 +547,8 @@ main =
                         , "RUN echo $RANDOM" -- $RANDOM is available in bash
                         ]
                 in do
-                  ruleCatchesNot shellcheckBash dockerFile
-                  onBuildRuleCatchesNot shellcheckBash dockerFile
+                  ruleCatchesNot shellcheck dockerFile
+                  onBuildRuleCatchesNot shellcheck dockerFile
 
             it "Resets the SHELL to sh after a FROM" $
                 let dockerFile = Text.unlines
@@ -557,8 +557,17 @@ main =
                         , "RUN echo $RANDOM"
                         ]
                 in do
-                  ruleCatches shellcheckBash dockerFile
-                  onBuildRuleCatches shellcheckBash dockerFile
+                  ruleCatches shellcheck dockerFile
+                  onBuildRuleCatches shellcheck dockerFile
+
+            it "Does not complain on ash shell" $
+                let dockerFile = Text.unlines
+                        [ "SHELL [\"/bin/ash\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "RUN echo hello"
+                        ]
+                in do
+                  ruleCatchesNot shellcheck dockerFile
+                  onBuildRuleCatchesNot shellcheck dockerFile
         --
         --
         describe "COPY rules" $ do
