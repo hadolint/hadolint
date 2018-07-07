@@ -79,8 +79,9 @@ ignored:
   - SC1010
 ```
 
-Additionally, Hadolint can warn you when images from untrusted repositories are being used in Dockerfiles,
-you can append the `trustedRegistries` keys to the configuration file as shown below:
+Additionally, Hadolint can warn you when images from untrusted repositories are being
+used in Dockerfiles, you can append the `trustedRegistries` keys to the configuration
+file as shown below:
 
 ```yaml
 ignored:
