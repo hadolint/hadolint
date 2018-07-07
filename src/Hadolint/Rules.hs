@@ -7,7 +7,7 @@ import Control.Arrow ((&&&))
 import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import Data.Maybe (catMaybes)
-import qualified Hadolint.Bash as Bash
+import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
 import Data.Semigroup (Semigroup, (<>))
@@ -54,24 +54,24 @@ instance Monoid RulesConfig where
 
 type IgnoreRuleParser = Megaparsec.Parsec Void Text.Text
 
-type ParsedFile = [InstructionPos Bash.ParsedBash]
+type ParsedFile = [InstructionPos Shell.ParsedShell]
 
 -- | A function to check individual dockerfile instructions.
 -- It gets the current state and a line number.
 -- It should return the new state and whether or not the check passes for the given instruction.
 type SimpleCheckerWithState state
-     = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, Bool)
+     = state -> Linenumber -> Instruction Shell.ParsedShell -> (state, Bool)
 
 -- | A function to check individual dockerfile instructions.
 -- It gets the current line number.
 -- It should return True if the check passes for the given instruction.
-type SimpleCheckerWithLine = (Linenumber -> Instruction Bash.ParsedBash -> Bool)
+type SimpleCheckerWithLine = (Linenumber -> Instruction Shell.ParsedShell -> Bool)
 
 -- | A function to check individual dockerfile instructions.
 -- It should return the new state and a list of Metadata records.
 -- Each Metadata record signifies a failing check for the given instruction.
 type CheckerWithState state
-     = state -> Linenumber -> Instruction Bash.ParsedBash -> (state, [Metadata])
+     = state -> Linenumber -> Instruction Shell.ParsedShell -> (state, [Metadata])
 
 link :: Metadata -> Text.Text
 link (Metadata code _ _)
@@ -79,7 +79,7 @@ link (Metadata code _ _)
     | "DL" `Text.isPrefixOf` code = "https://github.com/hadolint/hadolint/wiki/" <> code
     | otherwise = "https://github.com/hadolint/hadolint"
 
--- a Rule takes a Dockerfile with parsed bash and returns the executed checks
+-- a Rule takes a Dockerfile with parsed shell and returns the executed checks
 type Rule = ParsedFile -> [RuleCheck]
 
 -- Apply a function on each instruction and create a check
@@ -100,7 +100,7 @@ mapInstructions f initialState dockerfile =
         in (newState, [RuleCheck m source linenumber False | m <- res])
 
 instructionRule ::
-       Text.Text -> Severity -> Text.Text -> (Instruction Bash.ParsedBash -> Bool) -> Rule
+       Text.Text -> Severity -> Text.Text -> (Instruction Shell.ParsedShell -> Bool) -> Rule
 instructionRule code severity message check =
     instructionRuleLine code severity message (const check)
 
@@ -124,7 +124,7 @@ instructionRuleState code severity message f = mapInstructions constMetadataChec
 withState :: a -> b -> (a, b)
 withState st res = (st, res)
 
-argumentsRule :: (Bash.ParsedBash -> a) -> Arguments Bash.ParsedBash -> a
+argumentsRule :: (Shell.ParsedShell -> a) -> Arguments Shell.ParsedShell -> a
 argumentsRule applyRule args =
     case args of
         ArgumentsText as -> applyRule as
@@ -142,7 +142,7 @@ analyze list dockerfile =
     notIgnored RuleCheck {metadata = Metadata {code}, linenumber} = not (wasIgnored code linenumber)
     wasIgnored c ln = not $ null [line | (line, codes) <- allIgnores, line == ln, c `elem` codes]
     allIgnores = ignored dockerfile
-    parsedFile = map (fmap Bash.parseShell) dockerfile
+    parsedFile = map (fmap Shell.parseShell) dockerfile
 
 ignored :: Dockerfile -> [(Linenumber, [Text.Text])]
 ignored dockerfile =
@@ -171,7 +171,7 @@ ignored dockerfile =
 rules :: [Rule]
 rules =
     [ absoluteWorkdir
-    , shellcheckBash
+    , shellcheck
     , invalidCmd
     , copyInsteadAdd
     , copyEndingSlash
@@ -251,19 +251,19 @@ fromAlias (DigestedImage _ _ alias) = alias
 -------------
 --  RULES  --
 -------------
-shellcheckBash :: Rule
-shellcheckBash = mapInstructions checkBash Bash.defaultShellOpts
+shellcheck :: Rule
+shellcheck = mapInstructions check Shell.defaultShellOpts
   where
-    checkBash :: CheckerWithState Bash.ShellOpts
-    checkBash _ _ (From _) = (Bash.defaultShellOpts, []) -- Reset the state
-    checkBash st _ (Arg name _) = (Bash.addVars [name] st, [])
-    checkBash st _ (Env pairs) = (Bash.addVars (map fst pairs) st, [])
-    checkBash st _ (Shell (ArgumentsList script)) = (Bash.setShell (Bash.original script) st, [])
-    checkBash st _ (Shell (ArgumentsText script)) = (Bash.setShell (Bash.original script) st, [])
-    checkBash st _ (Run (ArgumentsList script)) = (st, doCheck st script)
-    checkBash st _ (Run (ArgumentsText script)) = (st, doCheck st script)
-    checkBash st _ _ = (st, [])
-    doCheck opts script = nub [commentMetadata c | c <- Bash.shellcheck opts script]
+    check :: CheckerWithState Shell.ShellOpts
+    check _ _ (From _) = (Shell.defaultShellOpts, []) -- Reset the state
+    check st _ (Arg name _) = (Shell.addVars [name] st, [])
+    check st _ (Env pairs) = (Shell.addVars (map fst pairs) st, [])
+    check st _ (Shell (ArgumentsList script)) = (Shell.setShell (Shell.original script) st, [])
+    check st _ (Shell (ArgumentsText script)) = (Shell.setShell (Shell.original script) st, [])
+    check st _ (Run (ArgumentsList script)) = (st, doCheck st script)
+    check st _ (Run (ArgumentsText script)) = (st, doCheck st script)
+    check st _ _ = (st, [])
+    doCheck opts script = nub [commentMetadata c | c <- Shell.shellcheck opts script]
     -- | Converts ShellCheck errors into our own errors type
     commentMetadata :: ShellCheck.Interface.Comment -> Metadata
     commentMetadata (ShellCheck.Interface.Comment severity code message) =
@@ -291,8 +291,8 @@ hasNoMaintainer = instructionRule code severity message check
     check _ = True
 
 -- Check if a command contains a program call in the Run instruction
-usingProgram :: String -> Bash.ParsedBash -> Bool
-usingProgram prog args = not $ null [cmd | cmd <- Bash.findCommandNames args, cmd == prog]
+usingProgram :: String -> Shell.ParsedShell -> Bool
+usingProgram prog args = not $ null [cmd | cmd <- Shell.findCommandNames args, cmd == prog]
 
 multipleCmds :: Rule
 multipleCmds = instructionRuleState code severity message check False
@@ -332,7 +332,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
             newState = Set.union state newArgs
         in withState newState (Set.size newState < 2)
     extractCommands args =
-        Set.fromList [w | w <- Bash.findCommandNames args, w == "curl" || w == "wget"]
+        Set.fromList [w | w <- Shell.findCommandNames args, w == "curl" || w == "wget"]
 
 invalidCmd :: Rule
 invalidCmd = instructionRule code severity message check
@@ -344,7 +344,7 @@ invalidCmd = instructionRule code severity message check
         \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
     check (Run args) = argumentsRule detectInvalid args
     check _ = True
-    detectInvalid args = null [arg | arg <- Bash.findCommandNames args, arg `elem` invalidCmds]
+    detectInvalid args = null [arg | arg <- Shell.findCommandNames args, arg `elem` invalidCmds]
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
 
 noRootUser :: Rule
@@ -404,7 +404,8 @@ noAptGetUpgrade = instructionRule code severity message check
     code = "DL3005"
     severity = ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
-    check (Run args) = argumentsRule (Bash.noCommands (Bash.cmdHasArgs "apt-get" ["upgrade"])) args
+    check (Run args) =
+        argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apt-get" ["upgrade"])) args
     check _ = True
 
 noUntagged :: Rule
@@ -441,16 +442,16 @@ aptGetVersionPinned = instructionRule code severity message check
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
-aptGetPackages :: Bash.ParsedBash -> [String]
+aptGetPackages :: Shell.ParsedShell -> [String]
 aptGetPackages args =
     [ arg
-    | cmd <- dropTarget <$> Bash.findCommands args
-    , arg <- Bash.getArgsNoFlags cmd
-    , Bash.cmdHasArgs "apt-get" ["install"] cmd
+    | cmd <- dropTarget <$> Shell.findCommands args
+    , arg <- Shell.getArgsNoFlags cmd
+    , Shell.cmdHasArgs "apt-get" ["install"] cmd
     , arg /= "install"
     ]
   where
-    dropTarget = Bash.dropFlagArg ["t", "target-release"]
+    dropTarget = Shell.dropFlagArg ["t", "target-release"]
 
 aptGetCleanup :: Rule
 aptGetCleanup dockerfile = instructionRuleState code severity message check Nothing dockerfile
@@ -473,8 +474,8 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
         | not (hasUpdate args) || not (imageIsUsed line baseimage) = True
         | otherwise = hasCleanup args
     hasCleanup args =
-        any (Bash.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Bash.findCommands args)
-    hasUpdate args = any (Bash.cmdHasArgs "apt-get" ["update"]) (Bash.findCommands args)
+        any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.findCommands args)
+    hasUpdate args = any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.findCommands args)
     imageIsUsed line baseimage = isLastImage line baseimage || imageIsUsedLater line baseimage
     isLastImage line baseimage =
         case reverse (allFromImages dockerfile) of
@@ -492,7 +493,7 @@ noApkUpgrade = instructionRule code severity message check
     code = "DL3017"
     severity = ErrorC
     message = "Do not use apk upgrade"
-    check (Run args) = argumentsRule (Bash.noCommands (Bash.cmdHasArgs "apk" ["upgrade"])) args
+    check (Run args) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apk" ["upgrade"])) args
     check _ = True
 
 apkAddVersionPinned :: Rule
@@ -506,16 +507,16 @@ apkAddVersionPinned = instructionRule code severity message check
     check _ = True
     versionFixed package = "=" `isInfixOf` package
 
-apkAddPackages :: Bash.ParsedBash -> [String]
+apkAddPackages :: Shell.ParsedShell -> [String]
 apkAddPackages args =
     [ arg
-    | cmd <- dropTarget <$> Bash.findCommands args
-    , arg <- Bash.getArgsNoFlags cmd
-    , Bash.cmdHasArgs "apk" ["add"] cmd
+    | cmd <- dropTarget <$> Shell.findCommands args
+    , arg <- Shell.getArgsNoFlags cmd
+    , Shell.cmdHasArgs "apk" ["add"] cmd
     , arg /= "add"
     ]
   where
-    dropTarget = Bash.dropFlagArg ["t", "virtual"]
+    dropTarget = Shell.dropFlagArg ["t", "virtual"]
 
 apkAddNoCache :: Rule
 apkAddNoCache = instructionRule code severity message check
@@ -525,9 +526,9 @@ apkAddNoCache = instructionRule code severity message check
     message =
         "Use the `--no-cache` switch to avoid the need to use `--update` and remove \
         \`/var/cache/apk/*` when done installing packages"
-    check (Run args) = argumentsRule (Bash.noCommands forgotCacheOption) args
+    check (Run args) = argumentsRule (Shell.noCommands forgotCacheOption) args
     check _ = True
-    forgotCacheOption cmd = Bash.cmdHasArgs "apk" ["add"] cmd && not (Bash.hasFlag "no-cache" cmd)
+    forgotCacheOption cmd = Shell.cmdHasArgs "apk" ["add"] cmd && not (Shell.hasFlag "no-cache" cmd)
 
 useAdd :: Rule
 useAdd = instructionRule code severity message check
@@ -563,20 +564,20 @@ pipVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
-    check (Run args) = argumentsRule (Bash.noCommands forgotToPinVersion) args
+    check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd = isPipInstall cmd && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific pacakges are being listed
     isPipInstall cmd =
-        case Bash.getCommandName cmd of
+        case Shell.getCommandName cmd of
             Just ('p':'i':'p':_) -> relevantInstall cmd
             _ -> False
     -- If the user is installing requirements from a file or just the local module, then we are not interested
     -- in running this rule
     relevantInstall cmd =
-        ["install"] `isInfixOf` Bash.getAllArgs cmd &&
-        not (["-r"] `isInfixOf` Bash.getAllArgs cmd || ["."] `isInfixOf` Bash.getAllArgs cmd)
-    packages cmd = stripInstallPrefix (Bash.getArgsNoFlags cmd)
+        ["install"] `isInfixOf` Shell.getAllArgs cmd &&
+        not (["-r"] `isInfixOf` Shell.getAllArgs cmd || ["."] `isInfixOf` Shell.getAllArgs cmd)
+    packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
     versionFixed package = hasVersionSymbol package || isVersionedGit package
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
@@ -603,11 +604,11 @@ npmVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in npm. Instead of `npm install <package>` use `npm install \
         \<package>@<version>`"
-    check (Run args) = argumentsRule (Bash.noCommands forgotToPinVersion) args
+    check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd = isNpmInstall cmd && not (all versionFixed (packages cmd))
-    isNpmInstall = Bash.cmdHasArgs "npm" ["install"]
-    packages cmd = stripInstallPrefix (Bash.getArgsNoFlags cmd)
+    isNpmInstall = Shell.cmdHasArgs "npm" ["install"]
+    packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
     versionFixed package =
         if hasGitPrefix package
             then isVersionedGit package
@@ -628,14 +629,14 @@ aptGetYes = instructionRule code severity message check
     code = "DL3014"
     severity = WarningC
     message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-    check (Run args) = argumentsRule (Bash.noCommands forgotAptYesOption) args
+    check (Run args) = argumentsRule (Shell.noCommands forgotAptYesOption) args
     check _ = True
     forgotAptYesOption cmd = isAptGetInstall cmd && not (hasYesOption cmd)
-    isAptGetInstall = Bash.cmdHasArgs "apt-get" ["install"]
+    isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     hasYesOption cmd =
         "y" `elem` allFlags cmd ||
         "yes" `elem` allFlags cmd || length (filter (== "q") (allFlags cmd)) > 1
-    allFlags cmd = snd <$> Bash.getAllFlags cmd
+    allFlags cmd = snd <$> Shell.getAllFlags cmd
 
 aptGetNoRecommends :: Rule
 aptGetNoRecommends = instructionRule code severity message check
@@ -643,11 +644,11 @@ aptGetNoRecommends = instructionRule code severity message check
     code = "DL3015"
     severity = InfoC
     message = "Avoid additional packages by specifying `--no-install-recommends`"
-    check (Run args) = argumentsRule (Bash.noCommands forgotNoInstallRecommends) args
+    check (Run args) = argumentsRule (Shell.noCommands forgotNoInstallRecommends) args
     check _ = True
     forgotNoInstallRecommends cmd = isAptGetInstall cmd && not (hasRecommendsOption cmd)
-    isAptGetInstall = Bash.cmdHasArgs "apt-get" ["install"]
-    hasRecommendsOption = Bash.hasFlag "no-install-recommends"
+    isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
+    hasRecommendsOption = Shell.hasFlag "no-install-recommends"
 
 isArchive :: Text.Text -> Bool
 isArchive path =
@@ -735,7 +736,7 @@ useShell = instructionRule code severity message check
     code = "DL4005"
     severity = WarningC
     message = "Use SHELL to change the default shell"
-    check (Run args) = argumentsRule (Bash.noCommands (Bash.cmdHasArgs "ln" ["/bin/sh"])) args
+    check (Run args) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True
 
 useJsonArgs :: Rule
@@ -758,16 +759,16 @@ usePipefail = instructionRuleState code severity message check False
     check _ _ (Shell args) = (argumentsRule hasPipefailOption args, True)
     check False _ (Run args) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
-    notHasPipes script = not (Bash.hasPipes script)
+    notHasPipes script = not (Shell.hasPipes script)
     hasPipefailOption script =
         not $
         null
             [ True
-            | cmd <- Bash.findCommands script
+            | cmd <- Shell.findCommands script
             , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"]
-            , Bash.getCommandName cmd == Just validShell
-            , Bash.hasFlag "o" cmd
-            , arg <- Bash.getAllArgs cmd
+            , Shell.getCommandName cmd == Just validShell
+            , Shell.hasFlag "o" cmd
+            , arg <- Shell.getAllArgs cmd
             , arg == "pipefail"
             ]
 
