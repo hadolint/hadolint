@@ -773,14 +773,19 @@ usePipefail = instructionRuleState code severity message check False
             ]
 
 registryIsAllowed :: Set.Set Registry -> Rule
-registryIsAllowed allowed = instructionRule code severity message check
+registryIsAllowed allowed = instructionRuleState code severity message check Set.empty
   where
     code = "DL3026"
     severity = ErrorC
     message = "Use only an allowed registry in the FROM image"
-    check (From (UntaggedImage img _)) = Set.null allowed || isAllowed img
-    check (From (TaggedImage img _ _)) = Set.null allowed || isAllowed img
-    check _ = True
+    check st _ (From (UntaggedImage img alias)) = withState (Set.insert alias st) (doCheck st img)
+    check st _ (From (TaggedImage img _ alias)) = withState (Set.insert alias st) (doCheck st img)
+    check st _ _ = (st, True)
+    -- |Transforms an Image into a Maybe ImageAlias by using the Image name
+    toImageAlias = Just . ImageAlias . imageName
+    -- | Returns True if the image being used is a previous aliased image
+    -- or if the image registry is in the set of allowed registries
+    doCheck st img = Set.member (toImageAlias img) st || Set.null allowed || isAllowed img
     isAllowed Image {registryName = Just registry} = Set.member registry allowed
     isAllowed Image {registryName = Nothing, imageName} =
         imageName == "scratch" ||
