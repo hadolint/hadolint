@@ -950,6 +950,13 @@ main =
                         ]
                 in ruleCatchesNot (registryIsAllowed ["docker.io"]) $ Text.unlines dockerFile
 
+            it "allows using previous stages" $
+                let dockerFile =
+                        [ "FROM random.com/foo AS builder1"
+                        , "FROM builder1 AS builder2"
+                        ]
+                in ruleCatchesNot (registryIsAllowed ["random.com"]) $ Text.unlines dockerFile
+
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
     case parseText (s <> "\n") of
