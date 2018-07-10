@@ -41,19 +41,20 @@ You can download prebuilt binaries for OSX, Windows and Linux from the latest
 [release page][]. However, if it doesn't work for you, please fall back to
 Docker, `brew` or source installation.
 
-If you are on OSX you can use [brew](http://brew.sh/) to install hadolint.
+If you are on OSX you can use [brew](https://brew.sh/) to install `hadolint`.
 
 ```bash
 brew install hadolint
 ```
 
-As shwon before, hadolint ia available as a docker container:
+As shown before, `hadolint` is available as a Docker container:
 
 ```bash
 docker pull hadolint/hadolint
 ```
 
-If you need a docker container with shell access, use the debian variant of the docker image:
+If you need a Docker container with shell access, use the Debian variant of the
+Docker image:
 
 ```bash
 docker pull hadolint/hadolint:latest-debian
@@ -70,7 +71,7 @@ stack install
 
 ## Configure
 
-hadolint supports specifying the ignored rules using a configuration file. The configuration
+`hadolint` supports specifying the ignored rules using a configuration file. The configuration
 file should be in `yaml` format. This is one valid configuration file as an example:
 
 ```yaml
@@ -79,7 +80,7 @@ ignored:
   - SC1010
 ```
 
-Additionally, Hadolint can warn you when images from untrusted repositories are being
+Additionally, `hadolint` can warn you when images from untrusted repositories are being
 used in Dockerfiles, you can append the `trustedRegistries` keys to the configuration
 file as shown below:
 
@@ -93,7 +94,7 @@ trustedRegistries:
   - my-company.com:5000
 ```
 
-Configuration files can be used globally or per project. By default, hadolint will look for
+Configuration files can be used globally or per project. By default, `hadolint` will look for
 a configuration file in the current directory with the name `.hadolint.yaml`
 
 The global configuration file should be placed in the folder specified by `XDG_CONFIG_HOME`,
@@ -133,7 +134,7 @@ or to your editor to lint your `Dockerfile` as you write it. See our
 An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
--   Rules with the prefix `DL` originate from **hadolint**. Take a look at
+-   Rules with the prefix `DL` originate from `hadolint`. Take a look at
 `Rules.hs` to find the implementation of the rules.
 
 -   Rules with the `SC` prefix originate from **ShellCheck** (Only the most
