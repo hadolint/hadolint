@@ -850,6 +850,7 @@ main =
                 let dockerFile =
                         [ "FROM scratch as build"
                         , "CMD [\"foo\", \"bar\"]"
+                        , "CMD [ \"foo\", \"bar\" ]"
                         ]
                 in ruleCatchesNot useJsonArgs $ Text.unlines dockerFile
 
