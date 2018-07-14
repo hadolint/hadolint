@@ -9,7 +9,7 @@ RUN apt-get update \
     libgmp-dev=2:6.1.* \
     zlib1g-dev=1:1.2.* \
     curl=7.52.* \
-    ca-certificates=20161130+nmu1 \
+    ca-certificates=* \
     git=1:2.11.* \
     netbase=5.4 \
  && curl -sSL https://get.haskellstack.org/ | sh \
