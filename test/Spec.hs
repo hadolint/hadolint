@@ -98,7 +98,7 @@ main =
                         , "RUN something"
                         , "USER foo"
                         ]
-                in ruleCatches noRootUser $ Text.unlines dockerFile
+                in ruleCatchesNot noRootUser $ Text.unlines dockerFile
 
             it "warns on transitive root user" $
                 let dockerFile =
@@ -130,7 +130,7 @@ main =
                         , "FROM scratch"
                         , "RUN something else"
                         ]
-                in ruleCatches noRootUser $ Text.unlines dockerFile
+                in ruleCatchesNot noRootUser $ Text.unlines dockerFile
 
             it "install sudo" $ do
                 ruleCatchesNot noSudo "RUN apt-get install sudo"

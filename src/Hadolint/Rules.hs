@@ -4,12 +4,13 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List (dropWhile, isInfixOf, isPrefixOf, mapAccumL, nub)
+import Data.List
+       (dropWhile, foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
-import Data.Maybe (catMaybes)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+import qualified Data.Map as Map
 import Data.Semigroup (Semigroup, (<>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -354,25 +355,27 @@ noRootUser dockerfile = instructionRuleState code severity message check Nothing
     severity = WarningC
     message = "Last USER should not be root"
     check _ _ (From from) = withState (Just from) True -- Remember the last FROM instruction found
-    check st@(Just _) line (User user)
-        | isRoot user && lastUserIsRoot line = withState st False
+    check st@(Just from) line (User user)
+        | isRoot user && lastUserIsRoot from line = withState st False
         | otherwise = withState st True
     check st _ _ = withState st True
     --
     --
-    lastUserIsRoot line = (line, True) `elem` rootStages
+    lastUserIsRoot from line = Map.lookup from rootStages == Just line
     --
     --
-    rootStages :: [(Linenumber, Bool)]
+    rootStages :: Map.Map BaseImage Linenumber
     rootStages =
-        let (_, userTuples) =
-                mapAccumL buildMap Nothing (map (instruction &&& lineNumber) dockerfile)
-        in catMaybes userTuples
+        let indexedInstructions = map (instruction &&& lineNumber) dockerfile
+            (_, usersMap) = foldl' buildMap (Nothing, Map.empty) indexedInstructions
+        in usersMap
     --
     --
-    buildMap _ (From from, _) = withState (Just from) Nothing
-    buildMap st@(Just _) (User user, line) = withState st (Just (line, isRoot user))
-    buildMap st _ = withState st Nothing
+    buildMap (_, st) (From from, _) = (Just from, st) -- Remember the FROM we are currently inspecting
+    buildMap (Just from, st) (User user, line)
+        | isRoot user = (Just from, Map.insert from line st) -- Remember the line with a root user
+        | otherwise = (Just from, Map.delete from st) -- Forget there was a root used for this FROM
+    buildMap st _ = st
     --
     --
     isRoot user =
