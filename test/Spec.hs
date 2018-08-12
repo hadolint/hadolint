@@ -568,6 +568,15 @@ main =
                 in do
                   ruleCatchesNot shellcheck dockerFile
                   onBuildRuleCatchesNot shellcheck dockerFile
+
+            it "Does not complain on powershell" $
+                let dockerFile = Text.unlines
+                        [ "SHELL [\"pwsh\", \"-c\"]"
+                        , "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
+                        ]
+                in do
+                  ruleCatchesNot shellcheck dockerFile
+                  onBuildRuleCatchesNot shellcheck dockerFile
         --
         --
         describe "COPY rules" $ do
@@ -894,6 +903,13 @@ main =
                         [ "FROM scratch as build"
                         , "SHELL [\"/bin/zsh\", \"-o\", \"pipefail\", \"-c\"]"
                         , "RUN wget -O - https://some.site | wc -l file > /number"
+                        ]
+                in ruleCatchesNot usePipefail $ Text.unlines dockerFile
+            it "don't warn on powershell" $
+                let dockerFile =
+                        [ "FROM scratch as build"
+                        , "SHELL [\"pwsh\", \"-c\"]"
+                        , "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
                         ]
                 in ruleCatchesNot usePipefail $ Text.unlines dockerFile
             it "warns when using plain sh" $

@@ -759,9 +759,12 @@ usePipefail = instructionRuleState code severity message check False
     severity = WarningC
     message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
     check _ _ From {} = (False, True) -- Reset the state each time we find a new FROM
-    check _ _ (Shell args) = (argumentsRule hasPipefailOption args, True)
+    check _ _ (Shell args)
+      | argumentsRule isPowerShell args = (True, True)
+      | otherwise = (argumentsRule hasPipefailOption args, True)
     check False _ (Run args) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
+    isPowerShell (Shell.ParsedShell orig _)= "pwsh" `Text.isPrefixOf` orig
     notHasPipes script = not (Shell.hasPipes script)
     hasPipefailOption script =
         not $
