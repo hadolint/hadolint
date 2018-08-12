@@ -46,6 +46,7 @@ data OutputFormat
 
 data LintOptions = LintOptions
     { showVersion :: Bool
+    , configFile :: Maybe FilePath
     , format :: OutputFormat
     , ignoreRules :: [IgnoreRule]
     , dockerfiles :: [String]
@@ -80,12 +81,20 @@ parseOptions :: Parser LintOptions
 parseOptions =
     LintOptions <$> -- CLI options parser definition
     version <*>
+    configFile <*>
     outputFormat <*>
     ignoreList <*>
     files <*>
     parseRulesConfig
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
+    --
+    -- | Parse the config filename to use
+    configFile =
+        optional
+            (strOption
+                 (long "config" <> short 'c' <> metavar "FILENAME" <>
+                  help "Use a custom file as configuration"))
     --
     -- | Parse the output format option
     outputFormat =
@@ -130,7 +139,10 @@ applyConfig :: LintOptions -> IO LintOptions
 applyConfig o
     | not (null (ignoreRules o)) && rulesConfig o /= mempty = return o
     | otherwise = do
-        theConfig <- findConfig
+        theConfig <-
+            case configFile o of
+                Nothing -> findConfig
+                c -> return c
         case theConfig of
             Nothing -> return o
             Just config -> parseAndApply config
