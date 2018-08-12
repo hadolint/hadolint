@@ -379,6 +379,9 @@ main =
             it "pip install no cache dir" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"
+            it "pip install constraints file" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip install pykafka --constraint http://foo.bar.baz"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip install pykafka --constraint http://foo.bar.baz"
         --
         describe "npm pinning" $ do
             it "version pinned in package.json" $ do
