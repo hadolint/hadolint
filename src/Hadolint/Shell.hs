@@ -48,7 +48,10 @@ setShell :: Text.Text -> ShellOpts -> ShellOpts
 setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [Comment]
-shellcheck (ShellOpts sh env) (ParsedShell txt _) = map comment runShellCheck
+shellcheck (ShellOpts sh env) (ParsedShell txt _) =
+    if "pwsh" `Text.isPrefixOf` sh
+        then [] -- Do no run for powershell
+        else map comment runShellCheck
   where
     runShellCheck = crComments $ runIdentity $ checkScript si spec
     comment (PositionedComment _ _ c) = c
