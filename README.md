@@ -111,7 +111,7 @@ Additionally, you can pass a custom configuration file in the command line with
 the `--config` option
 
 ```bash
-hadolint --config /file/to/config.yaml Dockerfile
+hadolint --config /path/to/config.yaml Dockerfile
 ```
 
 ## Inline ignores

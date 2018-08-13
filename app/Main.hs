@@ -94,7 +94,7 @@ parseOptions =
         optional
             (strOption
                  (long "config" <> short 'c' <> metavar "FILENAME" <>
-                  help "Use a custom file as configuration"))
+                  help "Path to the configuration file"))
     --
     -- | Parse the output format option
     outputFormat =
@@ -111,7 +111,8 @@ parseOptions =
     ignoreList =
         many
             (strOption
-                 (long "ignore" <> help "Ignore rule. If present, config file is ignored" <>
+                 (long "ignore" <>
+                  help "A rule to ignore. If present, the ignore list in the config file is ignored" <>
                   metavar "RULECODE"))
     --
     -- | Parse a list of dockerfile names
