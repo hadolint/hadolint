@@ -107,6 +107,13 @@ file, in order or preference:
 
 In windows, the `%LOCALAPPDATA%` environment variable is used instead of `XDG_CONFIG_HOME`
 
+Additionally, you can pass a custom configuration file in the command line with
+the `--config` option
+
+```bash
+hadolint --config /path/to/config.yaml Dockerfile
+```
+
 ## Inline ignores
 
 It is also possible to ignore rules by using a special comment directly above the Dockerfile
