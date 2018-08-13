@@ -569,7 +569,7 @@ pipVersionPinned = instructionRule code severity message check
         \<package>==<version>`"
     check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
-    forgotToPinVersion cmd = isPipInstall cmd && not (all versionFixed (packages cmd))
+    forgotToPinVersion cmd = isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific pacakges are being listed
     isPipInstall cmd =
         case Shell.getCommandName cmd of
@@ -580,6 +580,7 @@ pipVersionPinned = instructionRule code severity message check
     relevantInstall cmd =
         ["install"] `isInfixOf` Shell.getAllArgs cmd &&
         not (["-r"] `isInfixOf` Shell.getAllArgs cmd || ["."] `isInfixOf` Shell.getAllArgs cmd)
+    hasBuildConstraint = Shell.hasFlag "constraint"
     packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
     versionFixed package = hasVersionSymbol package || isVersionedGit package
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
