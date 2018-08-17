@@ -610,8 +610,9 @@ npmVersionPinned = instructionRule code severity message check
         \<package>@<version>`"
     check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
-    forgotToPinVersion cmd = isNpmInstall cmd && not (all versionFixed (packages cmd))
+    forgotToPinVersion cmd = isNpmInstall cmd &&  installIsFirst cmd && not (all versionFixed (packages cmd))
     isNpmInstall = Shell.cmdHasArgs "npm" ["install"]
+    installIsFirst cmd = ["install"] `isPrefixOf` Shell.getArgsNoFlags cmd
     packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
     versionFixed package =
         if hasGitPrefix package
