@@ -433,6 +433,13 @@ main =
                 onBuildRuleCatchesNot
                     npmVersionPinned
                     "RUN npm install git://github.com/npm/npm.git#v1.0.27"
+            it "npm run install is fine" $ do
+                ruleCatchesNot
+                    npmVersionPinned
+                    "RUN npm run --crazy install"
+                onBuildRuleCatchesNot
+                    npmVersionPinned
+                    "RUN npm run --crazy install"
 
       --version range is not supported
             it "version pinned with scope" $ do
