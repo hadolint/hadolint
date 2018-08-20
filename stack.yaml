@@ -2,7 +2,4 @@ flags: {}
 extra-package-dbs: []
 packages:
 - .
-extra-deps:
-- language-docker-6.0.4
-- ShellCheck-0.5.0
-resolver: lts-11.12
+resolver: lts-12.6

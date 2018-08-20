@@ -20,7 +20,7 @@ matrix:
     - env: &lts-latest ARGS="--resolver lts"
       dist: xenial
 
-    - env: &lts-fixed ARGS="--resolver lts-11.12"
+    - env: &lts-fixed ARGS="--resolver lts-12.6"
       dist: xenial
       addons:
         artifacts: {paths: [./releases]}
