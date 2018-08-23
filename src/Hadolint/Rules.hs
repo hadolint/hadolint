@@ -640,7 +640,8 @@ aptGetYes = instructionRule code severity message check
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     hasYesOption cmd =
         "y" `elem` allFlags cmd ||
-        "yes" `elem` allFlags cmd || length (filter (== "q") (allFlags cmd)) > 1
+        "yes" `elem` allFlags cmd || length (filter (== "q") (allFlags cmd)) > 1 ||
+        "assume-yes" `elem` allFlags cmd
     allFlags cmd = snd <$> Shell.getAllFlags cmd
 
 aptGetNoRecommends :: Rule

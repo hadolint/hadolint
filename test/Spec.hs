@@ -612,6 +612,9 @@ main =
             it "apt-get with auto expanded yes" $ do
                 ruleCatchesNot aptGetYes "RUN apt-get --yes install python"
                 onBuildRuleCatchesNot aptGetYes "RUN apt-get --yes install python"
+            it "apt-get with assume-yes" $ do
+                ruleCatchesNot aptGetYes "RUN apt-get --assume-yes install python"
+                onBuildRuleCatchesNot aptGetYes "RUN apt-get --assume-yes install python"
             it "apt-get install recommends" $ do
                 ruleCatchesNot
                     aptGetNoRecommends
