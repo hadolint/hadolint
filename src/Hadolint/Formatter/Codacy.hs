@@ -1,6 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Hadolint.Formatter.Codacy
     ( printResult
@@ -8,20 +7,18 @@ module Hadolint.Formatter.Codacy
     ) where
 
 import Data.Aeson hiding (Result)
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.List.NonEmpty as NE
 import Data.Monoid ((<>))
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
-import GHC.Generics
 import Hadolint.Formatter.Format (Result(..))
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
-import ShellCheck.Interface
 import Text.Megaparsec.Error
        (ParseError, ShowErrorComponent, ShowToken, errorPos,
         parseErrorTextPretty)
 import Text.Megaparsec.Pos
-       (sourceColumn, sourceLine, sourceName, unPos)
+       (sourceLine, sourceName, unPos)
 
 data Issue = Issue
     { filename :: String
