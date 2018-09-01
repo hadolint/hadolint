@@ -31,6 +31,7 @@ import qualified Hadolint.Formatter.Codeclimate as Codeclimate
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Formatter.Json as Json
 import qualified Hadolint.Formatter.TTY as TTY
+import qualified Hadolint.Formatter.Codacy as Codacy
 import qualified Hadolint.Rules as Rules
 
 type IgnoreRule = Text
@@ -42,6 +43,7 @@ data OutputFormat
     | TTY
     | CodeclimateJson
     | Checkstyle
+    | Codacy
     deriving (Show, Eq)
 
 data LintOptions = LintOptions
@@ -69,6 +71,7 @@ toOutputFormat "json" = Just Json
 toOutputFormat "tty" = Just TTY
 toOutputFormat "codeclimate" = Just CodeclimateJson
 toOutputFormat "checkstyle" = Just Checkstyle
+toOutputFormat "codacy" = Just Codacy
 toOutputFormat _ = Nothing
 
 showFormat :: OutputFormat -> String
@@ -76,6 +79,7 @@ showFormat Json = "json"
 showFormat TTY = "tty"
 showFormat CodeclimateJson = "codeclimate"
 showFormat Checkstyle = "checkstyle"
+showFormat Codacy = "codacy"
 
 parseOptions :: Parser LintOptions
 parseOptions =
@@ -102,10 +106,10 @@ parseOptions =
             (maybeReader toOutputFormat)
             (long "format" <> -- options for the output format
              short 'f' <>
-             help "The output format for the results [tty | json | checkstyle | codeclimate]" <>
+             help "The output format for the results [tty | json | checkstyle | codeclimate | codacy]" <>
              value TTY <> -- The default value
              showDefaultWith showFormat <>
-             completeWith ["tty", "json", "checkstyle", "codeclimate"])
+             completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"])
     --
     -- | Parse a list of ignored rules
     ignoreList =
@@ -226,6 +230,7 @@ lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format, rulesC
             Json -> Json.printResult res
             Checkstyle -> Checkstyle.printResult res
             CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
+            Codacy -> Codacy.printResult res >> exitSuccess
     lintDockerfile ignoreRules dockerFile = do
         ast <- Docker.parseFile (parseFilename dockerFile)
         return (processedFile ast)
