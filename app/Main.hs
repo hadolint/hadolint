@@ -12,48 +12,22 @@ import Data.Semigroup ((<>))
 import qualified Data.Set as Set
 import Data.String
 import Data.Text (Text)
-import qualified Data.Version
 import qualified Data.Yaml as Yaml
-import qualified Development.GitRev
 import GHC.Generics
 import qualified Language.Docker as Docker
 import Language.Docker.Syntax (Dockerfile)
 import Options.Applicative hiding (ParseError)
-import qualified Paths_hadolint -- version from hadolint.cabal file
 import System.Directory
        (XdgDirectory(..), doesFileExist, getCurrentDirectory,
         getXdgDirectory)
-import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 
-import qualified Hadolint.Formatter.Checkstyle as Checkstyle
-import qualified Hadolint.Formatter.Codeclimate as Codeclimate
-import qualified Hadolint.Formatter.Format as Format
-import qualified Hadolint.Formatter.Json as Json
-import qualified Hadolint.Formatter.TTY as TTY
-import qualified Hadolint.Formatter.Codacy as Codacy
+import qualified Hadolint.Lint as Lint
 import qualified Hadolint.Rules as Rules
 
 type IgnoreRule = Text
 
 type TrustedRegistry = Text
-
-data OutputFormat
-    = Json
-    | TTY
-    | CodeclimateJson
-    | Checkstyle
-    | Codacy
-    deriving (Show, Eq)
-
-data LintOptions = LintOptions
-    { showVersion :: Bool
-    , configFile :: Maybe FilePath
-    , format :: OutputFormat
-    , ignoreRules :: [IgnoreRule]
-    , dockerfiles :: [String]
-    , rulesConfig :: Rules.RulesConfig
-    } deriving (Show)
 
 data ConfigFile = ConfigFile
     { ignored :: Maybe [IgnoreRule]
@@ -62,28 +36,24 @@ data ConfigFile = ConfigFile
 
 instance Yaml.FromJSON ConfigFile
 
-ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-ignoreFilter ignoredRules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) =
-    code `notElem` ignoredRules
-
-toOutputFormat :: String -> Maybe OutputFormat
-toOutputFormat "json" = Just Json
-toOutputFormat "tty" = Just TTY
-toOutputFormat "codeclimate" = Just CodeclimateJson
-toOutputFormat "checkstyle" = Just Checkstyle
-toOutputFormat "codacy" = Just Codacy
+toOutputFormat :: String -> Maybe Lint.OutputFormat
+toOutputFormat "json" = Just Lint.Json
+toOutputFormat "tty" = Just Lint.TTY
+toOutputFormat "codeclimate" = Just Lint.CodeclimateJson
+toOutputFormat "checkstyle" = Just Lint.Checkstyle
+toOutputFormat "codacy" = Just Lint.Codacy
 toOutputFormat _ = Nothing
 
-showFormat :: OutputFormat -> String
-showFormat Json = "json"
-showFormat TTY = "tty"
-showFormat CodeclimateJson = "codeclimate"
-showFormat Checkstyle = "checkstyle"
-showFormat Codacy = "codacy"
+showFormat :: Lint.OutputFormat -> String
+showFormat Lint.Json = "json"
+showFormat Lint.TTY = "tty"
+showFormat Lint.CodeclimateJson = "codeclimate"
+showFormat Lint.Checkstyle = "checkstyle"
+showFormat Lint.Codacy = "codacy"
 
-parseOptions :: Parser LintOptions
+parseOptions :: Parser Lint.LintOptions
 parseOptions =
-    LintOptions <$> -- CLI options parser definition
+    Lint.LintOptions <$> -- CLI options parser definition
     version <*>
     configFile <*>
     outputFormat <*>
@@ -107,7 +77,7 @@ parseOptions =
             (long "format" <> -- options for the output format
              short 'f' <>
              help "The output format for the results [tty | json | checkstyle | codeclimate | codacy]" <>
-             value TTY <> -- The default value
+             value Lint.TTY <> -- The default value
              showDefaultWith showFormat <>
              completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"])
     --
@@ -132,7 +102,7 @@ parseOptions =
                   metavar "REGISTRY (e.g. docker.io)"))
 
 main :: IO ()
-main = execParser opts >>= applyConfig >>= lint
+main = execParser opts >>= applyConfig >>= Lint.lint
   where
     opts =
         info
@@ -140,12 +110,12 @@ main = execParser opts >>= applyConfig >>= lint
             (fullDesc <> progDesc "Lint Dockerfile for errors and best practices" <>
              header "hadolint - Dockerfile Linter written in Haskell")
 
-applyConfig :: LintOptions -> IO LintOptions
+applyConfig :: Lint.LintOptions -> IO Lint.LintOptions
 applyConfig o
-    | not (null (ignoreRules o)) && rulesConfig o /= mempty = return o
+    | not (null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return o
     | otherwise = do
         theConfig <-
-            case configFile o of
+            case Lint.configFile o of
                 Nothing -> findConfig
                 c -> return c
         case theConfig of
@@ -161,15 +131,15 @@ applyConfig o
         case result of
             Left err -> printError err config
             Right (ConfigFile ignore trusted) -> return (override ignore trusted)
-    -- | Applies the configuration found in the file to the passed LintOptions
+    -- | Applies the configuration found in the file to the passed Lint.LintOptions
     override ignore trusted = applyTrusted trusted . applyIgnore ignore $ o
     applyIgnore ignore opts =
-        case ignoreRules opts of
-            [] -> opts {ignoreRules = fromMaybe [] ignore}
+        case Lint.ignoreRules opts of
+            [] -> opts {Lint.ignoreRules = fromMaybe [] ignore}
             _ -> opts
     applyTrusted trusted opts
-        | null (Rules.allowedRegistries (rulesConfig opts)) =
-            opts {rulesConfig = toRules trusted <> rulesConfig opts}
+        | null (Rules.allowedRegistries (Lint.rulesConfig opts)) =
+            opts {Lint.rulesConfig = toRules trusted <> Lint.rulesConfig opts}
         | otherwise = opts
     -- | Converts a list of TrustedRegistry to a RulesConfig record
     toRules (Just trusted) = Rules.RulesConfig (Set.fromList . coerce $ trusted)
@@ -201,49 +171,7 @@ parseFilename :: String -> String
 parseFilename "-" = "/dev/stdin"
 parseFilename s = s
 
-getVersion :: String
-getVersion
-    | $(Development.GitRev.gitDescribe) == "UNKNOWN" =
-        "Haskell Dockerfile Linter " ++ Data.Version.showVersion Paths_hadolint.version ++ "-no-git"
-    | otherwise = "Haskell Dockerfile Linter " ++ $(Development.GitRev.gitDescribe)
-
--- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
--- rules, depending on the list of ignored rules.
--- Depending on the preferred printing format, it will output the results to stdout
-lint :: LintOptions -> IO ()
-lint LintOptions {showVersion = True} = putStrLn getVersion >> exitSuccess
-lint LintOptions {dockerfiles = []} = putStrLn "Please provide a Dockerfile" >> exitFailure
-lint LintOptions {ignoreRules = ignoreList, dockerfiles = dFiles, format, rulesConfig} = do
-    processedFiles <- mapM (lintDockerfile ignoreList) dFiles
-    let allResults = results processedFiles
-    printResult allResults
-    if allResults /= mempty
-        then exitFailure
-        else exitSuccess
-  where
-    results = foldMap Format.toResult -- Parse and check rules for each dockerfile,
-                                      -- then convert them to a Result and combine with
-                                      -- the result of the previous dockerfile results
-    printResult res =
-        case format of
-            TTY -> TTY.printResult res
-            Json -> Json.printResult res
-            Checkstyle -> Checkstyle.printResult res
-            CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
-            Codacy -> Codacy.printResult res >> exitSuccess
-    lintDockerfile ignoreRules dockerFile = do
-        ast <- Docker.parseFile (parseFilename dockerFile)
-        return (processedFile ast)
-      where
-        processedFile = fmap processRules
-        processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)
-        ignoredRules = ignoreFilter ignoreRules
-
--- | Returns the result of applying all the rules to the given dockerfile
-analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
-analyzeAll config = Rules.analyze (Rules.rules ++ Rules.optionalRules config)
-
 -- | Helper to analyze AST quickly in GHCI
 analyzeEither :: Rules.RulesConfig -> Either t Dockerfile -> [Rules.RuleCheck]
 analyzeEither _ (Left _) = []
-analyzeEither config (Right dockerFile) = analyzeAll config dockerFile
+analyzeEither config (Right dockerFile) = Lint.analyzeAll config dockerFile

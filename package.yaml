@@ -27,6 +27,7 @@ library:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
     - &ShellCheck ShellCheck >=0.5.0
+    - gitrev >=1.3.1
     - aeson
     - text
     - bytestring
