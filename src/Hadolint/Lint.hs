@@ -5,19 +5,19 @@
 module Hadolint.Lint where
 
 import Data.Text (Text)
-import System.Exit (exitFailure, exitSuccess)
-import qualified Paths_hadolint -- version from hadolint.cabal file
 import qualified Data.Version
 import qualified Development.GitRev
-import qualified Language.Docker as Docker
-import Language.Docker.Syntax (Dockerfile)
-import qualified Hadolint.Rules as Rules
 import qualified Hadolint.Formatter.Checkstyle as Checkstyle
+import qualified Hadolint.Formatter.Codacy as Codacy
 import qualified Hadolint.Formatter.Codeclimate as Codeclimate
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Formatter.Json as Json
 import qualified Hadolint.Formatter.TTY as TTY
-import qualified Hadolint.Formatter.Codacy as Codacy
+import qualified Hadolint.Rules as Rules
+import qualified Language.Docker as Docker
+import Language.Docker.Syntax (Dockerfile)
+import qualified Paths_hadolint -- version from hadolint.cabal file
+import System.Exit (exitFailure, exitSuccess)
 
 type IgnoreRule = Text
 
@@ -41,7 +41,7 @@ data OutputFormat
 ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
 ignoreFilter ignoredRules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) =
     code `notElem` ignoredRules
-    
+
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
