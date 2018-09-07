@@ -15,32 +15,30 @@ import Options.Applicative hiding (ParseError)
 import qualified Paths_hadolint -- version from hadolint.cabal file
 import System.Exit (exitFailure, exitSuccess)
 
-import qualified Hadolint.Config as Config
-import qualified Hadolint.Lint as Lint
-import qualified Hadolint.Rules as Rules
+import qualified Hadolint
 
 data CommandOptions = CommandOptions
     { showVersion :: Bool
     , configFile :: Maybe FilePath
-    , format :: Lint.OutputFormat
+    , format :: Hadolint.OutputFormat
     , dockerfiles :: [String]
-    , lintingOptions :: Lint.LintOptions
+    , lintingOptions :: Hadolint.LintOptions
     }
 
-toOutputFormat :: String -> Maybe Lint.OutputFormat
-toOutputFormat "json" = Just Lint.Json
-toOutputFormat "tty" = Just Lint.TTY
-toOutputFormat "codeclimate" = Just Lint.CodeclimateJson
-toOutputFormat "checkstyle" = Just Lint.Checkstyle
-toOutputFormat "codacy" = Just Lint.Codacy
+toOutputFormat :: String -> Maybe Hadolint.OutputFormat
+toOutputFormat "json" = Just Hadolint.Json
+toOutputFormat "tty" = Just Hadolint.TTY
+toOutputFormat "codeclimate" = Just Hadolint.CodeclimateJson
+toOutputFormat "checkstyle" = Just Hadolint.Checkstyle
+toOutputFormat "codacy" = Just Hadolint.Codacy
 toOutputFormat _ = Nothing
 
-showFormat :: Lint.OutputFormat -> String
-showFormat Lint.Json = "json"
-showFormat Lint.TTY = "tty"
-showFormat Lint.CodeclimateJson = "codeclimate"
-showFormat Lint.Checkstyle = "checkstyle"
-showFormat Lint.Codacy = "codacy"
+showFormat :: Hadolint.OutputFormat -> String
+showFormat Hadolint.Json = "json"
+showFormat Hadolint.TTY = "tty"
+showFormat Hadolint.CodeclimateJson = "codeclimate"
+showFormat Hadolint.Checkstyle = "checkstyle"
+showFormat Hadolint.Codacy = "codacy"
 
 parseOptions :: Parser CommandOptions
 parseOptions =
@@ -68,7 +66,7 @@ parseOptions =
              short 'f' <>
              help
                  "The output format for the results [tty | json | checkstyle | codeclimate | codacy]" <>
-             value Lint.TTY <> -- The default value
+             value Hadolint.TTY <> -- The default value
              showDefaultWith showFormat <>
              completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"])
     --
@@ -84,11 +82,11 @@ parseOptions =
     files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
     --
     -- | Parse the rule ignore list and the rules configuration into a LintOptions
-    lintOptions = Lint.LintOptions <$> ignoreList <*> parseRulesConfig
+    lintOptions = Hadolint.LintOptions <$> ignoreList <*> parseRulesConfig
     --
     -- | Parse all the optional rules configuration
     parseRulesConfig =
-        Rules.RulesConfig . Set.fromList . fmap fromString <$>
+        Hadolint.RulesConfig . Set.fromList . fmap fromString <$>
         many
             (strOption
                  (long "trusted-registry" <>
@@ -104,13 +102,13 @@ main = do
     execute CommandOptions {dockerfiles = []} =
         putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
-        lintConfig <- Config.applyConfig (configFile cmd) (lintingOptions cmd)
+        lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
         let files = NonEmpty.fromList (dockerfiles cmd)
         case lintConfig of
             Left err -> error err
             Right conf -> do
-                res <- Lint.lint conf files
-                Lint.printResultsAndExit (format cmd) res
+                res <- Hadolint.lint conf files
+                Hadolint.printResultsAndExit (format cmd) res
     opts =
         info
             (helper <*> parseOptions)
