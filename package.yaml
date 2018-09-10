@@ -33,6 +33,9 @@ library:
     - containers
     - void
     - mtl
+    - yaml
+    - filepath
+    - directory >= 1.3.0
 executables:
   hadolint:
     main: Main.hs
@@ -41,9 +44,6 @@ executables:
       - hadolint
       - optparse-applicative >= 0.14.0
       - gitrev >=1.3.1
-      - filepath
-      - directory >= 1.3.0
-      - yaml
       - text
       - containers
     when:
