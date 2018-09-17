@@ -28,7 +28,7 @@ script:
 For GitLab CI you need a basic shell in your docker image so you have to use
 the debian based images of hadolint.
 
-Add the following job to your projects `.gitlab-ci.yml`:
+Add the following job to your project's `.gitlab-ci.yml`:
 
 ```yaml
 lint_dockerfile:
@@ -36,6 +36,21 @@ lint_dockerfile:
   image: hadolint/hadolint:latest-debian
   script:
     - hadolint Dockerfile
+```
+
+## Drone CI
+
+For Drone CI, a basic shell is similiarly required.
+
+Add the following job to your project's `.drone.yml` pipeline:
+
+```yaml
+  hadolint:
+    group: validate
+    image: hadolint/hadolint:latest-debian
+    commands:
+      - hadolint --version
+      - hadolint Dockerfile
 ```
 
 ## Editors
