@@ -1,5 +1,12 @@
 # Hadolint Integrations
 
+## Automated Code Review
+
+### Codacy
+
+[Codacy](https://www.codacy.com/) automates hadolint code reviews on every
+commit and pull request, reporting code style and error prone issues.
+
 ## Travis CI
 
 Integration with Travis CI requires minimal changes and adding less than
