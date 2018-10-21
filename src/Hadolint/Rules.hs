@@ -234,20 +234,17 @@ previouslyDefinedAliases line dockerfile =
 aliasMustBe :: (Text.Text -> Bool) -> Instruction a -> Bool
 aliasMustBe predicate fromInstr =
     case fromInstr of
-        From (UntaggedImage _ (Just (ImageAlias alias))) -> predicate alias
-        From (TaggedImage _ _ (Just (ImageAlias alias))) -> predicate alias
-        From (DigestedImage _ _ (Just (ImageAlias alias))) -> predicate alias
+        From (UntaggedImage _ _ (Just (ImageAlias alias))) -> predicate alias
+        From (TaggedImage _ _ _ (Just (ImageAlias alias))) -> predicate alias
         _ -> True
 
 fromName :: BaseImage -> Text.Text
-fromName (UntaggedImage Image {imageName} _) = imageName
-fromName (TaggedImage Image {imageName} _ _) = imageName
-fromName (DigestedImage Image {imageName} _ _) = imageName
+fromName (UntaggedImage Image {imageName} _ _) = imageName
+fromName (TaggedImage Image {imageName} _ _ _) = imageName
 
 fromAlias :: BaseImage -> Maybe ImageAlias
-fromAlias (UntaggedImage _ alias) = alias
-fromAlias (TaggedImage _ _ alias) = alias
-fromAlias (DigestedImage _ _ alias) = alias
+fromAlias (UntaggedImage _ _ alias) = alias
+fromAlias (TaggedImage _ _ _ alias) = alias
 
 -------------
 --  RULES  --
@@ -417,8 +414,8 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly"
-    check _ (From (UntaggedImage (Image _ "scratch") _)) = True
-    check line (From (UntaggedImage (Image _ i) _)) =
+    check _ (From (UntaggedImage (Image _ "scratch") _ _)) = True
+    check line (From (UntaggedImage (Image _ i) _ _)) =
         i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
@@ -430,7 +427,7 @@ noLatestTag = instructionRule code severity message check
     message =
         "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
         \to a release tag"
-    check (From (TaggedImage _ tag _)) = tag /= "latest"
+    check (From (TaggedImage _ tag _ _)) = tag /= "latest"
     check _ = True
 
 aptGetVersionPinned :: Rule
@@ -787,8 +784,8 @@ registryIsAllowed allowed = instructionRuleState code severity message check Set
     code = "DL3026"
     severity = ErrorC
     message = "Use only an allowed registry in the FROM image"
-    check st _ (From (UntaggedImage img alias)) = withState (Set.insert alias st) (doCheck st img)
-    check st _ (From (TaggedImage img _ alias)) = withState (Set.insert alias st) (doCheck st img)
+    check st _ (From (UntaggedImage img _ alias)) = withState (Set.insert alias st) (doCheck st img)
+    check st _ (From (TaggedImage img _ _ alias)) = withState (Set.insert alias st) (doCheck st img)
     check st _ _ = (st, True)
     -- |Transforms an Image into a Maybe ImageAlias by using the Image name
     toImageAlias = Just . ImageAlias . imageName
