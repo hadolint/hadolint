@@ -5,7 +5,7 @@ module Hadolint.Lint where
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.Text (Text)
 import qualified Language.Docker as Docker
-import Language.Docker.Parser (DockerfileError)
+import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 import System.Exit (exitFailure, exitSuccess)
 
@@ -61,7 +61,7 @@ lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
                                       -- then convert them to a Result and combine with
                                       -- the result of the previous dockerfile results
     lintDockerfile ignoreRules dockerFile = do
-        ast <- Docker.parseFile (parseFilename dockerFile)
+        ast <- parseFilename dockerFile
         return (processedFile ast)
       where
         processedFile = fmap processRules
@@ -72,9 +72,9 @@ lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
         ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) =
             code `notElem` rules
         -- | Support UNIX convention of passing "-" instead of "/dev/stdin"
-        parseFilename :: String -> String
-        parseFilename "-" = "/dev/stdin"
-        parseFilename s = s
+        parseFilename :: String -> IO (Either Error Dockerfile)
+        parseFilename "-" = Docker.parseStdin
+        parseFilename s = Docker.parseFile s
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
