@@ -37,7 +37,7 @@ data OutputFormat
 printResultsAndExit :: OutputFormat -> Format.Result Text DockerfileError -> IO ()
 printResultsAndExit format allResults = do
     printResult allResults
-    if Format.isEmpty allResults
+    if not . Format.isEmpty $ allResults
         then exitFailure
         else exitSuccess
   where
