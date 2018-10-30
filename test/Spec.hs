@@ -29,6 +29,8 @@ main =
                 ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
             it "untagged digest is not an error" $
                 ruleCatchesNot noUntagged "FROM ruby@sha256:f1dbca0f5dbc9"
+            it "untagged digest is not an error" $
+                ruleCatchesNot noUntagged "FROM ruby:2"
             it "local aliases are OK to be untagged" $
                 let dockerFile =
                         [ "FROM golang:1.9.3-alpine3.7 AS build"

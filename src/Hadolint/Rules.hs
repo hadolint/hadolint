@@ -411,7 +411,8 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
     severity = WarningC
     message = "Always tag the version of an image explicitly"
     check _ (From BaseImage {image = (Image _ "scratch")}) = True
-    check line (From BaseImage {image = (Image _ i), tag = Nothing, digest = Nothing}) =
+    check _ (From BaseImage {digest = Just _}) = True
+    check line (From BaseImage {image = (Image _ i), tag = Nothing}) =
         i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
