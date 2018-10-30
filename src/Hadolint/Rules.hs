@@ -4,8 +4,7 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List
-       (dropWhile, foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
+import Data.List (dropWhile, foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
@@ -88,7 +87,7 @@ type Rule = ParsedFile -> [RuleCheck]
 mapInstructions :: CheckerWithState state -> state -> Rule
 mapInstructions f initialState dockerfile =
     let (_, results) = mapAccumL applyRule initialState dockerfile
-    in concat results
+     in concat results
   where
     applyRule state (InstructionPos (OnBuild i) source linenumber) =
         applyWithState state source linenumber i -- All rules applying to instructions also apply to ONBUILD,
@@ -98,7 +97,7 @@ mapInstructions f initialState dockerfile =
         applyWithState state source linenumber i -- Otherwise, normal instructions are not unwrapped
     applyWithState state source linenumber instruction =
         let (newState, res) = f state linenumber instruction
-        in (newState, [RuleCheck m source linenumber False | m <- res])
+         in (newState, [RuleCheck m source linenumber False | m <- res])
 
 instructionRule ::
        Text.Text -> Severity -> Text.Text -> (Instruction Shell.ParsedShell -> Bool) -> Rule
@@ -118,9 +117,9 @@ instructionRuleState code severity message f = mapInstructions constMetadataChec
     meta = Metadata code severity message
     constMetadataCheck st ln instr =
         let (newSt, success) = f st ln instr
-        in if not success
-               then (newSt, [meta])
-               else (newSt, [])
+         in if not success
+                then (newSt, [meta])
+                else (newSt, [])
 
 withState :: a -> b -> (a, b)
 withState st res = (st, res)
@@ -234,17 +233,14 @@ previouslyDefinedAliases line dockerfile =
 aliasMustBe :: (Text.Text -> Bool) -> Instruction a -> Bool
 aliasMustBe predicate fromInstr =
     case fromInstr of
-        From (UntaggedImage _ _ (Just (ImageAlias alias))) -> predicate alias
-        From (TaggedImage _ _ _ (Just (ImageAlias alias))) -> predicate alias
+        From BaseImage {alias = Just (ImageAlias as)} -> predicate as
         _ -> True
 
 fromName :: BaseImage -> Text.Text
-fromName (UntaggedImage Image {imageName} _ _) = imageName
-fromName (TaggedImage Image {imageName} _ _ _) = imageName
+fromName BaseImage {image = Image {imageName}} = imageName
 
 fromAlias :: BaseImage -> Maybe ImageAlias
-fromAlias (UntaggedImage _ _ alias) = alias
-fromAlias (TaggedImage _ _ _ alias) = alias
+fromAlias BaseImage {alias} = alias
 
 -------------
 --  RULES  --
@@ -328,7 +324,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     detectDoubleUsage state args =
         let newArgs = extractCommands args
             newState = Set.union state newArgs
-        in withState newState (Set.size newState < 2)
+         in withState newState (Set.size newState < 2)
     extractCommands args =
         Set.fromList [w | w <- Shell.findCommandNames args, w == "curl" || w == "wget"]
 
@@ -365,7 +361,7 @@ noRootUser dockerfile = instructionRuleState code severity message check Nothing
     rootStages =
         let indexedInstructions = map (instruction &&& lineNumber) dockerfile
             (_, usersMap) = foldl' buildMap (Nothing, Map.empty) indexedInstructions
-        in usersMap
+         in usersMap
     --
     --
     buildMap (_, st) (From from, _) = (Just from, st) -- Remember the FROM we are currently inspecting
@@ -414,8 +410,8 @@ noUntagged dockerfile = instructionRuleLine code severity message check dockerfi
     code = "DL3006"
     severity = WarningC
     message = "Always tag the version of an image explicitly"
-    check _ (From (UntaggedImage (Image _ "scratch") _ _)) = True
-    check line (From (UntaggedImage (Image _ i) _ _)) =
+    check _ (From BaseImage {image = (Image _ "scratch")}) = True
+    check line (From BaseImage {image = (Image _ i), tag = Nothing, digest = Nothing}) =
         i `elem` previouslyDefinedAliases line dockerfile
     check _ _ = True
 
@@ -427,7 +423,7 @@ noLatestTag = instructionRule code severity message check
     message =
         "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
         \to a release tag"
-    check (From (TaggedImage _ tag _ _)) = tag /= "latest"
+    check (From BaseImage {tag = Just t}) = t /= "latest"
     check _ = True
 
 aptGetVersionPinned :: Rule
@@ -566,7 +562,8 @@ pipVersionPinned = instructionRule code severity message check
         \<package>==<version>`"
     check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
-    forgotToPinVersion cmd = isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
+    forgotToPinVersion cmd =
+        isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific pacakges are being listed
     isPipInstall cmd =
         case Shell.getCommandName cmd of
@@ -607,7 +604,8 @@ npmVersionPinned = instructionRule code severity message check
         \<package>@<version>`"
     check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
-    forgotToPinVersion cmd = isNpmInstall cmd &&  installIsFirst cmd && not (all versionFixed (packages cmd))
+    forgotToPinVersion cmd =
+        isNpmInstall cmd && installIsFirst cmd && not (all versionFixed (packages cmd))
     isNpmInstall = Shell.cmdHasArgs "npm" ["install"]
     installIsFirst cmd = ["install"] `isPrefixOf` Shell.getArgsNoFlags cmd
     packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
@@ -637,8 +635,8 @@ aptGetYes = instructionRule code severity message check
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     hasYesOption cmd =
         "y" `elem` allFlags cmd ||
-        "yes" `elem` allFlags cmd || length (filter (== "q") (allFlags cmd)) > 1 ||
-        "assume-yes" `elem` allFlags cmd
+        "yes" `elem` allFlags cmd ||
+        length (filter (== "q") (allFlags cmd)) > 1 || "assume-yes" `elem` allFlags cmd
     allFlags cmd = snd <$> Shell.getAllFlags cmd
 
 aptGetNoRecommends :: Rule
@@ -760,11 +758,11 @@ usePipefail = instructionRuleState code severity message check False
     message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
     check _ _ From {} = (False, True) -- Reset the state each time we find a new FROM
     check _ _ (Shell args)
-      | argumentsRule isPowerShell args = (True, True)
-      | otherwise = (argumentsRule hasPipefailOption args, True)
+        | argumentsRule isPowerShell args = (True, True)
+        | otherwise = (argumentsRule hasPipefailOption args, True)
     check False _ (Run args) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
-    isPowerShell (Shell.ParsedShell orig _)= "pwsh" `Text.isPrefixOf` orig
+    isPowerShell (Shell.ParsedShell orig _) = "pwsh" `Text.isPrefixOf` orig
     notHasPipes script = not (Shell.hasPipes script)
     hasPipefailOption script =
         not $
@@ -784,8 +782,7 @@ registryIsAllowed allowed = instructionRuleState code severity message check Set
     code = "DL3026"
     severity = ErrorC
     message = "Use only an allowed registry in the FROM image"
-    check st _ (From (UntaggedImage img _ alias)) = withState (Set.insert alias st) (doCheck st img)
-    check st _ (From (TaggedImage img _ _ alias)) = withState (Set.insert alias st) (doCheck st img)
+    check st _ (From BaseImage {image, alias}) = withState (Set.insert alias st) (doCheck st image)
     check st _ _ = (st, True)
     -- |Transforms an Image into a Maybe ImageAlias by using the Image name
     toImageAlias = Just . ImageAlias . imageName

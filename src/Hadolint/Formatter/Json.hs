@@ -8,22 +8,19 @@ module Hadolint.Formatter.Json
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
-import qualified Data.List.NonEmpty as NE
 import Data.Monoid ((<>))
-import Hadolint.Formatter.Format (Result(..), severityText)
+import Hadolint.Formatter.Format (Result(..), errorPosition, severityText)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
+import Text.Megaparsec (Stream)
 import Text.Megaparsec.Error
-       (ParseError, ShowErrorComponent, ShowToken, errorPos,
-        parseErrorTextPretty)
-import Text.Megaparsec.Pos
-       (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
 
-data JsonFormat t e
+data JsonFormat s e
     = JsonCheck RuleCheck
-    | JsonParseError (ParseError t e)
+    | JsonParseError (ParseErrorBundle s e)
 
-instance (ShowToken t, Ord t, ShowErrorComponent e) => ToJSON (JsonFormat t e) where
+instance (Stream s, ShowErrorComponent e) => ToJSON (JsonFormat s e) where
     toJSON (JsonCheck RuleCheck {..}) =
         object
             [ "file" .= filename
@@ -40,17 +37,17 @@ instance (ShowToken t, Ord t, ShowErrorComponent e) => ToJSON (JsonFormat t e) w
             , "column" .= unPos (sourceColumn pos)
             , "level" .= severityText ErrorC
             , "code" .= ("DL1000" :: String)
-            , "message" .= parseErrorTextPretty err
+            , "message" .= errorBundlePretty err
             ]
       where
-        pos = NE.head (errorPos err)
+        pos = errorPosition err
 
-formatResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> Value
+formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Value
 formatResult (Result errors checks) = toJSON allMessages
   where
     allMessages = errorMessages <> checkMessages
     errorMessages = fmap JsonParseError errors
     checkMessages = fmap JsonCheck checks
 
-printResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> IO ()
+printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = B.putStrLn (encode (formatResult result))

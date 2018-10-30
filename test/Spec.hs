@@ -2,8 +2,9 @@
 {-# LANGUAGE OverloadedLists #-}
 import Test.HUnit hiding (Label)
 import Test.Hspec
+import Control.Monad (when, unless)
 
-import Hadolint.Formatter.TTY (formatError)
+import Hadolint.Formatter.TTY (formatError, formatChecks)
 import Hadolint.Rules
 
 import Language.Docker.Parser
@@ -26,6 +27,8 @@ main =
                     \7959ed6f7e35f8b1aaa06d1d8259d4ee25aa85a086d5c125480c333183f9deeb"
             it "explicit tagged with name" $
                 ruleCatchesNot noLatestTag "FROM debian:jessie AS builder"
+            it "untagged digest is not an error" $
+                ruleCatchesNot noUntagged "FROM ruby@sha256:f1dbca0f5dbc9"
             it "local aliases are OK to be untagged" $
                 let dockerFile =
                         [ "FROM golang:1.9.3-alpine3.7 AS build"
@@ -1009,24 +1012,30 @@ ruleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatches rule s = assertChecks rule s f
   where
     f checks = do
-      assertEqual "No check for rule found" 1 $ length checks
+      when (length checks /= 1) $
+        assertFailure $ "Too many errors found: \n" ++ (Text.unpack . Text.unlines . formatChecks $ checks)
       assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
 onBuildRuleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 onBuildRuleCatches rule s = assertOnBuildChecks rule s f
   where
     f checks = do
-      assertEqual "No check for rule found" 1 $ length checks
+      when (length checks /= 1) $
+        assertFailure (Text.unpack . Text.unlines . formatChecks $ checks)
       assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
 ruleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f
   where
-    f checks = assertEqual ("Error: " ++ errorMessages checks) 0 $ length checks
-    errorMessages checks = Text.unpack . Text.unlines $ map (message . metadata) checks
+    f checks =
+      unless (null checks) $
+        assertFailure $ "Not expecting the following errors: \n" ++
+                        (Text.unpack . Text.unlines . formatChecks $ checks)
 
 onBuildRuleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 onBuildRuleCatchesNot rule s = assertOnBuildChecks rule s f
   where
-    f checks = assertEqual ("Error: " ++ errorMessages checks) 0 $ length checks
-    errorMessages checks = Text.unpack . Text.unlines $ map (message . metadata) checks
+    f checks =
+      unless (null checks) $
+        assertFailure $ "Not expecting the following errors: \n" ++
+                        (Text.unpack . Text.unlines . formatChecks $ checks)

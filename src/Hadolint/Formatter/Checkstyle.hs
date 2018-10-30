@@ -11,17 +11,14 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
 import Data.Foldable (toList)
 import Data.List (groupBy)
-import qualified Data.List.NonEmpty as NE
 import Data.Monoid ((<>), mconcat)
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
+import Text.Megaparsec (Stream)
 import Text.Megaparsec.Error
-       (ParseError, ShowErrorComponent, ShowToken, errorPos,
-        parseErrorTextPretty)
-import Text.Megaparsec.Pos
-       (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
 
 data CheckStyle = CheckStyle
     { file :: String
@@ -32,29 +29,29 @@ data CheckStyle = CheckStyle
     , source :: String
     }
 
-errorToCheckStyle :: (ShowToken t, Ord t, ShowErrorComponent e) => ParseError t e -> CheckStyle
+errorToCheckStyle :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> CheckStyle
 errorToCheckStyle err =
     CheckStyle
-    { file = sourceName pos
-    , line = unPos (sourceLine pos)
-    , column = unPos (sourceColumn pos)
-    , impact = severityText ErrorC
-    , msg = stripNewlines (parseErrorTextPretty err)
-    , source = "DL1000"
-    }
+        { file = sourceName pos
+        , line = unPos (sourceLine pos)
+        , column = unPos (sourceColumn pos)
+        , impact = severityText ErrorC
+        , msg = errorBundlePretty err
+        , source = "DL1000"
+        }
   where
-    pos = NE.head (errorPos err)
+    pos = errorPosition err
 
 ruleToCheckStyle :: RuleCheck -> CheckStyle
 ruleToCheckStyle RuleCheck {..} =
     CheckStyle
-    { file = Text.unpack filename
-    , line = linenumber
-    , column = 1
-    , impact = severityText (severity metadata)
-    , msg = Text.unpack (message metadata)
-    , source = Text.unpack (code metadata)
-    }
+        { file = Text.unpack filename
+        , line = linenumber
+        , column = 1
+        , impact = severityText (severity metadata)
+        , msg = Text.unpack (message metadata)
+        , source = Text.unpack (code metadata)
+        }
 
 toXml :: [CheckStyle] -> Builder.Builder
 toXml checks = wrap fileName (foldMap convert checks)
@@ -85,7 +82,7 @@ escape = concatMap doEscape
             else "&#" ++ show (ord c) ++ ";"
     isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
 
-formatResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> Builder.Builder
+formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Builder.Builder
 formatResult (Result errors checks) =
     "<?xml version='1.0' encoding='UTF-8'?><checkstyle version='4.3'>" <> xmlBody <> "</checkstyle>"
   where
@@ -96,5 +93,5 @@ formatResult (Result errors checks) =
     checkstyleChecks = fmap ruleToCheckStyle checks
     sameFileName CheckStyle {file = f1} CheckStyle {file = f2} = f1 == f2
 
-printResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> IO ()
+printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = B.putStr (Builder.toLazyByteString (formatResult result))

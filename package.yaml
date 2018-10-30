@@ -19,8 +19,8 @@ ghc-options:
   - -optP-Wno-nonportable-include-path
 dependencies:
   - base >=4.8 && <5
-  - megaparsec >=6.4
-  - language-docker >=7.0.0 && < 8
+  - megaparsec >=7.0
+  - language-docker >=8.0.0 && < 9
 library:
   source-dirs: src
   dependencies:

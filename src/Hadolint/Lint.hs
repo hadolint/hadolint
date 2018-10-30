@@ -34,10 +34,10 @@ data OutputFormat
     | Codacy
     deriving (Show, Eq)
 
-printResultsAndExit :: OutputFormat -> Format.Result Char DockerfileError -> IO ()
+printResultsAndExit :: OutputFormat -> Format.Result Text DockerfileError -> IO ()
 printResultsAndExit format allResults = do
     printResult allResults
-    if allResults /= mempty
+    if Format.isEmpty allResults
         then exitFailure
         else exitSuccess
   where
@@ -52,7 +52,7 @@ printResultsAndExit format allResults = do
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
-lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Char DockerfileError)
+lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
 lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
     processedFiles <- mapM (lintDockerfile ignoreList) (NonEmpty.toList dFiles)
     return (results processedFiles)
@@ -69,8 +69,7 @@ lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
         ignoredRules = ignoreFilter ignoreRules
         -- | Returns true if the rule should be ignored
         ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) =
-            code `notElem` rules
+        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `notElem` rules
         -- | Support UNIX convention of passing "-" instead of "/dev/stdin"
         parseFilename :: String -> IO (Either Error Dockerfile)
         parseFilename "-" = Docker.parseStdin

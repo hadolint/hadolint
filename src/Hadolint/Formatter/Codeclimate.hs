@@ -9,19 +9,16 @@ module Hadolint.Formatter.Codeclimate
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
-import qualified Data.List.NonEmpty as NE
 import Data.Monoid ((<>))
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
-import Hadolint.Formatter.Format (Result(..))
+import Hadolint.Formatter.Format (Result(..), errorPosition)
 import Hadolint.Rules (Metadata(..), RuleCheck(..))
 import ShellCheck.Interface
+import Text.Megaparsec (Stream)
 import Text.Megaparsec.Error
-       (ParseError, ShowErrorComponent, ShowToken, errorPos,
-        parseErrorTextPretty)
-import Text.Megaparsec.Pos
-       (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
 
 data Issue = Issue
     { checkName :: String
@@ -59,27 +56,27 @@ instance ToJSON Issue where
             , "severity" .= impact
             ]
 
-errorToIssue :: (ShowToken t, Ord t, ShowErrorComponent e) => ParseError t e -> Issue
+errorToIssue :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> Issue
 errorToIssue err =
     Issue
-    { checkName = "DL1000"
-    , description = parseErrorTextPretty err
-    , location = LocPos (sourceName pos) Pos {..}
-    , impact = severityText ErrorC
-    }
+        { checkName = "DL1000"
+        , description = errorBundlePretty err
+        , location = LocPos (sourceName pos) Pos {..}
+        , impact = severityText ErrorC
+        }
   where
-    pos = NE.head (errorPos err)
+    pos = errorPosition err
     line = unPos (sourceLine pos)
     column = unPos (sourceColumn pos)
 
 checkToIssue :: RuleCheck -> Issue
 checkToIssue RuleCheck {..} =
     Issue
-    { checkName = Text.unpack (code metadata)
-    , description = Text.unpack (message metadata)
-    , location = LocLine (Text.unpack filename) linenumber
-    , impact = severityText (severity metadata)
-    }
+        { checkName = Text.unpack (code metadata)
+        , description = Text.unpack (message metadata)
+        , location = LocLine (Text.unpack filename) linenumber
+        , impact = severityText (severity metadata)
+        }
 
 severityText :: Severity -> String
 severityText severity =
@@ -89,14 +86,14 @@ severityText severity =
         InfoC -> "info"
         StyleC -> "minor"
 
-formatResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> Seq Issue
+formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Seq Issue
 formatResult (Result errors checks) = allIssues
   where
     allIssues = errorMessages <> checkMessages
     errorMessages = fmap errorToIssue errors
     checkMessages = fmap checkToIssue checks
 
-printResult :: (ShowToken t, Ord t, ShowErrorComponent e) => Result t e -> IO ()
+printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = mapM_ output (formatResult result)
   where
     output value = do
