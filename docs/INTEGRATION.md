@@ -19,7 +19,7 @@ sudo: false
 language: generic
 env:
   # Path to 'hadolint' binary
-  HADOLINT: '${HOME}/hadolint'
+  HADOLINT: "${HOME}/hadolint"
 install:
   # Download hadolint binary and set it as executable
   - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.9.0/hadolint-$(uname -s)-$(uname -m)"
@@ -52,12 +52,12 @@ For Drone CI, a basic shell is similiarly required.
 Add the following job to your project's `.drone.yml` pipeline:
 
 ```yaml
-hadolint:
-  group: validate
-  image: hadolint/hadolint:latest-debian
-  commands:
-    - hadolint --version
-    - hadolint Dockerfile
+  hadolint:
+    group: validate
+    image: hadolint/hadolint:latest-debian
+    commands:
+      - hadolint --version
+      - hadolint Dockerfile
 ```
 
 ## Codeship Pro
@@ -110,10 +110,10 @@ Thanks to [niksite][], there is an integration
 
 Hadolint is used in two plugins:
 
-- [Syntastic][] - syntax checking plugin for Vim created by Martin Grenfell.
+-   [Syntastic][] - syntax checking plugin for Vim created by Martin Grenfell.
 
-- [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
-  and Vim 8 while you edit your text files.
+-   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
+    and Vim 8 while you edit your text files.
 
 ### VS Code
 
