@@ -47,6 +47,12 @@ If you are on OSX you can use [brew](https://brew.sh/) to install `hadolint`.
 brew install hadolint
 ```
 
+On Windows you can use [scoop](https://github.com/lukesampson/scoop) to install `hadolint`.
+
+```batch
+scoop install hadolint
+```
+
 As shown before, `hadolint` is available as a Docker container:
 
 ```bash
