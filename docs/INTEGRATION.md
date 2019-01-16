@@ -60,6 +60,29 @@ Add the following job to your project's `.drone.yml` pipeline:
       - hadolint Dockerfile
 ```
 
+## Codeship Pro
+
+Add the hadolint docker container on codeship-services.yml with a docker volume 
+with the repository attached to it:
+
+```yaml
+hadolint:
+  image: hadolint/hadolint:latest-debian
+  volumes:
+    - ./:/test
+```
+
+Then add the CI step on codeship-steps.yml with the path of the dockerfile
+
+```yaml
+- type: parallel
+  # optional: set branches
+  tag: '^(master|develop/.*)$'
+  steps:
+    - service: hadolint
+      command: hadolint /test/Dockerfile
+```
+
 ## Editors
 
 Using hadolint in your terminal is not always the most convinient way, but it
