@@ -62,7 +62,8 @@ Add the following job to your project's `.drone.yml` pipeline:
 
 ## Codeship Pro
 
-Add the hadolint docker container on codeship-services.yml with a docker volume with the repository attached to it:
+Add the hadolint docker container on codeship-services.yml with a docker volume 
+with the repository attached to it:
 
 ```yaml
 hadolint:
