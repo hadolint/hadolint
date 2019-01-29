@@ -75,20 +75,24 @@ matrix:
       install:
         # Build image
         - travis_wait 30 docker build
-          --tag hadolint:$(git describe --tags --dirty)
-          --file docker/Dockerfile .
-        - docker build --tag hadolint:debian --file docker/Dockerfile --target debian-distro .
+          --tag hadolint:$(git describe --always --tags --dirty)
+          --file docker/Dockerfile
+          --target distro .
+        - docker build
+          --tag hadolint:$(git describe --always --tags --dirty)-debian
+          --file docker/Dockerfile
+          --target debian-distro .
       script:
         # List images
         - docker image ls
         # Lint its own Dockerfile
-        - docker run --rm -i hadolint:$(git describe --tags --dirty) <
+        - docker run --rm -i hadolint:$(git describe  --always --tags --dirty) <
           docker/Dockerfile
         # Check that version in hadolint in the same as its `git describe`
         - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:$(git describe --tags --dirty) hadolint --version)
+          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty) hadolint --version)
         - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:debian hadolint --version)
+          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty)-debian hadolint --version)
       after_success: true
 
     - env: Version_Check_and_Linting
