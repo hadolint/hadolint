@@ -258,10 +258,14 @@ shellcheck = mapInstructions check Shell.defaultShellOpts
     check st _ (Run (ArgumentsText script)) = (st, doCheck st script)
     check st _ _ = (st, [])
     doCheck opts script = nub [commentMetadata c | c <- Shell.shellcheck opts script]
-    -- | Converts ShellCheck errors into our own errors type
-    commentMetadata :: ShellCheck.Interface.Comment -> Metadata
-    commentMetadata (ShellCheck.Interface.Comment severity code message) =
-        Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
+
+-- | Converts ShellCheck errors into our own errors type
+commentMetadata :: ShellCheck.Interface.PositionedComment -> Metadata
+commentMetadata c = Metadata (Text.pack ("SC" ++ show (code c))) (severity c) (Text.pack (message c))
+  where
+    severity pc = ShellCheck.Interface.cSeverity $ ShellCheck.Interface.pcComment pc
+    code pc = ShellCheck.Interface.cCode $ ShellCheck.Interface.pcComment pc
+    message pc = ShellCheck.Interface.cMessage $ ShellCheck.Interface.pcComment pc
 
 absoluteWorkdir :: Rule
 absoluteWorkdir = instructionRule code severity message check
