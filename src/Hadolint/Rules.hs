@@ -517,7 +517,7 @@ apkAddPackages args =
     , arg /= "add"
     ]
   where
-    dropTarget = Shell.dropFlagArg ["t", "virtual"]
+    dropTarget = Shell.dropFlagArg ["t", "virtual", "repository"]
 
 apkAddNoCache :: Rule
 apkAddNoCache = instructionRule code severity message check
