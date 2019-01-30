@@ -580,7 +580,7 @@ pipVersionPinned = instructionRule code severity message check
         ["install"] `isInfixOf` Shell.getAllArgs cmd &&
         not (["-r"] `isInfixOf` Shell.getAllArgs cmd || ["."] `isInfixOf` Shell.getAllArgs cmd)
     hasBuildConstraint = Shell.hasFlag "constraint"
-    packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
+    packages cmd = stripInstallPrefix $ Shell.getArgsNoFlags $ Shell.dropFlagArg ["i", "index-url", "extra-index-url"] cmd
     versionFixed package = hasVersionSymbol package || isVersionedGit package
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
