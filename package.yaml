@@ -26,7 +26,7 @@ library:
   dependencies:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
-    - &ShellCheck ShellCheck >=0.5.0
+    - &ShellCheck ShellCheck >=0.6.0
     - aeson
     - text
     - bytestring

@@ -258,10 +258,14 @@ shellcheck = mapInstructions check Shell.defaultShellOpts
     check st _ (Run (ArgumentsText script)) = (st, doCheck st script)
     check st _ _ = (st, [])
     doCheck opts script = nub [commentMetadata c | c <- Shell.shellcheck opts script]
-    -- | Converts ShellCheck errors into our own errors type
-    commentMetadata :: ShellCheck.Interface.Comment -> Metadata
-    commentMetadata (ShellCheck.Interface.Comment severity code message) =
-        Metadata (Text.pack ("SC" ++ show code)) severity (Text.pack message)
+
+-- | Converts ShellCheck errors into our own errors type
+commentMetadata :: ShellCheck.Interface.PositionedComment -> Metadata
+commentMetadata c = Metadata (Text.pack ("SC" ++ show (code c))) (severity c) (Text.pack (message c))
+  where
+    severity pc = ShellCheck.Interface.cSeverity $ ShellCheck.Interface.pcComment pc
+    code pc = ShellCheck.Interface.cCode $ ShellCheck.Interface.pcComment pc
+    message pc = ShellCheck.Interface.cMessage $ ShellCheck.Interface.pcComment pc
 
 absoluteWorkdir :: Rule
 absoluteWorkdir = instructionRule code severity message check
@@ -513,7 +517,7 @@ apkAddPackages args =
     , arg /= "add"
     ]
   where
-    dropTarget = Shell.dropFlagArg ["t", "virtual"]
+    dropTarget = Shell.dropFlagArg ["t", "virtual", "repository"]
 
 apkAddNoCache :: Rule
 apkAddNoCache = instructionRule code severity message check
@@ -576,7 +580,7 @@ pipVersionPinned = instructionRule code severity message check
         ["install"] `isInfixOf` Shell.getAllArgs cmd &&
         not (["-r"] `isInfixOf` Shell.getAllArgs cmd || ["."] `isInfixOf` Shell.getAllArgs cmd)
     hasBuildConstraint = Shell.hasFlag "constraint"
-    packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
+    packages cmd = stripInstallPrefix $ Shell.getArgsNoFlags $ Shell.dropFlagArg ["i", "index-url", "extra-index-url"] cmd
     versionFixed package = hasVersionSymbol package || isVersionedGit package
     isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]

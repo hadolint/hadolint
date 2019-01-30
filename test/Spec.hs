@@ -309,6 +309,24 @@ main =
                 in do
                   ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
                   onBuildRuleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+            it "apk add with repository without equal sign" $
+                let dockerFile =
+                        [ "RUN apk add --no-cache \\"
+                        , "--repository https://nl.alpinelinux.org/alpine/edge/testing \\"
+                        , "flow=0.78.0-r0"
+                        ]
+                in do
+                ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+                onBuildRuleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+            it "apk add with repository with equal sign" $
+                let dockerFile =
+                        [ "RUN apk add --no-cache \\"
+                        , "--repository=https://nl.alpinelinux.org/alpine/edge/testing \\"
+                        , "flow=0.78.0-r0"
+                        ]
+                in do
+                ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+                onBuildRuleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
         --
         describe "EXPOSE rules" $ do
             it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
@@ -381,6 +399,27 @@ main =
                 onBuildRuleCatchesNot
                     pipVersionPinned
                     "RUN pip install MySQL_python==1.2.2 --disable-pip-version-check"
+            it "pip install --index-url" $ do
+                ruleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo foobar==1.0.0"
+                onBuildRuleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo foobar==1.0.0"
+            it "pip install index-url with -i flag" $ do
+                ruleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo foobar==1.0.0"
+                onBuildRuleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo foobar==1.0.0"
+            it "pip install --index-url with --extra-index-url" $ do
+                ruleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo --extra-index-url https://ex-eg.io/foo foobar==1.0.0"
+                onBuildRuleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://eg.com/foo --extra-index-url https://ex-eg.io/foo foobar==1.0.0"
             it "pip install no cache dir" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install MySQL_python==1.2.2 --no-cache-dir"

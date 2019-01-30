@@ -47,19 +47,23 @@ addVars vars (ShellOpts n v) = ShellOpts n (v <> Set.fromList vars)
 setShell :: Text.Text -> ShellOpts -> ShellOpts
 setShell s (ShellOpts _ v) = ShellOpts s v
 
-shellcheck :: ShellOpts -> ParsedShell -> [Comment]
+shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _) =
     if "pwsh" `Text.isPrefixOf` sh
         then [] -- Do no run for powershell
-        else map comment runShellCheck
+        else runShellCheck
   where
     runShellCheck = crComments $ runIdentity $ checkScript si spec
-    comment (PositionedComment _ _ c) = c
     si = mockedSystemInterface [("", "")]
-    spec = CheckSpec filename script sourced exclusions Nothing
+    spec = emptyCheckSpec {
+        csFilename = "", -- filename can be ommited because we only want the parse results back
+        csScript = script,
+        csCheckSourced = False,
+        csExcludedWarnings = exclusions,
+        csShellTypeOverride = Nothing,
+        csMinSeverity = StyleC
+    }
     script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
-    filename = "" -- filename can be ommited because we only want the parse results back
-    sourced = False
     exclusions =
         [ 2187 -- exclude the warning about the ash shell not being supported
         ]
@@ -79,7 +83,7 @@ parseShell txt =
           runIdentity $
           ShellCheck.Parser.parseScript
               (mockedSystemInterface [("", "")])
-              ParseSpec
+              newParseSpec
               { psFilename = "" -- There is no filename
               , psScript = "#!/bin/bash\n" ++ Text.unpack txt
               , psCheckSourced = False
