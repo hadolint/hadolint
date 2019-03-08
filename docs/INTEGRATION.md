@@ -30,6 +30,21 @@ script:
   - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 ${HADOLINT}
 ```
 
+## GitHub Actions
+
+For GitHub you can build on the existing docker image with debian to run through all the Dockerfiles in your repository and print out a list of issues. You can find an example implementation [here](https://github.com/cds-snc/github-actions/tree/master/docker-lint). Your workflow might look something like this (feel free to use the provided Docker image `cdssnc/docker-lint` or create your own):
+
+```hcl
+workflow "Lint Dockerfiles" {
+  on = "push"
+  resolves = ["Lint all the files"]
+}
+
+action "Lint all the files" {
+  uses = "docker://cdssnc/docker-lint"
+}
+```
+
 ## Gitlab CI
 
 For GitLab CI you need a basic shell in your docker image so you have to use
