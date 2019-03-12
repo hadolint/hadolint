@@ -54,7 +54,6 @@ matrix:
       addons:
         artifacts: {paths: [./releases]}
         homebrew:
-          update: true
           packages: upx
       before_deploy:
         # Show dynamic libraries `hadolint` depends on
