@@ -1030,6 +1030,19 @@ main =
                         , "FROM builder1 AS builder2"
                         ]
                 in ruleCatchesNot (registryIsAllowed ["random.com"]) $ Text.unlines dockerFile
+        --
+        describe "Regression Tests" $ do
+            it "Comments with backslashes at the end are just comments" $
+                let dockerFile =
+                        [ "FROM alpine:3.6"
+                        , "# The following comment makes hadolint still complain about DL4006"
+                        , "# \\"
+                        , "# should solve DL4006"
+                        , "SHELL [\"/bin/sh\", \"-o\", \"pipefail\", \"-c\"]"
+                        , "# RUN with pipe. causes DL4006, but should be fixed by above SHELL"
+                        , "RUN echo \"kaka\" | sed 's/a/o/g' >> /root/afile"
+                        ]
+                in ruleCatches usePipefail $ Text.unlines dockerFile
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
