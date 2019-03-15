@@ -447,8 +447,8 @@ aptGetPackages :: Shell.ParsedShell -> [String]
 aptGetPackages args =
     [ arg
     | cmd <- dropTarget <$> Shell.findCommands args
-    , arg <- Shell.getArgsNoFlags cmd
     , Shell.cmdHasArgs "apt-get" ["install"] cmd
+    , arg <- Shell.getArgsNoFlags cmd
     , arg /= "install"
     ]
   where
@@ -512,8 +512,8 @@ apkAddPackages :: Shell.ParsedShell -> [String]
 apkAddPackages args =
     [ arg
     | cmd <- dropTarget <$> Shell.findCommands args
-    , arg <- Shell.getArgsNoFlags cmd
     , Shell.cmdHasArgs "apk" ["add"] cmd
+    , arg <- Shell.getArgsNoFlags cmd
     , arg /= "add"
     ]
   where
