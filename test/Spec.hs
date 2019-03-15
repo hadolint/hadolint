@@ -1031,7 +1031,7 @@ main =
                         ]
                 in ruleCatchesNot (registryIsAllowed ["random.com"]) $ Text.unlines dockerFile
         --
-        describe "Regression Tests" $ do
+        describe "Regression Tests" $
             it "Comments with backslashes at the end are just comments" $
                 let dockerFile =
                         [ "FROM alpine:3.6"
