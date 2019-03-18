@@ -672,6 +672,9 @@ main =
             it "apt-get no install recommends" $ do
                 ruleCatches aptGetNoRecommends "RUN apt-get -y install python"
                 onBuildRuleCatches aptGetNoRecommends "RUN apt-get -y install python"
+            it "apt-get no install recommends via option" $ do
+                ruleCatchesNot aptGetNoRecommends "RUN apt-get -o APT::Install-Recommends=false install python"
+                onBuildRuleCatchesNot aptGetNoRecommends "RUN apt-get -o APT::Install-Recommends=false install python"
             it "apt-get version" $ do
                 ruleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
                 onBuildRuleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"

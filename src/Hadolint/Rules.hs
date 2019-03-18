@@ -652,9 +652,11 @@ aptGetNoRecommends = instructionRule code severity message check
     message = "Avoid additional packages by specifying `--no-install-recommends`"
     check (Run args) = argumentsRule (Shell.noCommands forgotNoInstallRecommends) args
     check _ = True
-    forgotNoInstallRecommends cmd = isAptGetInstall cmd && not (hasRecommendsOption cmd)
+    forgotNoInstallRecommends cmd = isAptGetInstall cmd && not (disablesRecommendOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
-    hasRecommendsOption = Shell.hasFlag "no-install-recommends"
+    disablesRecommendOption cmd =
+        Shell.hasFlag "no-install-recommends" cmd ||
+        "APT::Install-Recommends=false" `elem` Shell.getAllArgs cmd
 
 isArchive :: Text.Text -> Bool
 isArchive path =
