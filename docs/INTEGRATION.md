@@ -79,7 +79,27 @@ Add the following job to your project's `.drone.yml` pipeline:
       - hadolint --version
       - hadolint Dockerfile
 ```
+## Jenkins declarative pipeline
 
+You can add a step during your CI proccess to lint and archive the output of hadolint
+
+```groovy
+stage ("lint dockerfile") {
+    agent {
+        docker {
+            image 'hadolint/hadolint:latest-debian'
+        }
+    }
+    steps {
+        sh 'hadolint dockerfiles/* | tee -a hadolint_lint.txt'
+    }
+    post {
+        always {
+            archiveArtifacts 'hadolint_lint.txt'
+        }
+    }
+}
+```
 ## Codeship Pro
 
 Add the hadolint docker container on codeship-services.yml with a docker volume 
