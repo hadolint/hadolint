@@ -1,8 +1,6 @@
 # Hadolint Integrations
 
-## Automated Code Review
-
-### Codacy
+## Codacy
 
 [Codacy](https://www.codacy.com/) automates hadolint code reviews on every
 commit and pull request, reporting code style and error prone issues.
@@ -79,9 +77,10 @@ Add the following job to your project's `.drone.yml` pipeline:
       - hadolint --version
       - hadolint Dockerfile
 ```
+
 ## Jenkins declarative pipeline
 
-You can add a step during your CI proccess to lint and archive the output of hadolint
+You can add a step during your CI process to lint and archive the output of hadolint
 
 ```groovy
 stage ("lint dockerfile") {
@@ -100,6 +99,7 @@ stage ("lint dockerfile") {
     }
 }
 ```
+
 ## Codeship Pro
 
 Add the hadolint docker container on codeship-services.yml with a docker volume 
@@ -121,6 +121,18 @@ Then add the CI step on codeship-steps.yml with the path of the dockerfile
   steps:
     - service: hadolint
       command: hadolint /test/Dockerfile
+```
+
+## Bitbucket Pipelines
+
+Create a `bitbucket-pipelines.yml` configuration file:
+```yaml
+pipelines:
+  default:
+    - step:
+        image: hadolint/hadolint:latest-debian
+        script:
+          - hadolint Dockerfile
 ```
 
 ## Editors
