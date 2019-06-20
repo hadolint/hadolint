@@ -161,6 +161,11 @@ main =
               it "pinned" $ do
                 ruleCatchesNot gemVersionPinned "RUN gem i bundler:1"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem i bundler:1"
+              it "multi" $ do
+                ruleCatches gemVersionPinned "RUN gem i bunlder:1 nokogiri"
+                onBuildRuleCatches gemVersionPinned "RUN gem i bunlder:1 nokogiri"
+                ruleCatchesNot gemVersionPinned "RUN gem i bunlder:1 nokogirii:1"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem i bunlder:1 nokogiri:1"
             describe "install" $ do
               it "unpinned" $ do
                 ruleCatches gemVersionPinned "RUN gem install bundler"
