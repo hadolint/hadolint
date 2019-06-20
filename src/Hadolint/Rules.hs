@@ -761,7 +761,7 @@ useJsonArgs = instructionRule code severity message check
 noApt :: Rule
 noApt = instructionRule code severity message check
   where
-    code = "DL3026"
+    code = "DL3027"
     severity = WarningC
     message =
         "Do not use apt as it is meant to be a end-user tool, use apt-get or apt-cache instead"
