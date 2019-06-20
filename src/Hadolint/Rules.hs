@@ -202,6 +202,7 @@ rules =
     , useShell
     , useJsonArgs
     , usePipefail
+    , noApt
     ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -755,6 +756,16 @@ useJsonArgs = instructionRule code severity message check
     message = "Use arguments JSON notation for CMD and ENTRYPOINT arguments"
     check (Cmd (ArgumentsText _)) = False
     check (Entrypoint (ArgumentsText _)) = False
+    check _ = True
+
+noApt :: Rule
+noApt = instructionRule code severity message check
+  where
+    code = "DL3027"
+    severity = WarningC
+    message =
+        "Do not use apt as it is meant to be a end-user tool, use apt-get or apt-cache instead"
+    check (Run args) = argumentsRule (not . usingProgram "apt") args
     check _ = True
 
 usePipefail :: Rule

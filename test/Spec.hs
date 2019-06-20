@@ -153,7 +153,15 @@ main =
                 onBuildRuleCatchesNot invalidCmd "RUN apt-get install ssh"
         --
         describe "apt-get rules" $ do
-            it "apt upgrade" $ do
+            it "apt" $
+                let dockerFile =
+                        [ "FROM ubuntu"
+                        , "RUN apt install python"
+                        ]
+                in do
+                  ruleCatches noApt $ Text.unlines dockerFile
+                  onBuildRuleCatches noApt $ Text.unlines dockerFile
+            it "apt-get upgrade" $ do
                 ruleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
                 onBuildRuleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
             it "apt-get version pinning" $ do
