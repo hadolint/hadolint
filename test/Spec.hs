@@ -152,7 +152,7 @@ main =
                 ruleCatchesNot invalidCmd "RUN apt-get install ssh"
                 onBuildRuleCatchesNot invalidCmd "RUN apt-get install ssh"
         --
-        describe "gem" $ do
+        describe "gem" $
           describe "version pinning" $ do
             describe "i" $ do
               it "unpinned" $ do
