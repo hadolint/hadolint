@@ -203,6 +203,7 @@ rules =
     , useJsonArgs
     , usePipefail
     , noApt
+    , gemVersionPinned
     ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -811,3 +812,25 @@ registryIsAllowed allowed = instructionRuleState code severity message check Set
     isAllowed Image {registryName = Nothing, imageName} =
         imageName == "scratch" ||
         Set.member "docker.io" allowed || Set.member "hub.docker.com" allowed
+
+gemVersionPinned :: Rule
+gemVersionPinned = instructionRule code severity message check
+  where
+    code = "DL3028"
+    severity = WarningC
+    message =
+        "Pin versions in gem install. Instead of `gem install <gem>` use `gem \
+        \install <gem>:<version>`"
+    check (Run args) = argumentsRule (all versionFixed . gems) args
+    check _ = True
+    versionFixed package = ":" `isInfixOf` package
+
+gems :: Shell.ParsedShell -> [String]
+gems args =
+    [ arg
+    | cmd <- Shell.findCommands args
+    , Shell.cmdHasArgs "gem" ["install", "i"] cmd
+    , arg <- Shell.getArgsNoFlags cmd
+    , arg /= "install"
+    , arg /= "i"
+    ]
