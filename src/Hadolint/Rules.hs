@@ -847,7 +847,9 @@ gems args =
     [ arg
     | cmd <- Shell.findCommands args
     , Shell.cmdHasArgs "gem" ["install", "i"] cmd
+    , not (Shell.cmdHasArgs "gem" ["-v"] cmd)
     , arg <- Shell.getArgsNoFlags cmd
     , arg /= "install"
     , arg /= "i"
+    , not ("--" `isPrefixOf` arg)
     ]

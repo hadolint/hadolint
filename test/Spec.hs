@@ -175,6 +175,12 @@ main =
               it "pinned" $ do
                 ruleCatchesNot gemVersionPinned "RUN gem install bundler:1"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:1"
+              it "does not warn on -v" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
+              it "does not warn on extra flags" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
         --
         describe "apt-get rules" $ do
             it "apt" $
