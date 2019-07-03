@@ -33,7 +33,7 @@ library:
     - containers
     - void
     - mtl
-    - yaml
+    - HsYAML
     - filepath
     - directory >= 1.3.0
 executables:
