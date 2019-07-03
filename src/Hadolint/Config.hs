@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hadolint.Config (applyConfig) where
+module Hadolint.Config (applyConfig, ConfigFile(..)) where
 
 import Control.Monad (filterM)
 import Data.Coerce (coerce)
@@ -9,7 +9,7 @@ import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Data.ByteString as Bytes
 import qualified Data.Set as Set
 import qualified Data.YAML as Yaml
-import Data.YAML ((.:))
+import Data.YAML ((.:?))
 import GHC.Generics
 import qualified Language.Docker as Docker
 import System.Directory
@@ -21,14 +21,14 @@ import qualified Hadolint.Lint as Lint
 import qualified Hadolint.Rules as Rules
 
 data ConfigFile = ConfigFile
-    { ignored :: Maybe [Lint.IgnoreRule]
+    { ignoredRules :: Maybe [Lint.IgnoreRule]
     , trustedRegistries :: Maybe [Lint.TrustedRegistry]
     } deriving (Show, Eq, Generic)
 
 instance Yaml.FromYAML ConfigFile where
   parseYAML = Yaml.withMap "ConfigFile" $ \m -> ConfigFile
-       <$> m .: "ignored"
-       <*> m .: "trustedRegistries"
+       <$> m .:? "ignored"
+       <*> m .:? "trustedRegistries"
 
 -- | If both the ignoreRules and rulesConfig properties of Lint options are empty
 -- then this function will fill them with the default found in the passed config

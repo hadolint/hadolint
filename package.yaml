@@ -65,3 +65,4 @@ tests:
       - HUnit >=1.2
       - hspec
       - hadolint
+      - HsYAML

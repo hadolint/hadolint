@@ -12,6 +12,8 @@ import Language.Docker.Syntax
 import Data.Semigroup ((<>))
 import qualified Data.Text as Text
 
+import qualified ConfigSpec
+
 main :: IO ()
 main =
     hspec $ do
@@ -1076,6 +1078,9 @@ main =
                         , "RUN echo \"kaka\" | sed 's/a/o/g' >> /root/afile"
                         ]
                 in ruleCatches usePipefail $ Text.unlines dockerFile
+
+        -- Run tests for the Config module
+        ConfigSpec.tests
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
