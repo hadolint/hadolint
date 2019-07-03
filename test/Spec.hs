@@ -1100,6 +1100,15 @@ main =
                         , "RUN curl localhost"
                         ]
                 in ruleCatchesNot wgetOrCurl $ Text.unlines dockerFile
+            it "does not warns when using both, on a single stage" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl localhost"
+                        , "FROM scratch"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
         --
         describe "Regression Tests" $
             it "Comments with backslashes at the end are just comments" $
