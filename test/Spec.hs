@@ -1066,6 +1066,35 @@ main =
                         ]
                 in ruleCatchesNot (registryIsAllowed ["random.com"]) $ Text.unlines dockerFile
         --
+        describe "Wget or Curl" $ do
+            it "warns when using both wget and curl" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+            it "warns when using both wget and curl in same instruction" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz && curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+            it "does not warn when using only wget" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        ]
+                in ruleCatchesNot wgetOrCurl $ Text.unlines dockerFile
+            it "does not warn when using both curl and wget in different stages" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "FROM scratch"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatchesNot wgetOrCurl $ Text.unlines dockerFile
+        --
         describe "Regression Tests" $
             it "Comments with backslashes at the end are just comments" $
                 let dockerFile =
@@ -1104,8 +1133,8 @@ ruleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatches rule s = assertChecks rule s f
   where
     f checks = do
-      when (length checks /= 1) $
-        assertFailure $ "Too many errors found: \n" ++ (Text.unpack . Text.unlines . formatChecks $ checks)
+      when (null checks) $
+        assertFailure "I was expecting to catch at least one error"
       assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
 onBuildRuleCatches :: HasCallStack => Rule -> Text.Text -> Assertion

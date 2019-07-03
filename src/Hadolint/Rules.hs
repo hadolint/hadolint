@@ -326,6 +326,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     severity = WarningC
     message = "Either use Wget or Curl but not both"
     check state _ (Run args) = argumentsRule (detectDoubleUsage state) args
+    check _ _ (From _) = withState Set.empty True -- Reset the state for each stage
     check state _ _ = withState state True
     detectDoubleUsage state args =
         let newArgs = extractCommands args
