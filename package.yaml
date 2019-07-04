@@ -1,5 +1,5 @@
 name: hadolint
-version: '1.17.0'
+version: '1.17.1'
 synopsis: Dockerfile Linter JavaScript API
 description: A smarter Dockerfile linter that helps you build best practice Docker images.
 category: Development
@@ -33,7 +33,7 @@ library:
     - containers
     - void
     - mtl
-    - yaml
+    - HsYAML
     - filepath
     - directory >= 1.3.0
 executables:
@@ -65,3 +65,4 @@ tests:
       - HUnit >=1.2
       - hspec
       - hadolint
+      - HsYAML

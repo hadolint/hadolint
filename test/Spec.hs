@@ -12,6 +12,8 @@ import Language.Docker.Syntax
 import Data.Semigroup ((<>))
 import qualified Data.Text as Text
 
+import qualified ConfigSpec
+
 main :: IO ()
 main =
     hspec $ do
@@ -173,6 +175,12 @@ main =
               it "pinned" $ do
                 ruleCatchesNot gemVersionPinned "RUN gem install bundler:1"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:1"
+              it "does not warn on -v" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
+              it "does not warn on extra flags" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
         --
         describe "apt-get rules" $ do
             it "apt" $
@@ -1064,6 +1072,44 @@ main =
                         ]
                 in ruleCatchesNot (registryIsAllowed ["random.com"]) $ Text.unlines dockerFile
         --
+        describe "Wget or Curl" $ do
+            it "warns when using both wget and curl" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+            it "warns when using both wget and curl in same instruction" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz && curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+            it "does not warn when using only wget" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        ]
+                in ruleCatchesNot wgetOrCurl $ Text.unlines dockerFile
+            it "does not warn when using both curl and wget in different stages" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "FROM scratch"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatchesNot wgetOrCurl $ Text.unlines dockerFile
+            it "does not warns when using both, on a single stage" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl localhost"
+                        , "FROM scratch"
+                        , "RUN curl localhost"
+                        ]
+                in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+        --
         describe "Regression Tests" $
             it "Comments with backslashes at the end are just comments" $
                 let dockerFile =
@@ -1076,6 +1122,9 @@ main =
                         , "RUN echo \"kaka\" | sed 's/a/o/g' >> /root/afile"
                         ]
                 in ruleCatches usePipefail $ Text.unlines dockerFile
+
+        -- Run tests for the Config module
+        ConfigSpec.tests
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =
@@ -1099,8 +1148,8 @@ ruleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatches rule s = assertChecks rule s f
   where
     f checks = do
-      when (length checks /= 1) $
-        assertFailure $ "Too many errors found: \n" ++ (Text.unpack . Text.unlines . formatChecks $ checks)
+      when (null checks) $
+        assertFailure "I was expecting to catch at least one error"
       assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
 
 onBuildRuleCatches :: HasCallStack => Rule -> Text.Text -> Assertion

@@ -326,6 +326,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     severity = WarningC
     message = "Either use Wget or Curl but not both"
     check state _ (Run args) = argumentsRule (detectDoubleUsage state) args
+    check _ _ (From _) = withState Set.empty True -- Reset the state for each stage
     check state _ _ = withState state True
     detectDoubleUsage state args =
         let newArgs = extractCommands args
@@ -546,7 +547,23 @@ useAdd = instructionRule code severity message check
             , format <- archiveFormats
             ]
     check _ = True
-    archiveFormats = [".tar", ".gz", ".bz2", "xz"]
+    archiveFormats =
+      [ ".tar"
+      , ".tar.bz2"
+      , ".tb2"
+      , ".tbz"
+      , ".tbz2"
+      , ".tar.gz"
+      , ".tgz"
+      , ".tpz"
+      , ".tar.lz"
+      , ".tar.lzma"
+      , ".tlz"
+      , ".tar.xz"
+      , ".txz"
+      , ".tar.Z"
+      , ".tZ"
+      ]
 
 invalidPort :: Rule
 invalidPort = instructionRule code severity message check
@@ -830,7 +847,9 @@ gems args =
     [ arg
     | cmd <- Shell.findCommands args
     , Shell.cmdHasArgs "gem" ["install", "i"] cmd
+    , not (Shell.cmdHasArgs "gem" ["-v"] cmd)
     , arg <- Shell.getArgsNoFlags cmd
     , arg /= "install"
     , arg /= "i"
+    , not ("--" `isPrefixOf` arg)
     ]
