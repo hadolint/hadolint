@@ -10,7 +10,7 @@ import qualified Data.YAML as Yaml
 import Hadolint.Config
 
 tests :: SpecWith ()
-tests = do
+tests =
     describe "Config" $ do
         it "Parses config with only ignores" $
             let configFile =
@@ -50,5 +50,5 @@ assertConfig config s =
             checkResult result
   where
     checkResult result =
-        unless (result == config) $ do
+        unless (result == config) $
             assertFailure ("Config \n\n" ++ show config  ++ "\n\n is not \n\n" ++ show result)
