@@ -4,7 +4,7 @@
 [![GitHub release][release-img]][release]
 [![Github downloads][downloads-img]]()
 <img align="right" alt="pipecat" width="150"
-src="http://hadolint.lukasmartinelli.ch/img/cat_container.png" />
+src="https://hadolint.github.io/hadolint/img/cat_container.png" />
 
 # Haskell Dockerfile Linter
 
@@ -13,9 +13,9 @@ images. The linter is parsing the Dockerfile into an AST and performs rules on
 top of the AST. It is standing on the shoulders of [ShellCheck][] to lint
 the Bash code inside `RUN` instructions.
 
-<!-- [:globe_with_meridians: **Check the online version on
- hadolint.lukasmartinelli.ch**](http://hadolint.lukasmartinelli.ch/.)
-[![Screenshot](screenshot.png)](http://hadolint.lukasmartinelli.ch/) -->
+[:globe_with_meridians: **Check the online version on
+ hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
+[![Screenshot](screenshot.png)](https://hadolint.github.io/hadolint)
 
 ## How to use
 
