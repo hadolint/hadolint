@@ -1,60 +1,57 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>Dockerfile Linter</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
-    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.7.0/codemirror.css" async>
-    <link rel="stylesheet" type="text/css" href="/css/stylesheet.css">
-  </head>
-  <body>
-    <a href="https://github.com/lukasmartinelli/hadolint" class="github-corner">
-      <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#131A38; color:#fff; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg>
-    </a>
-    <section class="header">
-      <div class="header__brand">
-        <h1 class="header__brand-title">
-          <img class="header__brand-logo" src="/img/cat_container.png"/>
-          Dockerfile Linter
-          <iframe src="https://ghbtns.com/github-btn.html?user=lukasmartinelli&repo=hadolint&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
-        </h1>
-      </div>
-    </section>
-    <section class="main">
-      <p>A smarter Dockerfile linter that helps you build <a href="https://docs.docker.com/engine/articles/dockerfile_best-practices/">best practice Docker images</a>.
-      The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
-      It additionally is using the famous <a href="https://github.com/koalaman/shellcheck">Shellcheck</a> to lint the Bash
-      code inside <code>RUN</code> instructions. Please <a href="https://github.com/lukasmartinelli/hadolint/issues">help me improve the linter</a> with your suggestions.</p>
-      <form method="POST" action="/" id="dockerfile__form" class="dockerfile__form">
-          <div class="dockerfile__container">
-            <textarea id="dockerfile__code">FROM debian
+    <head>
+        <meta charset="UTF-8">
+        <title>Dockerfile Linter</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.0/codemirror.css" async>
+        <link rel="stylesheet" type="text/css" href="css/stylesheet.css">
+    </head>
+    <body>
+        <a href="https://github.com/hadolint/hadolint" class="github-corner">
+            <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#131A38; color:#fff; position: absolute; top: 0; border: 0; right: 0;"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg>
+        </a>
+        <section class="header">
+            <div class="header__brand">
+                <h1 class="header__brand-title">
+                    <img class="header__brand-logo" src="img/cat_container.png"/>
+                    Dockerfile Linter
+                </h1>
+            </div>
+        </section>
+        <section class="main">
+            <p>A smarter Dockerfile linter that helps you build <a href="https://docs.docker.com/engine/articles/dockerfile_best-practices/">best practice Docker images</a>.
+                The linter is parsing the Dockerfile into an AST and performs rules on top of the AST.
+                It additionally is using the famous <a href="https://github.com/koalaman/shellcheck">Shellcheck</a> to lint the Bash
+                code inside <code>RUN</code> instructions. Please <a href="https://github.com/hadolint/hadolint/issues">help me improve the linter</a> with your suggestions.</p>
+            <form method="POST" action="/" id="dockerfile__form" class="dockerfile__form">
+                <div class="dockerfile__container">
+                    <textarea id="dockerfile__code">FROM debian
 RUN export node_version="0.10" \
- && apt-get update && apt-get -y install nodejs="$node_verion"
+&& apt-get update && apt-get -y install nodejs="$node_verion"
 COPY package.json usr/src/app
 RUN cd /usr/src/app \
- && npm install node-static
- 
+&& npm install node-static
+
 EXPOSE 80000
 CMD ["npm", "start"]</textarea>
-          </div>
-          <button id="lint" type="button" class="button">Lint</button>
-          <button id="clear" type="button" class="button">Clear</button>
-      </form>
-    </section>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.7.0/codemirror.min.js" type="text/javascript"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/addon/mode/simple.min.js" type="text/javascript"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/dockerfile/dockerfile.min.js" type="text/javascript"></script>
-    <script src="/js/editor.js" type="text/javascript"></script>
-    <script type="text/javascript">
-      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-      </script>
-      <script type="text/javascript">
-      try {
-        var pageTracker = _gat._getTracker("UA-68032536-1");
-      pageTracker._trackPageview();
-      } catch(err) {}
-    </script>
-</body>
+                </div>
+                <button id="lint" type="button" class="button">
+                    <svg id="loading" width="30px" height="30px" style="padding-top:10px;display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" fill="none" stroke="#fdfdfd" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
+                        <animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 50;360 50 50" keyTimes="0;1" dur="3s" begin="0s" repeatCount="indefinite"></animateTransform>
+                        </circle>
+                    </svg>
+                    Lint
+                </button>
+                <button id="clear" type="button" class="button">Clear</button>
+            </form>
+        </section>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.0/codemirror.min.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.0/addon/mode/simple.min.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.0/mode/dockerfile/dockerfile.min.js" type="text/javascript"></script>
+        <script src="js/editor.js" type="text/javascript"></script>
+        <script defer src="js/all.min.js" type="text/javascript"></script>
+    </body>
+</html>

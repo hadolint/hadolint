@@ -1,0 +1,56 @@
+@font-face { font-family: 'audimatregular'; src: url("../fonts/audimat-regular-webfont.eot"); src: url("../fonts/audimat-regular-webfont.eot?#iefix") format("embedded-opentype"), url("../fonts/audimat-regular-webfont.woff2") format("woff2"), url("../fonts/audimat-regular-webfont.woff") format("woff"), url("../fonts/audimat-regular-webfont.ttf") format("truetype"), url("../fonts/audimat-regular-webfont.svg#audimatregular") format("svg"); font-weight: normal; font-style: normal; }
+/** Make 1rem equal 10px */
+html { font-size: 62.5%; }
+
+html { box-sizing: border-box; }
+
+*, *:before, *:after { box-sizing: inherit; }
+
+/** Basic styling */
+body { font-family: Helvetica, Arial, sans-serif; font-size: 1.6rem; line-height: 1.5; font-weight: 300; color: #111; background-color: white; -webkit-text-size-adjust: 100%; }
+
+a { text-decoration: none; color: #3771C8; }
+
+a:hover { text-decoration: underline; color: #2C5AA0; }
+
+h1, h2, h3 { font-family: "audimatregular", sans-serif; }
+
+h1 { font-size: 7rem; display: inline-block; margin: 0.5rem auto; }
+
+h2 { font-size: 5rem; margin: 0.5rem auto; }
+
+h3 { font-size: 3rem; margin: 0.5rem auto; }
+
+/** Lists */
+ul, ol { margin-left: 3rem; }
+
+li > ul, li > ol { margin-bottom: 0; }
+
+p { font-size: 1.8rem; max-width: 80rem; }
+
+/** Images */
+img { max-width: 100%; vertical-align: middle; }
+
+/** Buttons */
+.button { font-family: "audimatregular", sans-serif; font-weight: bold; font-size: 3rem; background-color: #131A38; color: #fff; padding: 0.5rem 3rem; margin: 0.5rem; }
+
+.header { margin: 3rem; }
+.header__brand-logo { max-width: 100px; }
+.header__brand-title { color: #131A38; }
+
+.main { margin: 3rem; }
+
+.github-corner:hover .octo-arm { animation: octocat-wave 560ms ease-in-out; }
+
+@keyframes octocat-wave { 0%, 100% { transform: rotate(0); }
+  20%,
+    60% { transform: rotate(-25deg); }
+  40%,
+    80% { transform: rotate(10deg); } }
+@media (max-width: 500px) { .github-corner:hover .octo-arm { animation: none; }
+  .github-corner .octo-arm { animation: octocat-wave 560ms ease-in-out; } }
+.dockerfile__container { max-width: 100rem; font-size: 2.5rem; border: 1px solid #e8e8e8; margin-bottom: 2rem; }
+
+.CodeMirror { border: 1px solid #eee; height: 450px; }
+
+.lint-error { font-size: 0.6em; color: #a00; background: #ffa; padding: 2px 5px 3px; }
