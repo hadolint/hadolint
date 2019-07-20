@@ -263,7 +263,8 @@ shellcheck = mapInstructions check Shell.defaultShellOpts
 
 -- | Converts ShellCheck errors into our own errors type
 commentMetadata :: ShellCheck.Interface.PositionedComment -> Metadata
-commentMetadata c = Metadata (Text.pack ("SC" ++ show (code c))) (severity c) (Text.pack (message c))
+commentMetadata c =
+    Metadata (Text.pack ("SC" ++ show (code c))) (severity c) (Text.pack (message c))
   where
     severity pc = ShellCheck.Interface.cSeverity $ ShellCheck.Interface.pcComment pc
     code pc = ShellCheck.Interface.cCode $ ShellCheck.Interface.pcComment pc
@@ -291,7 +292,7 @@ hasNoMaintainer = instructionRule code severity message check
     check _ = True
 
 -- Check if a command contains a program call in the Run instruction
-usingProgram :: String -> Shell.ParsedShell -> Bool
+usingProgram :: Text.Text -> Shell.ParsedShell -> Bool
 usingProgram prog args = not $ null [cmd | cmd <- Shell.findCommandNames args, cmd == prog]
 
 multipleCmds :: Rule
@@ -444,14 +445,14 @@ aptGetVersionPinned = instructionRule code severity message check
         \install <package>=<version>`"
     check (Run args) = argumentsRule (all versionFixed . aptGetPackages) args
     check _ = True
-    versionFixed package = "=" `isInfixOf` package
+    versionFixed package = "=" `Text.isInfixOf` package
 
-aptGetPackages :: Shell.ParsedShell -> [String]
+aptGetPackages :: Shell.ParsedShell -> [Text.Text]
 aptGetPackages args =
     [ arg
-    | cmd <- dropTarget <$> Shell.findCommands args
+    | cmd <- Shell.presentCommands args
     , Shell.cmdHasArgs "apt-get" ["install"] cmd
-    , arg <- Shell.getArgsNoFlags cmd
+    , arg <- Shell.getArgsNoFlags (dropTarget cmd)
     , arg /= "install"
     ]
   where
@@ -478,8 +479,8 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
         | not (hasUpdate args) || not (imageIsUsed line baseimage) = True
         | otherwise = hasCleanup args
     hasCleanup args =
-        any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.findCommands args)
-    hasUpdate args = any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.findCommands args)
+        any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
+    hasUpdate args = any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.presentCommands args)
     imageIsUsed line baseimage = isLastImage line baseimage || imageIsUsedLater line baseimage
     isLastImage line baseimage =
         case reverse (allFromImages dockerfile) of
@@ -509,14 +510,14 @@ apkAddVersionPinned = instructionRule code severity message check
         "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
     check (Run args) = argumentsRule (\as -> and [versionFixed p | p <- apkAddPackages as]) args
     check _ = True
-    versionFixed package = "=" `isInfixOf` package
+    versionFixed package = "=" `Text.isInfixOf` package
 
-apkAddPackages :: Shell.ParsedShell -> [String]
+apkAddPackages :: Shell.ParsedShell -> [Text.Text]
 apkAddPackages args =
     [ arg
-    | cmd <- dropTarget <$> Shell.findCommands args
+    | cmd <- Shell.presentCommands args
     , Shell.cmdHasArgs "apk" ["add"] cmd
-    , arg <- Shell.getArgsNoFlags cmd
+    , arg <- Shell.getArgsNoFlags (dropTarget cmd)
     , arg /= "add"
     ]
   where
@@ -548,22 +549,22 @@ useAdd = instructionRule code severity message check
             ]
     check _ = True
     archiveFormats =
-      [ ".tar"
-      , ".tar.bz2"
-      , ".tb2"
-      , ".tbz"
-      , ".tbz2"
-      , ".tar.gz"
-      , ".tgz"
-      , ".tpz"
-      , ".tar.lz"
-      , ".tar.lzma"
-      , ".tlz"
-      , ".tar.xz"
-      , ".txz"
-      , ".tar.Z"
-      , ".tZ"
-      ]
+        [ ".tar"
+        , ".tar.bz2"
+        , ".tb2"
+        , ".tbz"
+        , ".tbz2"
+        , ".tar.gz"
+        , ".tgz"
+        , ".tpz"
+        , ".tar.lz"
+        , ".tar.lzma"
+        , ".tlz"
+        , ".tar.xz"
+        , ".txz"
+        , ".tar.Z"
+        , ".tZ"
+        ]
 
 invalidPort :: Rule
 invalidPort = instructionRule code severity message check
@@ -589,23 +590,22 @@ pipVersionPinned = instructionRule code severity message check
     forgotToPinVersion cmd =
         isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific pacakges are being listed
-    isPipInstall cmd =
-        case Shell.getCommandName cmd of
-            Just ('p':'i':'p':_) -> relevantInstall cmd
-            _ -> False
+    isPipInstall cmd@(Shell.Command name _ _) = "pip" `Text.isPrefixOf` name && relevantInstall cmd
     -- If the user is installing requirements from a file or just the local module, then we are not interested
     -- in running this rule
     relevantInstall cmd =
-        ["install"] `isInfixOf` Shell.getAllArgs cmd &&
-        not (["-r"] `isInfixOf` Shell.getAllArgs cmd || ["."] `isInfixOf` Shell.getAllArgs cmd)
+        ["install"] `isInfixOf` Shell.getArgs cmd &&
+        not (["-r"] `isInfixOf` Shell.getArgs cmd || ["."] `isInfixOf` Shell.getArgs cmd)
     hasBuildConstraint = Shell.hasFlag "constraint"
-    packages cmd = stripInstallPrefix $ Shell.getArgsNoFlags $ Shell.dropFlagArg ["i", "index-url", "extra-index-url"] cmd
+    packages cmd =
+        stripInstallPrefix $
+        Shell.getArgsNoFlags $ Shell.dropFlagArg ["i", "index-url", "extra-index-url"] cmd
     versionFixed package = hasVersionSymbol package || isVersionedGit package
-    isVersionedGit package = "git+http" `isInfixOf` package && "@" `isInfixOf` package
+    isVersionedGit package = "git+http" `Text.isInfixOf` package && "@" `Text.isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
-    hasVersionSymbol package = or [s `isInfixOf` package | s <- versionSymbols]
+    hasVersionSymbol package = or [s `Text.isInfixOf` package | s <- versionSymbols]
 
-stripInstallPrefix :: [String] -> [String]
+stripInstallPrefix :: [Text.Text] -> [Text.Text]
 stripInstallPrefix = dropWhile (== "install")
 
 {-|
@@ -638,13 +638,13 @@ npmVersionPinned = instructionRule code severity message check
             then isVersionedGit package
             else hasVersionSymbol package
     gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]
-    hasGitPrefix package = or [p `isPrefixOf` package | p <- gitPrefixes]
-    isVersionedGit package = "#" `isInfixOf` package
-    hasVersionSymbol package = "@" `isInfixOf` dropScope package
+    hasGitPrefix package = or [p `Text.isPrefixOf` package | p <- gitPrefixes]
+    isVersionedGit package = "#" `Text.isInfixOf` package
+    hasVersionSymbol package = "@" `Text.isInfixOf` dropScope package
       where
         dropScope pkg =
-            if "@" `isPrefixOf` pkg
-                then dropWhile ('/' <) pkg
+            if "@" `Text.isPrefixOf` pkg
+                then Text.dropWhile ('/' <) pkg
                 else pkg
 
 aptGetYes :: Rule
@@ -657,11 +657,7 @@ aptGetYes = instructionRule code severity message check
     check _ = True
     forgotAptYesOption cmd = isAptGetInstall cmd && not (hasYesOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
-    hasYesOption cmd =
-        "y" `elem` allFlags cmd ||
-        "yes" `elem` allFlags cmd ||
-        length (filter (== "q") (allFlags cmd)) > 1 || "assume-yes" `elem` allFlags cmd
-    allFlags cmd = snd <$> Shell.getAllFlags cmd
+    hasYesOption = Shell.hasAnyFlag ["y", "yes", "q", "assume-yes"]
 
 aptGetNoRecommends :: Rule
 aptGetNoRecommends = instructionRule code severity message check
@@ -675,7 +671,7 @@ aptGetNoRecommends = instructionRule code severity message check
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     disablesRecommendOption cmd =
         Shell.hasFlag "no-install-recommends" cmd ||
-        "APT::Install-Recommends=false" `elem` Shell.getAllArgs cmd
+        Shell.hasArg "APT::Install-Recommends=false" cmd
 
 isArchive :: Text.Text -> Bool
 isArchive path =
@@ -798,17 +794,17 @@ usePipefail = instructionRuleState code severity message check False
         | otherwise = (argumentsRule hasPipefailOption args, True)
     check False _ (Run args) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
-    isPowerShell (Shell.ParsedShell orig _) = "pwsh" `Text.isPrefixOf` orig
+    isPowerShell (Shell.ParsedShell orig _ _) = "pwsh" `Text.isPrefixOf` orig
     notHasPipes script = not (Shell.hasPipes script)
     hasPipefailOption script =
         not $
         null
             [ True
-            | cmd <- Shell.findCommands script
+            | cmd@(Shell.Command name arguments _) <- Shell.presentCommands script
             , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"]
-            , Shell.getCommandName cmd == Just validShell
+            , name == validShell
             , Shell.hasFlag "o" cmd
-            , arg <- Shell.getAllArgs cmd
+            , arg <- Shell.arg <$> arguments
             , arg == "pipefail"
             ]
 
@@ -840,16 +836,16 @@ gemVersionPinned = instructionRule code severity message check
         \install <gem>:<version>`"
     check (Run args) = argumentsRule (all versionFixed . gems) args
     check _ = True
-    versionFixed package = ":" `isInfixOf` package
+    versionFixed package = ":" `Text.isInfixOf` package
 
-gems :: Shell.ParsedShell -> [String]
-gems args =
+gems :: Shell.ParsedShell -> [Text.Text]
+gems shell =
     [ arg
-    | cmd <- Shell.findCommands args
+    | cmd <- Shell.presentCommands shell
     , Shell.cmdHasArgs "gem" ["install", "i"] cmd
     , not (Shell.cmdHasArgs "gem" ["-v"] cmd)
     , arg <- Shell.getArgsNoFlags cmd
     , arg /= "install"
     , arg /= "i"
-    , not ("--" `isPrefixOf` arg)
+    , arg /= "--"
     ]
