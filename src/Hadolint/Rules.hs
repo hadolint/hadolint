@@ -801,7 +801,7 @@ usePipefail = instructionRuleState code severity message check False
         null
             [ True
             | cmd@(Shell.Command name arguments _) <- Shell.presentCommands script
-            , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"]
+            , validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash","/bin/sh", "bash", "zsh", "ash","sh"]
             , name == validShell
             , Shell.hasFlag "o" cmd
             , arg <- Shell.arg <$> arguments
