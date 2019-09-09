@@ -67,7 +67,7 @@ lint_dockerfile:
 
 For Drone CI, a basic shell is similiarly required.
 
-Add the following job to your project's `.drone.yml` pipeline:
+Add the following job to your project's `.drone.yml` pipeline (drone version 0.8 or earlier):
 
 ```yaml
   hadolint:
@@ -76,6 +76,16 @@ Add the following job to your project's `.drone.yml` pipeline:
     commands:
       - hadolint --version
       - hadolint Dockerfile
+```
+
+Add the following job to your project's `.drone.yml` pipeline (drone version 1.0 or later):
+
+```yaml
+  - name: hadolint
+    image: hadolint/hadolint:latest-debian
+    commands:
+      - hadolint --version
+      - hadolint  Dockerfile
 ```
 
 ## Jenkins declarative pipeline
