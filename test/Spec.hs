@@ -383,6 +383,9 @@ main =
             it "pip install requirements" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
+            it "pip install requirements with long flag" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip install --requirement requirements.txt"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip install --requirement requirements.txt"
             it "pip install use setup.py" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install ."
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install ."
