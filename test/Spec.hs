@@ -1135,7 +1135,6 @@ assertChecks rule s makeAssertions =
         Left err -> assertFailure $ show err
         Right dockerFile -> makeAssertions $ analyze [rule] dockerFile
 
-
 assertOnBuildChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertOnBuildChecks rule s makeAssertions =
     case parseText (s <> "\n") of
@@ -1146,6 +1145,9 @@ assertOnBuildChecks rule s makeAssertions =
     wrapInOnBuild (InstructionPos (Run args) so li) = InstructionPos (OnBuild (Run args)) so li
     wrapInOnBuild i = i
 
+selectChecksWithLines :: [RuleCheck] -> [RuleCheck]
+selectChecksWithLines checks = [c | c <- checks, linenumber c <= 0]
+
 -- Assert a failed check exists for rule
 ruleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatches rule s = assertChecks rule s f
@@ -1153,7 +1155,7 @@ ruleCatches rule s = assertChecks rule s f
     f checks = do
       when (null checks) $
         assertFailure "I was expecting to catch at least one error"
-      assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
+      assertBool "Incorrect line number for result" $ null $ selectChecksWithLines checks
 
 onBuildRuleCatches :: HasCallStack => Rule -> Text.Text -> Assertion
 onBuildRuleCatches rule s = assertOnBuildChecks rule s f
@@ -1161,7 +1163,7 @@ onBuildRuleCatches rule s = assertOnBuildChecks rule s f
     f checks = do
       when (length checks /= 1) $
         assertFailure (Text.unpack . Text.unlines . formatChecks $ checks)
-      assertBool "Incorrect line number for result" $ null [c | c <- checks, linenumber c <= 0]
+      assertBool "Incorrect line number for result" $ null $ selectChecksWithLines checks
 
 ruleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 ruleCatchesNot rule s = assertChecks rule s f

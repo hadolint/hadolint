@@ -27,8 +27,8 @@ matrix:
       before_deploy:
         # Show dynamic libraries `hadolint` depends on
         - ldd $(which hadolint) || true
-        - curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz
-          | tar -x --xz --strip-components=1 -C ~/.local/bin upx-3.94-amd64_linux/upx
+        - curl -sSL https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+          | tar -x --xz --strip-components=1 -C ~/.local/bin upx-3.95-amd64_linux/upx
         # Compress binary
         - upx -q --best --ultra-brute "./releases/${BINARY_NAME}"
       deploy: &release_deploy
@@ -102,10 +102,10 @@ matrix:
       before_install: true
       install:
         # Pull Markdown linting image
-        - docker pull zemanlx/remark-lint:0.1.0
+        - docker pull zemanlx/remark-lint:0.1.4
       script:
         # Lint Markdown files
-        - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.0 --frail .
+        - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.4 --frail .
         # Lint Haskell files
         - curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
         # Hardcoded version check - a version in package.yaml has to higher(before release)

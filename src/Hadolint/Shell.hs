@@ -81,13 +81,11 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
     script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     exclusions =
         [ 2187 -- exclude the warning about the ash shell not being supported
-        , 1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile 
+        , 1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
         ]
     -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
     extractShell s =
-        case listToMaybe . Text.words $ s of
-            Nothing -> ""
-            Just shell -> Text.unpack shell
+        maybe "" Text.unpack (listToMaybe . Text.words $ s)
     -- | Inject all the collected env vars as exported variables so they can be used
     printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
