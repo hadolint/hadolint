@@ -88,6 +88,25 @@ Add the following job to your project's `.drone.yml` pipeline (drone version 1.0
       - hadolint  Dockerfile
 ```
 
+## CircleCI
+
+For CircleCI integration use the [docker orb](https://circleci.com/orbs/registry/orb/circleci/docker).
+
+Update your project's `.circleci/config.yml` pipeline (workflows version 2.1), adding the docker orb and you can call the job docker/hadolint:
+
+```yaml
+orbs:
+  docker: circleci/docker@0.5.13
+version: 2.1
+workflows:
+  lint:
+    jobs:
+      - docker/hadolint:
+          dockerfile: path/to/Dockerfile
+          ignore-rules: 'DL4005,DL3008'
+          trusted-registries: 'docker.io,my-company.com:5000'
+```
+
 ## Jenkins declarative pipeline
 
 You can add a step during your CI process to lint and archive the output of hadolint
