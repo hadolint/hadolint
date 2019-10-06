@@ -91,7 +91,8 @@ Add the following job to your project's `.drone.yml` pipeline (drone version 1.0
 ## CircleCI
 
 For CircleCI integration use the [docker orb](https://circleci.com/orbs/registry/orb/circleci/docker).
-Update your project's `.circleci/config.yml` pipeline (workflows version 2.1), adding the docker orb and you can call the job docker/hadolint:
+Update your project's `.circleci/config.yml` pipeline (workflows version 2.1),
+adding the docker orb and you can call the job docker/hadolint:
 
 ```yaml
 orbs:
