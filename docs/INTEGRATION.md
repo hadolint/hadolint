@@ -219,3 +219,13 @@ There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][
 [vscode-hadolint-gif]: https://i.gyazo.com/a701460ccdda13a1a449b2c3e8da40bc.gif
 [vs code]: https://code.visualstudio.com/
 [exiasr]: https://github.com/ExiaSR
+
+### Geany
+
+> Geany is a powerful, stable and lightweight programmer's text editor that provides tons of useful features without bogging down your workflow. It runs on Linux, Windows and MacOS is translated into over 40 languages, and has built-in support for more than 50 programming languages.
+
+The following can be used as a [build action](https://www.geany.org/manual/current/index.html#build-menu-commands-dialog) t [lint](https://www.geany.org/manual/current/index.html#lint) Dockerfiles.
+
+```
+if docker run --rm -i hadolint/hadolint < "%f" | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|' | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
+```
