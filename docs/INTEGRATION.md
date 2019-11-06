@@ -227,5 +227,5 @@ There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][
 The following can be used as a [build action](https://www.geany.org/manual/current/index.html#build-menu-commands-dialog) t [lint](https://www.geany.org/manual/current/index.html#lint) Dockerfiles.
 
 ```
-if docker run --rm -i hadolint/hadolint < "%f" | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|' | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
+if docker run --rm -i hadolint/hadolint < "%d/%f" | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|' | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
