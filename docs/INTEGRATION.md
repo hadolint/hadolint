@@ -209,9 +209,9 @@ There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][
 ### Geany
 
 > Geany is a powerful, stable and lightweight programmer's text editor
-that provides tons of useful features without bogging down your workflow.
-It runs on Linux, Windows and MacOS is translated into over 40 languages,
-and has built-in support for more than 50 programming languages.
+> that provides tons of useful features without bogging down your workflow.
+> It runs on Linux, Windows and MacOS is translated into over 40 languages,
+> and has built-in support for more than 50 programming languages.
 
 The following can be used as a
 [build action](https://www.geany.org/manual/current/index.html#build-menu-commands-dialog)
