@@ -218,8 +218,10 @@ The following can be used as a
 to
 [lint](https://www.geany.org/manual/current/index.html#lint) Dockerfiles.
 
-```
-if docker run --rm -i hadolint/hadolint < "%d/%f" | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|' | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
+```sh
+if docker run --rm -i hadolint/hadolint < "%d/%f"
+| sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|'
+| grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
 
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
