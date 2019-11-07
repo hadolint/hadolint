@@ -30,11 +30,11 @@ script:
 
 ## GitHub Actions
 
-For GitHub you can build on the existing docker image with debian to 
+For GitHub you can build on the existing docker image with debian to
 run through all the Dockerfiles in your repository and print out a list of issues.
-You can find an example implementation 
-[here](https://github.com/cds-snc/github-actions/tree/master/docker-lint). 
-Your workflow might look something like this (feel free to use the provided Docker 
+You can find an example implementation
+[here](https://github.com/cds-snc/github-actions/tree/master/docker-lint).
+Your workflow might look something like this (feel free to use the provided Docker
 image `cdssnc/docker-lint` or create your own):
 
 ```hcl
@@ -131,7 +131,7 @@ stage ("lint dockerfile") {
 
 ## Codeship Pro
 
-Add the hadolint docker container on codeship-services.yml with a docker volume 
+Add the hadolint docker container on codeship-services.yml with a docker volume
 with the repository attached to it:
 
 ```yaml
@@ -205,6 +205,24 @@ Hadolint is used in two plugins:
 There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
 
 ![vscode-hadolint-gif][]
+
+### Geany
+
+> Geany is a powerful, stable and lightweight programmer's text editor
+> that provides tons of useful features without bogging down your workflow.
+> It runs on Linux, Windows and MacOS is translated into over 40 languages,
+> and has built-in support for more than 50 programming languages.
+
+The following can be used as a
+[build action](https://www.geany.org/manual/current/index.html#build-menu-commands-dialog)
+to
+[lint](https://www.geany.org/manual/current/index.html#lint) Dockerfiles.
+
+```sh
+if docker run --rm -i hadolint/hadolint < "%d/%f"
+| sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|'
+| grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
+```
 
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
 [linter-hadolint-img]: https://user-images.githubusercontent.com/18702153/33764234-7abc1f24-dc0b-11e7-96b6-4f08207b6950.png
