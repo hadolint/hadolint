@@ -150,6 +150,11 @@ cmdHasArgs expectedName expectedArgs (Command n args _)
     | expectedName /= n = False
     | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
 
+cmdHasPrefixArg :: Text.Text -> Text.Text -> Command -> Bool
+cmdHasPrefixArg expectedName expectedArg (Command n args _)
+    | expectedName /= n = False
+    | otherwise = not $ null [arg | CmdPart arg _ <- args, expectedArg `Text.isPrefixOf` arg]
+
 extractAllArgs :: Token -> [CmdPart]
 extractAllArgs (T_SimpleCommand _ _ (_:allArgs)) = map mkPart allArgs
   where
