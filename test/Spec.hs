@@ -1118,6 +1118,33 @@ main =
                         , "RUN curl localhost"
                         ]
                 in ruleCatches wgetOrCurl $ Text.unlines dockerFile
+            it "only warns on the relevant RUN instruction" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl my.xyz"
+                        , "RUN echo hello"
+                        ]
+                in assertChecks wgetOrCurl
+                                (Text.unlines dockerFile)
+                                (\checks -> assertBool
+                                                    "Expecting warnings only in 1 RUN instruction"
+                                                    (length checks == 1)
+                                )
+            it "only warns on many relevant RUN instructions" $
+                let dockerFile =
+                        [ "FROM node as foo"
+                        , "RUN wget my.xyz"
+                        , "RUN curl my.xyz"
+                        , "RUN echo hello"
+                        , "RUN wget foo.com"
+                        ]
+                in assertChecks wgetOrCurl
+                                (Text.unlines dockerFile)
+                                (\checks -> assertBool
+                                                    "Expecting warnings only in 2 RUN instructions"
+                                                    (length checks == 2)
+                                )
         --
         describe "Regression Tests" $
             it "Comments with backslashes at the end are just comments" $
