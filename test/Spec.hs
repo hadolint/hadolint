@@ -178,6 +178,12 @@ main =
               it "does not warn on -v" $ do
                 ruleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler -v '2.0.1'"
+              it "does not warn on --version without =" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler --version '2.0.1'"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler --version '2.0.1'"
+              it "does not warn on --version with =" $ do
+                ruleCatchesNot gemVersionPinned "RUN gem install bundler --version='2.0.1'"
+                onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler --version='2.0.1'"
               it "does not warn on extra flags" $ do
                 ruleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
