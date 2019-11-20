@@ -332,7 +332,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     detectDoubleUsage state args =
         let newArgs = extractCommands args
             newState = Set.union state newArgs
-         in withState newState (Set.size newState < 2)
+         in withState newState (Set.null newArgs || Set.size newState < 2)
     extractCommands args =
         Set.fromList [w | w <- Shell.findCommandNames args, w == "curl" || w == "wget"]
 
