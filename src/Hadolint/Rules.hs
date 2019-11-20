@@ -787,7 +787,9 @@ usePipefail = instructionRuleState code severity message check False
   where
     code = "DL4006"
     severity = WarningC
-    message = "Set the SHELL option -o pipefail before RUN with a pipe in it"
+    message = "Set the SHELL option -o pipefail before RUN with a pipe in it. If you are using \
+              \/bin/sh in an alpine image or if your shell is symlinked to busybox then consider \
+              \explicitly setting your SHELL to /bin/ash, or disable this check"
     check _ _ From {} = (False, True) -- Reset the state each time we find a new FROM
     check _ _ (Shell args)
         | argumentsRule isPowerShell args = (True, True)
