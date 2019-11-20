@@ -1118,7 +1118,7 @@ main =
                         , "RUN curl localhost"
                         ]
                 in ruleCatches wgetOrCurl $ Text.unlines dockerFile
-            it "only warns relevant RUN instructions" $
+            it "only warns on the relevant RUN instruction" $
                 let dockerFile =
                         [ "FROM node as foo"
                         , "RUN wget my.xyz"
@@ -1128,10 +1128,10 @@ main =
                 in assertChecks wgetOrCurl
                                 (Text.unlines dockerFile)
                                 (\checks -> assertBool
-                                                    "Expecting warnings only in 1 RUN instructions"
+                                                    "Expecting warnings only in 1 RUN instruction"
                                                     (length checks == 1)
                                 )
-            it "only warns relevant RUN instructions" $
+            it "only warns on many relevant RUN instructions" $
                 let dockerFile =
                         [ "FROM node as foo"
                         , "RUN wget my.xyz"
