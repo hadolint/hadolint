@@ -53,9 +53,8 @@ matrix:
     - env: *lts-fixed
       addons:
         artifacts: {paths: [./releases]}
-        homebrew:
-          packages: upx
       before_deploy:
+        - brew install upx
         # Show dynamic libraries `hadolint` depends on
         - otool -L $(which hadolint) || true
         # Compress binary
