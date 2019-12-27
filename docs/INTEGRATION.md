@@ -57,7 +57,6 @@ Add the following job to your project's `.gitlab-ci.yml`:
 
 ```yaml
 lint_dockerfile:
-  stage: lint
   image: hadolint/hadolint:latest-debian
   script:
     - hadolint Dockerfile
