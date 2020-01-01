@@ -35,3 +35,7 @@ CMD ["/bin/hadolint", "-"]
 FROM scratch AS distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
+
+FROM alpine:3 AS alpine-distro
+COPY --from=builder /root/.local/bin/hadolint /bin/
+CMD ["/bin/hadolint", "-"]

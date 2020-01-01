@@ -9,5 +9,8 @@ docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
 echo "=> Tag image: 'debian'"
 docker tag "${IMAGE_NAME}-debian" "${DOCKER_REPO}:$(git describe --long --always)-debian"
 
+echo "=> Tag image: 'alpine'"
+docker tag "${IMAGE_NAME}-alpine" "${DOCKER_REPO}:$(git describe --long --always)-alpine"
+
 echo "=> Push images"
 docker push "${DOCKER_REPO}"
