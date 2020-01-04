@@ -128,6 +128,36 @@ stage ("lint dockerfile") {
 }
 ```
 
+## Jenkins K8S plugin
+
+You can add an hadolint container to pod definition:
+
+```yaml
+- name: hadolint
+  image: hadolint/hadolint:latest-debian
+  imagePullPolicy: Always
+  command:
+    - cat
+  tty: true
+```
+
+Then go with the linter stage:
+
+```groovy
+stage('lint dockerfile') {
+    steps {
+        container('hadolint') {
+            sh 'hadolint dockerfiles/* | tee -a hadolint_lint.txt'
+        }
+    }
+    post {
+        always {
+            archiveArtifacts 'hadolint_lint.txt'
+        }
+    }
+}
+```
+
 ## Codeship Pro
 
 Add the hadolint docker container on codeship-services.yml with a docker volume
