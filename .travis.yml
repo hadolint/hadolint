@@ -81,6 +81,10 @@ matrix:
           --tag hadolint:$(git describe --always --tags --dirty)-debian
           --file docker/Dockerfile
           --target debian-distro .
+        - docker build
+          --tag hadolint:$(git describe --always --tags --dirty)-alpine
+          --file docker/Dockerfile
+          --target alpine-distro .
       script:
         # List images
         - docker image ls
@@ -92,6 +96,8 @@ matrix:
           $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty) hadolint --version)
         - grep $(git describe --dirty) <<<
           $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty)-debian hadolint --version)
+        - grep $(git describe --dirty) <<<
+          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty)-alpine hadolint --version)
       after_success: true
 
     - env: Version_Check_and_Linting

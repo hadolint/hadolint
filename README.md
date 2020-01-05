@@ -59,11 +59,12 @@ As shown before, `hadolint` is available as a Docker container:
 docker pull hadolint/hadolint
 ```
 
-If you need a Docker container with shell access, use the Debian variant of the
-Docker image:
+If you need a Docker container with shell access, use the Debian or Alpine
+variants of the Docker image:
 
 ```bash
 docker pull hadolint/hadolint:latest-debian
+docker pull hadolint/hadolint:latest-alpine
 ```
 
 You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
