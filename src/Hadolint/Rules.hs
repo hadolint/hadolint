@@ -596,7 +596,7 @@ pipVersionPinned = instructionRule code severity message check
     relevantInstall cmd =
         ["install"] `isInfixOf` Shell.getArgs cmd &&
         not (["--requirement"] `isInfixOf` Shell.getArgs cmd || ["-r"] `isInfixOf` Shell.getArgs cmd || ["."] `isInfixOf` Shell.getArgs cmd)
-    hasBuildConstraint = Shell.hasFlag "constraint"
+    hasBuildConstraint cmd = Shell.hasFlag "constraint" cmd || Shell.hasFlag "c" cmd
     packages cmd =
         stripInstallPrefix $
         Shell.getArgsNoFlags $ Shell.dropFlagArg
