@@ -496,6 +496,15 @@ main =
             it "version pinned with -g" $ do
                 ruleCatchesNot npmVersionPinned "RUN npm install -g express@\"4.1.1\""
                 onBuildRuleCatchesNot npmVersionPinned "RUN npm install -g express@\"4.1.1\""
+            it "version does not have to be pinned for tarball suffix .tar" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tar"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tar"
+            it "version does not have to be pinned for tarball suffix .tar.gz" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tar.gz"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tar.gz"
+            it "version does not have to be pinned for tarball suffix .tgz" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tgz"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install package-v1.2.3.tgz"
             it "version does not have to be pinned for folder - absolute path" $ do
                 ruleCatchesNot npmVersionPinned "RUN npm install /folder"
                 onBuildRuleCatchesNot npmVersionPinned "RUN npm install /folder"

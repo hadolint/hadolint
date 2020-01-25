@@ -635,10 +635,13 @@ npmVersionPinned = instructionRule code severity message check
     packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
     versionFixed package
         | hasGitPrefix package = isVersionedGit package
+        | hasTarballSuffix package = True
         | isFolder package = True
         | otherwise = hasVersionSymbol package
     gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]
     hasGitPrefix package = or [p `Text.isPrefixOf` package | p <- gitPrefixes]
+    tarballSuffixes = [".tar", ".tar.gz", ".tgz"]
+    hasTarballSuffix package = or [p `Text.isSuffixOf` package | p <- tarballSuffixes]
     pathPrefixes = ["/", "./", "../", "~/"]
     isFolder package = or [p `Text.isPrefixOf` package | p <- pathPrefixes]
     isVersionedGit package = "#" `Text.isInfixOf` package
