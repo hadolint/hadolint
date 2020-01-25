@@ -496,6 +496,18 @@ main =
             it "version pinned with -g" $ do
                 ruleCatchesNot npmVersionPinned "RUN npm install -g express@\"4.1.1\""
                 onBuildRuleCatchesNot npmVersionPinned "RUN npm install -g express@\"4.1.1\""
+            it "version does not have to be pinned for folder - absolute path" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install /folder"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install /folder"
+            it "version does not have to be pinned for folder - relative path from current folder" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install ./folder"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install ./folder"
+            it "version does not have to be pinned for folder - relative path to parent folder" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install ../folder"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install ../folder"
+            it "version does not have to be pinned for folder - relative path from home" $ do
+                ruleCatchesNot npmVersionPinned "RUN npm install ~/folder"
+                onBuildRuleCatchesNot npmVersionPinned "RUN npm install ~/folder"
             it "commit pinned for git+ssh" $ do
                 ruleCatchesNot
                     npmVersionPinned
