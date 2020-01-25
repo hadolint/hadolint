@@ -407,9 +407,21 @@ main =
             it "pip version pinned with === operator" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install MySQL_python===1.2.2"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install MySQL_python===1.2.2"
-            it "pip version pinned with flag" $ do
+            it "pip version pinned with flag --ignore-installed" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install --ignore-installed MySQL_python==1.2.2"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install --ignore-installed MySQL_python==1.2.2"
+            it "pip version pinned with flag --build" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip3 install --build /opt/yamllint yamllint==1.20.0"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --build /opt/yamllint yamllint==1.20.0"
+            it "pip version pinned with flag --prefix" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip3 install --prefix /opt/yamllint yamllint==1.20.0"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --prefix /opt/yamllint yamllint==1.20.0"
+            it "pip version pinned with flag --root" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip3 install --root /opt/yamllint yamllint==1.20.0"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --root /opt/yamllint yamllint==1.20.0"
+            it "pip version pinned with flag --target" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip3 install --target /opt/yamllint yamllint==1.20.0"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --target /opt/yamllint yamllint==1.20.0"
             it "pip version pinned with python -m" $ do
                 ruleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
                 onBuildRuleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
