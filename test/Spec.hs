@@ -725,6 +725,9 @@ main =
             it "apt-get version" $ do
                 ruleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
                 onBuildRuleCatchesNot aptGetVersionPinned "RUN apt-get install -y python=1.2.2"
+            it "apt-get version" $ do
+                ruleCatchesNot aptGetVersionPinned "RUN apt-get install ./wkhtmltox_0.12.5-1.bionic_amd64.deb"
+                onBuildRuleCatchesNot aptGetVersionPinned "RUN apt-get install ./wkhtmltox_0.12.5-1.bionic_amd64.deb"
             it "apt-get pinned" $ do
                 ruleCatchesNot
                     aptGetVersionPinned

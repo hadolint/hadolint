@@ -445,7 +445,7 @@ aptGetVersionPinned = instructionRule code severity message check
         \install <package>=<version>`"
     check (Run args) = argumentsRule (all versionFixed . aptGetPackages) args
     check _ = True
-    versionFixed package = "=" `Text.isInfixOf` package
+    versionFixed package = "=" `Text.isInfixOf` package || ("/" `Text.isInfixOf` package || ".deb" `Text.isSuffixOf` package)
 
 aptGetPackages :: Shell.ParsedShell -> [Text.Text]
 aptGetPackages args =
