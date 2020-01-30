@@ -651,12 +651,17 @@ npmVersionPinned = instructionRule code severity message check
     isNpmInstall = Shell.cmdHasArgs "npm" ["install"]
     installIsFirst cmd = ["install"] `isPrefixOf` Shell.getArgsNoFlags cmd
     packages cmd = stripInstallPrefix (Shell.getArgsNoFlags cmd)
-    versionFixed package =
-        if hasGitPrefix package
-            then isVersionedGit package
-            else hasVersionSymbol package
+    versionFixed package
+        | hasGitPrefix package = isVersionedGit package
+        | hasTarballSuffix package = True
+        | isFolder package = True
+        | otherwise = hasVersionSymbol package
     gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]
     hasGitPrefix package = or [p `Text.isPrefixOf` package | p <- gitPrefixes]
+    tarballSuffixes = [".tar", ".tar.gz", ".tgz"]
+    hasTarballSuffix package = or [p `Text.isSuffixOf` package | p <- tarballSuffixes]
+    pathPrefixes = ["/", "./", "../", "~/"]
+    isFolder package = or [p `Text.isPrefixOf` package | p <- pathPrefixes]
     isVersionedGit package = "#" `Text.isInfixOf` package
     hasVersionSymbol package = "@" `Text.isInfixOf` dropScope package
       where
