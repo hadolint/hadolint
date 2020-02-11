@@ -45,7 +45,7 @@ printResultsAndExit format allResults = do
         case format of
             TTY -> TTY.printResult res
             Json -> Json.printResult res
-            Checkstyle -> Checkstyle.printResult res
+            Checkstyle -> Checkstyle.printResult res >> exitSuccess
             CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
             Codacy -> Codacy.printResult res >> exitSuccess
 
