@@ -1,11 +1,38 @@
 # Hadolint Integrations
 
-## Codacy
+## Code Review
+
+### Codacy
 
 [Codacy](https://www.codacy.com/) automates hadolint code reviews on every
 commit and pull request, reporting code style and error prone issues.
 
-## Travis CI
+### Codeship Pro
+
+Add the hadolint docker container on codeship-services.yml with a docker volume
+with the repository attached to it:
+
+```yaml
+hadolint:
+  image: hadolint/hadolint:latest-debian
+  volumes:
+    - ./:/test
+```
+
+Then add the CI step on codeship-steps.yml with the path of the dockerfile
+
+```yaml
+- type: parallel
+  # optional: set branches
+  tag: '^(master|develop/.*)$'
+  steps:
+    - service: hadolint
+      command: hadolint /test/Dockerfile
+```
+
+## Continuous Integration
+
+### Travis CI
 
 Integration with Travis CI requires minimal changes and adding less than
 two seconds to your build time.
@@ -28,7 +55,7 @@ script:
   - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 ${HADOLINT}
 ```
 
-## GitHub Actions
+### GitHub Actions
 
 For GitHub Actions you can use the [Hadolint Action in the GitHub Marketplace](https://github.com/marketplace/actions/hadolint-action).
 
@@ -51,7 +78,7 @@ jobs:
 
 ```
 
-## Gitlab CI
+### Gitlab CI
 
 For GitLab CI you need a basic shell in your docker image so you have to use
 the debian based images of hadolint.
@@ -65,7 +92,7 @@ lint_dockerfile:
     - hadolint Dockerfile
 ```
 
-## Drone CI
+### Drone CI
 
 For Drone CI, a basic shell is similiarly required.
 
@@ -90,7 +117,7 @@ Add the following job to your project's `.drone.yml` pipeline (drone version 1.0
       - hadolint  Dockerfile
 ```
 
-## CircleCI
+### CircleCI
 
 For CircleCI integration use the [docker orb](https://circleci.com/orbs/registry/orb/circleci/docker).
 Update your project's `.circleci/config.yml` pipeline (workflows version 2.1),
@@ -109,7 +136,7 @@ workflows:
           trusted-registries: 'docker.io,my-company.com:5000'
 ```
 
-## Jenkins declarative pipeline
+### Jenkins declarative pipeline
 
 You can add a step during your CI process to lint and archive the output of hadolint
 
@@ -131,7 +158,7 @@ stage ("lint dockerfile") {
 }
 ```
 
-## Jenkins K8S plugin
+### Jenkins K8S plugin
 
 You can add an hadolint container to pod definition:
 
@@ -161,30 +188,7 @@ stage('lint dockerfile') {
 }
 ```
 
-## Codeship Pro
-
-Add the hadolint docker container on codeship-services.yml with a docker volume
-with the repository attached to it:
-
-```yaml
-hadolint:
-  image: hadolint/hadolint:latest-debian
-  volumes:
-    - ./:/test
-```
-
-Then add the CI step on codeship-steps.yml with the path of the dockerfile
-
-```yaml
-- type: parallel
-  # optional: set branches
-  tag: '^(master|develop/.*)$'
-  steps:
-    - service: hadolint
-      command: hadolint /test/Dockerfile
-```
-
-## Bitbucket Pipelines
+### Bitbucket Pipelines
 
 Create a `bitbucket-pipelines.yml` configuration file:
 ```yaml

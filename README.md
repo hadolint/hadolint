@@ -143,6 +143,10 @@ To get most of `hadolint` it is useful to integrate it as a check to your CI
 or to your editor to lint your `Dockerfile` as you write it. See our
 [Integration][] docs.
 
+- [Code Review Platform Integrations][]
+- [Continuous Integrations][]
+- [Editor Integrations][]
+
 ## Rules
 
 An incomplete list of implemented rules. Click on the error code to get more
@@ -297,6 +301,9 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 [haskell]: https://www.haskell.org/platform/
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [integration]: docs/INTEGRATION.md
+[code review platform integrations]: docs/INTEGRATION.md#code-review
+[continuous integrations]: docs/INTEGRATION.md#continuous-integration
+[editor integrations]: docs/INTEGRATION.md#editors
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
 [syntax.hs]: https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html
