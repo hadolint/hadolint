@@ -53,16 +53,13 @@ printResultsAndExit format allResults = do
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
 lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
-lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
-    processedFiles <- mapM (lintDockerfile ignoreList) (NonEmpty.toList dFiles)
-    return (results processedFiles)
+lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles =
+    results <$> mapM (lintDockerfile ignoreList) (NonEmpty.toList dFiles)
   where
     results = foldMap Format.toResult -- Parse and check rules for each dockerfile,
                                       -- then convert them to a Result and combine with
                                       -- the result of the previous dockerfile results
-    lintDockerfile ignoreRules dockerFile = do
-        ast <- parseFilename dockerFile
-        return (processedFile ast)
+    lintDockerfile ignoreRules = fmap processedFile . parseFilename
       where
         processedFile = fmap processRules
         processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)
