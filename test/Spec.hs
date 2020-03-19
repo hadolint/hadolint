@@ -371,6 +371,15 @@ main =
                 in do
                 ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
                 onBuildRuleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+            it "apk add with repository (-X) without equal sign" $
+                let dockerFile =
+                        [ "RUN apk add --no-cache \\"
+                        , "-X https://nl.alpinelinux.org/alpine/edge/testing \\"
+                        , "flow=0.78.0-r0"
+                        ]
+                in do
+                ruleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
+                onBuildRuleCatchesNot apkAddVersionPinned $ Text.unlines dockerFile
         --
         describe "EXPOSE rules" $ do
             it "invalid port" $ ruleCatches invalidPort "EXPOSE 80000"
