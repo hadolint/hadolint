@@ -284,6 +284,7 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 
 - RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
 - projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
+- buddy-works/[dockerfile linter](https://github.com/buddy-works/dockerfile-linter)
 
 <!-- References -->
 [travis-img]: https://travis-ci.org/hadolint/hadolint.svg?branch=master
