@@ -18,7 +18,7 @@ import qualified Data.Sequence as Seq
 import Data.Sequence (Seq)
 import Hadolint.Rules
 import ShellCheck.Interface
-import Text.Megaparsec (Stream(..))
+import Text.Megaparsec (Stream(..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 
@@ -68,5 +68,5 @@ errorPositionPretty err = sourcePosPretty (errorPosition err)
 
 errorPosition :: Stream s => ParseErrorBundle s e -> Text.Megaparsec.Pos.SourcePos
 errorPosition (ParseErrorBundle e s) =
-    let (pos, _, _) = reachOffset (errorOffset (NE.head e)) s
-     in pos
+    let (_, posState) = reachOffset (errorOffset (NE.head e)) s
+     in pstateSourcePos posState

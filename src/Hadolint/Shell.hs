@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Hadolint.Shell where
 
@@ -12,7 +13,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified ShellCheck.AST
-import ShellCheck.AST (Id(..), Token(..))
+import ShellCheck.AST (Id(..), Token(..), pattern T_SimpleCommand, pattern T_Pipe)
 import qualified ShellCheck.ASTLib
 import ShellCheck.Checker
 import ShellCheck.Interface

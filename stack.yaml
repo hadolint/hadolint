@@ -2,4 +2,7 @@ flags: {}
 extra-package-dbs: []
 packages:
 - .
-resolver: lts-14.7
+resolver: lts-15.3
+extra-deps:
+  - ShellCheck-0.7.1@sha256:94a6ee5a38e2668204bc95fdc7539a9a4ca7230984157694409444530c23b5a4,3170
+  - language-docker-8.1.0@sha256:d37de863f2b7378d765ad0c8873c37afd49f1e6f3255230cfa45f87e4931262e,2780
