@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Hadolint.Config (applyConfig, ConfigFile(..)) where
 
@@ -54,7 +55,7 @@ applyConfig maybeConfig o
     parseAndApply configFile = do
         contents <- Bytes.readFile configFile
         case Yaml.decode1Strict contents of
-            Left err -> return $ Left (formatError err configFile)
+            Left (_, err) -> return $ Left (formatError err configFile)
             Right (ConfigFile ignore trusted) -> return (Right (override ignore trusted))
     -- | Applies the configuration found in the file to the passed Lint.LintOptions
     override ignore trusted = applyTrusted trusted . applyIgnore ignore $ o

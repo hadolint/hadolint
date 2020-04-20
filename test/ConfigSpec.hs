@@ -44,7 +44,7 @@ tests =
 assertConfig :: HasCallStack => ConfigFile -> Bytes.ByteString -> Assertion
 assertConfig config s =
     case Yaml.decode1Strict s of
-        Left err ->
+        Left (_, err) ->
             assertFailure err
         Right result ->
             checkResult result

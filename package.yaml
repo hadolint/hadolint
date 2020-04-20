@@ -20,13 +20,13 @@ ghc-options:
 dependencies:
   - base >=4.8 && <5
   - megaparsec >=7.0
-  - language-docker >=8.0.2 && < 9
+  - language-docker >=8.1.0 && < 9
 library:
   source-dirs: src
   dependencies:
     - &bytestring bytestring >=0.10
     - &split split >=0.2
-    - &ShellCheck ShellCheck >=0.7.0
+    - &ShellCheck ShellCheck >=0.7.1
     - aeson
     - text
     - bytestring
