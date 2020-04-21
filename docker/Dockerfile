@@ -21,7 +21,7 @@ RUN stack --no-terminal --install-ghc test --only-dependencies
 
 COPY . /opt/hadolint
 RUN scripts/fetch_version.sh \
-  && stack install --ghc-options="-fPIC"
+  && stack install --ghc-options="-fPIC" --flag hadolint:static
 
 # COMPRESS WITH UPX
 RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \

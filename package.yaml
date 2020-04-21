@@ -10,6 +10,11 @@ license: GPL-3
 homepage: https://github.com/hadolint/hadolint
 git: git@github.com:hadolint/hadolint.git
 extra-source-files: README.md
+flags:
+  static:
+    description: Use static linking for the hadolint executable
+    default: false
+    manual: true
 ghc-options:
   - -Wall
   - -Wcompat
@@ -48,7 +53,7 @@ executables:
       - containers
     when:
       # OS X does not support static build https://developer.apple.com/library/content/qa/qa1118
-      - condition: "!(os(osx))"
+      - condition: "flag(static) && !(os(osx))"
         ld-options:
           - -static
           - -pthread

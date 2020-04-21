@@ -141,7 +141,7 @@ before_install:
 
 install:
   - travis_retry stack --no-terminal --install-ghc $ARGS test --only-dependencies
-  - stack --no-terminal $ARGS install --ghc-options='-fPIC'
+  - stack --no-terminal $ARGS install --ghc-options='-fPIC' --flag hadolint:static
 
 script:
   - stack --no-terminal $ARGS test
