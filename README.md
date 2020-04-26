@@ -257,8 +257,12 @@ The easiest way to try out the parser is using the REPL.
 ```bash
 # start the repl
 stack repl
+# overload strings to be able to use Text
+:set -XOverloadedStrings
+# import parser library
+import Language.Docker
 # parse instruction and look at AST representation
-parseString "FROM debian:jessie"
+parseText "FROM debian:jessie"
 ```
 
 ### Tests
