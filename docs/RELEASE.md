@@ -14,8 +14,7 @@ Only `master` branch is used for releases.
     in a tag message.
 
     ```bash
-    export TAG=v1.2.3
-    git tag -a "$TAG" -m "$TAG" && git push origin "$TAG"
+    export TAG=v1.2.3 && git pull && git tag -a "$TAG" -m "$TAG" && git push origin master --tags && stack upload .
     ```
 
 1.  Tag creation will trigger build in _Travis_ and _AppVeyor_ which will upload
