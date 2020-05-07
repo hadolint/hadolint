@@ -261,6 +261,10 @@ if docker run --rm -i hadolint/hadolint < "%d/%f"
 | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
 
+## Shims
+
+- [hadolint-shim](https://github.com/kornicameister/hadolint-shim)
+
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
 [linter-hadolint-img]: https://user-images.githubusercontent.com/18702153/33764234-7abc1f24-dc0b-11e7-96b6-4f08207b6950.png
 [lucasdf]: https://github.com/lucasdf
