@@ -267,7 +267,7 @@ Following section contains different angles on `hadolint` usage
 that go outside of [code review](#code-review) or [editors' integration](#editors). 
 
 - [hadolint-shim](https://github.com/kornicameister/hadolint-shim) - use `hadolint` 
-  as normal executable on systems where static binaries are not accessible
+  as normal executable on systems where static binaries are not available
 
 [linter-hadolint]: https://atom.io/packages/linter-hadolint
 [linter-hadolint-img]: https://user-images.githubusercontent.com/18702153/33764234-7abc1f24-dc0b-11e7-96b6-4f08207b6950.png
