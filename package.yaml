@@ -25,7 +25,7 @@ ghc-options:
 dependencies:
   - base >=4.8 && <5
   - megaparsec >=7.0
-  - language-docker >=8.1.0 && < 9
+  - language-docker >=9.0.0 && < 10
 library:
   source-dirs: src
   dependencies:

@@ -4,7 +4,7 @@
 module Hadolint.Rules where
 
 import Control.Arrow ((&&&))
-import Data.List (dropWhile, foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
+import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
@@ -256,8 +256,8 @@ shellcheck = mapInstructions check Shell.defaultShellOpts
     check st _ (Env pairs) = (Shell.addVars (map fst pairs) st, [])
     check st _ (Shell (ArgumentsList script)) = (Shell.setShell (Shell.original script) st, [])
     check st _ (Shell (ArgumentsText script)) = (Shell.setShell (Shell.original script) st, [])
-    check st _ (Run (ArgumentsList script)) = (st, doCheck st script)
-    check st _ (Run (ArgumentsText script)) = (st, doCheck st script)
+    check st _ (Run (RunArgs (ArgumentsList script) _)) = (st, doCheck st script)
+    check st _ (Run (RunArgs (ArgumentsText script) _)) = (st, doCheck st script)
     check st _ _ = (st, [])
     doCheck opts script = nub [commentMetadata c | c <- Shell.shellcheck opts script]
 
@@ -326,7 +326,7 @@ wgetOrCurl = instructionRuleState code severity message check Set.empty
     code = "DL4001"
     severity = WarningC
     message = "Either use Wget or Curl but not both"
-    check state _ (Run args) = argumentsRule (detectDoubleUsage state) args
+    check state _ (Run (RunArgs args _)) = argumentsRule (detectDoubleUsage state) args
     check _ _ (From _) = withState Set.empty True -- Reset the state for each stage
     check state _ _ = withState state True
     detectDoubleUsage state args =
@@ -344,7 +344,7 @@ invalidCmd = instructionRule code severity message check
     message =
         "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
         \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
-    check (Run args) = argumentsRule detectInvalid args
+    check (Run (RunArgs args _)) = argumentsRule detectInvalid args
     check _ = True
     detectInvalid args = null [arg | arg <- Shell.findCommandNames args, arg `elem` invalidCmds]
     invalidCmds = ["ssh", "vim", "shutdown", "service", "ps", "free", "top", "kill", "mount"]
@@ -388,7 +388,7 @@ noCd = instructionRule code severity message check
     code = "DL3003"
     severity = WarningC
     message = "Use WORKDIR to switch to a directory"
-    check (Run args) = argumentsRule (not . usingProgram "cd") args
+    check (Run (RunArgs args _)) = argumentsRule (not . usingProgram "cd") args
     check _ = True
 
 noSudo :: Rule
@@ -399,7 +399,7 @@ noSudo = instructionRule code severity message check
     message =
         "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce \
         \root"
-    check (Run args) = argumentsRule (not . usingProgram "sudo") args
+    check (Run (RunArgs args _)) = argumentsRule (not . usingProgram "sudo") args
     check _ = True
 
 noAptGetUpgrade :: Rule
@@ -408,7 +408,7 @@ noAptGetUpgrade = instructionRule code severity message check
     code = "DL3005"
     severity = ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
-    check (Run args) =
+    check (Run (RunArgs args _)) =
         argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apt-get" ["upgrade"])) args
     check _ = True
 
@@ -443,7 +443,7 @@ aptGetVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
         \install <package>=<version>`"
-    check (Run args) = argumentsRule (all versionFixed . aptGetPackages) args
+    check (Run (RunArgs args _)) = argumentsRule (all versionFixed . aptGetPackages) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package || ("/" `Text.isInfixOf` package || ".deb" `Text.isSuffixOf` package)
 
@@ -470,7 +470,7 @@ aptGetCleanup dockerfile = instructionRuleState code severity message check Noth
     --   We only care for users to delete the lists folder if the FROM clase we're is is the last one
     --   or if it is used as the base image for another FROM clause.
     check _ line f@(From _) = withState (Just (line, f)) True -- Remember the last FROM instruction found
-    check st@(Just (line, From baseimage)) _ (Run args) =
+    check st@(Just (line, From baseimage)) _ (Run (RunArgs args _)) =
         withState st (argumentsRule (didNotForgetToCleanup line baseimage) args)
     check st _ _ = withState st True
     -- Check all commands in the script for the presence of apt-get update
@@ -498,7 +498,7 @@ noApkUpgrade = instructionRule code severity message check
     code = "DL3017"
     severity = ErrorC
     message = "Do not use apk upgrade"
-    check (Run args) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apk" ["upgrade"])) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apk" ["upgrade"])) args
     check _ = True
 
 apkAddVersionPinned :: Rule
@@ -508,7 +508,7 @@ apkAddVersionPinned = instructionRule code severity message check
     severity = WarningC
     message =
         "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
-    check (Run args) = argumentsRule (\as -> and [versionFixed p | p <- apkAddPackages as]) args
+    check (Run (RunArgs args _)) = argumentsRule (\as -> and [versionFixed p | p <- apkAddPackages as]) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package
 
@@ -531,7 +531,7 @@ apkAddNoCache = instructionRule code severity message check
     message =
         "Use the `--no-cache` switch to avoid the need to use `--update` and remove \
         \`/var/cache/apk/*` when done installing packages"
-    check (Run args) = argumentsRule (Shell.noCommands forgotCacheOption) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotCacheOption) args
     check _ = True
     forgotCacheOption cmd = Shell.cmdHasArgs "apk" ["add"] cmd && not (Shell.hasFlag "no-cache" cmd)
 
@@ -585,7 +585,7 @@ pipVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in pip. Instead of `pip install <package>` use `pip install \
         \<package>==<version>`"
-    check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd =
         isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
@@ -644,7 +644,7 @@ npmVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in npm. Instead of `npm install <package>` use `npm install \
         \<package>@<version>`"
-    check (Run args) = argumentsRule (Shell.noCommands forgotToPinVersion) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd =
         isNpmInstall cmd && installIsFirst cmd && not (all versionFixed (packages cmd))
@@ -676,7 +676,7 @@ aptGetYes = instructionRule code severity message check
     code = "DL3014"
     severity = WarningC
     message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
-    check (Run args) = argumentsRule (Shell.noCommands forgotAptYesOption) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotAptYesOption) args
     check _ = True
     forgotAptYesOption cmd = isAptGetInstall cmd && not (hasYesOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
@@ -688,7 +688,7 @@ aptGetNoRecommends = instructionRule code severity message check
     code = "DL3015"
     severity = InfoC
     message = "Avoid additional packages by specifying `--no-install-recommends`"
-    check (Run args) = argumentsRule (Shell.noCommands forgotNoInstallRecommends) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoInstallRecommends) args
     check _ = True
     forgotNoInstallRecommends cmd = isAptGetInstall cmd && not (disablesRecommendOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
@@ -782,7 +782,7 @@ useShell = instructionRule code severity message check
     code = "DL4005"
     severity = WarningC
     message = "Use SHELL to change the default shell"
-    check (Run args) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True
 
 useJsonArgs :: Rule
@@ -802,7 +802,7 @@ noApt = instructionRule code severity message check
     severity = WarningC
     message =
         "Do not use apt as it is meant to be a end-user tool, use apt-get or apt-cache instead"
-    check (Run args) = argumentsRule (not . usingProgram "apt") args
+    check (Run (RunArgs args _)) = argumentsRule (not . usingProgram "apt") args
     check _ = True
 
 usePipefail :: Rule
@@ -817,7 +817,7 @@ usePipefail = instructionRuleState code severity message check False
     check _ _ (Shell args)
         | argumentsRule isPowerShell args = (True, True)
         | otherwise = (argumentsRule hasPipefailOption args, True)
-    check False _ (Run args) = (False, argumentsRule notHasPipes args)
+    check False _ (Run (RunArgs args _)) = (False, argumentsRule notHasPipes args)
     check st _ _ = (st, True)
     isPowerShell (Shell.ParsedShell orig _ _) = "pwsh" `Text.isPrefixOf` orig
     notHasPipes script = not (Shell.hasPipes script)
@@ -859,7 +859,7 @@ gemVersionPinned = instructionRule code severity message check
     message =
         "Pin versions in gem install. Instead of `gem install <gem>` use `gem \
         \install <gem>:<version>`"
-    check (Run args) = argumentsRule (all versionFixed . gems) args
+    check (Run (RunArgs args _)) = argumentsRule (all versionFixed . gems) args
     check _ = True
     versionFixed package = ":" `Text.isInfixOf` package
 
