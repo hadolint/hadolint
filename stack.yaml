@@ -5,4 +5,4 @@ packages:
 resolver: lts-15.10
 extra-deps:
   - ShellCheck-0.7.1@sha256:94a6ee5a38e2668204bc95fdc7539a9a4ca7230984157694409444530c23b5a4,3170
-  - language-docker-9.0.0@sha256:2bc58e0dd7ab5e42261482a1c50ad595a81b4bd93e42c1271f45a74812ccda30,2794
+  - language-docker-9.1.0
