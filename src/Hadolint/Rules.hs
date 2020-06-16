@@ -185,6 +185,7 @@ rules =
     , noApkUpgrade
     , noLatestTag
     , noUntagged
+    , noPlatformFlag
     , aptGetVersionPinned
     , aptGetCleanup
     , apkAddVersionPinned
@@ -862,6 +863,15 @@ gemVersionPinned = instructionRule code severity message check
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . gems) args
     check _ = True
     versionFixed package = ":" `Text.isInfixOf` package
+
+noPlatformFlag :: Rule
+noPlatformFlag = instructionRule code severity message check
+  where
+    code = "DL3029"
+    severity = WarningC
+    message = "Do not use --platform flag with FROM"
+    check (From BaseImage {platform = Just p}) = p == ""
+    check _ = True
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =

@@ -23,6 +23,8 @@ main =
             it "explicit latest" $ ruleCatches noLatestTag "FROM debian:latest"
             it "explicit latest with name" $ ruleCatches noLatestTag "FROM debian:latest AS builder"
             it "explicit tagged" $ ruleCatchesNot noLatestTag "FROM debian:jessie"
+            it "explicit platform flag" $ ruleCatches noPlatformFlag "FROM --platform=linux debian:jessie"
+            it "no platform flag" $ ruleCatchesNot noPlatformFlag "FROM debian:jessie"
             it "explicit SHA" $
                 ruleCatchesNot noLatestTag
                     "FROM hub.docker.io/debian@sha256:\
