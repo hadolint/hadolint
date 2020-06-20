@@ -234,6 +234,12 @@ Hadolint is used in two plugins:
 -   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
     and Vim 8 while you edit your text files.
 
+### Emacs
+> Emacs is an extensible, customizable, free/libre text editor.
+
+- [Flycheck](https://www.flycheck.org/en/latest/languages.html#dockerfile) - a modern on-the-fly syntax checking extension for GNU Emacs.
+
+
 ### VS Code
 
 > Visual Studio Code is a lightweight but powerful source code editor which
