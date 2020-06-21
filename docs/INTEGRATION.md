@@ -239,7 +239,6 @@ Hadolint is used in two plugins:
 
 - [flycheck][] - a modern on-the-fly syntax checking extension for GNU Emacs.
 
-
 ### VS Code
 
 > Visual Studio Code is a lightweight but powerful source code editor which
