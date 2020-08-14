@@ -617,6 +617,7 @@ pipVersionPinned = instructionRule code severity message check
             , "root"
             , "src"
             , "t", "target"
+            , "trusted-host"
             , "upgrade-strategy"
             ] cmd
     versionFixed package = hasVersionSymbol package || isVersionedGit package
