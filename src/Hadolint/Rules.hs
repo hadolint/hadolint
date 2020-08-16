@@ -699,7 +699,7 @@ aptGetNoRecommends = instructionRule code severity message check
 
 isArchive :: Text.Text -> Bool
 isArchive path =
-    True `elem`
+    or
     ([ ftype `Text.isSuffixOf` path
     | ftype <-
           [ ".tar"
@@ -721,7 +721,7 @@ isArchive path =
     ])
 
 isUrl :: Text.Text -> Bool
-isUrl path = True `elem` ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]])
+isUrl path = or ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]])
 
 copyInsteadAdd :: Rule
 copyInsteadAdd = instructionRule code severity message check
