@@ -700,7 +700,7 @@ aptGetNoRecommends = instructionRule code severity message check
 isArchive :: Text.Text -> Bool
 isArchive path =
     True `elem`
-    [ ftype `Text.isSuffixOf` path
+    ([ ftype `Text.isSuffixOf` path
     | ftype <-
           [ ".tar"
           , ".gz"
@@ -718,10 +718,10 @@ isArchive path =
           , ".Z"
           , ".tZ"
           ]
-    ]
+    ])
 
 isUrl :: Text.Text -> Bool
-isUrl path = True `elem` [proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]]
+isUrl path = True `elem` ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]])
 
 copyInsteadAdd :: Rule
 copyInsteadAdd = instructionRule code severity message check
