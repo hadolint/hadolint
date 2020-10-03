@@ -11,3 +11,6 @@ stack.yaml.lock
 
 # travis wait is generating log in PWD
 travis_wait_*.log
+
+# Ignore build target for git
+build/
