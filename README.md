@@ -121,6 +121,12 @@ the `--config` option
 hadolint --config /path/to/config.yaml Dockerfile
 ```
 
+To pass a custom configuration file (using relative or absolute path) to a container, use the following command:
+
+```bash
+docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+```
+
 ## Inline ignores
 
 It is also possible to ignore rules by using a special comment directly above the Dockerfile
