@@ -433,6 +433,9 @@ main =
             it "pip version pinned with flag --target" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip3 install --target /opt/yamllint yamllint==1.20.0"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --target /opt/yamllint yamllint==1.20.0"
+            it "pip version pinned with flag --trusted-host" $ do
+                ruleCatchesNot pipVersionPinned "RUN pip3 install --trusted-host host example==1.2.2"
+                onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install --trusted-host host example==1.2.2"
             it "pip version pinned with python -m" $ do
                 ruleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
                 onBuildRuleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
