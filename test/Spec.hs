@@ -436,6 +436,9 @@ main =
             it "pip version pinned with python -m" $ do
                 ruleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
                 onBuildRuleCatchesNot pipVersionPinned "RUN python -m pip install example==1.2.2"
+            it "pip version not pinned with python -m" $ do
+                ruleCatches pipVersionPinned "RUN python -m pip install example"
+                onBuildRuleCatches pipVersionPinned "RUN python -m pip install --index-url url example"
             it "pip install git" $ do
                 ruleCatchesNot
                     pipVersionPinned
