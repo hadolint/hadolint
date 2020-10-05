@@ -213,6 +213,16 @@ main =
                 in do
                   ruleCatches aptGetCleanup $ Text.unlines dockerFile
                   onBuildRuleCatches aptGetCleanup $ Text.unlines dockerFile
+            it "apt-get no cleanup different" $
+                let dockerFile =
+                        [ "FROM golang:latest as build"
+                          , "WORKDIR /go/src/github.com/pomerium/pomerium"
+                          , "RUN apt-get update \\"
+                          , "&& apt-get -y install zip"
+                        ]
+                in do
+                  ruleCatches aptGetCleanup $ Text.unlines dockerFile
+                  onBuildRuleCatches aptGetCleanup $ Text.unlines dockerFile
             it "apt-get cleanup in stage image" $
                 let dockerFile =
                         [ "FROM ubuntu as foo"
