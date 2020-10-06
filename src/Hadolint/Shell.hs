@@ -198,5 +198,6 @@ hasArg arg Command {arguments} = not $ null [a | CmdPart a _ <- arguments, a == 
 dropFlagArg :: [Text.Text] -> Command -> Command
 dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdArgs flags
   where
-    idsToDrop = Set.fromList [fId + 2 | CmdPart f fId <- flags, f `elem` flagsToDrop]
+    idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
     filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
+getValueId fId flags = foldl min (maxBound :: Int) $ filter (>fId) $ map partId flags 
