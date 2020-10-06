@@ -925,7 +925,7 @@ yumVersionPinned = instructionRule code severity message check
   where
     code = "DL3033"
     severity = WarningC
-    message = "Sepcify version with `yum install -y <package>-<version>`."
+    message = "Specify version with `yum install -y <package>-<version>`."
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . yumPackages) args
     check _ = True
     versionFixed package = "-" `Text.isInfixOf` package
