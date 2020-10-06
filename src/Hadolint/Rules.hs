@@ -205,6 +205,10 @@ rules =
     , usePipefail
     , noApt
     , gemVersionPinned
+    , yumYes
+    , noYumUpdate
+    , yumCleanup
+    , yumVersionPinned
     ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -876,6 +880,62 @@ noPlatformFlag = instructionRule code severity message check
     message = "Do not use --platform flag with FROM"
     check (From BaseImage {platform = Just p}) = p == ""
     check _ = True
+
+yumYes :: Rule
+yumYes = instructionRule code severity message check
+  where
+    code = "DL3030"
+    severity = WarningC
+    message = "Use the -y switch to avoid manual input `yum install -y <package`"
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotYumYesOption) args
+    check _ = True
+    forgotYumYesOption cmd = isYumInstall cmd && not (hasYesOption cmd)
+    isYumInstall = Shell.cmdHasArgs "yum" ["install", "groupinstall", "localinstall"]
+    hasYesOption = Shell.hasAnyFlag ["y", "assumeyes"]
+
+noYumUpdate :: Rule
+noYumUpdate = instructionRule code severity message check
+  where
+    code = "DL3031"
+    severity = ErrorC
+    message = "Do not use yum update."
+    check (Run (RunArgs args _)) =
+      argumentsRule (Shell.noCommands (
+                       Shell.cmdHasArgs "yum" ["update",
+                                               "update-to",
+                                               "upgrade",
+                                               "upgrade-to"])) args
+    check _ = True
+
+yumCleanup :: Rule
+yumCleanup = instructionRule code severity message check
+  where
+    code = "DL3032"
+    severity = WarningC
+    message = "`yum clean all` missing after yum command."
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands yumInstall) args ||
+                                   (argumentsRule (Shell.anyCommands yumInstall) args &&
+                                    argumentsRule (Shell.anyCommands yumClean) args)
+    check _ = True
+    yumInstall = Shell.cmdHasArgs "yum" ["install"]
+    yumClean = Shell.cmdHasArgs "yum" ["clean", "all"]
+
+yumVersionPinned :: Rule
+yumVersionPinned = instructionRule code severity message check
+  where
+    code = "DL3033"
+    severity = WarningC
+    message = "Sepcify version with `yum install -y <package>-<version>`."
+    check (Run (RunArgs args _)) = argumentsRule (all versionFixed . yumPackages) args
+    check _ = True
+    versionFixed package = "-" `Text.isInfixOf` package
+                        || ".rpm" `Text.isSuffixOf` package
+
+yumPackages :: Shell.ParsedShell -> [Text.Text]
+yumPackages args = [arg | cmd <- Shell.presentCommands args,
+                          Shell.cmdHasArgs "yum" ["install"] cmd,
+                          arg <- Shell.getArgsNoFlags cmd,
+                          arg /= "install"]
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =

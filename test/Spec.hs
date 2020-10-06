@@ -190,6 +190,20 @@ main =
                 ruleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
                 onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
         --
+        describe "yum rules" $ do
+            it "yum update" $ do
+                ruleCatches noYumUpdate "RUN yum update"
+                onBuildRuleCatches noYumUpdate "RUN yum update"
+            it "yum version pinning" $ do
+                ruleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+                onBuildRuleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+            it "yum no clean all" $ do
+                ruleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+                onBuildRuleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+            it "yum non-interactive" $ do
+                ruleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+                onBuildRuleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+        --
         describe "apt-get rules" $ do
             it "apt" $
                 let dockerFile =

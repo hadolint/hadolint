@@ -143,6 +143,9 @@ allCommands check script = all check (presentCommands script)
 noCommands :: (Command -> Bool) -> ParsedShell -> Bool
 noCommands check = allCommands (not . check)
 
+anyCommands :: (Command -> Bool) -> ParsedShell -> Bool
+anyCommands check script = any check (presentCommands script)
+
 findCommandNames :: ParsedShell -> [Text]
 findCommandNames script = map name (presentCommands script)
 
