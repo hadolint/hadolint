@@ -519,6 +519,13 @@ main =
             it "pip install constraints file - short version argument" $ do
                 ruleCatchesNot pipVersionPinned "RUN pip install pykafka -c http://foo.bar.baz"
                 onBuildRuleCatchesNot pipVersionPinned "RUN pip install pykafka -c http://foo.bar.baz"
+            it "pip install --index-url with --extra-index-url with basic auth" $ do
+                ruleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://user:pass@eg.com/foo --extra-index-url https://user:pass@ex-eg.io/foo foobar==1.0.0"
+                onBuildRuleCatchesNot
+                    pipVersionPinned
+                    "RUN pip install --index-url https://user:pass@eg.com/foo --extra-index-url https://user:pass@ex-eg.io/foo foobar==1.0.0"
         --
         describe "npm pinning" $ do
             it "version pinned in package.json" $ do
