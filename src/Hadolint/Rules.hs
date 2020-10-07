@@ -620,6 +620,7 @@ pipVersionPinned = instructionRule code severity message check
             , "platform"
             , "prefix"
             , "progress-bar"
+            , "proxy"
             , "python-version"
             , "root"
             , "src"
