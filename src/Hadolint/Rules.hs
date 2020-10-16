@@ -172,46 +172,49 @@ ignored dockerfile =
 
 rules :: [Rule]
 rules =
-  [ absoluteWorkdir,
-    shellcheck,
-    invalidCmd,
-    copyInsteadAdd,
-    copyEndingSlash,
-    copyFromExists,
-    copyFromAnother,
-    fromAliasUnique,
-    noRootUser,
-    noCd,
-    noSudo,
-    noAptGetUpgrade,
-    noApkUpgrade,
-    noLatestTag,
-    noUntagged,
-    noPlatformFlag,
-    aptGetVersionPinned,
-    aptGetCleanup,
-    apkAddVersionPinned,
-    apkAddNoCache,
-    useAdd,
-    pipVersionPinned,
-    npmVersionPinned,
-    invalidPort,
-    aptGetNoRecommends,
-    aptGetYes,
-    wgetOrCurl,
-    hasNoMaintainer,
-    multipleCmds,
-    multipleEntrypoints,
-    useShell,
-    useJsonArgs,
-    usePipefail,
-    noApt,
-    gemVersionPinned,
-    yumYes,
-    noYumUpdate,
-    yumCleanup,
-    yumVersionPinned
-  ]
+    [ absoluteWorkdir
+    , shellcheck
+    , invalidCmd
+    , copyInsteadAdd
+    , copyEndingSlash
+    , copyFromExists
+    , copyFromAnother
+    , fromAliasUnique
+    , noRootUser
+    , noCd
+    , noSudo
+    , noAptGetUpgrade
+    , noApkUpgrade
+    , noLatestTag
+    , noUntagged
+    , noPlatformFlag
+    , aptGetVersionPinned
+    , aptGetCleanup
+    , apkAddVersionPinned
+    , apkAddNoCache
+    , useAdd
+    , pipVersionPinned
+    , npmVersionPinned
+    , invalidPort
+    , aptGetNoRecommends
+    , aptGetYes
+    , wgetOrCurl
+    , hasNoMaintainer
+    , multipleCmds
+    , multipleEntrypoints
+    , useShell
+    , useJsonArgs
+    , usePipefail
+    , noApt
+    , gemVersionPinned
+    , yumYes
+    , noYumUpdate
+    , yumCleanup
+    , yumVersionPinned
+    , zypperYes
+    , noZypperUpdate
+    , zypperCleanup
+    ]
 
 optionalRules :: RulesConfig -> [Rule]
 optionalRules RulesConfig {allowedRegistries} = [registryIsAllowed allowedRegistries]
@@ -904,20 +907,11 @@ noYumUpdate = instructionRule code severity message check
   where
     code = "DL3031"
     severity = ErrorC
-    message = "Do not use yum update."
+    message = "Do not use `yum update`."
     check (Run (RunArgs args _)) =
-      argumentsRule
-        ( Shell.noCommands
-            ( Shell.cmdHasArgs
-                "yum"
-                [ "update",
-                  "update-to",
-                  "upgrade",
-                  "upgrade-to"
-                ]
-            )
-        )
-        args
+      argumentsRule (Shell.noCommands (
+                       Shell.cmdHasArgs "yum" ["update",
+                                               "upgrade"])) args
     check _ = True
 
 yumCleanup :: Rule
@@ -951,6 +945,46 @@ yumPackages :: Shell.ParsedShell -> [Text.Text]
 yumPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "yum" ["install"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install"
   ]
+
+zypperYes :: Rule
+zypperYes = instructionRule code severity message check
+  where
+    code = "DL3034"
+    severity = WarningC
+    message = "Non-interactive switch missing from `zypper` command: `zypper install -n`"
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotZypperYesOption) args
+    check _ = True
+    forgotZypperYesOption cmd = isZypperInstall cmd && not (hasYesOption cmd)
+    isZypperInstall = Shell.cmdHasArgs "zypper" ["install", "in",
+                                                 "remove", "rm",
+                                                 "source-install", "si",
+                                                 "patch"]
+    hasYesOption = Shell.hasAnyFlag ["non-interactive", "n"]
+
+noZypperUpdate :: Rule
+noZypperUpdate = instructionRule code severity message check
+  where
+    code = "DL3035"
+    severity = WarningC
+    message = "Do not use `zypper update`."
+    check (Run (RunArgs args _)) =
+      argumentsRule (Shell.noCommands (
+                       Shell.cmdHasArgs "zypper" ["update", "up",
+                                                  "dist-upgrade", "dup"])) args
+    check _ = True
+
+zypperCleanup :: Rule
+zypperCleanup = instructionRule code severity message check
+  where
+    code = "DL3036"
+    severity = WarningC
+    message = "`zypper clean` missing after zypper use."
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands zypperInstall) args ||
+                                   (argumentsRule (Shell.anyCommands zypperInstall) args &&
+                                    argumentsRule (Shell.anyCommands zypperClean) args)
+    check _ = True
+    zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
+    zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
