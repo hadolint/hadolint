@@ -752,7 +752,7 @@ copyEndingSlash = instructionRule code severity message check
         | length sources > 1 = endsWithSlash t
         | otherwise = True
     check _ = True
-    endsWithSlash (TargetPath t) = Text.last t == '/' -- it is safe to use last, as the target is never empty
+    endsWithSlash (TargetPath t) = not (Text.null t) && Text.last t == '/'
 
 copyFromExists :: Rule
 copyFromExists dockerfile = instructionRuleLine code severity message check dockerfile
