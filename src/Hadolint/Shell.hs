@@ -1,7 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hadolint.Shell where
 
@@ -10,51 +10,53 @@ import Data.Functor.Identity (runIdentity)
 import Data.Maybe (listToMaybe, mapMaybe)
 import Data.Semigroup ((<>))
 import qualified Data.Set as Set
-import qualified Data.Text as Text
 import Data.Text (Text)
+import qualified Data.Text as Text
+import ShellCheck.AST (Id (..), Token (..), pattern T_Pipe, pattern T_SimpleCommand)
 import qualified ShellCheck.AST
-import ShellCheck.AST (Id(..), Token(..), pattern T_SimpleCommand, pattern T_Pipe)
 import qualified ShellCheck.ASTLib
-import ShellCheck.Checker
+import ShellCheck.Checker (checkScript)
 import ShellCheck.Interface
 import qualified ShellCheck.Parser
 
 data CmdPart = CmdPart
-    { arg :: !Text
-    , partId :: !Int
-    } deriving (Show)
+  { arg :: !Text,
+    partId :: !Int
+  }
+  deriving (Show)
 
 data Command = Command
-    { name :: !Text.Text
-    , arguments :: [CmdPart]
-    , flags :: [CmdPart]
-    } deriving (Show)
+  { name :: !Text.Text,
+    arguments :: [CmdPart],
+    flags :: [CmdPart]
+  }
+  deriving (Show)
 
 data ParsedShell = ParsedShell
-    { original :: !Text.Text
-    , parsed :: !ParseResult
-    , presentCommands :: ![Command]
-    }
+  { original :: !Text.Text,
+    parsed :: !ParseResult,
+    presentCommands :: ![Command]
+  }
 
 data ShellOpts = ShellOpts
-    { shellName :: Text.Text
-    , envVars :: Set.Set Text.Text
-    }
+  { shellName :: Text.Text,
+    envVars :: Set.Set Text.Text
+  }
 
 defaultShellOpts :: ShellOpts
 defaultShellOpts = ShellOpts "/bin/sh -c" defaultVars
   where
     defaultVars =
-        Set.fromList
-            [ "HTTP_PROXY"
-            , "http_proxy"
-            , "HTTPS_PROXY"
-            , "https_proxy"
-            , "FTP_PROXY"
-            , "ftp_proxy"
-            , "NO_PROXY"
-            , "no_proxy"
-            ]
+      Set.fromList
+        [ "HTTP_PROXY",
+          "http_proxy",
+          "HTTPS_PROXY",
+          "https_proxy",
+          "FTP_PROXY",
+          "ftp_proxy",
+          "NO_PROXY",
+          "no_proxy"
+        ]
 
 addVars :: [Text.Text] -> ShellOpts -> ShellOpts
 addVars vars (ShellOpts n v) = ShellOpts n (v <> Set.fromList vars)
@@ -64,50 +66,49 @@ setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
-    if "pwsh" `Text.isPrefixOf` sh
-        then [] -- Do no run for powershell
-        else runShellCheck
+  if "pwsh" `Text.isPrefixOf` sh
+    then [] -- Do no run for powershell
+    else runShellCheck
   where
     runShellCheck = crComments $ runIdentity $ checkScript si spec
     si = mockedSystemInterface [("", "")]
     spec =
-        emptyCheckSpec
-            { csFilename = "" -- filename can be ommited because we only want the parse results back
-            , csScript = script
-            , csCheckSourced = False
-            , csExcludedWarnings = exclusions
-            , csShellTypeOverride = Nothing
-            , csMinSeverity = StyleC
-            }
+      emptyCheckSpec
+        { csFilename = "", -- filename can be ommited because we only want the parse results back
+          csScript = script,
+          csCheckSourced = False,
+          csExcludedWarnings = exclusions,
+          csShellTypeOverride = Nothing,
+          csMinSeverity = StyleC
+        }
     script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
     exclusions =
-        [ 2187 -- exclude the warning about the ash shell not being supported
-        , 1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
-        ]
-    -- | Shellcheck complains when the shebang has more than one argument, so we only take the first
+      [ 2187, -- exclude the warning about the ash shell not being supported
+        1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
+      ]
+
     extractShell s =
-        maybe "" Text.unpack (listToMaybe . Text.words $ s)
-    -- | Inject all the collected env vars as exported variables so they can be used
+      maybe "" Text.unpack (listToMaybe . Text.words $ s)
     printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
 parseShell :: Text.Text -> ParsedShell
 parseShell txt = ParsedShell {original = txt, parsed = parsedResult, presentCommands = commands}
   where
     parsedResult =
-        runIdentity $
+      runIdentity $
         ShellCheck.Parser.parseScript
-            (mockedSystemInterface [("", "")])
-            newParseSpec
-                { psFilename = "" -- There is no filename
-                , psScript = "#!/bin/bash\n" ++ Text.unpack txt
-                , psCheckSourced = False
-                }
-    -- | Extract all commands with their name
+          (mockedSystemInterface [("", "")])
+          newParseSpec
+            { psFilename = "", -- There is no filename
+              psScript = "#!/bin/bash\n" ++ Text.unpack txt,
+              psCheckSourced = False
+            }
+
     commands = mapMaybe extractNames (findCommandsInResult parsedResult)
     extractNames token =
-        case ShellCheck.ASTLib.getCommandName token of
-            Nothing -> Nothing
-            Just n -> Just $ Command (Text.pack n) allArgs (getAllFlags allArgs)
+      case ShellCheck.ASTLib.getCommandName token of
+        Nothing -> Nothing
+        Just n -> Just $ Command (Text.pack n) allArgs (getAllFlags allArgs)
       where
         allArgs = extractAllArgs token
 
@@ -118,15 +119,15 @@ findCommandsInResult = extractTokensWith commandsExtractor
 
 extractTokensWith :: forall a. (Token -> Maybe a) -> ParseResult -> [a]
 extractTokensWith extractor ast =
-    case prRoot ast of
-        Nothing -> []
-        Just script -> execWriter $ ShellCheck.AST.doAnalysis extract script
+  case prRoot ast of
+    Nothing -> []
+    Just script -> execWriter $ ShellCheck.AST.doAnalysis extract script
   where
     extract :: Token -> Writer [a] ()
     extract token =
-        case extractor token of
-            Nothing -> return ()
-            Just t -> tell [t]
+      case extractor token of
+        Nothing -> return ()
+        Just t -> tell [t]
 
 findPipes :: ParsedShell -> [Token]
 findPipes (ParsedShell _ ast _) = extractTokensWith pipesExtractor ast
@@ -151,21 +152,21 @@ findCommandNames script = map name (presentCommands script)
 
 cmdHasArgs :: Text.Text -> [Text.Text] -> Command -> Bool
 cmdHasArgs expectedName expectedArgs (Command n args _)
-    | expectedName /= n = False
-    | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
+  | expectedName /= n = False
+  | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
 
 cmdHasPrefixArg :: Text.Text -> Text.Text -> Command -> Bool
 cmdHasPrefixArg expectedName expectedArg (Command n args _)
-    | expectedName /= n = False
-    | otherwise = not $ null [arg | CmdPart arg _ <- args, expectedArg `Text.isPrefixOf` arg]
+  | expectedName /= n = False
+  | otherwise = not $ null [arg | CmdPart arg _ <- args, expectedArg `Text.isPrefixOf` arg]
 
 extractAllArgs :: Token -> [CmdPart]
-extractAllArgs (T_SimpleCommand _ _ (_:allArgs)) = map mkPart allArgs
+extractAllArgs (T_SimpleCommand _ _ (_ : allArgs)) = map mkPart allArgs
   where
     mkPart token =
-        CmdPart
-            (Text.pack . concat $ ShellCheck.ASTLib.oversimplify token)
-            (mkId (ShellCheck.AST.getId token))
+      CmdPart
+        (Text.pack . concat $ ShellCheck.ASTLib.oversimplify token)
+        (mkId (ShellCheck.AST.getId token))
     mkId (Id i) = i
 extractAllArgs _ = []
 
@@ -176,10 +177,10 @@ getAllFlags :: [CmdPart] -> [CmdPart]
 getAllFlags = concatMap flag
   where
     flag (CmdPart arg pId)
-        | arg == "--" || arg == "-" = []
-        | "--" `Text.isPrefixOf` arg = [CmdPart (Text.drop 2 . Text.takeWhile (/= '=') $ arg) pId]
-        | "-" `Text.isPrefixOf` arg = map (`CmdPart` pId) (Text.chunksOf 1 (Text.tail arg))
-        | otherwise = []
+      | arg == "--" || arg == "-" = []
+      | "--" `Text.isPrefixOf` arg = [CmdPart (Text.drop 2 . Text.takeWhile (/= '=') $ arg) pId]
+      | "-" `Text.isPrefixOf` arg = map (`CmdPart` pId) (Text.chunksOf 1 (Text.tail arg))
+      | otherwise = []
 
 getArgsNoFlags :: Command -> [Text.Text]
 getArgsNoFlags args = map arg $ filter (notAFlagId . partId) (arguments args)
@@ -200,4 +201,6 @@ dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdA
   where
     idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
     filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
-getValueId fId flags = foldl min (maxBound :: Int) $ filter (>fId) $ map partId flags 
+
+getValueId :: Int -> [CmdPart] -> Int
+getValueId fId flags = foldl min (maxBound :: Int) $ filter (> fId) $ map partId flags

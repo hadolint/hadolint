@@ -1,6 +1,6 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Main where
 
@@ -11,19 +11,19 @@ import qualified Data.Set as Set
 import Data.String
 import qualified Data.Version
 import qualified Development.GitRev
+import qualified Hadolint
 import Options.Applicative hiding (ParseError)
-import qualified Paths_hadolint -- version from hadolint.cabal file
+-- version from hadolint.cabal file
+import qualified Paths_hadolint
 import System.Exit (exitFailure, exitSuccess)
 
-import qualified Hadolint
-
 data CommandOptions = CommandOptions
-    { showVersion :: Bool
-    , configFile :: Maybe FilePath
-    , format :: Hadolint.OutputFormat
-    , dockerfiles :: [String]
-    , lintingOptions :: Hadolint.LintOptions
-    }
+  { showVersion :: Bool,
+    configFile :: Maybe FilePath,
+    format :: Hadolint.OutputFormat,
+    dockerfiles :: [String],
+    lintingOptions :: Hadolint.LintOptions
+  }
 
 toOutputFormat :: String -> Maybe Hadolint.OutputFormat
 toOutputFormat "json" = Just Hadolint.Json
@@ -42,81 +42,89 @@ showFormat Hadolint.Codacy = "codacy"
 
 parseOptions :: Parser CommandOptions
 parseOptions =
-    CommandOptions <$> -- CLI options parser definition
-    version <*>
-    configFile <*>
-    outputFormat <*>
-    files <*>
-    lintOptions
+  CommandOptions
+    <$> version -- CLI options parser definition
+    <*> configFile
+    <*> outputFormat
+    <*> files
+    <*> lintOptions
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
     --
-    -- | Parse the config filename to use
+
     configFile =
-        optional
-            (strOption
-                 (long "config" <> short 'c' <> metavar "FILENAME" <>
-                  help "Path to the configuration file"))
+      optional
+        ( strOption
+            ( long "config" <> short 'c' <> metavar "FILENAME"
+                <> help "Path to the configuration file"
+            )
+        )
     --
-    -- | Parse the output format option
+
     outputFormat =
-        option
-            (maybeReader toOutputFormat)
-            (long "format" <> -- options for the output format
-             short 'f' <>
-             help
-                 "The output format for the results [tty | json | checkstyle | codeclimate | codacy]" <>
-             value Hadolint.TTY <> -- The default value
-             showDefaultWith showFormat <>
-             completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"])
+      option
+        (maybeReader toOutputFormat)
+        ( long "format"
+            <> short 'f' -- options for the output format
+            <> help
+              "The output format for the results [tty | json | checkstyle | codeclimate | codacy]"
+            <> value Hadolint.TTY
+            <> showDefaultWith showFormat -- The default value
+            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"]
+        )
     --
-    -- | Parse a list of ignored rules
+
     ignoreList =
-        many
-            (strOption
-                 (long "ignore" <>
-                  help "A rule to ignore. If present, the ignore list in the config file is ignored" <>
-                  metavar "RULECODE"))
+      many
+        ( strOption
+            ( long "ignore"
+                <> help "A rule to ignore. If present, the ignore list in the config file is ignored"
+                <> metavar "RULECODE"
+            )
+        )
     --
-    -- | Parse a list of dockerfile names
+
     files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
     --
-    -- | Parse the rule ignore list and the rules configuration into a LintOptions
+
     lintOptions = Hadolint.LintOptions <$> ignoreList <*> parseRulesConfig
     --
-    -- | Parse all the optional rules configuration
+
     parseRulesConfig =
-        Hadolint.RulesConfig . Set.fromList . fmap fromString <$>
-        many
-            (strOption
-                 (long "trusted-registry" <>
-                  help "A docker registry to allow to appear in FROM instructions" <>
-                  metavar "REGISTRY (e.g. docker.io)"))
+      Hadolint.RulesConfig . Set.fromList . fmap fromString
+        <$> many
+          ( strOption
+              ( long "trusted-registry"
+                  <> help "A docker registry to allow to appear in FROM instructions"
+                  <> metavar "REGISTRY (e.g. docker.io)"
+              )
+          )
 
 main :: IO ()
 main = do
-    cmd <- execParser opts
-    execute cmd
+  cmd <- execParser opts
+  execute cmd
   where
     execute CommandOptions {showVersion = True} = putStrLn getVersion >> exitSuccess
     execute CommandOptions {dockerfiles = []} =
-        putStrLn "Please provide a Dockerfile" >> exitFailure
+      putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
-        lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
-        let files = NonEmpty.fromList (dockerfiles cmd)
-        case lintConfig of
-            Left err -> error err
-            Right conf -> do
-                res <- Hadolint.lint conf files
-                Hadolint.printResultsAndExit (format cmd) res
+      lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
+      let files = NonEmpty.fromList (dockerfiles cmd)
+      case lintConfig of
+        Left err -> error err
+        Right conf -> do
+          res <- Hadolint.lint conf files
+          Hadolint.printResultsAndExit (format cmd) res
     opts =
-        info
-            (helper <*> parseOptions)
-            (fullDesc <> progDesc "Lint Dockerfile for errors and best practices" <>
-             header "hadolint - Dockerfile Linter written in Haskell")
+      info
+        (helper <*> parseOptions)
+        ( fullDesc <> progDesc "Lint Dockerfile for errors and best practices"
+            <> header "hadolint - Dockerfile Linter written in Haskell"
+        )
 
 getVersion :: String
 getVersion
-    | $(Development.GitRev.gitDescribe) == "UNKNOWN" =
-        "Haskell Dockerfile Linter " ++ Data.Version.showVersion Paths_hadolint.version ++ "-no-git"
-    | otherwise = "Haskell Dockerfile Linter " ++ $(Development.GitRev.gitDescribe)
+  | $(Development.GitRev.gitDescribe) == "UNKNOWN" =
+    "Haskell Dockerfile Linter " ++ Data.Version.showVersion Paths_hadolint.version ++ "-no-git"
+  | otherwise = "Haskell Dockerfile Linter " ++ $(Development.GitRev.gitDescribe)
