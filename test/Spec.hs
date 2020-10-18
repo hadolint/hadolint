@@ -710,7 +710,7 @@ main =
 
             it "Defaults the shell to sh" $
                 let dockerFile = Text.unlines
-                        [ "RUN echo $RANDOM" -- $RANDOM is not available in sh
+                        [ "RUN echo $RANDOM"
                         ]
                 in do
                   ruleCatches shellcheck dockerFile
@@ -719,7 +719,7 @@ main =
             it "Can change the shell check to bash" $
                 let dockerFile = Text.unlines
                         [ "SHELL [\"/bin/bash\", \"-eo\", \"pipefail\", \"-c\"]"
-                        , "RUN echo $RANDOM" -- $RANDOM is available in bash
+                        , "RUN echo $RANDOM"
                         ]
                 in do
                   ruleCatchesNot shellcheck dockerFile
