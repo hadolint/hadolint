@@ -8,13 +8,35 @@ import Control.Applicative
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.Semigroup ((<>))
 import qualified Data.Set as Set
-import Data.String
+import Data.String (IsString (fromString))
 import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
-import Options.Applicative hiding (ParseError)
+import Options.Applicative
+  ( Parser,
+    action,
+    argument,
+    completeWith,
+    execParser,
+    fullDesc,
+    header,
+    help,
+    helper,
+    info,
+    long,
+    maybeReader,
+    metavar,
+    option,
+    progDesc,
+    short,
+    showDefaultWith,
+    str,
+    strOption,
+    switch,
+    value,
+  )
 -- version from hadolint.cabal file
-import qualified Paths_hadolint
+import qualified Paths_hadolint as Meta
 import System.Exit (exitFailure, exitSuccess)
 
 data CommandOptions = CommandOptions
@@ -50,7 +72,6 @@ parseOptions =
     <*> lintOptions
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
-    --
 
     configFile =
       optional
@@ -59,7 +80,6 @@ parseOptions =
                 <> help "Path to the configuration file"
             )
         )
-    --
 
     outputFormat =
       option
@@ -72,7 +92,6 @@ parseOptions =
             <> showDefaultWith showFormat -- The default value
             <> completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"]
         )
-    --
 
     ignoreList =
       many
@@ -82,13 +101,10 @@ parseOptions =
                 <> metavar "RULECODE"
             )
         )
-    --
 
     files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
-    --
 
     lintOptions = Hadolint.LintOptions <$> ignoreList <*> parseRulesConfig
-    --
 
     parseRulesConfig =
       Hadolint.RulesConfig . Set.fromList . fmap fromString
@@ -125,6 +141,8 @@ main = do
 
 getVersion :: String
 getVersion
-  | $(Development.GitRev.gitDescribe) == "UNKNOWN" =
-    "Haskell Dockerfile Linter " ++ Data.Version.showVersion Paths_hadolint.version ++ "-no-git"
-  | otherwise = "Haskell Dockerfile Linter " ++ $(Development.GitRev.gitDescribe)
+  | version == "UNKNOWN" =
+    "Haskell Dockerfile Linter " ++ Data.Version.showVersion Meta.version ++ "-no-git"
+  | otherwise = "Haskell Dockerfile Linter " ++ version
+  where
+    version = $(Development.GitRev.gitDescribe)
