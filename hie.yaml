@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "hadolint:lib"
+
+    - path: "./app/Main.hs"
+      component: "hadolint:exe:hadolint"
+
+    - path: "./app/Paths_hadolint.hs"
+      component: "hadolint:exe:hadolint"
+
+    - path: "./test"
+      component: "hadolint:test:hadolint-unit-tests"
