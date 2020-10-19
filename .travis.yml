@@ -15,20 +15,16 @@ git:
 
 matrix:
   include:
-    # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
-    # variable, such as using --stack-yaml to point to a different file.
-    - env: &lts-latest ARGS="--resolver lts"
-      dist: xenial
-
     - env: &lts-fixed ARGS=""
-      dist: xenial
+      os: linux
+      arch: arm64
       addons:
         artifacts: {paths: [./releases]}
       before_deploy:
         # Show dynamic libraries `hadolint` depends on
         - ldd $(which hadolint) || true
-        - curl -sSL https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
-          | tar -x --xz --strip-components=1 -C ~/.local/bin upx-3.95-amd64_linux/upx
+        - curl -sSL https://github.com/upx/upx/releases/download/v3.96/upx-3.96-arm64_linux.tar.xz
+          | tar -x --xz --strip-components=1 -C ~/.local/bin upx-3.96-arm64_linux/upx
         # Compress binary
         - upx -q --best --ultra-brute "./releases/${BINARY_NAME}"
       deploy: &release_deploy
@@ -41,89 +37,6 @@ matrix:
         tag_name: "${TRAVIS_TAG}"
         on:
           tags: true
-
-    # Nightly builds are allowed to fail
-    - env: &nightly ARGS="--resolver nightly"
-      dist: xenial
-
-    # Build on OS X in addition to Linux
-    - env: *lts-latest
-      os: osx
-
-    - env: *lts-fixed
-      addons:
-        artifacts: {paths: [./releases]}
-      before_deploy:
-        - brew install upx
-        # Show dynamic libraries `hadolint` depends on
-        - otool -L $(which hadolint) || true
-        # Compress binary
-        - upx -q --best --ultra-brute "./releases/${BINARY_NAME}"
-      deploy:
-        <<: *release_deploy
-      os: osx
-
-    - env: *nightly
-      os: osx
-
-    - env: Build_Docker_Image
-      sudo: required
-      services:
-        - docker
-      before_install: true
-      install:
-        # Build image
-        - travis_wait 30 docker build
-          --tag hadolint:$(git describe --always --tags --dirty)
-          --file docker/Dockerfile
-          --target distro .
-        - docker build
-          --tag hadolint:$(git describe --always --tags --dirty)-debian
-          --file docker/Dockerfile
-          --target debian-distro .
-        - docker build
-          --tag hadolint:$(git describe --always --tags --dirty)-alpine
-          --file docker/Dockerfile
-          --target alpine-distro .
-      script:
-        # List images
-        - docker image ls
-        # Lint its own Dockerfile
-        - docker run --rm -i hadolint:$(git describe  --always --tags --dirty) <
-          docker/Dockerfile
-        # Check that version in hadolint in the same as its `git describe`
-        - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty) hadolint --version)
-        - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty)-debian hadolint --version)
-        - grep $(git describe --dirty) <<<
-          $(docker run --rm -i hadolint:$(git describe  --always --tags --dirty)-alpine hadolint --version)
-      after_success: true
-
-    - env: Version_Check_and_Linting
-      sudo: required
-      services:
-        - docker
-      before_install: true
-      install:
-        # Pull Markdown linting image
-        - docker pull zemanlx/remark-lint:0.1.4
-      script:
-        # Lint Markdown files
-        - docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.4 --frail .
-        # Lint Haskell files
-        - curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
-        # Hardcoded version check - a version in package.yaml has to higher(before release)
-        #   or same as git tag (after release).
-        - |
-          GIT_VERSION=$(git describe | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
-          HARDCODED_VERSION=$(grep version package.yaml | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
-          echo "${GIT_VERSION}\n${HARDCODED_VERSION}" | sort --check --version-sort \
-            || ( echo "Update version in package.yaml and then tag git commit." && false )
-      after_success: true
-
-  allow_failures:
-    - env: *nightly
 
 before_install:
   - export BINARY_NAME="hadolint-$(uname -s)-$(uname -m)"
