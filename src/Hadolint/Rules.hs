@@ -23,7 +23,7 @@ data Metadata = Metadata
     severity :: Severity,
     message :: Text.Text
   }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 -- a check is the application of a rule on a specific part of code
 -- the enforced result and the affected position
@@ -36,7 +36,7 @@ data RuleCheck = RuleCheck
     linenumber :: Linenumber,
     success :: Bool
   }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 -- | Contains the required parameters for optional rules
 newtype RulesConfig = RulesConfig

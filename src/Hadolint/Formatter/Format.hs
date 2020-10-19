@@ -24,8 +24,8 @@ import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 
 data Result s e = Result
-  { errors :: Seq (ParseErrorBundle s e),
-    checks :: Seq RuleCheck
+  { errors :: !(Seq (ParseErrorBundle s e)),
+    checks :: !(Seq RuleCheck)
   }
 
 instance Semigroup (Result s e) where
