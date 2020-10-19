@@ -59,15 +59,13 @@ lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text Docker
 lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
   parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
   let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
-  return $ buildResults results
+  return $ mconcat results
   where
     parseFile :: String -> IO (Either Error Dockerfile)
     parseFile "-" = Docker.parseStdin
     parseFile s = Docker.parseFile s
 
     lintAll = fmap (lintDockerfile ignoreList)
-
-    buildResults = foldr (<>) mempty
 
     lintDockerfile ignoreRules ast = processedFile ast
       where
