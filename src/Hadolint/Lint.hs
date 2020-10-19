@@ -2,8 +2,11 @@
 
 module Hadolint.Lint where
 
+import qualified Control.Concurrent.Async as Async
+import Control.Parallel.Strategies (parListChunk, rseq, using)
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.Text (Text)
+import GHC.Conc (numCapabilities)
 import qualified Hadolint.Formatter.Checkstyle as Checkstyle
 import qualified Hadolint.Formatter.Codacy as Codacy
 import qualified Hadolint.Formatter.Codeclimate as Codeclimate
@@ -54,25 +57,26 @@ printResultsAndExit format allResults = do
 -- Depending on the preferred printing format, it will output the results to stdout
 lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
 lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
-  processedFiles <- mapM (lintDockerfile ignoreList) (NonEmpty.toList dFiles)
-  return (results processedFiles)
+  parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
+  let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
+  return $ buildResults results
   where
-    results = foldMap Format.toResult -- Parse and check rules for each dockerfile,
-    -- then convert them to a Result and combine with
-    -- the result of the previous dockerfile results
-    lintDockerfile ignoreRules dockerFile = do
-      ast <- parseFilename dockerFile
-      return (processedFile ast)
+    parseFile :: String -> IO (Either Error Dockerfile)
+    parseFile "-" = Docker.parseStdin
+    parseFile s = Docker.parseFile s
+
+    lintAll = fmap (lintDockerfile ignoreList)
+
+    buildResults = foldr (<>) mempty
+
+    lintDockerfile ignoreRules ast = processedFile ast
       where
-        processedFile = fmap processRules
+        processedFile = Format.toResult . fmap processRules
         processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)
         ignoredRules = ignoreFilter ignoreRules
 
         ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
         ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `notElem` rules
-        parseFilename :: String -> IO (Either Error Dockerfile)
-        parseFilename "-" = Docker.parseStdin
-        parseFilename s = Docker.parseFile s
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
