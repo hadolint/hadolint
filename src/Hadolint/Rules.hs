@@ -172,49 +172,50 @@ ignored dockerfile =
 
 rules :: [Rule]
 rules =
-    [ absoluteWorkdir
-    , shellcheck
-    , invalidCmd
-    , copyInsteadAdd
-    , copyEndingSlash
-    , copyFromExists
-    , copyFromAnother
-    , fromAliasUnique
-    , noRootUser
-    , noCd
-    , noSudo
-    , noAptGetUpgrade
-    , noApkUpgrade
-    , noLatestTag
-    , noUntagged
-    , noPlatformFlag
-    , aptGetVersionPinned
-    , aptGetCleanup
-    , apkAddVersionPinned
-    , apkAddNoCache
-    , useAdd
-    , pipVersionPinned
-    , npmVersionPinned
-    , invalidPort
-    , aptGetNoRecommends
-    , aptGetYes
-    , wgetOrCurl
-    , hasNoMaintainer
-    , multipleCmds
-    , multipleEntrypoints
-    , useShell
-    , useJsonArgs
-    , usePipefail
-    , noApt
-    , gemVersionPinned
-    , yumYes
-    , noYumUpdate
-    , yumCleanup
-    , yumVersionPinned
-    , zypperYes
-    , noZypperUpdate
-    , zypperCleanup
-    ]
+  [ absoluteWorkdir,
+    shellcheck,
+    invalidCmd,
+    copyInsteadAdd,
+    copyEndingSlash,
+    copyFromExists,
+    copyFromAnother,
+    fromAliasUnique,
+    noRootUser,
+    noCd,
+    noSudo,
+    noAptGetUpgrade,
+    noApkUpgrade,
+    noLatestTag,
+    noUntagged,
+    noPlatformFlag,
+    aptGetVersionPinned,
+    aptGetCleanup,
+    apkAddVersionPinned,
+    apkAddNoCache,
+    useAdd,
+    pipVersionPinned,
+    npmVersionPinned,
+    invalidPort,
+    aptGetNoRecommends,
+    aptGetYes,
+    wgetOrCurl,
+    hasNoMaintainer,
+    multipleCmds,
+    multipleEntrypoints,
+    useShell,
+    useJsonArgs,
+    usePipefail,
+    noApt,
+    gemVersionPinned,
+    yumYes,
+    noYumUpdate,
+    yumCleanup,
+    yumVersionPinned,
+    zypperYes,
+    noZypperUpdate,
+    zypperCleanup,
+    zypperVersionPinned
+  ]
 
 optionalRules :: RulesConfig -> [Rule]
 optionalRules RulesConfig {allowedRegistries} = [registryIsAllowed allowedRegistries]
@@ -907,11 +908,20 @@ noYumUpdate = instructionRule code severity message check
   where
     code = "DL3031"
     severity = ErrorC
-    message = "Do not use `yum update`."
+    message = "Do not use yum update."
     check (Run (RunArgs args _)) =
-      argumentsRule (Shell.noCommands (
-                       Shell.cmdHasArgs "yum" ["update",
-                                               "upgrade"])) args
+      argumentsRule
+        ( Shell.noCommands
+            ( Shell.cmdHasArgs
+                "yum"
+                [ "update",
+                  "update-to",
+                  "upgrade",
+                  "upgrade-to"
+                ]
+            )
+        )
+        args
     check _ = True
 
 yumCleanup :: Rule
@@ -959,7 +969,7 @@ zypperYes = instructionRule code severity message check
                                                  "remove", "rm",
                                                  "source-install", "si",
                                                  "patch"]
-    hasYesOption = Shell.hasAnyFlag ["non-interactive", "n"]
+    hasYesOption = Shell.hasAnyFlag ["no-confirm", "y"]
 
 noZypperUpdate :: Rule
 noZypperUpdate = instructionRule code severity message check
@@ -985,6 +995,28 @@ zypperCleanup = instructionRule code severity message check
     check _ = True
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
     zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
+
+zypperVersionPinned :: Rule
+zypperVersionPinned = instructionRule code severity message check
+  where
+    code = "DL3037"
+    severity = WarningC
+    message = "Specify version with `zypper install -y <package>=<version>`."
+    check (Run (RunArgs args _)) = argumentsRule (all versionFixed . zypperPackages) args
+    check _ = True
+    versionFixed package = "=" `Text.isInfixOf` package
+                        || ">=" `Text.isInfixOf` package
+                        || ">" `Text.isInfixOf` package
+                        || "<=" `Text.isInfixOf` package
+                        || "<" `Text.isInfixOf` package
+                        || ".rpm" `Text.isSuffixOf` package
+
+zypperPackages :: Shell.ParsedShell -> [Text.Text]
+zypperPackages args = [arg | cmd <- Shell.presentCommands args,
+                          Shell.cmdHasArgs "zypper" ["install", "in"] cmd,
+                          arg <- Shell.getArgsNoFlags cmd,
+                          arg /= "install",
+                          arg /= "in"]
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
