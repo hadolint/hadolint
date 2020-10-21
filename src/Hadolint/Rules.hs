@@ -961,14 +961,21 @@ zypperYes = instructionRule code severity message check
   where
     code = "DL3034"
     severity = WarningC
-    message = "Non-interactive switch missing from `zypper` command: `zypper install -n`"
+    message = "Non-interactive switch missing from `zypper` command: `zypper install -y`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotZypperYesOption) args
     check _ = True
     forgotZypperYesOption cmd = isZypperInstall cmd && not (hasYesOption cmd)
-    isZypperInstall = Shell.cmdHasArgs "zypper" ["install", "in",
-                                                 "remove", "rm",
-                                                 "source-install", "si",
-                                                 "patch"]
+    isZypperInstall =
+      Shell.cmdHasArgs
+        "zypper"
+        [ "install",
+          "in",
+          "remove",
+          "rm",
+          "source-install",
+          "si",
+          "patch"
+        ]
     hasYesOption = Shell.hasAnyFlag ["no-confirm", "y"]
 
 noZypperUpdate :: Rule
@@ -978,9 +985,18 @@ noZypperUpdate = instructionRule code severity message check
     severity = WarningC
     message = "Do not use `zypper update`."
     check (Run (RunArgs args _)) =
-      argumentsRule (Shell.noCommands (
-                       Shell.cmdHasArgs "zypper" ["update", "up",
-                                                  "dist-upgrade", "dup"])) args
+      argumentsRule
+        ( Shell.noCommands
+            ( Shell.cmdHasArgs
+                "zypper"
+                [ "update",
+                  "up",
+                  "dist-upgrade",
+                  "dup"
+                ]
+            )
+        )
+        args
     check _ = True
 
 zypperCleanup :: Rule
@@ -989,9 +1005,11 @@ zypperCleanup = instructionRule code severity message check
     code = "DL3036"
     severity = WarningC
     message = "`zypper clean` missing after zypper use."
-    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands zypperInstall) args ||
-                                   (argumentsRule (Shell.anyCommands zypperInstall) args &&
-                                    argumentsRule (Shell.anyCommands zypperClean) args)
+    check (Run (RunArgs args _)) =
+      argumentsRule (Shell.noCommands zypperInstall) args
+        || ( argumentsRule (Shell.anyCommands zypperInstall) args
+               && argumentsRule (Shell.anyCommands zypperClean) args
+           )
     check _ = True
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
     zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
@@ -1004,19 +1022,18 @@ zypperVersionPinned = instructionRule code severity message check
     message = "Specify version with `zypper install -y <package>=<version>`."
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . zypperPackages) args
     check _ = True
-    versionFixed package = "=" `Text.isInfixOf` package
-                        || ">=" `Text.isInfixOf` package
-                        || ">" `Text.isInfixOf` package
-                        || "<=" `Text.isInfixOf` package
-                        || "<" `Text.isInfixOf` package
-                        || ".rpm" `Text.isSuffixOf` package
+    versionFixed package =
+      "=" `Text.isInfixOf` package
+        || ">=" `Text.isInfixOf` package
+        || ">" `Text.isInfixOf` package
+        || "<=" `Text.isInfixOf` package
+        || "<" `Text.isInfixOf` package
+        || ".rpm" `Text.isSuffixOf` package
 
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
-zypperPackages args = [arg | cmd <- Shell.presentCommands args,
-                          Shell.cmdHasArgs "zypper" ["install", "in"] cmd,
-                          arg <- Shell.getArgsNoFlags cmd,
-                          arg /= "install",
-                          arg /= "in"]
+zypperPackages args =
+  [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "zypper" ["install", "in"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install", arg /= "in"
+  ]
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
