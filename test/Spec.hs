@@ -202,6 +202,48 @@ main =
       it "yum non-interactive" $ do
         ruleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
         onBuildRuleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+        --
+    describe "zypper rules" $ do
+        it "zupper update" $ do
+            ruleCatches noZypperUpdate "RUN zypper update"
+            ruleCatches noZypperUpdate "RUN zypper up"
+            ruleCatches noZypperUpdate "RUN zypper dist-upgrade"
+            ruleCatches noZypperUpdate "RUN zypper dup"
+            onBuildRuleCatches noZypperUpdate "RUN zypper update"
+            onBuildRuleCatches noZypperUpdate "RUN zypper up"
+            onBuildRuleCatches noZypperUpdate "RUN zypper dist-upgrade"
+            onBuildRuleCatches noZypperUpdate "RUN zypper dup"
+        it "zypper version pinning" $ do
+-- NOTE: In Haskell strings, '\' has to be escaped. And in shell commands, '>'
+-- and '<' have to be escaped. Hence the double escaping.
+            ruleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
+            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
+            onBuildRuleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
+            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
+        it "zypper no clean all" $ do
+            ruleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
+            ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
+            ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
+            onBuildRuleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
+            onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
+            onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
+        it "zypper non-interactive" $ do
+            ruleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
+            ruleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
+            ruleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
+            onBuildRuleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
+            onBuildRuleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
+            onBuildRuleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
     --
     describe "apt-get rules" $ do
       it "apt" $
