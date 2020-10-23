@@ -214,7 +214,11 @@ rules =
     zypperYes,
     noZypperUpdate,
     zypperCleanup,
-    zypperVersionPinned
+    zypperVersionPinned,
+    dnfYes,
+    noDnfUpdate,
+    dnfCleanup,
+    dnfVersionPinned
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1033,6 +1037,69 @@ zypperVersionPinned = instructionRule code severity message check
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
 zypperPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "zypper" ["install", "in"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install", arg /= "in"
+  ]
+
+dnfYes :: Rule
+dnfYes = instructionRule code severity message check
+  where
+    code = "DL3038"
+    severity = WarningC
+    message = "Use the -y switch to avoid manual input `dnf install -y <package`"
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotDnfYesOption) args
+    check _ = True
+    forgotDnfYesOption cmd = isDnfInstall cmd && not (hasYesOption cmd)
+    isDnfInstall = Shell.cmdHasArgs "dnf" ["install", "groupinstall", "localinstall"]
+    hasYesOption = Shell.hasAnyFlag ["y", "assumeyes"]
+
+noDnfUpdate :: Rule
+noDnfUpdate = instructionRule code severity message check
+  where
+    code = "DL3039"
+    severity = ErrorC
+    message = "Do not use dnf update."
+    check (Run (RunArgs args _)) =
+      argumentsRule
+        ( Shell.noCommands
+            ( Shell.cmdHasArgs
+                "dnf"
+                [ "upgrade",
+                  "upgrade-minimal"
+                ]
+            )
+        )
+        args
+    check _ = True
+
+dnfCleanup :: Rule
+dnfCleanup = instructionRule code severity message check
+  where
+    code = "DL3040"
+    severity = WarningC
+    message = "`dnf clean all` missing after dnf command."
+    check (Run (RunArgs args _)) =
+      argumentsRule (Shell.noCommands dnfInstall) args
+        || ( argumentsRule (Shell.anyCommands dnfInstall) args
+              && argumentsRule (Shell.anyCommands dnfClean) args
+           )
+    check _ = True
+    dnfInstall = Shell.cmdHasArgs "dnf" ["install"]
+    dnfClean = Shell.cmdHasArgs "dnf" ["clean", "all"]
+
+dnfVersionPinned :: Rule
+dnfVersionPinned = instructionRule code severity message check
+  where
+    code = "DL3041"
+    severity = WarningC
+    message = "Specify version with `dnf install -y <package>-<version>`."
+    check (Run (RunArgs args _)) = argumentsRule (all versionFixed . dnfPackages) args
+    check _ = True
+    versionFixed package =
+      "-" `Text.isInfixOf` package
+        || ".rpm" `Text.isSuffixOf` package
+
+dnfPackages :: Shell.ParsedShell -> [Text.Text]
+dnfPackages args =
+  [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "dnf" ["install"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install"
   ]
 
 gems :: Shell.ParsedShell -> [Text.Text]

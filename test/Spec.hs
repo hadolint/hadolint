@@ -245,6 +245,26 @@ main =
             onBuildRuleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
             onBuildRuleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
     --
+    describe "dnf rules" $ do
+      it "dnf update" $ do
+        ruleCatches noDnfUpdate "RUN dnf upgrade"
+        onBuildRuleCatches noDnfUpdate "RUN dnf upgrade"
+      it "dnf version pinning" $ do
+        ruleCatches dnfVersionPinned "RUN dnf install -y tomcat && dnf clean all"
+        ruleCatchesNot dnfVersionPinned "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
+        onBuildRuleCatches dnfVersionPinned "RUN dnf install -y tomcat && dnf clean all"
+        onBuildRuleCatchesNot dnfVersionPinned "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
+      it "dnf no clean all" $ do
+        ruleCatches dnfCleanup "RUN dnf install -y mariadb-10.4"
+        ruleCatchesNot dnfCleanup "RUN dnf install -y mariadb-10.4 && dnf clean all"
+        onBuildRuleCatches dnfCleanup "RUN dnf install -y mariadb-10.4"
+        onBuildRuleCatchesNot dnfCleanup "RUN dnf install -y mariadb-10.4 && dnf clean all"
+      it "dnf non-interactive" $ do
+        ruleCatches dnfYes "RUN dnf install httpd-2.4.24 && dnf clean all"
+        ruleCatchesNot dnfYes "RUN dnf install -y httpd-2.4.24 && dnf clean all"
+        onBuildRuleCatches dnfYes "RUN dnf install httpd-2.4.24 && dnf clean all"
+        onBuildRuleCatchesNot dnfYes "RUN dnf install -y httpd-2.4.24 && dnf clean all"
+    --
     describe "apt-get rules" $ do
       it "apt" $
         let dockerFile =
