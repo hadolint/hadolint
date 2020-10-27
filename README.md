@@ -211,6 +211,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3039](https://github.com/hadolint/hadolint/wiki/DL3039)   | Do not use `dnf update`                                                                                                                             |
 | [DL3040](https://github.com/hadolint/hadolint/wiki/DL3040)   | `dnf clean all` missing after dnf command.                                                                                                          |
 | [DL3041](https://github.com/hadolint/hadolint/wiki/DL3041)   | Specify version with `dnf install -y <package>-<version>`                                                                                           |
+| [DL3042](https://github.com/hadolint/hadolint/wiki/DL3038) | Avoid cache directory with `pip install --no-cache-dir <package>`.                                                                                  |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | MAINTAINER is deprecated.                                                                                                                           |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Multiple `CMD` instructions found.                                                                                                                  |
