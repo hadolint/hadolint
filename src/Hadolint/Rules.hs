@@ -7,7 +7,6 @@ import Control.Arrow ((&&&))
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import qualified Data.Map as Map
-import Data.Semigroup (Semigroup, (<>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -596,13 +595,16 @@ pipVersionPinned = instructionRule code severity message check
     severity = WarningC
     message =
       "Pin versions in pip. Instead of `pip install <package>` use `pip install \
-      \<package>==<version>`"
+      \<package>==<version>` or `pip install --requirement <requirements file>`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd =
       isPipInstall' cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific packages are being listed
-    isPipInstall' cmd = isPipInstall cmd && not (requirementInstall cmd)
+    isPipInstall' cmd =
+      (isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))) && not (requirementInstall cmd)
+    -- If the user is installing requirements from a file or just the local module, then we are not interested
+    -- in running this rule
     requirementInstall cmd =
       ["--requirement"] `isInfixOf` Shell.getArgs cmd
         || ["-r"] `isInfixOf` Shell.getArgs cmd
