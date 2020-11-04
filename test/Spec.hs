@@ -342,6 +342,7 @@ main =
          in do
               ruleCatchesNot aptGetCleanup $ Text.unlines dockerFile
               onBuildRuleCatchesNot aptGetCleanup $ Text.unlines dockerFile
+
       it "apt-get pinned chained" $
         let dockerFile =
               [ "RUN apt-get update \\",
