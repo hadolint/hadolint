@@ -193,16 +193,32 @@ main =
         describe "yum rules" $ do
             it "yum update" $ do
                 ruleCatches noYumUpdate "RUN yum update"
+                ruleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
+                ruleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
                 onBuildRuleCatches noYumUpdate "RUN yum update"
+                onBuildRuleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
+                onBuildRuleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
             it "yum version pinning" $ do
                 ruleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+                ruleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
+                ruleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
                 onBuildRuleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+                onBuildRuleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
+                onBuildRuleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
             it "yum no clean all" $ do
                 ruleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+                ruleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
+                ruleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
                 onBuildRuleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+                onBuildRuleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
+                onBuildRuleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
             it "yum non-interactive" $ do
                 ruleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+                ruleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
+                ruleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
                 onBuildRuleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+                onBuildRuleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
+                onBuildRuleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
         --
         describe "apt-get rules" $ do
             it "apt" $
