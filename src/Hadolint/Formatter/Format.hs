@@ -19,9 +19,10 @@ import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Hadolint.Rules
 import ShellCheck.Interface
-import Text.Megaparsec (Stream (..), pstateSourcePos)
+import Text.Megaparsec (TraversableStream (..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
+import Text.Megaparsec.Stream (VisualStream)
 
 data Result s e = Result
   { errors :: !(Seq (ParseErrorBundle s e)),
@@ -62,14 +63,14 @@ stripNewlines =
           else c
     )
 
-errorMessageLine :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> String
+errorMessageLine :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> String
 errorMessageLine err@(ParseErrorBundle e _) =
   errorPositionPretty err ++ " " ++ parseErrorTextPretty (NE.head e)
 
-errorPositionPretty :: Stream s => ParseErrorBundle s e -> String
+errorPositionPretty :: TraversableStream s => ParseErrorBundle s e -> String
 errorPositionPretty err = sourcePosPretty (errorPosition err)
 
-errorPosition :: Stream s => ParseErrorBundle s e -> Text.Megaparsec.Pos.SourcePos
+errorPosition :: TraversableStream s => ParseErrorBundle s e -> Text.Megaparsec.Pos.SourcePos
 errorPosition (ParseErrorBundle e s) =
   let (_, posState) = reachOffset (errorOffset (NE.head e)) s
    in pstateSourcePos posState

@@ -17,9 +17,10 @@ import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface
-import Text.Megaparsec (Stream)
+import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Stream (VisualStream)
 
 data CheckStyle = CheckStyle
   { file :: String,
@@ -30,7 +31,7 @@ data CheckStyle = CheckStyle
     source :: String
   }
 
-errorToCheckStyle :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> CheckStyle
+errorToCheckStyle :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> CheckStyle
 errorToCheckStyle err =
   CheckStyle
     { file = sourceName pos,
@@ -83,7 +84,7 @@ escape = concatMap doEscape
         else "&#" ++ show (ord c) ++ ";"
     isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
 
-formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Builder.Builder
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Builder.Builder
 formatResult (Result errors checks) =
   "<?xml version='1.0' encoding='UTF-8'?><checkstyle version='4.3'>" <> xmlBody <> "</checkstyle>"
   where
@@ -94,5 +95,5 @@ formatResult (Result errors checks) =
     checkstyleChecks = fmap ruleToCheckStyle checks
     sameFileName CheckStyle {file = f1} CheckStyle {file = f2} = f1 == f2
 
-printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = B.putStr (Builder.toLazyByteString (formatResult result))

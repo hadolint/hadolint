@@ -17,9 +17,10 @@ import GHC.Generics
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface
-import Text.Megaparsec (Stream)
+import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Stream (VisualStream)
 
 data Issue = Issue
   { checkName :: String,
@@ -60,7 +61,7 @@ instance ToJSON Issue where
         "severity" .= impact
       ]
 
-errorToIssue :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> Issue
+errorToIssue :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> Issue
 errorToIssue err =
   Issue
     { checkName = "DL1000",
@@ -90,14 +91,14 @@ severityText severity =
     InfoC -> "info"
     StyleC -> "minor"
 
-formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Seq Issue
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
 formatResult (Result errors checks) = allIssues
   where
     allIssues = errorMessages <> checkMessages
     errorMessages = fmap errorToIssue errors
     checkMessages = fmap checkToIssue checks
 
-printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = mapM_ output (formatResult result)
   where
     output value = do
