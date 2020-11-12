@@ -13,15 +13,16 @@ import Data.Monoid ((<>))
 import Hadolint.Formatter.Format (Result (..), errorPosition, severityText)
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface
-import Text.Megaparsec (Stream)
+import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
+import Text.Megaparsec.Stream (VisualStream)
 
 data JsonFormat s e
   = JsonCheck RuleCheck
   | JsonParseError (ParseErrorBundle s e)
 
-instance (Stream s, ShowErrorComponent e) => ToJSON (JsonFormat s e) where
+instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (JsonFormat s e) where
   toJSON (JsonCheck RuleCheck {..}) =
     object
       [ "file" .= filename,
@@ -43,12 +44,12 @@ instance (Stream s, ShowErrorComponent e) => ToJSON (JsonFormat s e) where
     where
       pos = errorPosition err
 
-formatResult :: (Stream s, ShowErrorComponent e) => Result s e -> Value
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Value
 formatResult (Result errors checks) = toJSON allMessages
   where
     allMessages = errorMessages <> checkMessages
     errorMessages = fmap JsonParseError errors
     checkMessages = fmap JsonCheck checks
 
-printResult :: (Stream s, ShowErrorComponent e) => Result s e -> IO ()
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = B.putStrLn (encode (formatResult result))
