@@ -203,6 +203,8 @@ rules =
     aptGetYes,
     wgetOrCurl,
     hasNoMaintainer,
+    hasHealthcheck,
+    multipleHealthcheck,
     multipleCmds,
     multipleEntrypoints,
     useShell,
@@ -314,6 +316,7 @@ hasNoMaintainer = instructionRule code severity message check
     message = "MAINTAINER is deprecated"
     check (Maintainer _) = False
     check _ = True
+
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram :: Text.Text -> Shell.ParsedShell -> Bool
@@ -863,6 +866,33 @@ usePipefail = instructionRuleState code severity message check False
               arg <- Shell.arg <$> arguments,
               arg == "pipefail"
           ]
+
+
+hasHealthcheck :: Rule
+hasHealthcheck dockerfile = instructionRuleState code severity message check Nothing dockerfile
+  where
+    code = "DL4007"
+    severity = ErrorC
+    message = "No `HEALTHCHECK` instruction"
+    check _ _ From {}
+      | null (allHealthchecks dockerfile) = withState Nothing False
+      | otherwise = withState Nothing True
+    check st _ _ = withState st True
+    allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr]
+      where
+        instr = fmap (lineNumber &&& instruction) df
+
+
+multipleHealthcheck :: Rule
+multipleHealthcheck = instructionRuleState code severity message check False
+  where
+    code = "DL4008"
+    severity = ErrorC
+    message = "Multiple `HEALTHCHECK` instructions"
+    check _ _ From {} = withState False True
+    check st _ Healthcheck {} = withState True (not st)
+    check st _ _ = withState st True
+
 
 registryIsAllowed :: Set.Set Registry -> Rule
 registryIsAllowed allowed = instructionRuleState code severity message check Set.empty

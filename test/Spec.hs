@@ -970,6 +970,34 @@ main =
       it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
       it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
 
+      it "has healthcheck" $
+        let dockerFile =
+              [ "FROM busybox"
+              ]
+        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+
+      it "not has healthcheck" $
+        let dockerFile =
+              [ "FROM busybox",
+                "HEALTHCHECK CMD stat /"
+              ]
+        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
+      it "too many healthchecks" $
+        let dockerFile =
+              [ "FROM busybox",
+                "HEALTHCHECK CMD stat /1",
+                "HEALTHCHECK CMD stat /2"
+              ]
+        in ruleCatches multipleHealthcheck $ Text.unlines dockerFile
+
+      it "not too many healthchecks" $
+        let dockerFile =
+              [ "FROM busybox",
+                "HEALTHCHECK CMD ls /1"
+              ]
+        in ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+
       it "many cmds" $
         let dockerFile =
               [ "FROM debian",
