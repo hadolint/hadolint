@@ -203,7 +203,6 @@ rules =
     aptGetYes,
     wgetOrCurl,
     hasNoMaintainer,
-    hasHealthcheck,
     multipleHealthcheck,
     multipleCmds,
     multipleEntrypoints,
@@ -226,6 +225,11 @@ rules =
     dnfVersionPinned,
     pipNoCacheDir,
     noIllegalInstructionInOnbuild
+  ]
+
+extraRules :: [Rule]
+extraRules =
+  [ hasHealthcheck
   ]
 
 optionalRules :: RulesConfig -> [Rule]

@@ -50,7 +50,7 @@ instance Yaml.FromYAML ConfigFile where
 -- return the error string.
 applyConfig :: Maybe FilePath -> Lint.LintOptions -> IO (Either String Lint.LintOptions)
 applyConfig maybeConfig o
-  | not (null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
+  | not (null (Lint.ignoreRules o)) && not (null (Lint.explicitRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
   | otherwise = do
     theConfig <-
       case maybeConfig of
@@ -116,7 +116,9 @@ applyConfig maybeConfig o
     formatError err config =
       unlines
         [ "Error parsing your config file in  '" ++ config ++ "':",
-          "It should contain one of the keys 'ignored' or 'trustedRegistries'. For example:\n",
+          "It should contain one of the keys 'ignored', 'extra' or 'trustedRegistries'. For example:\n",
+          "extra:",
+          "\t- DL4007",
           "ignored:",
           "\t- DL3000",
           "\t- SC1099\n\n",

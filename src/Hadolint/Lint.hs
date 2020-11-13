@@ -27,6 +27,8 @@ type InfoRule = Text
 type StyleRule = Text
 type IgnoreRule = Text
 
+type ExtraRule = Text
+
 type TrustedRegistry = Text
 
 data LintOptions = LintOptions
@@ -105,6 +107,9 @@ lint LintOptions {errorRules = errorList,
         ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
         ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
           code `notElem` rules && isJust severity
+
+        extraFilter :: [ExtraRule] -> Rules.RuleCheck -> Bool
+        extraFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `elem` rules
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
