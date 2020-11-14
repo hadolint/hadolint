@@ -321,7 +321,6 @@ hasNoMaintainer = instructionRule code severity message check
     check (Maintainer _) = False
     check _ = True
 
-
 -- Check if a command contains a program call in the Run instruction
 usingProgram :: Text.Text -> Shell.ParsedShell -> Bool
 usingProgram prog args = not $ null [cmd | cmd <- Shell.findCommandNames args, cmd == prog]
@@ -871,7 +870,6 @@ usePipefail = instructionRuleState code severity message check False
               arg == "pipefail"
           ]
 
-
 hasHealthcheck :: Rule
 hasHealthcheck dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
@@ -886,7 +884,6 @@ hasHealthcheck dockerfile = instructionRuleState code severity message check Not
       where
         instr = fmap (lineNumber &&& instruction) df
 
-
 multipleHealthcheck :: Rule
 multipleHealthcheck = instructionRuleState code severity message check False
   where
@@ -896,7 +893,6 @@ multipleHealthcheck = instructionRuleState code severity message check False
     check _ _ From {} = withState False True
     check st _ Healthcheck {} = withState True (not st)
     check st _ _ = withState st True
-
 
 registryIsAllowed :: Set.Set Registry -> Rule
 registryIsAllowed allowed = instructionRuleState code severity message check Set.empty
@@ -1121,7 +1117,7 @@ dnfCleanup = instructionRule code severity message check
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands dnfInstall) args
         || ( argumentsRule (Shell.anyCommands dnfInstall) args
-              && argumentsRule (Shell.anyCommands dnfClean) args
+               && argumentsRule (Shell.anyCommands dnfClean) args
            )
     check _ = True
     dnfInstall = Shell.cmdHasArgs "dnf" ["install"]
