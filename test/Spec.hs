@@ -1006,9 +1006,18 @@ main =
                 "ENTRYPOINT another"
               ]
          in ruleCatches multipleEntrypoints $ Text.unlines dockerFile
+
       it "single entry" $ ruleCatchesNot multipleEntrypoints "ENTRYPOINT /bin/true"
       it "no entry" $ ruleCatchesNot multipleEntrypoints "FROM busybox"
+      it "workdir relative" $ ruleCatches absoluteWorkdir "WORKDIR relative/dir"
+      it "workdir absolute" $ ruleCatchesNot absoluteWorkdir "WORKDIR /usr/local"
       it "workdir variable" $ ruleCatchesNot absoluteWorkdir "WORKDIR ${work}"
+      it "workdir relative single quotes" $ ruleCatches absoluteWorkdir "WORKDIR \'relative/dir\'"
+      it "workdir absolute single quotes" $ ruleCatchesNot absoluteWorkdir "WORKDIR \'/usr/local\'"
+      -- no test for variable/single quotes since the variable would not expand.
+      it "workdir relative double quotes" $ ruleCatches absoluteWorkdir "WORKDIR \"relative/dir\""
+      it "workdir absolute double quotes" $ ruleCatchesNot absoluteWorkdir "WORKDIR \"/usr/local\""
+      it "workdir variable double quotes" $ ruleCatchesNot absoluteWorkdir "WORKDIR \"${dir}\""
       it "scratch" $ ruleCatchesNot noUntagged "FROM scratch"
     --
     describe "add files and archives" $ do
