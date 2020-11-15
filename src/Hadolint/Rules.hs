@@ -643,10 +643,12 @@ pipVersionPinned = instructionRule code severity message check
               "upgrade-strategy"
             ]
             cmd
-    versionFixed package = hasVersionSymbol package || isVersionedGit package
+    versionFixed package = hasVersionSymbol package || isVersionedGit package || isLocalPackage package
     isVersionedGit package = "git+http" `Text.isInfixOf` package && "@" `Text.isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
     hasVersionSymbol package = or [s `Text.isInfixOf` package | s <- versionSymbols]
+    localPackageFileExtensions = [".whl", ".tar.gz"]
+    isLocalPackage package = or [s `Text.isSuffixOf` package | s <- localPackageFileExtensions]
 
 stripInstallPrefix :: [Text.Text] -> [Text.Text]
 stripInstallPrefix cmd = dropWhile (== "install") (dropWhile (/= "install") cmd)

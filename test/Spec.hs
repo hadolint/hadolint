@@ -518,6 +518,11 @@ main =
       it "pip3 version pinned" $ do
         ruleCatchesNot pipVersionPinned "RUN pip3 install MySQL_python==1.2.2"
         onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install MySQL_python==1.2.2"
+      it "pip3 install from local package" $ do
+        ruleCatchesNot pipVersionPinned "RUN pip3 install mypkg.whl"
+        ruleCatchesNot pipVersionPinned "RUN pip3 install mypkg.tar.gz"
+        onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install mypkg.whl"
+        onBuildRuleCatchesNot pipVersionPinned "RUN pip3 install mypkg.tar.gz"
       it "pip install requirements" $ do
         ruleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
         onBuildRuleCatchesNot pipVersionPinned "RUN pip install -r requirements.txt"
