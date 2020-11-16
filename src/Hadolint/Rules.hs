@@ -292,10 +292,14 @@ absoluteWorkdir = instructionRule code severity message check
     severity = ErrorC
     message = "Use absolute WORKDIR"
     check (Workdir loc)
-      | "$" `Text.isPrefixOf` loc = True
-      | "/" `Text.isPrefixOf` loc = True
+      | "$" `Text.isPrefixOf` Text.dropAround dropQuotes loc = True
+      | "/" `Text.isPrefixOf` Text.dropAround dropQuotes loc = True
       | otherwise = False
     check _ = True
+    dropQuotes chr
+      | chr == '\"' = True
+      | chr == '\'' = True
+      | otherwise = False
 
 hasNoMaintainer :: Rule
 hasNoMaintainer = instructionRule code severity message check
