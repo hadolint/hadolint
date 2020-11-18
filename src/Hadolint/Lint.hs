@@ -69,7 +69,7 @@ lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
 
     lintAll = fmap (lintDockerfile ignoreList)
 
-    lintDockerfile ignoreRules ast = processedFile ast
+    lintDockerfile ignoreRules = processedFile
       where
         processedFile = Format.toResult . fmap processRules
         processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)

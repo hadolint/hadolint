@@ -3,7 +3,6 @@
 
 import qualified ConfigSpec
 import Control.Monad (unless, when)
-import Data.Semigroup ((<>))
 import qualified Data.Text as Text
 import Hadolint.Formatter.TTY (formatChecks, formatError)
 import Hadolint.Rules

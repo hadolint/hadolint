@@ -9,7 +9,6 @@ where
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.Monoid ((<>))
 import Hadolint.Formatter.Format (Result (..), errorPosition, severityText)
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface

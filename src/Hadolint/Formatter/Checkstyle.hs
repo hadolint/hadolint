@@ -12,7 +12,6 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
 import Data.Foldable (toList)
 import Data.List (groupBy)
-import Data.Monoid (mconcat, (<>))
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules (Metadata (..), RuleCheck (..))

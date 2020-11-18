@@ -6,7 +6,6 @@ module Main where
 
 import Control.Applicative
 import qualified Data.List.NonEmpty as NonEmpty
-import Data.Semigroup ((<>))
 import qualified Data.Set as Set
 import Data.String (IsString (fromString))
 import qualified Data.Version

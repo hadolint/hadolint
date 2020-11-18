@@ -8,7 +8,6 @@ module Hadolint.Formatter.TTY
   )
 where
 
-import Data.Semigroup ((<>))
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules

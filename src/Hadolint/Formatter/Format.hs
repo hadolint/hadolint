@@ -13,8 +13,6 @@ where
 
 import Data.List (sort)
 import qualified Data.List.NonEmpty as NE
-import Data.Monoid (Monoid)
-import Data.Semigroup
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Hadolint.Rules
