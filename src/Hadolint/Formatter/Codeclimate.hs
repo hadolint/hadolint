@@ -85,7 +85,7 @@ errorToIssue err =
     { checkName = "DL1000",
       description = errorBundlePretty err,
       location = LocPos (sourceName pos) Pos {..},
-      impact = severityText ErrorC
+      impact = severityText (Just ErrorC)
     }
   where
     pos = errorPosition err
@@ -101,13 +101,14 @@ checkToIssue RuleCheck {..} =
       impact = severityText (severity metadata)
     }
 
-severityText :: Severity -> String
+severityText :: Maybe Severity -> String
 severityText severity =
   case severity of
-    ErrorC -> "blocker"
-    WarningC -> "major"
-    InfoC -> "info"
-    StyleC -> "minor"
+    Just ErrorC -> "blocker"
+    Just WarningC -> "major"
+    Just InfoC -> "info"
+    Just StyleC -> "minor"
+    Nothing -> "nothing"
 
 generateFingerprint :: Issue -> Digest SHA1
 generateFingerprint = hash . B.toStrict . encode

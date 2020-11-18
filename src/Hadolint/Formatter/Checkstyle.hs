@@ -36,7 +36,7 @@ errorToCheckStyle err =
     { file = sourceName pos,
       line = unPos (sourceLine pos),
       column = unPos (sourceColumn pos),
-      impact = severityText ErrorC,
+      impact = severityText (Just ErrorC),
       msg = errorBundlePretty err,
       source = "DL1000"
     }

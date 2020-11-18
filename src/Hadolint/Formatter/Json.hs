@@ -36,7 +36,7 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
       [ "file" .= sourceName pos,
         "line" .= unPos (sourceLine pos),
         "column" .= unPos (sourceColumn pos),
-        "level" .= severityText ErrorC,
+        "level" .= severityText (Just ErrorC),
         "code" .= ("DL1000" :: String),
         "message" .= errorBundlePretty err
       ]

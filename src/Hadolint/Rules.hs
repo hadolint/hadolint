@@ -19,7 +19,7 @@ import qualified Text.Megaparsec.Char as Megaparsec
 
 data Metadata = Metadata
   { code :: Text.Text,
-    severity :: Severity,
+    severity :: Maybe Severity,
     message :: Text.Text
   }
   deriving (Eq, Show)
@@ -106,18 +106,18 @@ mapInstructions f initialState dockerfile =
        in (newState, [RuleCheck m source linenumber False | m <- res])
 
 instructionRule ::
-  Text.Text -> Severity -> Text.Text -> (Instruction Shell.ParsedShell -> Bool) -> Rule
+  Text.Text -> Maybe Severity -> Text.Text -> (Instruction Shell.ParsedShell -> Bool) -> Rule
 instructionRule code severity message check =
   instructionRuleLine code severity message (const check)
 
-instructionRuleLine :: Text.Text -> Severity -> Text.Text -> SimpleCheckerWithLine -> Rule
+instructionRuleLine :: Text.Text -> Maybe Severity -> Text.Text -> SimpleCheckerWithLine -> Rule
 instructionRuleLine code severity message check =
   instructionRuleState code severity message checkAndDropState ()
   where
     checkAndDropState state line instr = (state, check line instr)
 
 instructionRuleState ::
-  Text.Text -> Severity -> Text.Text -> SimpleCheckerWithState state -> state -> Rule
+  Text.Text -> Maybe Severity -> Text.Text -> SimpleCheckerWithState state -> state -> Rule
 instructionRuleState code severity message f = mapInstructions constMetadataCheck
   where
     meta = Metadata code severity message
@@ -284,7 +284,7 @@ shellcheck = mapInstructions check Shell.defaultShellOpts
 -- | Converts ShellCheck errors into our own errors type
 commentMetadata :: ShellCheck.Interface.PositionedComment -> Metadata
 commentMetadata c =
-  Metadata (Text.pack ("SC" ++ show (code c))) (severity c) (Text.pack (message c))
+  Metadata (Text.pack ("SC" ++ show (code c))) (Just (severity c)) (Text.pack (message c))
   where
     severity pc = ShellCheck.Interface.cSeverity $ ShellCheck.Interface.pcComment pc
     code pc = ShellCheck.Interface.cCode $ ShellCheck.Interface.pcComment pc
@@ -294,7 +294,7 @@ absoluteWorkdir :: Rule
 absoluteWorkdir = instructionRule code severity message check
   where
     code = "DL3000"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Use absolute WORKDIR"
     check (Workdir loc)
       | "$" `Text.isPrefixOf` Text.dropAround dropQuotes loc = True
@@ -310,7 +310,7 @@ hasNoMaintainer :: Rule
 hasNoMaintainer = instructionRule code severity message check
   where
     code = "DL4000"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "MAINTAINER is deprecated"
     check (Maintainer _) = False
     check _ = True
@@ -323,7 +323,7 @@ multipleCmds :: Rule
 multipleCmds = instructionRuleState code severity message check False
   where
     code = "DL4003"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last \
       \`CMD` will take effect"
@@ -335,7 +335,7 @@ multipleEntrypoints :: Rule
 multipleEntrypoints = instructionRuleState code severity message check False
   where
     code = "DL4004"
-    severity = ErrorC
+    severity = Just ErrorC
     message =
       "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then \
       \only the last `ENTRYPOINT` will take effect"
@@ -348,7 +348,7 @@ wgetOrCurl :: Rule
 wgetOrCurl = instructionRuleState code severity message check Set.empty
   where
     code = "DL4001"
-    severity = WarningC
+    severity = Just WarningC
     message = "Either use Wget or Curl but not both"
     check state _ (Run (RunArgs args _)) = argumentsRule (detectDoubleUsage state) args
     check _ _ (From _) = withState Set.empty True -- Reset the state for each stage
@@ -364,7 +364,7 @@ invalidCmd :: Rule
 invalidCmd = instructionRule code severity message check
   where
     code = "DL3001"
-    severity = InfoC
+    severity = Just InfoC
     message =
       "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
       \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
@@ -377,7 +377,7 @@ noRootUser :: Rule
 noRootUser dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL3002"
-    severity = WarningC
+    severity = Just WarningC
     message = "Last USER should not be root"
     check _ _ (From from) = withState (Just from) True -- Remember the last FROM instruction found
     check st@(Just from) line (User user)
@@ -410,7 +410,7 @@ noCd :: Rule
 noCd = instructionRule code severity message check
   where
     code = "DL3003"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use WORKDIR to switch to a directory"
     check (Run (RunArgs args _)) = argumentsRule (not . usingProgram "cd") args
     check _ = True
@@ -419,7 +419,7 @@ noSudo :: Rule
 noSudo = instructionRule code severity message check
   where
     code = "DL3004"
-    severity = ErrorC
+    severity = Just ErrorC
     message =
       "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce \
       \root"
@@ -430,7 +430,7 @@ noAptGetUpgrade :: Rule
 noAptGetUpgrade = instructionRule code severity message check
   where
     code = "DL3005"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apt-get" ["upgrade", "dist-upgrade"])) args
@@ -440,7 +440,7 @@ noUntagged :: Rule
 noUntagged dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3006"
-    severity = WarningC
+    severity = Just WarningC
     message = "Always tag the version of an image explicitly"
     check _ (From BaseImage {image = (Image _ "scratch")}) = True
     check _ (From BaseImage {digest = Just _}) = True
@@ -452,7 +452,7 @@ noLatestTag :: Rule
 noLatestTag = instructionRule code severity message check
   where
     code = "DL3007"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
       \to a release tag"
@@ -463,7 +463,7 @@ aptGetVersionPinned :: Rule
 aptGetVersionPinned = instructionRule code severity message check
   where
     code = "DL3008"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
       \install <package>=<version>`"
@@ -486,7 +486,7 @@ aptGetCleanup :: Rule
 aptGetCleanup dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL3009"
-    severity = InfoC
+    severity = Just InfoC
     message = "Delete the apt-get lists after installing something"
 
     check _ line f@(From _) = withState (Just (line, f)) True -- Remember the last FROM instruction found
@@ -516,7 +516,7 @@ noApkUpgrade :: Rule
 noApkUpgrade = instructionRule code severity message check
   where
     code = "DL3017"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Do not use apk upgrade"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apk" ["upgrade"])) args
     check _ = True
@@ -525,7 +525,7 @@ apkAddVersionPinned :: Rule
 apkAddVersionPinned = instructionRule code severity message check
   where
     code = "DL3018"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
     check (Run (RunArgs args _)) = argumentsRule (\as -> and [versionFixed p | p <- apkAddPackages as]) args
@@ -547,7 +547,7 @@ apkAddNoCache :: Rule
 apkAddNoCache = instructionRule code severity message check
   where
     code = "DL3019"
-    severity = InfoC
+    severity = Just InfoC
     message =
       "Use the `--no-cache` switch to avoid the need to use `--update` and remove \
       \`/var/cache/apk/*` when done installing packages"
@@ -559,7 +559,7 @@ useAdd :: Rule
 useAdd = instructionRule code severity message check
   where
     code = "DL3010"
-    severity = InfoC
+    severity = Just InfoC
     message = "Use ADD for extracting archives into an image"
     check (Copy (CopyArgs srcs _ _ _)) =
       and
@@ -590,7 +590,7 @@ invalidPort :: Rule
 invalidPort = instructionRule code severity message check
   where
     code = "DL3011"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Valid UNIX ports range from 0 to 65535"
     check (Expose (Ports ports)) =
       and [p <= 65535 | Port p _ <- ports]
@@ -601,7 +601,7 @@ pipVersionPinned :: Rule
 pipVersionPinned = instructionRule code severity message check
   where
     code = "DL3013"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Pin versions in pip. Instead of `pip install <package>` use `pip install \
       \<package>==<version>` or `pip install --requirement <requirements file>`"
@@ -672,7 +672,7 @@ npmVersionPinned :: Rule
 npmVersionPinned = instructionRule code severity message check
   where
     code = "DL3016"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Pin versions in npm. Instead of `npm install <package>` use `npm install \
       \<package>@<version>`"
@@ -706,7 +706,7 @@ aptGetYes :: Rule
 aptGetYes = instructionRule code severity message check
   where
     code = "DL3014"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotAptYesOption) args
     check _ = True
@@ -718,7 +718,7 @@ aptGetNoRecommends :: Rule
 aptGetNoRecommends = instructionRule code severity message check
   where
     code = "DL3015"
-    severity = InfoC
+    severity = Just InfoC
     message = "Avoid additional packages by specifying `--no-install-recommends`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoInstallRecommends) args
     check _ = True
@@ -758,7 +758,7 @@ copyInsteadAdd :: Rule
 copyInsteadAdd = instructionRule code severity message check
   where
     code = "DL3020"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Use COPY instead of ADD for files and folders"
     check (Add (AddArgs srcs _ _)) =
       and [isArchive src || isUrl src | SourcePath src <- toList srcs]
@@ -768,7 +768,7 @@ copyEndingSlash :: Rule
 copyEndingSlash = instructionRule code severity message check
   where
     code = "DL3021"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "COPY with more than 2 arguments requires the last argument to end with /"
     check (Copy (CopyArgs sources t _ _))
       | length sources > 1 = endsWithSlash t
@@ -780,7 +780,7 @@ copyFromExists :: Rule
 copyFromExists dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3022"
-    severity = WarningC
+    severity = Just WarningC
     message = "COPY --from should reference a previously defined FROM alias"
     check l (Copy (CopyArgs _ _ _ (CopySource s))) = s `elem` previouslyDefinedAliases l dockerfile
     check _ _ = True
@@ -789,7 +789,7 @@ copyFromAnother :: Rule
 copyFromAnother = instructionRuleState code severity message check Nothing
   where
     code = "DL3023"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "COPY --from should reference a previously defined FROM alias"
 
     check _ _ f@(From _) = withState (Just f) True -- Remember the last FROM instruction found
@@ -801,7 +801,7 @@ fromAliasUnique :: Rule
 fromAliasUnique dockerfile = instructionRuleLine code severity message check dockerfile
   where
     code = "DL3024"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "FROM aliases (stage names) must be unique"
     check line = aliasMustBe (not . alreadyTaken line)
     alreadyTaken line alias = alias `elem` previouslyDefinedAliases line dockerfile
@@ -810,7 +810,7 @@ useShell :: Rule
 useShell = instructionRule code severity message check
   where
     code = "DL4005"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use SHELL to change the default shell"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True
@@ -819,7 +819,7 @@ useJsonArgs :: Rule
 useJsonArgs = instructionRule code severity message check
   where
     code = "DL3025"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use arguments JSON notation for CMD and ENTRYPOINT arguments"
     check (Cmd (ArgumentsText _)) = False
     check (Entrypoint (ArgumentsText _)) = False
@@ -829,7 +829,7 @@ noApt :: Rule
 noApt = instructionRule code severity message check
   where
     code = "DL3027"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Do not use apt as it is meant to be a end-user tool, use apt-get or apt-cache instead"
     check (Run (RunArgs args _)) = argumentsRule (not . usingProgram "apt") args
@@ -839,7 +839,7 @@ usePipefail :: Rule
 usePipefail = instructionRuleState code severity message check False
   where
     code = "DL4006"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Set the SHELL option -o pipefail before RUN with a pipe in it. If you are using \
       \/bin/sh in an alpine image or if your shell is symlinked to busybox then consider \
@@ -868,7 +868,7 @@ registryIsAllowed :: Set.Set Registry -> Rule
 registryIsAllowed allowed = instructionRuleState code severity message check Set.empty
   where
     code = "DL3026"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Use only an allowed registry in the FROM image"
     check st _ (From BaseImage {image, alias}) = withState (Set.insert alias st) (doCheck st image)
     check st _ _ = (st, True)
@@ -885,7 +885,7 @@ gemVersionPinned :: Rule
 gemVersionPinned = instructionRule code severity message check
   where
     code = "DL3028"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Pin versions in gem install. Instead of `gem install <gem>` use `gem \
       \install <gem>:<version>`"
@@ -897,7 +897,7 @@ noPlatformFlag :: Rule
 noPlatformFlag = instructionRule code severity message check
   where
     code = "DL3029"
-    severity = WarningC
+    severity = Just WarningC
     message = "Do not use --platform flag with FROM"
     check (From BaseImage {platform = Just p}) = p == ""
     check _ = True
@@ -906,7 +906,7 @@ yumYes :: Rule
 yumYes = instructionRule code severity message check
   where
     code = "DL3030"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use the -y switch to avoid manual input `yum install -y <package`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotYumYesOption) args
     check _ = True
@@ -918,7 +918,7 @@ noYumUpdate :: Rule
 noYumUpdate = instructionRule code severity message check
   where
     code = "DL3031"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Do not use yum update."
     check (Run (RunArgs args _)) =
       argumentsRule
@@ -939,7 +939,7 @@ yumCleanup :: Rule
 yumCleanup = instructionRule code severity message check
   where
     code = "DL3032"
-    severity = WarningC
+    severity = Just WarningC
     message = "`yum clean all` missing after yum command."
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands yumInstall) args
@@ -954,7 +954,7 @@ yumVersionPinned :: Rule
 yumVersionPinned = instructionRule code severity message check
   where
     code = "DL3033"
-    severity = WarningC
+    severity = Just WarningC
     message = "Specify version with `yum install -y <package>-<version>`."
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . yumPackages) args
     check _ = True
@@ -971,7 +971,7 @@ zypperYes :: Rule
 zypperYes = instructionRule code severity message check
   where
     code = "DL3034"
-    severity = WarningC
+    severity = Just WarningC
     message = "Non-interactive switch missing from `zypper` command: `zypper install -y`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotZypperYesOption) args
     check _ = True
@@ -993,7 +993,7 @@ noZypperUpdate :: Rule
 noZypperUpdate = instructionRule code severity message check
   where
     code = "DL3035"
-    severity = WarningC
+    severity = Just WarningC
     message = "Do not use `zypper update`."
     check (Run (RunArgs args _)) =
       argumentsRule
@@ -1014,7 +1014,7 @@ zypperCleanup :: Rule
 zypperCleanup = instructionRule code severity message check
   where
     code = "DL3036"
-    severity = WarningC
+    severity = Just WarningC
     message = "`zypper clean` missing after zypper use."
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands zypperInstall) args
@@ -1029,7 +1029,7 @@ zypperVersionPinned :: Rule
 zypperVersionPinned = instructionRule code severity message check
   where
     code = "DL3037"
-    severity = WarningC
+    severity = Just WarningC
     message = "Specify version with `zypper install -y <package>=<version>`."
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . zypperPackages) args
     check _ = True
@@ -1051,7 +1051,7 @@ dnfYes :: Rule
 dnfYes = instructionRule code severity message check
   where
     code = "DL3038"
-    severity = WarningC
+    severity = Just WarningC
     message = "Use the -y switch to avoid manual input `dnf install -y <package`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotDnfYesOption) args
     check _ = True
@@ -1063,7 +1063,7 @@ noDnfUpdate :: Rule
 noDnfUpdate = instructionRule code severity message check
   where
     code = "DL3039"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Do not use dnf update."
     check (Run (RunArgs args _)) =
       argumentsRule
@@ -1082,7 +1082,7 @@ dnfCleanup :: Rule
 dnfCleanup = instructionRule code severity message check
   where
     code = "DL3040"
-    severity = WarningC
+    severity = Just WarningC
     message = "`dnf clean all` missing after dnf command."
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands dnfInstall) args
@@ -1097,7 +1097,7 @@ dnfVersionPinned :: Rule
 dnfVersionPinned = instructionRule code severity message check
   where
     code = "DL3041"
-    severity = WarningC
+    severity = Just WarningC
     message = "Specify version with `dnf install -y <package>-<version>`."
     check (Run (RunArgs args _)) = argumentsRule (all versionFixed . dnfPackages) args
     check _ = True
@@ -1114,7 +1114,7 @@ pipNoCacheDir :: Rule
 pipNoCacheDir = instructionRule code severity message check
   where
     code = "DL3042"
-    severity = WarningC
+    severity = Just WarningC
     message =
       "Avoid use of cache directory with pip. Use `pip install --no-cache-dir <package>`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoCacheDir) args
@@ -1149,7 +1149,7 @@ noIllegalInstructionInOnbuild :: Rule
 noIllegalInstructionInOnbuild = instructionRule code severity message check
   where
     code = "DL3043"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "`ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction."
     check (OnBuild (OnBuild _)) = False
     check (OnBuild (From _)) = False

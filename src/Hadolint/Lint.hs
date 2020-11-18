@@ -5,6 +5,7 @@ module Hadolint.Lint where
 import qualified Control.Concurrent.Async as Async
 import Control.Parallel.Strategies (parListChunk, rseq, using)
 import qualified Data.List.NonEmpty as NonEmpty
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import GHC.Conc (numCapabilities)
 import qualified Hadolint.Formatter.Checkstyle as Checkstyle
@@ -81,19 +82,19 @@ lint LintOptions {errorRules = errorList,
     parseFile "-" = Docker.parseStdin
     parseFile s = Docker.parseFile s
 
-    lintAll = fmap (lintDockerfile ignoreList)
+    lintAll = fmap lintDockerfile
 
-    lintDockerfile ignoreRules = processedFile
+    lintDockerfile = processedFile
       where
         processedFile = Format.toResult . fmap processRules
         processRules fileLines = filter ignoredRules $
-                                 map (makeSeverity ErrorC errorList .
-                                      makeSeverity WarningC warningList .
-                                      makeSeverity InfoC infoList .
-                                      makeSeverity StyleC styleList) $
+                                 map (makeSeverity (Just ErrorC) errorList .
+                                      makeSeverity (Just WarningC) warningList .
+                                      makeSeverity (Just InfoC) infoList .
+                                      makeSeverity (Just StyleC) styleList) $
                                  analyzeAll rulesConfig fileLines
 
-        ignoredRules = ignoreFilter ignoreRules
+        ignoredRules = ignoreFilter ignoreList
 
         makeSeverity s rules (Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success) =
           if code `elem` rules then
@@ -102,7 +103,8 @@ lint LintOptions {errorRules = errorList,
             Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success
 
         ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `notElem` rules
+        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
+          code `notElem` rules && isJust severity
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]

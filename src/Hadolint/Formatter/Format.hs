@@ -44,13 +44,14 @@ toResult res =
     Left err -> Result (Seq.singleton err) mempty
     Right c -> Result mempty (Seq.fromList (sort c))
 
-severityText :: Severity -> String
+severityText :: Maybe Severity -> String
 severityText s =
   case s of
-    ErrorC -> "error"
-    WarningC -> "warning"
-    InfoC -> "info"
-    StyleC -> "style"
+    Just ErrorC -> "error"
+    Just WarningC -> "warning"
+    Just InfoC -> "info"
+    Just StyleC -> "style"
+    Nothing -> "ignore"
 
 stripNewlines :: String -> String
 stripNewlines =
