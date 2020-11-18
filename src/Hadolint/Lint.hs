@@ -17,14 +17,23 @@ import qualified Hadolint.Rules as Rules
 import qualified Language.Docker as Docker
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
+import ShellCheck.Interface (Severity (..))
 import System.Exit (exitFailure, exitSuccess)
 
+type ErrorRule = Text
+type WarningRule = Text
+type InfoRule = Text
+type StyleRule = Text
 type IgnoreRule = Text
 
 type TrustedRegistry = Text
 
 data LintOptions = LintOptions
-  { ignoreRules :: [IgnoreRule],
+  { errorRules :: [ErrorRule],
+    warningRules :: [WarningRule],
+    infoRules :: [InfoRule],
+    styleRules :: [StyleRule],
+    ignoreRules :: [IgnoreRule],
     rulesConfig :: Rules.RulesConfig
   }
   deriving (Show)
@@ -58,7 +67,12 @@ printResultsAndExit format allResults = do
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
 lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
-lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
+lint LintOptions {errorRules = errorList,
+                  warningRules = warningList,
+                  infoRules = infoList,
+                  styleRules = styleList,
+                  ignoreRules = ignoreList,
+                  rulesConfig} dFiles = do
   parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
   let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
   return $ mconcat results
@@ -72,8 +86,20 @@ lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
     lintDockerfile ignoreRules = processedFile
       where
         processedFile = Format.toResult . fmap processRules
-        processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)
+        processRules fileLines = filter ignoredRules $
+                                 map (makeSeverity ErrorC errorList .
+                                      makeSeverity WarningC warningList .
+                                      makeSeverity InfoC infoList .
+                                      makeSeverity StyleC styleList) $
+                                 analyzeAll rulesConfig fileLines
+
         ignoredRules = ignoreFilter ignoreRules
+
+        makeSeverity s rules (Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success) =
+          if code `elem` rules then
+            Rules.RuleCheck (Rules.Metadata code s message) filename linenumber success
+          else
+            Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success
 
         ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
         ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `notElem` rules

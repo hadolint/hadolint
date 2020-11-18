@@ -94,6 +94,42 @@ parseOptions =
             <> completeWith ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "codacy"]
         )
 
+    errorList =
+      many
+        ( strOption
+            ( long "error"
+                <> help "Make the rule `RULECODE` have the level `error`"
+                <> metavar "RULECODE"
+            )
+        )
+
+    warningList =
+      many
+        ( strOption
+            ( long "warning"
+                <> help "Make the rule `RULECODE` have the level `warning`"
+                <> metavar "RULECODE"
+            )
+        )
+
+    infoList =
+      many
+        ( strOption
+            ( long "info"
+                <> help "Make the rule `RULECODE` have the level `info`"
+                <> metavar "RULECODE"
+            )
+        )
+
+    styleList =
+      many
+        ( strOption
+            ( long "style"
+                <> help "Make the rule `RULECODE` have the level `style`"
+                <> metavar "RULECODE"
+            )
+        )
+
     ignoreList =
       many
         ( strOption
@@ -105,7 +141,12 @@ parseOptions =
 
     files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
 
-    lintOptions = Hadolint.LintOptions <$> ignoreList <*> parseRulesConfig
+    lintOptions = Hadolint.LintOptions <$> errorList
+                                       <*> warningList
+                                       <*> infoList
+                                       <*> styleList
+                                       <*> ignoreList
+                                       <*> parseRulesConfig
 
     parseRulesConfig =
       Hadolint.RulesConfig . Set.fromList . fmap fromString
