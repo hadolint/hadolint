@@ -74,7 +74,7 @@ jobs:
     #actions
 
     - name: Clear Cache
-      if: matrix.os == "macos-latest"
+      if: startsWith(matrix.os, 'macOS')
       run: rm -rf ~/.stack .stack-work
 
     - name: Test
