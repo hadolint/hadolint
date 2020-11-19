@@ -17,7 +17,6 @@ jobs:
   hadolint:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
         - os: macos-latest
           global-stack: ~/.stack
