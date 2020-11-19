@@ -74,4 +74,4 @@ jobs:
     #actions
 
     - name: Test
-      run: stack build --test
+      run: stack clean && stack build --test
