@@ -73,5 +73,9 @@ jobs:
 
     #actions
 
+    - name: Clear Cache
+      if: matrix.os == "macos-latest"
+      run: rm -rf ~/.stack .stack-work
+
     - name: Test
-      run: rm -rf .stack-work && stack build --test
+      run: stack build --test
