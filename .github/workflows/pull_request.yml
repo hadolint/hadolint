@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ master ]
     paths:
-      - '.github/workflows/linux.yml'
+      - '.github/workflows/pull_request.yml'
       - 'stack*.yaml'
       - 'app/**'
       - 'src/**'
@@ -72,10 +72,6 @@ jobs:
              ${{ runner.os }}-stack-work
 
     #actions
-
-    - name: Clear Cache
-      if: startsWith(matrix.os, 'macOS')
-      run: rm -rf ~/.stack .stack-work
 
     - name: Test
       run: stack build --test
