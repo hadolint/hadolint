@@ -27,7 +27,7 @@ jobs:
 
 
     - name: Setup Stack
-      uses: actions/setup-haskell@v1.1
+      uses: actions/setup-haskell@v1.1.4
       with:
         enable-stack: true
         stack-version: 'latest'
