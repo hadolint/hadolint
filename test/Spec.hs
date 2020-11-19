@@ -638,6 +638,28 @@ main =
         onBuildRuleCatchesNot
           pipVersionPinned
           "RUN pip install --index-url https://user:pass@eg.com/foo --extra-index-url https://user:pass@ex-eg.io/foo foobar==1.0.0"
+
+    --
+    describe "pip cache dir" $ do
+      it "pip2 --no-cache-dir not used" $ do
+        ruleCatches pipNoCacheDir           "RUN pip2 install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir    "RUN pip2 install MySQL_python"
+      it "pip3 --no-cache-dir not used" $ do
+        ruleCatches pipNoCacheDir           "RUN pip3 install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir    "RUN pip3 install MySQL_python"
+      it "pip --no-cache-dir not used" $ do
+        ruleCatches pipNoCacheDir           "RUN pip install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir    "RUN pip install MySQL_python"
+      it "pip2 --no-cache-dir used" $ do
+        ruleCatchesNot pipNoCacheDir        "RUN pip2 install MySQL_python --no-cache-dir"
+        onBuildRuleCatchesNot pipNoCacheDir "RUN pip2 install MySQL_python --no-cache-dir"
+      it "pip3 --no-cache-dir used" $ do
+        ruleCatchesNot pipNoCacheDir        "RUN pip3 install --no-cache-dir MySQL_python"
+        onBuildRuleCatchesNot pipNoCacheDir "RUN pip3 install --no-cache-dir MySQL_python"
+      it "pip --no-cache-dir used" $ do
+        ruleCatchesNot pipNoCacheDir        "RUN pip install MySQL_python --no-cache-dir"
+        onBuildRuleCatchesNot pipNoCacheDir "RUN pip install MySQL_python --no-cache-dir"
+
     --
     describe "npm pinning" $ do
       it "version pinned in package.json" $ do

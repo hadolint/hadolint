@@ -7,7 +7,6 @@ import Control.Arrow ((&&&))
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import qualified Data.Map as Map
-import Data.Semigroup (Semigroup, (<>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -218,7 +217,8 @@ rules =
     dnfYes,
     noDnfUpdate,
     dnfCleanup,
-    dnfVersionPinned
+    dnfVersionPinned,
+    pipNoCacheDir
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -599,17 +599,14 @@ pipVersionPinned = instructionRule code severity message check
     severity = WarningC
     message =
       "Pin versions in pip. Instead of `pip install <package>` use `pip install \
-      \<package>==<version>`"
+      \<package>==<version>` or `pip install --requirement <requirements file>`"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotToPinVersion) args
     check _ = True
     forgotToPinVersion cmd =
-      isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
+      isPipInstall' cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))
     -- Check if the command is a pip* install command, and that specific packages are being listed
-    isPipInstall cmd = (isStdPipInstall cmd || isPythonPipInstall cmd) && not (requirementInstall cmd)
-    isStdPipInstall cmd@(Shell.Command name _ _) = "pip" `Text.isPrefixOf` name && ["install"] `isInfixOf` Shell.getArgs cmd
-    isPythonPipInstall cmd@(Shell.Command name _ _) =
-      "python" `Text.isPrefixOf` name
-        && ["-m", "pip", "install"] `isInfixOf` Shell.getArgs cmd
+    isPipInstall' cmd =
+      (isPipInstall cmd && not (hasBuildConstraint cmd) && not (all versionFixed (packages cmd))) && not (requirementInstall cmd)
     -- If the user is installing requirements from a file or just the local module, then we are not interested
     -- in running this rule
     requirementInstall cmd =
@@ -1040,6 +1037,7 @@ zypperVersionPinned = instructionRule code severity message check
         || "<" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
 
+
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
 zypperPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "zypper" ["install", "in"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install", arg /= "in"
@@ -1107,6 +1105,26 @@ dnfPackages :: Shell.ParsedShell -> [Text.Text]
 dnfPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "dnf" ["install"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install"
   ]
+
+pipNoCacheDir :: Rule
+pipNoCacheDir = instructionRule code severity message check
+  where
+    code = "DL3042"
+    severity = WarningC
+    message =
+      "Avoid use of cache directory with pip. Use `pip install --no-cache-dir <package>`"
+    check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoCacheDir) args
+    check _ = True
+    forgotNoCacheDir cmd =
+      isPipInstall cmd && not(usesNoCacheDir cmd)
+    usesNoCacheDir cmd   = "--no-cache-dir" `elem` Shell.getArgs cmd
+
+isPipInstall :: Shell.Command -> Bool
+isPipInstall cmd@(Shell.Command name _ _) = isStdPipInstall || isPythonPipInstall
+  where
+    isStdPipInstall    = "pip" `Text.isPrefixOf` name && ["install"] `isInfixOf` Shell.getArgs cmd
+    isPythonPipInstall = "python" `Text.isPrefixOf` name
+        && ["-m", "pip", "install"] `isInfixOf` Shell.getArgs cmd
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
