@@ -15,8 +15,14 @@ on:
       - 'README.md'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  hadolint:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+        - os: macos-latest
+        - os: ubuntu-latest
 
     steps:
 
@@ -39,24 +45,24 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
+             ${{ runner.os }}-stack-global
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}
+             ${{ runner.os }}-stack-programs
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}
+             ${{ runner.os }}-stack-work
 
     #actions
 
