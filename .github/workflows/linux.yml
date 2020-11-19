@@ -1,0 +1,69 @@
+# Runs on pull requests against master
+
+name: linux
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/linux.yml'
+      - 'stack*.yaml'
+      - 'app/**'
+      - 'src/**'
+      - 'test/**'
+      # ignore changes to example files, though currently some func tests depend on them
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # setup:
+
+    - name: Check out
+      uses: actions/checkout@v2
+
+
+    - name: Setup Stack
+      uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: '8.8.3'
+        enable-stack: true
+        stack-version: 'latest'
+
+    # cache
+
+    - name: Cache stack global package db
+      id:   stack-global
+      uses: actions/cache@v2
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
+    - name: Cache stack-installed programs in ~/.local/bin
+      id:   stack-programs
+      uses: actions/cache@v2
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}
+    - name: Cache .stack-work
+      uses: actions/cache@v2
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}
+
+    #actions
+
+    - name: Build
+      run: stack build --test
+
+    - name: Test
+      run: stack test
+
