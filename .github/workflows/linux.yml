@@ -18,6 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
         - os: macos-latest
@@ -72,9 +73,5 @@ jobs:
 
     #actions
 
-    - name: Build
-      run: stack build --test
-
     - name: Test
-      run: stack test
-
+      run: rm -rf .stack-work && stack build --test
