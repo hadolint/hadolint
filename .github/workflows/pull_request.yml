@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/pull_request.yml'
       - 'stack*.yaml'
+      - 'hadolint.cabal'
       - 'app/**'
       - 'src/**'
       - 'test/**'
@@ -22,14 +23,8 @@ jobs:
       matrix:
         include:
         - os: macos-latest
-          global-stack: ~/.stack
-          stack-programs: ~/.local/bin
         - os: ubuntu-latest
-          global-stack: ~/.stack
-          stack-programs: ~/.local/bin
         - os: windows-latest
-          global-stack: C:\Users\runneradmin\AppData\Roaming\stack\
-          stack-programs: C:\Users\runneradmin\AppData\Local\Programs\stack\
 
     steps:
 
@@ -39,39 +34,22 @@ jobs:
       uses: actions/checkout@v2
 
 
-    - name: Setup Stack
+    - name: Setup Haskell
+      id: setup-haskell-cabal
       uses: actions/setup-haskell@v1.1.4
-      with:
-        enable-stack: true
-        stack-version: 'latest'
+
+    - name: Freeze
+      run: cabal freeze
 
     # cache
 
-    - name: Cache stack global package db
-      id:   stack-global
+    - name: Cache store
       uses: actions/cache@v2
       with:
-        path: ${{ matrix.global-stack }}
-        key: ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-             ${{ runner.os }}-stack-global
-    - name: Cache stack-installed programs in ~/.local/bin
-      id:   stack-programs
-      uses: actions/cache@v2
-      with:
-        path: ${{ matrix.stack-programs }}
-        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-             ${{ runner.os }}-stack-programs
-    - name: Cache .stack-work
-      uses: actions/cache@v2
-      with:
-        path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-             ${{ runner.os }}-stack-work
+        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
 
     #actions
 
     - name: Test
-      run: stack clean && stack build --test
+      run: cabal test --enable-tests --test-show-details=direct
