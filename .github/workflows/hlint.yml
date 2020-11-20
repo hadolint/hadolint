@@ -1,6 +1,6 @@
 # Runs on pull requests against master
 
-name: Markdown Lint
+name: Haskell Lint
 
 on:
   pull_request:
