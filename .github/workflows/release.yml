@@ -93,7 +93,7 @@ jobs:
 
     - name: Set binary path name
       run: |
-        echo "BINARY_PATH=./dist/hadolint${EXT}" >> $GITHUB_ENV
+        echo "BINARY_PATH=./dist/hadolint${{ env.EXT }}" >> $GITHUB_ENV
 
     - name: Compress binary
       uses: svenstaro/upx-action@2.0.1
