@@ -66,8 +66,7 @@ jobs:
 
       - name: Haskell Linter
         run: |
-          sudo apt-get install -y hlint
-          hlint .
+          curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
 
   remark-lint:
     name: remark-lint
