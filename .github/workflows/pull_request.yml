@@ -67,12 +67,11 @@ jobs:
         uses: domdere/haskell-lint-action@v1.0.2
 
   remark-lint:
-    name: runner / remark-lint
+    name: remark-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: remark-lint
-        uses: prologic/action-remark-lint@v0.0.5
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-check
+        run: |
+          docker pull zemanlx/remark-lint:0.1.4
+          docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.4 --frail .
