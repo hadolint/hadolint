@@ -39,7 +39,7 @@ jobs:
 
   build_artifact:
     needs: [create_release]
-    name: ${{ matrix.os }} / ${{ github.ref }
+    name: ${{ matrix.os }} / ${{ github.ref }}
     runs-on: ${{ matrix.os }}
 
     strategy:
