@@ -1,0 +1,120 @@
+# Runs on pull requests against master
+
+name: Release
+
+on:
+  # Trigger the workflow on the new 'v*' tag created
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create_release:
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.1.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: true
+        prerelease: false
+
+    - name: Output Release URL File
+      run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+
+    - name: Save Release URL File for publish
+      uses: actions/upload-artifact@v1
+      with:
+        name: release_url
+        path: release_url.txt
+
+  build_artifact:
+    needs: [create_release]
+    name: ${{ matrix.os }} / ${{ github.ref }
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: macos-latest
+        - os: ubuntu-latest
+        - os: windows-latest
+
+    steps:
+
+    # setup:
+
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Set tag name
+      uses: olegtarasov/get-tag@v2
+      id: tag
+      with:
+        tagRegex: "v(.*)"
+        tagRegexGroup: 1
+
+    - name: Setup Haskell
+      id: setup-haskell-cabal
+      uses: actions/setup-haskell@v1.1.4
+
+    - name: Freeze
+      run: cabal freeze
+
+    # cache
+
+    - name: Cache store
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+    #release
+
+    - name: Build binary
+      run: |
+        mkdir dist
+        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
+
+    - if: matrix.os == 'windows-latest'
+      name: Set extension to .exe on Windows
+      run: echo "::set-env name=EXT::.exe"
+
+    - name: Set binary path name
+      run: echo "::set-env name=BINARY_PATH::./dist/hadolint${{ env.EXT }}"
+
+    - name: Compress binary
+      uses: svenstaro/upx-action@2.0.1
+      with:
+        file: ${{ env.BINARY_PATH }}
+
+    - name: Load Release URL File from release job
+      uses: actions/download-artifact@v1
+      with:
+        name: release_url
+
+    - name: Get Release File Name & Upload URL
+      id: get_release_info
+      run: |
+        echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+        asset_path: ${{ env.BINARY_PATH }}
+        asset_name: hadolint-${{ runner.os }}${{ env.EXT }}
+        asset_content_type: application/octet-stream

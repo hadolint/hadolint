@@ -1,18 +1,17 @@
 # Runs on pull requests against master
 
-name: Build and Test
+name: Haskell Tests
 
 on:
   pull_request:
     branches: [ master ]
     paths:
-      - '.github/workflows/pull_request.yml'
+      - '.github/workflows/haskell.yml'
       - 'stack*.yaml'
       - 'hadolint.cabal'
       - 'app/**'
       - 'src/**'
       - 'test/**'
-      - 'README.md'
 
 jobs:
   hadolint:
@@ -53,32 +52,3 @@ jobs:
 
     - name: Test
       run: cabal test --enable-tests --test-show-details=direct
-
-
-  hlint:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      HLINT_ACTION_LOG_LEVEL: debug
-    steps:
-      - name: Check out
-        uses: actions/checkout@v2
-
-      - name: Set up HLint
-        uses: rwe/actions-hlint-setup@v1
-
-      - name: Haskell Lint
-        uses: rwe/actions-hlint-run@v2
-        with:
-          path: '["src/", "test/", "app/"]'
-          fail-on: warning
-
-  remark-lint:
-    name: remark-lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: remark-lint
-        run: |
-          docker pull zemanlx/remark-lint:0.1.4
-          docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.4 --frail .

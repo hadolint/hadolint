@@ -146,5 +146,3 @@ getVersion
   | otherwise = "Haskell Dockerfile Linter " ++ version
   where
     version = $(Development.GitRev.gitDescribe)
-
-foo = concat $ map id [1, 2, 3]
