@@ -53,3 +53,12 @@ jobs:
 
     - name: Test
       run: cabal test --enable-tests --test-show-details=direct
+
+
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Haskell Linter
+        uses: domdere/haskell-lint-action@v1.0.2
