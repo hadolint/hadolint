@@ -65,7 +65,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Haskell Linter
-        uses: domdere/haskell-lint-action@v1.0.2
+        run: |
+          sudo apt-get install -y hlint
+          hlint .
 
   remark-lint:
     name: remark-lint
