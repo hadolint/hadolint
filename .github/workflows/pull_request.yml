@@ -64,9 +64,14 @@ jobs:
       - name: Check out
         uses: actions/checkout@v2
 
-      - name: Haskell Linter
-        run: |
-          curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
+      - name: Set up HLint
+        uses: rwe/actions-hlint-setup@v1
+
+      - name: Haskell Lint
+        uses: rwe/actions-hlint-run@v2
+        with:
+          path: '["src/", "test/"]'
+          fail-on: warning
 
   remark-lint:
     name: remark-lint
