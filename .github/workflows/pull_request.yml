@@ -55,7 +55,7 @@ jobs:
       run: cabal test --enable-tests --test-show-details=direct
 
 
-  lint:
+  hlint:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -66,8 +66,13 @@ jobs:
       - name: Haskell Linter
         uses: domdere/haskell-lint-action@v1.0.2
 
-      - name: Lint Markdown
-        uses: ocular-d/action-remark@0.0.10
-
-      - name: Fail if there were lint errors
-        run: exit ${{ steps.remark.outputs.exit_code }}
+  remark-lint:
+    name: runner / remark-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: remark-lint
+        uses: prologic/action-remark-lint@v0.0.5
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
