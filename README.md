@@ -312,8 +312,6 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 <!-- References -->
 [github-actions-img]: https://github.com/hadolint/hadolint/workflows/Haskell%20Tests/badge.svg?branch=master
 [github-actions]: https://travis-ci.org/hadolint/hadolint/actions
-[appveyor-img]: https://ci.appveyor.com/api/projects/status//github/hadolint/hadolint?svg=true&branch=master
-[appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
 [release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
