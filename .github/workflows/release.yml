@@ -88,10 +88,12 @@ jobs:
 
     - if: matrix.os == 'windows-latest'
       name: Set extension to .exe on Windows
-      run: echo "::set-env name=EXT::.exe"
+      run: |
+        echo "EXT=.exe" >> $GITHUB_ENV
 
     - name: Set binary path name
-      run: echo "::set-env name=BINARY_PATH::./dist/hadolint${{ env.EXT }}"
+      run: |
+        echo "BINARY_PATH=./dist/hadolint${EXT}" >> $GITHUB_ENV
 
     - name: Compress binary
       uses: svenstaro/upx-action@2.0.1
