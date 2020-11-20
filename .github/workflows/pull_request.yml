@@ -65,3 +65,9 @@ jobs:
 
       - name: Haskell Linter
         uses: domdere/haskell-lint-action@v1.0.2
+
+      - name: Lint Markdown
+        uses: ocular-d/action-remark@0.0.10
+
+      - name: Fail if there were lint errors
+        run: exit ${{ steps.remark.outputs.exit_code }}
