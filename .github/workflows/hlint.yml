@@ -1,8 +1,11 @@
-# Runs on pull requests against master
+# Runs on pull requests against master, and on master branch
 
 name: Haskell Lint
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     branches: [ master ]
     paths:
