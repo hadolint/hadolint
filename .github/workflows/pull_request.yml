@@ -70,7 +70,7 @@ jobs:
       - name: Haskell Lint
         uses: rwe/actions-hlint-run@v2
         with:
-          path: '["src/", "test/"]'
+          path: '["src/", "test/", "app/"]'
           fail-on: warning
 
   remark-lint:
