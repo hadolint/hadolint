@@ -116,9 +116,10 @@ applyConfig maybeConfig o
     formatError err config =
       unlines
         [ "Error parsing your config file in  '" ++ config ++ "':",
-          "It should contain one of the keys 'ignored', 'extra' or 'trustedRegistries'. For example:\n",
-          "extra:",
-          "\t- DL4007",
+          "It should contain one of the keys 'error', 'warning', 'info',\n",
+          "'style', 'ignored' or 'trustedRegistries'. For example:\n",
+          "error:",
+          "\t- DL3008",
           "ignored:",
           "\t- DL3000",
           "\t- SC1099\n\n",

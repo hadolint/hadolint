@@ -27,8 +27,6 @@ type InfoRule = Text
 type StyleRule = Text
 type IgnoreRule = Text
 
-type ExtraRule = Text
-
 type TrustedRegistry = Text
 
 data LintOptions = LintOptions
