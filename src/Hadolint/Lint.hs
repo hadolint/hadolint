@@ -108,9 +108,6 @@ lint LintOptions {errorRules = errorList,
         ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
           code `notElem` rules && isJust severity
 
-        extraFilter :: [ExtraRule] -> Rules.RuleCheck -> Bool
-        extraFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `elem` rules
-
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
 analyzeAll config = Rules.analyze (Rules.rules ++ Rules.optionalRules config)

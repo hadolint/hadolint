@@ -50,7 +50,7 @@ instance Yaml.FromYAML ConfigFile where
 -- return the error string.
 applyConfig :: Maybe FilePath -> Lint.LintOptions -> IO (Either String Lint.LintOptions)
 applyConfig maybeConfig o
-  | not (null (Lint.ignoreRules o)) && not (null (Lint.explicitRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
+  | not (null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
   | otherwise = do
     theConfig <-
       case maybeConfig of

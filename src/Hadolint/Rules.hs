@@ -874,7 +874,7 @@ hasHealthcheck :: Rule
 hasHealthcheck dockerfile = instructionRuleState code severity message check Nothing dockerfile
   where
     code = "DL4007"
-    severity = ErrorC
+    severity = Nothing
     message = "No `HEALTHCHECK` instruction"
     check _ _ From {}
       | null (allHealthchecks dockerfile) = withState Nothing False
@@ -888,7 +888,7 @@ multipleHealthcheck :: Rule
 multipleHealthcheck = instructionRuleState code severity message check False
   where
     code = "DL4008"
-    severity = ErrorC
+    severity = Just ErrorC
     message = "Multiple `HEALTHCHECK` instructions"
     check _ _ From {} = withState False True
     check st _ Healthcheck {} = withState True (not st)
