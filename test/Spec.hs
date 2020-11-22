@@ -416,9 +416,6 @@ main =
          in do
               ruleCatchesNot aptGetVersionPinned $ Text.unlines dockerFile
               onBuildRuleCatchesNot aptGetVersionPinned $ Text.unlines dockerFile
-
-      it "has deprecated maintainer" $
-        ruleCatches hasNoMaintainer "FROM busybox\nMAINTAINER hudu@mail.com"
     --
     describe "apk add rules" $ do
       it "apk upgrade" $ do
