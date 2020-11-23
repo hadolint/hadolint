@@ -1,0 +1,114 @@
+cabal-version: 2.0
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: afee9524ce1aad80f4f3a651eef3a68c327005e1f97e965b5a82d3cd36afa09e
+
+name:           hadolint
+version:        1.19.0
+synopsis:       Dockerfile Linter JavaScript API
+description:    A smarter Dockerfile linter that helps you build best practice Docker images.
+category:       Development
+homepage:       https://github.com/hadolint/hadolint
+author:         Lukas Martinelli
+maintainer:     me@lukasmartinelli.ch
+copyright:      Lukas Martinelli
+license:        GPL-3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: git@github.com:hadolint/hadolint.git
+
+flag static
+  description: Use static linking for the hadolint executable
+  manual: True
+  default: False
+
+library
+  exposed-modules:
+      Hadolint
+      Hadolint.Config
+      Hadolint.Formatter.Checkstyle
+      Hadolint.Formatter.Codacy
+      Hadolint.Formatter.Codeclimate
+      Hadolint.Formatter.Format
+      Hadolint.Formatter.Json
+      Hadolint.Formatter.TTY
+      Hadolint.Lint
+      Hadolint.Rules
+      Hadolint.Shell
+  other-modules:
+      Paths_hadolint
+  autogen-modules:
+      Paths_hadolint
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  build-depends:
+      HsYAML
+    , ShellCheck >=0.7.1
+    , aeson
+    , async
+    , base >=4.8 && <5
+    , bytestring
+    , containers
+    , directory >=1.3.0
+    , filepath
+    , language-docker >=9.1.2 && <10
+    , megaparsec >=9.0.0
+    , mtl
+    , parallel
+    , split >=0.2
+    , text
+    , void
+  default-language: Haskell2010
+
+executable hadolint
+  main-is: Main.hs
+  other-modules:
+      Paths_hadolint
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
+  build-depends:
+      base >=4.8 && <5
+    , containers
+    , gitrev >=1.3.1
+    , hadolint
+    , language-docker >=9.1.2 && <10
+    , megaparsec >=9.0.0
+    , optparse-applicative >=0.14.0
+    , text
+  if flag(static) && !(os(osx))
+    ld-options: -static -pthread
+  default-language: Haskell2010
+
+test-suite hadolint-unit-tests
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      ConfigSpec
+      Paths_hadolint
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  build-depends:
+      HUnit >=1.2
+    , HsYAML
+    , ShellCheck >=0.7.1
+    , aeson
+    , base >=4.8 && <5
+    , bytestring >=0.10
+    , hadolint
+    , hspec
+    , language-docker >=9.1.2 && <10
+    , megaparsec >=9.0.0
+    , split >=0.2
+    , text
+  default-language: Haskell2010

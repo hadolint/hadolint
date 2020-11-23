@@ -1,0 +1,24 @@
+# Runs on pull requests against master, and on master branch
+
+name: Markdown Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ master ]
+    paths:
+      - '.github/workflows/markdown.yml'
+      - 'README.md'
+      - 'docs/*.md'
+jobs:
+  remark-lint:
+    name: remark-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: remark-lint
+        run: |
+          docker pull zemanlx/remark-lint:0.1.4
+          docker run --rm -i -v $PWD:/lint/input:ro zemanlx/remark-lint:0.1.4 --frail .

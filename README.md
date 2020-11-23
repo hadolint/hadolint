@@ -1,5 +1,4 @@
-[![Linux/OSX Build Status][travis-img]][travis]
-[![Windows Build status][appveyor-img]][appveyor]
+[![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
 [![Github downloads][downloads-img]]()
@@ -311,10 +310,8 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 - projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
 
 <!-- References -->
-[travis-img]: https://travis-ci.org/hadolint/hadolint.svg?branch=master
-[travis]: https://travis-ci.org/hadolint/hadolint
-[appveyor-img]: https://ci.appveyor.com/api/projects/status//github/hadolint/hadolint?svg=true&branch=master
-[appveyor]: https://ci.appveyor.com/project/hadolint/hadolint/branch/master
+[github-actions-img]: https://github.com/hadolint/hadolint/workflows/Haskell%20Tests/badge.svg?branch=master
+[github-actions]: https://travis-ci.org/hadolint/hadolint/actions
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
 [release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
