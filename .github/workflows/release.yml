@@ -92,6 +92,17 @@ jobs:
       with:
         EXT: '.exe'
 
+    - name: Set binary OS name
+      uses: allenevans/set-env@v2.0.0
+      with:
+        BINARY_OS: ${{ runner.os }}
+
+    - if: matrix.os == 'macos-latest'
+      name: Set binary OS name on Macos
+      uses: allenevans/set-env@v2.0.0
+      with:
+        BINARY_OS: 'Darwin'
+
     - name: Set binary path name
       uses: allenevans/set-env@v2.0.0
       with:
@@ -120,5 +131,5 @@ jobs:
       with:
         upload_url: ${{ steps.get_release_info.outputs.upload_url }}
         asset_path: ${{ env.BINARY_PATH }}
-        asset_name: hadolint-${{ runner.os }}${{ env.EXT }}
+        asset_name: hadolint-${{ env.BINARY_OS }}-x86_64${{ env.EXT }}
         asset_content_type: application/octet-stream
