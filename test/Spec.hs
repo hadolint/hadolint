@@ -1036,6 +1036,24 @@ main =
               ]
          in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
+      it "multistage with two consecutive buildstages and healthcheck defined in first" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD bla",
+                "FROM stage1 as stage2",
+                "FROM stage2"
+              ]
+         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with two consecutive buildstages and healthcheck defined in first fails if using different baseimage" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD bla",
+                "FROM stage1 as stage2",
+                "FROM debian:buster"
+              ]
+         in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+
       it "too many healthchecks" $
         let dockerFile =
               [ "FROM busybox",

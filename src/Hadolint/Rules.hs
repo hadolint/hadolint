@@ -874,12 +874,15 @@ hasHealthcheck dockerfile = instructionRuleState code severity message check [] 
     severity = Nothing
     message = "No `HEALTHCHECK` instruction"
     check st line (From BaseImage {image, alias})
+      | imageName image `elem` map snd st
+          && isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
       | imageName image `elem` map snd st = withState st True
       | null (allHealthchecksInStage line dockerfile)
           && null (allFromsAfter line dockerfile) =
         withState st False
       | null (allHealthchecksInStage line dockerfile) = withState st True
-      | otherwise = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
+      | isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
+      | otherwise = withState st True
     check st _ _ = withState st True
 
     allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr df]
