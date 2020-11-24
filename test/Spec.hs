@@ -983,6 +983,33 @@ main =
               ]
         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
+      it "multistage with healthcheck in all stages passes DL4007 and DL4008" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD check-2"
+              ]
+        in do
+          ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+          ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with healthcheck in last stage only passes" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD check-2"
+              ]
+        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with healthcheck in early stage only passes" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM debian:buster"
+              ]
+        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
       it "too many healthchecks" $
         let dockerFile =
               [ "FROM busybox",
