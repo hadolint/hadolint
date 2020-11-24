@@ -189,76 +189,76 @@ main =
             onBuildRuleCatchesNot gemVersionPinned "RUN gem install bundler:2.0.1 -- --use-system-libraries=true"
     --
     describe "yum rules" $ do
-        it "yum update" $ do
-            ruleCatches noYumUpdate "RUN yum update"
-            ruleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
-            ruleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
-            onBuildRuleCatches noYumUpdate "RUN yum update"
-            onBuildRuleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
-            onBuildRuleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
-        it "yum version pinning" $ do
-            ruleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
-            ruleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
-            ruleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
-            onBuildRuleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
-            onBuildRuleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
-            onBuildRuleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
-        it "yum no clean all" $ do
-            ruleCatches yumCleanup "RUN yum install -y mariadb-10.4"
-            ruleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
-            ruleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
-            onBuildRuleCatches yumCleanup "RUN yum install -y mariadb-10.4"
-            onBuildRuleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
-            onBuildRuleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
-        it "yum non-interactive" $ do
-            ruleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
-            ruleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
-            ruleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
-            onBuildRuleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
-            onBuildRuleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
-            onBuildRuleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
+      it "yum update" $ do
+        ruleCatches noYumUpdate "RUN yum update"
+        ruleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
+        ruleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
+        onBuildRuleCatches noYumUpdate "RUN yum update"
+        onBuildRuleCatchesNot noYumUpdate "RUN yum install -y httpd-2.4.42 && yum clean all"
+        onBuildRuleCatchesNot noYumUpdate "RUN bash -c `# not even a yum command`"
+      it "yum version pinning" $ do
+        ruleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+        ruleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
+        ruleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
+        onBuildRuleCatches yumVersionPinned "RUN yum install -y tomcat && yum clean all"
+        onBuildRuleCatchesNot yumVersionPinned "RUN yum install -y tomcat-9.2 && yum clean all"
+        onBuildRuleCatchesNot yumVersionPinned "RUN bash -c `# not even a yum command`"
+      it "yum no clean all" $ do
+        ruleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+        ruleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
+        ruleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
+        onBuildRuleCatches yumCleanup "RUN yum install -y mariadb-10.4"
+        onBuildRuleCatchesNot yumCleanup "RUN yum install -y mariadb-10.4 && yum clean all"
+        onBuildRuleCatchesNot yumCleanup "RUN bash -c `# not even a yum command`"
+      it "yum non-interactive" $ do
+        ruleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+        ruleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
+        ruleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
+        onBuildRuleCatches yumYes "RUN yum install httpd-2.4.24 && yum clean all"
+        onBuildRuleCatchesNot yumYes "RUN yum install -y httpd-2.4.24 && yum clean all"
+        onBuildRuleCatchesNot yumYes "RUN bash -c `# not even a yum command`"
     --
     describe "zypper rules" $ do
-        it "zupper update" $ do
-            ruleCatches noZypperUpdate "RUN zypper update"
-            ruleCatches noZypperUpdate "RUN zypper up"
-            ruleCatches noZypperUpdate "RUN zypper dist-upgrade"
-            ruleCatches noZypperUpdate "RUN zypper dup"
-            onBuildRuleCatches noZypperUpdate "RUN zypper update"
-            onBuildRuleCatches noZypperUpdate "RUN zypper up"
-            onBuildRuleCatches noZypperUpdate "RUN zypper dist-upgrade"
-            onBuildRuleCatches noZypperUpdate "RUN zypper dup"
-        it "zypper version pinning" $ do
--- NOTE: In Haskell strings, '\' has to be escaped. And in shell commands, '>'
--- and '<' have to be escaped. Hence the double escaping.
-            ruleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
-            ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
-            onBuildRuleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
-            onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
-        it "zypper no clean all" $ do
-            ruleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
-            ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
-            ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
-            onBuildRuleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
-            onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
-            onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
-        it "zypper non-interactive" $ do
-            ruleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
-            ruleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
-            ruleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
-            onBuildRuleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
-            onBuildRuleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
-            onBuildRuleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
+      it "zupper update" $ do
+        ruleCatches noZypperUpdate "RUN zypper update"
+        ruleCatches noZypperUpdate "RUN zypper up"
+        ruleCatches noZypperUpdate "RUN zypper dist-upgrade"
+        ruleCatches noZypperUpdate "RUN zypper dup"
+        onBuildRuleCatches noZypperUpdate "RUN zypper update"
+        onBuildRuleCatches noZypperUpdate "RUN zypper up"
+        onBuildRuleCatches noZypperUpdate "RUN zypper dist-upgrade"
+        onBuildRuleCatches noZypperUpdate "RUN zypper dup"
+      it "zypper version pinning" $ do
+        -- NOTE: In Haskell strings, '\' has to be escaped. And in shell commands, '>'
+        -- and '<' have to be escaped. Hence the double escaping.
+        ruleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
+        ruleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
+        onBuildRuleCatches zypperVersionPinned "RUN zypper install -y tomcat && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat=9.0.39 && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>=9.0 && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\>9.0 && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<=9.0 && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat\\<9.0 && zypper clean"
+        onBuildRuleCatchesNot zypperVersionPinned "RUN zypper install -y tomcat-9.0.39-1.rpm && zypper clean"
+      it "zypper no clean all" $ do
+        ruleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
+        ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
+        ruleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
+        onBuildRuleCatches zypperCleanup "RUN zypper install -y mariadb=10.4"
+        onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper clean"
+        onBuildRuleCatchesNot zypperCleanup "RUN zypper install -y mariadb=10.4 && zypper cc"
+      it "zypper non-interactive" $ do
+        ruleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
+        ruleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
+        ruleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
+        onBuildRuleCatches zypperYes "RUN zypper install httpd=2.4.24 && zypper clean"
+        onBuildRuleCatchesNot zypperYes "RUN zypper install -y httpd=2.4.24 && zypper clean"
+        onBuildRuleCatchesNot zypperYes "RUN zypper install --no-confirm httpd=2.4.24 && zypper clean"
     --
     describe "dnf rules" $ do
       it "dnf update" $ do
@@ -641,22 +641,22 @@ main =
     --
     describe "pip cache dir" $ do
       it "pip2 --no-cache-dir not used" $ do
-        ruleCatches pipNoCacheDir           "RUN pip2 install MySQL_python"
-        onBuildRuleCatches pipNoCacheDir    "RUN pip2 install MySQL_python"
+        ruleCatches pipNoCacheDir "RUN pip2 install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir "RUN pip2 install MySQL_python"
       it "pip3 --no-cache-dir not used" $ do
-        ruleCatches pipNoCacheDir           "RUN pip3 install MySQL_python"
-        onBuildRuleCatches pipNoCacheDir    "RUN pip3 install MySQL_python"
+        ruleCatches pipNoCacheDir "RUN pip3 install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir "RUN pip3 install MySQL_python"
       it "pip --no-cache-dir not used" $ do
-        ruleCatches pipNoCacheDir           "RUN pip install MySQL_python"
-        onBuildRuleCatches pipNoCacheDir    "RUN pip install MySQL_python"
+        ruleCatches pipNoCacheDir "RUN pip install MySQL_python"
+        onBuildRuleCatches pipNoCacheDir "RUN pip install MySQL_python"
       it "pip2 --no-cache-dir used" $ do
-        ruleCatchesNot pipNoCacheDir        "RUN pip2 install MySQL_python --no-cache-dir"
+        ruleCatchesNot pipNoCacheDir "RUN pip2 install MySQL_python --no-cache-dir"
         onBuildRuleCatchesNot pipNoCacheDir "RUN pip2 install MySQL_python --no-cache-dir"
       it "pip3 --no-cache-dir used" $ do
-        ruleCatchesNot pipNoCacheDir        "RUN pip3 install --no-cache-dir MySQL_python"
+        ruleCatchesNot pipNoCacheDir "RUN pip3 install --no-cache-dir MySQL_python"
         onBuildRuleCatchesNot pipNoCacheDir "RUN pip3 install --no-cache-dir MySQL_python"
       it "pip --no-cache-dir used" $ do
-        ruleCatchesNot pipNoCacheDir        "RUN pip install MySQL_python --no-cache-dir"
+        ruleCatchesNot pipNoCacheDir "RUN pip install MySQL_python --no-cache-dir"
         onBuildRuleCatchesNot pipNoCacheDir "RUN pip install MySQL_python --no-cache-dir"
 
     --
@@ -974,14 +974,14 @@ main =
         let dockerFile =
               [ "FROM busybox"
               ]
-        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+         in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
       it "does not trigger missing healthcheck" $
         let dockerFile =
               [ "FROM busybox",
                 "HEALTHCHECK CMD stat /"
               ]
-        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
       it "multistage with healthcheck in all stages passes DL4007 and DL4008" $
         let dockerFile =
@@ -990,9 +990,9 @@ main =
                 "FROM debian:buster",
                 "HEALTHCHECK CMD check-2"
               ]
-        in do
-          ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
-          ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+         in do
+              ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+              ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
 
       it "multistage with healthcheck in last stage only passes" $
         let dockerFile =
@@ -1000,7 +1000,7 @@ main =
                 "FROM debian:buster",
                 "HEALTHCHECK CMD check-2"
               ]
-        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
       it "multistage with healthcheck in early stage only triggers DL4007 when using new baseimage" $
         let dockerFile =
@@ -1008,7 +1008,7 @@ main =
                 "HEALTHCHECK CMD check-1",
                 "FROM debian:buster"
               ]
-        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+         in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
       it "multistage with healthcheck in early stage only passes when reusing stage" $
         let dockerFile =
@@ -1016,23 +1016,25 @@ main =
                 "HEALTHCHECK CMD check-1",
                 "FROM stage1"
               ]
-        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
       it "multistage with two buildstages and only one has a healthcheck passes when using that one as base" $
         let dockerFile =
-              ["FROM debian:buster as stage1",
-               "HEALTHCHECK CMD bla",
-               "FROM debian:buster as stage2",
-               "FROM stage1"]
-        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD bla",
+                "FROM debian:buster as stage2",
+                "FROM stage1"
+              ]
+         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
       it "multistage with two buildstages and only one has a healthcheck fails when using the other one as base" $
         let dockerFile =
-              ["FROM debian:buster as stage1",
-               "FROM debian:buster as stage2",
-               "HEALTHCHECK CMD bla",
-               "FROM stage1"]
-        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+              [ "FROM debian:buster as stage1",
+                "FROM debian:buster as stage2",
+                "HEALTHCHECK CMD bla",
+                "FROM stage1"
+              ]
+         in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
       it "too many healthchecks" $
         let dockerFile =
@@ -1040,14 +1042,14 @@ main =
                 "HEALTHCHECK CMD stat /1",
                 "HEALTHCHECK CMD stat /2"
               ]
-        in ruleCatches multipleHealthcheck $ Text.unlines dockerFile
+         in ruleCatches multipleHealthcheck $ Text.unlines dockerFile
 
       it "not too many healthchecks" $
         let dockerFile =
               [ "FROM busybox",
                 "HEALTHCHECK CMD ls /1"
               ]
-        in ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+         in ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
 
       it "many cmds" $
         let dockerFile =

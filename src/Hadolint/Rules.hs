@@ -6,8 +6,8 @@ module Hadolint.Rules where
 import Control.Arrow ((&&&))
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
-import Data.Maybe
 import qualified Data.Map as Map
+import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -875,8 +875,9 @@ hasHealthcheck dockerfile = instructionRuleState code severity message check [] 
     message = "No `HEALTHCHECK` instruction"
     check st line (From BaseImage {image, alias})
       | imageName image `elem` map snd st = withState st True
-      | null (allHealthchecksInStage line dockerfile) &&
-        null (allFromsAfter line dockerfile) = withState st False
+      | null (allHealthchecksInStage line dockerfile)
+          && null (allFromsAfter line dockerfile) =
+        withState st False
       | null (allHealthchecksInStage line dockerfile) = withState st True
       | otherwise = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
     check st _ _ = withState st True
@@ -889,9 +890,9 @@ hasHealthcheck dockerfile = instructionRuleState code severity message check [] 
 
     allHealthchecksInStage line df
       | null $ allFromsAfter line df = allHealthchecksAfter line df
-      | otherwise = [(l, h) | (l, h) <- allHealthchecksAfter line df,
-                             (fl, _) <- [minimum $ allFromsAfter line df],
-                             l < fl]
+      | otherwise =
+        [ (l, h) | (l, h) <- allHealthchecksAfter line df, (fl, _) <- [minimum $ allFromsAfter line df], l < fl
+        ]
     instr = fmap (lineNumber &&& instruction)
 
 multipleHealthcheck :: Rule
@@ -1081,7 +1082,6 @@ zypperVersionPinned = instructionRule code severity message check
         || "<" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
 
-
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
 zypperPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "zypper" ["install", "in"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install", arg /= "in"
@@ -1160,14 +1160,15 @@ pipNoCacheDir = instructionRule code severity message check
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoCacheDir) args
     check _ = True
     forgotNoCacheDir cmd =
-      isPipInstall cmd && not(usesNoCacheDir cmd)
-    usesNoCacheDir cmd   = "--no-cache-dir" `elem` Shell.getArgs cmd
+      isPipInstall cmd && not (usesNoCacheDir cmd)
+    usesNoCacheDir cmd = "--no-cache-dir" `elem` Shell.getArgs cmd
 
 isPipInstall :: Shell.Command -> Bool
 isPipInstall cmd@(Shell.Command name _ _) = isStdPipInstall || isPythonPipInstall
   where
-    isStdPipInstall    = "pip" `Text.isPrefixOf` name && ["install"] `isInfixOf` Shell.getArgs cmd
-    isPythonPipInstall = "python" `Text.isPrefixOf` name
+    isStdPipInstall = "pip" `Text.isPrefixOf` name && ["install"] `isInfixOf` Shell.getArgs cmd
+    isPythonPipInstall =
+      "python" `Text.isPrefixOf` name
         && ["-m", "pip", "install"] `isInfixOf` Shell.getArgs cmd
 
 gems :: Shell.ParsedShell -> [Text.Text]

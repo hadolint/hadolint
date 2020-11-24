@@ -3,9 +3,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hadolint.Config
-  (applyConfig,
-   ConfigFile (..),
-   OverrideConfig (..)) where
+  ( applyConfig,
+    ConfigFile (..),
+    OverrideConfig (..),
+  )
+where
 
 import Control.Monad (filterM)
 import qualified Data.ByteString as Bytes
@@ -27,8 +29,7 @@ import System.Directory
 import System.FilePath ((</>))
 
 data OverrideConfig = OverrideConfig
-  {
-    overrideErrorRules :: Maybe [Lint.ErrorRule],
+  { overrideErrorRules :: Maybe [Lint.ErrorRule],
     overrideWarningRules :: Maybe [Lint.WarningRule],
     overrideInfoRules :: Maybe [Lint.InfoRule],
     overrideStyleRules :: Maybe [Lint.StyleRule]
@@ -36,8 +37,7 @@ data OverrideConfig = OverrideConfig
   deriving (Show, Eq, Generic)
 
 data ConfigFile = ConfigFile
-  {
-    overrideRules :: Maybe OverrideConfig,
+  { overrideRules :: Maybe OverrideConfig,
     ignoredRules :: Maybe [Lint.IgnoreRule],
     trustedRegistries :: Maybe [Lint.TrustedRegistry]
   }
@@ -84,18 +84,21 @@ applyConfig maybeConfig o
       contents <- Bytes.readFile configFile
       case Yaml.decode1Strict contents of
         Left (_, err) -> return $ Left (formatError err configFile)
-        Right (ConfigFile Nothing ignore trusted) -> return $
-          Right (applyOverride Nothing Nothing Nothing Nothing ignore trusted)
-        Right (ConfigFile (Just (OverrideConfig errors warnings infos styles)) ignore trusted) -> return $
-          Right (applyOverride errors warnings infos styles ignore trusted)
+        Right (ConfigFile Nothing ignore trusted) ->
+          return $
+            Right (applyOverride Nothing Nothing Nothing Nothing ignore trusted)
+        Right (ConfigFile (Just (OverrideConfig errors warnings infos styles)) ignore trusted) ->
+          return $
+            Right (applyOverride errors warnings infos styles ignore trusted)
 
     applyOverride errors warnings infos styles ignore trusted =
-      applyTrusted trusted .
-      applyIgnore ignore .
-      applyErrors errors .
-      applyWarnings warnings .
-      applyInfos infos .
-      applyStyles styles $ o
+      applyTrusted trusted
+        . applyIgnore ignore
+        . applyErrors errors
+        . applyWarnings warnings
+        . applyInfos infos
+        . applyStyles styles
+        $ o
 
     applyErrors errors opts =
       case Lint.errorRules opts of

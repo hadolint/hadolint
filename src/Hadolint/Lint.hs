@@ -22,9 +22,13 @@ import ShellCheck.Interface (Severity (..))
 import System.Exit (exitFailure, exitSuccess)
 
 type ErrorRule = Text
+
 type WarningRule = Text
+
 type InfoRule = Text
+
 type StyleRule = Text
+
 type IgnoreRule = Text
 
 type TrustedRegistry = Text
@@ -68,43 +72,49 @@ printResultsAndExit format allResults = do
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
 lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
-lint LintOptions {errorRules = errorList,
-                  warningRules = warningList,
-                  infoRules = infoList,
-                  styleRules = styleList,
-                  ignoreRules = ignoreList,
-                  rulesConfig} dFiles = do
-  parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
-  let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
-  return $ mconcat results
-  where
-    parseFile :: String -> IO (Either Error Dockerfile)
-    parseFile "-" = Docker.parseStdin
-    parseFile s = Docker.parseFile s
+lint
+  LintOptions
+    { errorRules = errorList,
+      warningRules = warningList,
+      infoRules = infoList,
+      styleRules = styleList,
+      ignoreRules = ignoreList,
+      rulesConfig
+    }
+  dFiles = do
+    parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
+    let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
+    return $ mconcat results
+    where
+      parseFile :: String -> IO (Either Error Dockerfile)
+      parseFile "-" = Docker.parseStdin
+      parseFile s = Docker.parseFile s
 
-    lintAll = fmap lintDockerfile
+      lintAll = fmap lintDockerfile
 
-    lintDockerfile = processedFile
-      where
-        processedFile = Format.toResult . fmap processRules
-        processRules fileLines = filter ignoredRules $
-                                 map (makeSeverity (Just ErrorC) errorList .
-                                      makeSeverity (Just WarningC) warningList .
-                                      makeSeverity (Just InfoC) infoList .
-                                      makeSeverity (Just StyleC) styleList) $
-                                 analyzeAll rulesConfig fileLines
+      lintDockerfile = processedFile
+        where
+          processedFile = Format.toResult . fmap processRules
+          processRules fileLines =
+            filter ignoredRules $
+              map
+                ( makeSeverity (Just ErrorC) errorList
+                    . makeSeverity (Just WarningC) warningList
+                    . makeSeverity (Just InfoC) infoList
+                    . makeSeverity (Just StyleC) styleList
+                )
+                $ analyzeAll rulesConfig fileLines
 
-        ignoredRules = ignoreFilter ignoreList
+          ignoredRules = ignoreFilter ignoreList
 
-        makeSeverity s rules (Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success) =
-          if code `elem` rules then
-            Rules.RuleCheck (Rules.Metadata code s message) filename linenumber success
-          else
-            Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success
+          makeSeverity s rules (Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success) =
+            if code `elem` rules
+              then Rules.RuleCheck (Rules.Metadata code s message) filename linenumber success
+              else Rules.RuleCheck (Rules.Metadata code severity message) filename linenumber success
 
-        ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
-          code `notElem` rules && isJust severity
+          ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
+          ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
+            code `notElem` rules && isJust severity
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]

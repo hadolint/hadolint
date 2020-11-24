@@ -141,12 +141,13 @@ parseOptions =
 
     files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
 
-    lintOptions = Hadolint.LintOptions <$> errorList
-                                       <*> warningList
-                                       <*> infoList
-                                       <*> styleList
-                                       <*> ignoreList
-                                       <*> parseRulesConfig
+    lintOptions =
+      Hadolint.LintOptions <$> errorList
+        <*> warningList
+        <*> infoList
+        <*> styleList
+        <*> ignoreList
+        <*> parseRulesConfig
 
     parseRulesConfig =
       Hadolint.RulesConfig . Set.fromList . fmap fromString
