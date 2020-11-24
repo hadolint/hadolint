@@ -970,13 +970,13 @@ main =
       it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
       it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
 
-      it "has healthcheck" $
+      it "triggers missing healthcheck" $
         let dockerFile =
               [ "FROM busybox"
               ]
         in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
-      it "not has healthcheck" $
+      it "does not trigger missing healthcheck" $
         let dockerFile =
               [ "FROM busybox",
                 "HEALTHCHECK CMD stat /"
@@ -1002,13 +1002,37 @@ main =
               ]
         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
 
-      it "multistage with healthcheck in early stage only passes" $
+      it "multistage with healthcheck in early stage only triggers DL4007 when using new baseimage" $
         let dockerFile =
               [ "FROM debian:buster as stage1",
                 "HEALTHCHECK CMD check-1",
                 "FROM debian:buster"
               ]
+        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with healthcheck in early stage only passes when reusing stage" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM stage1"
+              ]
         in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with two buildstages and only one has a healthcheck passes when using that one as base" $
+        let dockerFile =
+              ["FROM debian:buster as stage1",
+               "HEALTHCHECK CMD bla",
+               "FROM debian:buster as stage2",
+               "FROM stage1"]
+        in ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+
+      it "multistage with two buildstages and only one has a healthcheck fails when using the other one as base" $
+        let dockerFile =
+              ["FROM debian:buster as stage1",
+               "FROM debian:buster as stage2",
+               "HEALTHCHECK CMD bla",
+               "FROM stage1"]
+        in ruleCatches hasHealthcheck $ Text.unlines dockerFile
 
       it "too many healthchecks" $
         let dockerFile =

@@ -6,6 +6,7 @@ module Hadolint.Rules where
 import Control.Arrow ((&&&))
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
+import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -867,18 +868,31 @@ usePipefail = instructionRuleState code severity message check False
           ]
 
 hasHealthcheck :: Rule
-hasHealthcheck dockerfile = instructionRuleState code severity message check Nothing dockerfile
+hasHealthcheck dockerfile = instructionRuleState code severity message check [] dockerfile
   where
     code = "DL4007"
     severity = Nothing
     message = "No `HEALTHCHECK` instruction"
-    check _ _ From {}
-      | null (allHealthchecks dockerfile) = withState Nothing False
-      | otherwise = withState Nothing True
+    check st line (From BaseImage {image, alias})
+      | imageName image `elem` map snd st = withState st True
+      | null (allHealthchecksInStage line dockerfile) &&
+        null (allFromsAfter line dockerfile) = withState st False
+      | null (allHealthchecksInStage line dockerfile) = withState st True
+      | otherwise = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
     check st _ _ = withState st True
-    allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr]
-      where
-        instr = fmap (lineNumber &&& instruction) df
+
+    allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr df]
+    allFroms df = [(l, f) | (l, From f) <- instr df]
+
+    allHealthchecksAfter line df = [(l, h) | (l, h) <- allHealthchecks df, l > line]
+    allFromsAfter line df = [(l, f) | (l, f) <- allFroms df, l > line]
+
+    allHealthchecksInStage line df
+      | null $ allFromsAfter line df = allHealthchecksAfter line df
+      | otherwise = [(l, h) | (l, h) <- allHealthchecksAfter line df,
+                             (fl, _) <- [minimum $ allFromsAfter line df],
+                             l < fl]
+    instr = fmap (lineNumber &&& instruction)
 
 multipleHealthcheck :: Rule
 multipleHealthcheck = instructionRuleState code severity message check False
