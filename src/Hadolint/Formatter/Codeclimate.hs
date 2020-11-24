@@ -108,7 +108,7 @@ severityText severity =
     Just WarningC -> "major"
     Just InfoC -> "info"
     Just StyleC -> "minor"
-    Nothing -> "nothing"
+    Nothing -> ""
 
 generateFingerprint :: Issue -> Digest SHA1
 generateFingerprint = hash . B.toStrict . encode
