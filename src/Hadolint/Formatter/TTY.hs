@@ -27,7 +27,7 @@ formatChecks :: Functor f => f RuleCheck -> f Text.Text
 formatChecks = fmap formatCheck
   where
     formatCheck (RuleCheck meta source line _) =
-      formatPos source line <> code meta <> " " <> message meta
+      formatPos source line <> code meta <> " " <> Text.pack (severityText (severity meta)) <> ": " <> message meta
 
 formatPos :: Filename -> Linenumber -> Text.Text
 formatPos source line = source <> ":" <> Text.pack (show line) <> " "
