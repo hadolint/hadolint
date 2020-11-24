@@ -29,9 +29,10 @@ Then add the CI step on codeship-steps.yml with the path of the dockerfile
     - service: hadolint
       command: hadolint /test/Dockerfile
 ```
+
 ### Mega-Linter
 
-[Mega-Linter](https://nvuillam.github.io/mega-linter/) aggregates **70** linters, including [hadolint](
+[Mega-Linter](https://nvuillam.github.io/mega-linter/) aggregates 70 linters, including [hadolint](
 https://nvuillam.github.io/mega-linter/descriptors/dockerfile_hadolint/) out of the box
 
 ## Continuous Integration
