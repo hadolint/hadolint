@@ -224,6 +224,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3043](https://github.com/hadolint/hadolint/wiki/DL3043)   | `ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction.                                                                      |
 | [DL3044](https://github.com/hadolint/hadolint/wiki/DL3044)   | Do not refer to an environment variable within the same `ENV` statement where it is defined.                                                        |
 | [DL3045](https://github.com/hadolint/hadolint/wiki/DL3045)   | `COPY` to a relative destination without `WORKDIR` set.                                                                                             |
+| [DL3047](https://github.com/hadolint/hadolint/wiki/DL3047)   | Multiple `COPY` to same location.                                                                                                                   |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | MAINTAINER is deprecated.                                                                                                                           |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Multiple `CMD` instructions found.                                                                                                                  |

@@ -11,7 +11,11 @@ import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import Data.List.Index
 import qualified Data.Map as Map
+<<<<<<< HEAD
 import Data.Maybe ()
+=======
+import Data.Maybe
+>>>>>>> rules: multiple `COPY` to same location
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -196,6 +200,7 @@ rules =
     copyEndingSlash,
     copyFromExists,
     copyFromAnother,
+    multipleCopyToSameLocation,
     fromAliasUnique,
     noRootUser,
     noCd,
@@ -820,6 +825,20 @@ copyFromAnother = instructionRuleState code severity message check Nothing
     check st@(Just fromInstr) _ (Copy (CopyArgs _ _ _ (CopySource stageName))) =
       withState st (aliasMustBe (/= stageName) fromInstr) -- Cannot copy from itself!
     check state _ _ = withState state True
+
+multipleCopyToSameLocation :: Rule
+multipleCopyToSameLocation = instructionRuleState code severity message check ("", [])
+  where
+    code = "DL3047"
+    severity = WarningC
+    message = "Multiple `COPY` to same location."
+    check st _ (From BaseImage {image, alias})
+      | isJust alias = withState (unImageAlias $ fromJust alias, snd st ++ [(d, unImageAlias $ fromJust alias) | (d, s) <- snd st, s == imageName image]) True
+      | otherwise = withState (imageName image, snd st) True
+    check st _ (Copy (CopyArgs _ (TargetPath dest) _ _))
+      | (dest, fst st) `elem` snd st = withState st False
+      | otherwise = withState (fst st, snd st ++ [(dest, fst st)]) True
+    check st _ _ = withState st True
 
 fromAliasUnique :: Rule
 fromAliasUnique dockerfile = instructionRuleLine code severity message check dockerfile
