@@ -1,0 +1,38 @@
+# Runs on pull requests against master
+
+name: Release
+
+on:
+  # Trigger the workflow on the new 'v*' tag created
+  push:
+    tags:
+      - "v*"
+
+defaults:
+  run:
+    working-directory: docker
+
+env:
+  IMAGE_NAME: hadolint
+  DOCKER_REPO: ghcr.io/${{ github.repository }}
+
+jobs:
+  deploy_container_image:
+    name: Release container image to ghcr.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: "bash hooks/build"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_IO_REGISTRY_TOKEN }}
+
+      - name: Push
+        run: "bash hooks/push"
