@@ -27,39 +27,55 @@ Default images include only `hadolint` static binary. All supported tags also ha
 - `hadolint/hadolint:EXTENDED_VERSION-alpine` refers to the same version as `hadolint --version` with short git sha, eg. `v1.9.0-0-g4c4881a-alpine`
 
 Check out [Docker Hub](https://hub.docker.com/r/hadolint/hadolint/tags/) for available tags.
+If you prefer to pull the container image from the GitHub container registry check out [hadolint organization packages](https://github.com/orgs/hadolint/packages/container/package/hadolint) for available tags.
 
 ## Usage
 
 To use this image, pull from Docker Hub, run the following command:
 
 ```bash
-docker pull hadolint/hadolint
+$ docker pull hadolint/hadolint
+# or
+$ docker pull ghcr.io/hadolint/hadolint
 ```
 
 Verify the install
 
 ```bash
-docker run --rm hadolint/hadolint hadolint --version
+$ docker run --rm hadolint/hadolint hadolint --version
+Haskell Dockerfile Linter v1.9.0-0-g4c4881a
+# or
+$ docker run --rm ghcr.io/hadolint/hadolint hadolint --version
 Haskell Dockerfile Linter v1.9.0-0-g4c4881a
 ```
 
 or use a particular version number:
 
 ```bash
-docker run --rm hadolint/hadolint:v1.9.0 hadolint --version
+$ docker run --rm hadolint/hadolint:v1.9.0 hadolint --version
+Haskell Dockerfile Linter v1.9.0-0-g4c4881a
+# or
+$ docker run --rm ghcr.io/hadolint/hadolint:v1.9.0 hadolint --version
 Haskell Dockerfile Linter v1.9.0-0-g4c4881a
 ```
 
 Lint your `Dockerfile`:
 
 ```bash
-docker run --rm -i hadolint/hadolint < Dockerfile
+$ docker run --rm -i hadolint/hadolint < Dockerfile
+# or
+$ docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 To exclude specific rules:
 
 ```bash
-docker run --rm -i hadolint/hadolint hadolint \
+$ docker run --rm -i hadolint/hadolint hadolint \
+  --ignore DL3003 \
+  --ignore DL3006 \
+  - < Dockerfile
+# or
+$ docker run --rm -i ghcr.io/hadolint/hadolint hadolint \
   --ignore DL3003 \
   --ignore DL3006 \
   - < Dockerfile

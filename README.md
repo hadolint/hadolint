@@ -31,7 +31,9 @@ platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
-docker run --rm -i hadolint/hadolint < Dockerfile
+$ docker run --rm -i hadolint/hadolint < Dockerfile
+# or
+$ docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 ## Install
@@ -55,15 +57,20 @@ scoop install hadolint
 As shown before, `hadolint` is available as a Docker container:
 
 ```bash
-docker pull hadolint/hadolint
+$ docker pull hadolint/hadolint
+# or
+$ docker pull ghcr.io/hadolint/hadolint
 ```
 
 If you need a Docker container with shell access, use the Debian or Alpine
 variants of the Docker image:
 
 ```bash
-docker pull hadolint/hadolint:latest-debian
-docker pull hadolint/hadolint:latest-alpine
+$ docker pull hadolint/hadolint:latest-debian
+$ docker pull hadolint/hadolint:latest-alpine
+# or
+$ docker pull ghcr.io/hadolint/hadolint:latest-debian
+$ docker pull ghcr.io/hadolint/hadolint:latest-alpine
 ```
 
 You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
@@ -124,7 +131,9 @@ To pass a custom configuration file (using relative or absolute path) to a conta
 use the following command:
 
 ```bash
-docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+$ docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+# or
+$ docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 ## Inline ignores
