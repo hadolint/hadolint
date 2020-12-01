@@ -830,7 +830,7 @@ multipleCopyToSameLocation :: Rule
 multipleCopyToSameLocation = instructionRuleState code severity message check ("", [])
   where
     code = "DL3047"
-    severity = WarningC
+    severity = InfoC
     message = "Multiple `COPY` to same location."
     check st _ (From BaseImage {image, alias})
       | isJust alias = withState (unImageAlias $ fromJust alias, snd st ++ [(d, unImageAlias $ fromJust alias) | (d, s) <- snd st, s == imageName image]) True
