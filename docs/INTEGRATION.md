@@ -15,6 +15,7 @@ with the repository attached to it:
 ```yaml
 hadolint:
   image: hadolint/hadolint:latest-debian
+  # image: ghcr.io/hadolint/hadolint:latest-debian
   volumes:
     - ./:/test
 ```
@@ -93,6 +94,7 @@ Add the following job to your project's `.gitlab-ci.yml`:
 ```yaml
 lint_dockerfile:
   image: hadolint/hadolint:latest-debian
+  # image: ghcr.io/hadolint/hadolint:latest-debian
   script:
     - hadolint Dockerfile
 ```
@@ -107,6 +109,7 @@ Add the following job to your project's `.drone.yml` pipeline (drone version 0.8
   hadolint:
     group: validate
     image: hadolint/hadolint:latest-debian
+    # image: ghcr.io/hadolint/hadolint:latest-debian
     commands:
       - hadolint --version
       - hadolint Dockerfile
@@ -117,6 +120,7 @@ Add the following job to your project's `.drone.yml` pipeline (drone version 1.0
 ```yaml
   - name: hadolint
     image: hadolint/hadolint:latest-debian
+    # image: ghcr.io/hadolint/hadolint:latest-debian
     commands:
       - hadolint --version
       - hadolint  Dockerfile
@@ -150,6 +154,7 @@ stage ("lint dockerfile") {
     agent {
         docker {
             image 'hadolint/hadolint:latest-debian'
+            //image 'ghcr.io/hadolint/hadolint:latest-debian'
         }
     }
     steps {
@@ -170,6 +175,7 @@ You can add an hadolint container to pod definition:
 ```yaml
 - name: hadolint
   image: hadolint/hadolint:latest-debian
+  # image: ghcr.io/hadolint/hadolint:latest-debian
   imagePullPolicy: Always
   command:
     - cat
@@ -202,6 +208,7 @@ pipelines:
   default:
     - step:
         image: hadolint/hadolint:latest-debian
+        # image: ghcr.io/hadolint/hadolint:latest-debian
         script:
           - hadolint Dockerfile
 ```
@@ -267,6 +274,14 @@ to
 
 ```sh
 if docker run --rm -i hadolint/hadolint < "%d/%f"
+| sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|'
+| grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
+```
+
+or
+
+```sh
+if docker run --rm -i ghcr.io/hadolint/hadolint < "%d/%f"
 | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|'
 | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
