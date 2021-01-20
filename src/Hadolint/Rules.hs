@@ -428,7 +428,7 @@ noAptGetUpgrade = instructionRule code severity message check
     severity = ErrorC
     message = "Do not use apt-get upgrade or dist-upgrade"
     check (Run (RunArgs args _)) =
-      argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apt-get" ["upgrade"])) args
+      argumentsRule (Shell.noCommands (Shell.cmdHasArgs "apt-get" ["upgrade", "dist-upgrade"])) args
     check _ = True
 
 noUntagged :: Rule

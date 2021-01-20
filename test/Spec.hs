@@ -323,6 +323,9 @@ main =
       it "apt-get upgrade" $ do
         ruleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
         onBuildRuleCatches noAptGetUpgrade "RUN apt-get update && apt-get upgrade"
+      it "apt-get dist-upgrade" $ do
+        ruleCatches noAptGetUpgrade "RUN apt-get update && apt-get dist-upgrade"
+        onBuildRuleCatches noAptGetUpgrade "RUN apt-get update && apt-get dist-upgrade"
       it "apt-get version pinning" $ do
         ruleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
         onBuildRuleCatches aptGetVersionPinned "RUN apt-get update && apt-get install python"
