@@ -99,8 +99,4 @@ formatResult (Result errors checks) = allIssues
     checkMessages = fmap checkToIssue checks
 
 printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
-printResult result = mapM_ output (formatResult result)
-  where
-    output value = do
-      B.putStr (encode value)
-      B.putStr (B.singleton 0x00)
+printResult result = B.putStrLn (encode (formatResult result))
