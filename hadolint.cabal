@@ -4,10 +4,10 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: afee9524ce1aad80f4f3a651eef3a68c327005e1f97e965b5a82d3cd36afa09e
+-- hash: 196183dccc95114462aa7b27a5c15b007a0aa09fdddf2c00d154df003854e6ad
 
 name:           hadolint
-version:        1.19.0
+version:        1.20.0
 synopsis:       Dockerfile Linter JavaScript API
 description:    A smarter Dockerfile linter that helps you build best practice Docker images.
 category:       Development
