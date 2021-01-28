@@ -290,11 +290,13 @@ if docker run --rm -i ghcr.io/hadolint/hadolint < "%d/%f"
 
 ### pre-commit
 
-[pre-commit](https://pre-commit.com) is a framework for managing and maintaining multi-language Git pre-commit hooks.
+[pre-commit](https://pre-commit.com) is a framework for managing and maintaining multi-language Git
+pre-commit hooks.
 
 Hadolint is available as a pre-commit hook.
 
-If you have the `hadolint` binary installed locally, add this to your `.pre-commit-config.yaml` in your repository:
+If you have the `hadolint` binary installed locally, add this to your `.pre-commit-config.yaml` in
+your repository:
 ```yaml
 ---
 repos:
