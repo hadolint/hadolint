@@ -33,6 +33,7 @@ data OutputFormat
   = Json
   | TTY
   | CodeclimateJson
+  | GitlabCodeclimateJson
   | Checkstyle
   | Codacy
   deriving (Show, Eq)
@@ -50,6 +51,7 @@ printResultsAndExit format allResults = do
         Json -> Json.printResult res
         Checkstyle -> Checkstyle.printResult res
         CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
+        GitlabCodeclimateJson -> Codeclimate.printGitlabResult res >> exitSuccess
         Codacy -> Codacy.printResult res >> exitSuccess
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable

@@ -45,6 +45,7 @@ library:
     - directory >= 1.3.0
     - async
     - parallel
+    - cryptonite
 executables:
   hadolint:
     main: Main.hs
