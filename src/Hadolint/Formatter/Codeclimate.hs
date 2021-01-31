@@ -9,13 +9,13 @@ module Hadolint.Formatter.Codeclimate
   )
 where
 
+import Crypto.Hash (Digest, SHA1 (..), hash)
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
 import Data.Monoid ((<>))
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
-import Crypto.Hash (hash, SHA1(..), Digest)
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface
@@ -72,7 +72,7 @@ instance ToJSON FingerprintIssue where
   toJSON FingerprintIssue {..} =
     object
       [ "type" .= ("issue" :: String),
-        "fingerprint" .=  show fingerprint,
+        "fingerprint" .= show fingerprint,
         "check_name" .= checkName issue,
         "description" .= description issue,
         "categories" .= (["Bug Risk"] :: [String]),
@@ -116,9 +116,9 @@ generateFingerprint = hash . B.toStrict . encode
 issueToFingerprintIssue :: Issue -> FingerprintIssue
 issueToFingerprintIssue i =
   FingerprintIssue
-   { issue = i,
-     fingerprint = generateFingerprint i
-   }
+    { issue = i,
+      fingerprint = generateFingerprint i
+    }
 
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
 formatResult (Result errors checks) = (errorToIssue <$> errors) <> (checkToIssue <$> checks)
