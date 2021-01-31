@@ -4,6 +4,7 @@
 
 module Hadolint.Formatter.Codeclimate
   ( printResult,
+    printGitlabResult,
     formatResult,
   )
 where
@@ -14,6 +15,7 @@ import Data.Monoid ((<>))
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
+import Crypto.Hash (hash, SHA1(..), Digest)
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rules (Metadata (..), RuleCheck (..))
 import ShellCheck.Interface
@@ -27,6 +29,11 @@ data Issue = Issue
     description :: String,
     location :: Location,
     impact :: String
+  }
+
+data FingerprintIssue = FingerprintIssue
+  { issue :: Issue,
+    fingerprint :: Digest SHA1
   }
 
 data Location
@@ -61,6 +68,18 @@ instance ToJSON Issue where
         "severity" .= impact
       ]
 
+instance ToJSON FingerprintIssue where
+  toJSON FingerprintIssue {..} =
+    object
+      [ "type" .= ("issue" :: String),
+        "fingerprint" .=  show fingerprint,
+        "check_name" .= checkName issue,
+        "description" .= description issue,
+        "categories" .= (["Bug Risk"] :: [String]),
+        "location" .= location issue,
+        "severity" .= impact issue
+      ]
+
 errorToIssue :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> Issue
 errorToIssue err =
   Issue
@@ -91,12 +110,21 @@ severityText severity =
     InfoC -> "info"
     StyleC -> "minor"
 
+generateFingerprint :: Issue -> Digest SHA1
+generateFingerprint = hash . B.toStrict . encode
+
+issueToFingerprintIssue :: Issue -> FingerprintIssue
+issueToFingerprintIssue i =
+  FingerprintIssue
+   { issue = i,
+     fingerprint = generateFingerprint i
+   }
+
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
-formatResult (Result errors checks) = allIssues
-  where
-    allIssues = errorMessages <> checkMessages
-    errorMessages = fmap errorToIssue errors
-    checkMessages = fmap checkToIssue checks
+formatResult (Result errors checks) = (errorToIssue <$> errors) <> (checkToIssue <$> checks)
+
+formatGitlabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq FingerprintIssue
+formatGitlabResult result = issueToFingerprintIssue <$> formatResult result
 
 printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = mapM_ output (formatResult result)
@@ -104,3 +132,6 @@ printResult result = mapM_ output (formatResult result)
     output value = do
       B.putStr (encode value)
       B.putStr (B.singleton 0x00)
+
+printGitlabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
+printGitlabResult = B.putStr . encode . formatGitlabResult

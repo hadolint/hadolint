@@ -51,6 +51,7 @@ toOutputFormat :: String -> Maybe Hadolint.OutputFormat
 toOutputFormat "json" = Just Hadolint.Json
 toOutputFormat "tty" = Just Hadolint.TTY
 toOutputFormat "codeclimate" = Just Hadolint.CodeclimateJson
+toOutputFormat "gitlab_codeclimate" = Just Hadolint.GitlabCodeclimateJson
 toOutputFormat "checkstyle" = Just Hadolint.Checkstyle
 toOutputFormat "codacy" = Just Hadolint.Codacy
 toOutputFormat _ = Nothing
@@ -59,6 +60,7 @@ showFormat :: Hadolint.OutputFormat -> String
 showFormat Hadolint.Json = "json"
 showFormat Hadolint.TTY = "tty"
 showFormat Hadolint.CodeclimateJson = "codeclimate"
+showFormat Hadolint.GitlabCodeclimateJson = "gitlab_codeclimate"
 showFormat Hadolint.Checkstyle = "checkstyle"
 showFormat Hadolint.Codacy = "codacy"
 
@@ -87,10 +89,10 @@ parseOptions =
         ( long "format"
             <> short 'f' -- options for the output format
             <> help
-              "The output format for the results [tty | json | checkstyle | codeclimate | codacy]"
+              "The output format for the results [tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy]"
             <> value Hadolint.TTY
             <> showDefaultWith showFormat -- The default value
-            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "codacy"]
+            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "codacy"]
         )
 
     ignoreList =

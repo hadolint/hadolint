@@ -98,6 +98,28 @@ lint_dockerfile:
   script:
     - hadolint Dockerfile
 ```
+<!--lint disable remark-lint-maximum-line-length-->
+Moreover, you can publish a [gitlab compatible codeclimate report](https://docs.gitlab.com/ee/user/project/merge_requests/code_quality.html#implementing-a-custom-tool) 
+as follows:
+
+```yaml
+docker-hadolint:
+  image: hadolint/hadolint:latest-debian
+  script:
+    - mkdir -p reports
+    - hadolint -f gitlab_codeclimate Dockerfile > reports/hadolint-$(md5sum Dockerfile | cut -d" " -f1).json
+  artifacts:
+    name: "$CI_JOB_NAME artifacts from $CI_PROJECT_NAME on $CI_COMMIT_REF_SLUG"
+    expire_in: 1 day
+    when: always
+    reports:
+      codequality:
+        - "reports/*"
+    paths:
+      - "reports/*"
+```
+
+This way, a widget will be integrated to your merge requests alerting potential changes.
 
 ### Drone CI
 
