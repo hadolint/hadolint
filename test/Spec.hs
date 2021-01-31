@@ -1380,6 +1380,40 @@ main =
                     (length checks == 2)
               )
     --
+    describe "ONBUILD" $ do
+      it "error when using `ONBUILD` within `ONBUILD`" $
+        let dockerFile =
+              [ "ONBUILD ONBUILD RUN anything"
+              ]
+        in ruleCatches noIllegalInstructionInOnbuild $ Text.unlines dockerFile
+      it "error when using `FROM` within `ONBUILD`" $
+        let dockerFile =
+              [ "ONBUILD FROM debian:buster"
+              ]
+        in ruleCatches noIllegalInstructionInOnbuild $ Text.unlines dockerFile
+      it "error when using `MAINTAINER` within `ONBUILD`" $
+        let dockerFile =
+              [ "ONBUILD MAINTAINER \"BoJack Horseman\""
+              ]
+        in ruleCatches noIllegalInstructionInOnbuild $ Text.unlines dockerFile
+      it "ok with `ADD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD ADD anything anywhere"
+      it "ok with `USER`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD USER anything"
+      it "ok with `LABEL`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD LABEL bla=\"blubb\""
+      it "ok with `STOPSIGNAL`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD STOPSIGNAL anything"
+      it "ok with `COPY`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD COPY anything anywhere"
+      it "ok with `RUN`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD RUN anything"
+      it "ok with `CMD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD CMD anything"
+      it "ok with `SHELL`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD SHELL anything"
+      it "ok with `WORKDIR`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD WORKDIR anything"
+      it "ok with `EXPOSE`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD EXPOSE 69"
+      it "ok with `VOLUME`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD VOLUME anything"
+      it "ok with `ENTRYPOINT`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD ENTRYPOINT anything"
+      it "ok with `ENV`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD ENV MYVAR=\"bla\""
+      it "ok with `ARG`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD ARG anything"
+      it "ok with `HEALTHCHECK`" $ ruleCatchesNot noIllegalInstructionInOnbuild "ONBUILD HEALTHCHECK NONE"
+      it "ok with `FROM` outside of `ONBUILD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "FROM debian:buster"
+      it "ok with `MAINTAINER` outside of `ONBUILD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "MAINTAINER \"Some Guy\""
+    --
     describe "Regression Tests" $
       it "Comments with backslashes at the end are just comments" $
         let dockerFile =
