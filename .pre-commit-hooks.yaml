@@ -1,0 +1,13 @@
+---
+- id: hadolint-docker
+  name: Lint Dockerfiles
+  description: Runs hadolint Docker image to lint Dockerfiles
+  language: docker_image
+  types: ["dockerfile"]
+  entry: hadolint/hadolint hadolint
+- id: hadolint
+  name: Lint Dockerfiles
+  description: Runs hadolint to lint Dockerfiles
+  language: system
+  entry: hadolint
+  files: Dockerfile

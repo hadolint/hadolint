@@ -155,12 +155,13 @@ Inline ignores will only work if place directly above the instruction.
 ## Integrations
 
 To get most of `hadolint` it is useful to integrate it as a check to your CI
-or to your editor to lint your `Dockerfile` as you write it. See our
-[Integration][] docs.
+or to your editor, or as a pre-commit hook, to lint your `Dockerfile` as you
+write it. See our [Integration][] docs.
 
 - [Code Review Platform Integrations][]
 - [Continuous Integrations][]
 - [Editor Integrations][]
+- [Version Control Integrations][]
 
 ## Rules
 
@@ -335,6 +336,7 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 [code review platform integrations]: docs/INTEGRATION.md#code-review
 [continuous integrations]: docs/INTEGRATION.md#continuous-integration
 [editor integrations]: docs/INTEGRATION.md#editors
+[version control integrations]: docs/INTEGRATION.md#version-control
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
 [syntax.hs]: https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html

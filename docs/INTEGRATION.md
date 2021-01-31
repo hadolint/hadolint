@@ -308,6 +308,35 @@ if docker run --rm -i ghcr.io/hadolint/hadolint < "%d/%f"
 | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
 
+## Version Control
+
+### pre-commit
+
+[pre-commit](https://pre-commit.com) is a framework for managing and maintaining multi-language Git
+pre-commit hooks.
+
+Hadolint is available as a pre-commit hook.
+
+If you have the `hadolint` binary installed locally, add this to your `.pre-commit-config.yaml` in
+your repository:
+```yaml
+---
+repos:
+  - repo: https://github.com/hadolint/hadolint
+    rev: master
+    hooks:
+      - id: hadolint
+```
+or alternatively use this to run Hadolint with Docker:
+```yaml
+---
+repos:
+  - repo: https://github.com/hadolint/hadolint
+    rev: master
+    hooks:
+      - id: hadolint-docker
+```
+
 ## Other
 
 Following section contains different angles on `hadolint` usage 
