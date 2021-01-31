@@ -1,6 +1,6 @@
 # Runs on pull requests against master
 
-name: Release
+name: Docker Release
 
 on:
   # Trigger the workflow on the new 'v*' tag created
