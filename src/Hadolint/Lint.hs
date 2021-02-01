@@ -17,7 +17,6 @@ import qualified Hadolint.Rules as Rules
 import qualified Language.Docker as Docker
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
-import System.Exit (exitFailure, exitSuccess)
 
 type IgnoreRule = Text
 
@@ -38,21 +37,19 @@ data OutputFormat
   | Codacy
   deriving (Show, Eq)
 
-printResultsAndExit :: OutputFormat -> Format.Result Text DockerfileError -> IO ()
-printResultsAndExit format allResults = do
-  printResult allResults
-  if not . Format.isEmpty $ allResults
-    then exitFailure
-    else exitSuccess
-  where
-    printResult res =
-      case format of
-        TTY -> TTY.printResult res
-        Json -> Json.printResult res
-        Checkstyle -> Checkstyle.printResult res
-        CodeclimateJson -> Codeclimate.printResult res >> exitSuccess
-        GitlabCodeclimateJson -> Codeclimate.printGitlabResult res >> exitSuccess
-        Codacy -> Codacy.printResult res >> exitSuccess
+printResults :: OutputFormat -> Format.Result Text DockerfileError -> IO ()
+printResults format allResults = do
+  case format of
+    TTY -> TTY.printResult allResults
+    Json -> Json.printResult allResults
+    Checkstyle -> Checkstyle.printResult allResults
+    CodeclimateJson -> Codeclimate.printResult allResults
+    GitlabCodeclimateJson -> Codeclimate.printGitlabResult allResults
+    Codacy -> Codacy.printResult allResults
+
+shallSkipErrorStatus:: OutputFormat -> Bool
+shallSkipErrorStatus format  = elem format [CodeclimateJson, Codacy]
+
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
