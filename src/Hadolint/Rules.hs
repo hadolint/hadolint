@@ -91,10 +91,14 @@ mapInstructions f initialState dockerfile =
   let (_, results) = mapAccumL applyRule initialState dockerfile
    in concat results
   where
-    applyRule state (InstructionPos (OnBuild i) source linenumber) =
-      applyWithState state source linenumber i -- All rules applying to instructions also apply to ONBUILD,
+    applyRule state (InstructionPos onbuild@(OnBuild i) source linenumber) =
+      -- All rules applying to instructions also apply to ONBUILD,
       -- so we unwrap the OnBuild constructor and check directly the inner
-      -- instruction
+      -- instruction. Then we also check the instruction itself and append the
+      -- result to avoid losing out on detecting problems with `ONBUILD`
+      let (innerState, innerResults) = applyWithState state source linenumber i
+          (finalState, outerResults) = applyWithState innerState source linenumber onbuild
+       in (finalState, innerResults <> outerResults)
     applyRule state (InstructionPos i source linenumber) =
       applyWithState state source linenumber i -- Otherwise, normal instructions are not unwrapped
     applyWithState state source linenumber instruction =
@@ -218,7 +222,8 @@ rules =
     noDnfUpdate,
     dnfCleanup,
     dnfVersionPinned,
-    pipNoCacheDir
+    pipNoCacheDir,
+    noIllegalInstructionInOnbuild
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1139,3 +1144,15 @@ gems shell =
       arg /= "i",
       arg /= "--"
   ]
+
+
+noIllegalInstructionInOnbuild :: Rule
+noIllegalInstructionInOnbuild = instructionRule code severity message check
+  where
+    code = "DL3043"
+    severity = ErrorC
+    message = "`ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction."
+    check (OnBuild (OnBuild _)) = False
+    check (OnBuild (From _)) = False
+    check (OnBuild (Maintainer _)) = False
+    check _ = True
