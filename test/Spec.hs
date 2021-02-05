@@ -662,7 +662,12 @@ main =
       it "pip --no-cache-dir used" $ do
         ruleCatchesNot pipNoCacheDir        "RUN pip install MySQL_python --no-cache-dir"
         onBuildRuleCatchesNot pipNoCacheDir "RUN pip install MySQL_python --no-cache-dir"
-
+      it "don't match on pipx" $ do
+        ruleCatchesNot pipNoCacheDir        "RUN pipx install software"
+        onBuildRuleCatchesNot pipNoCacheDir "Run pipx install software"
+      it "don't match on pipenv" $ do
+        ruleCatchesNot pipNoCacheDir        "RUN pipenv install library"
+        onBuildRuleCatchesNot pipNoCacheDir "RUN pipenv install library"
     --
     describe "npm pinning" $ do
       it "version pinned in package.json" $ do
