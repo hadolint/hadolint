@@ -1121,15 +1121,23 @@ pipNoCacheDir = instructionRule code severity message check
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoCacheDir) args
     check _ = True
     forgotNoCacheDir cmd =
-      isPipInstall cmd && not(usesNoCacheDir cmd)
+      isPipInstall cmd && not(usesNoCacheDir cmd) && not (isPipWrapper cmd)
     usesNoCacheDir cmd   = "--no-cache-dir" `elem` Shell.getArgs cmd
 
 isPipInstall :: Shell.Command -> Bool
 isPipInstall cmd@(Shell.Command name _ _) = isStdPipInstall || isPythonPipInstall
   where
-    isStdPipInstall    = "pip" `Text.isPrefixOf` name && ["install"] `isInfixOf` Shell.getArgs cmd
+    isStdPipInstall = "pip" `Text.isPrefixOf` name
+      && ["install"] `isInfixOf` Shell.getArgs cmd
     isPythonPipInstall = "python" `Text.isPrefixOf` name
         && ["-m", "pip", "install"] `isInfixOf` Shell.getArgs cmd
+
+isPipWrapper :: Shell.Command -> Bool
+isPipWrapper cmd@(Shell.Command name _ _) = isWrapper "pipx" || isWrapper "pipenv"
+  where
+    isWrapper :: Text.Text -> Bool
+    isWrapper w = w `Text.isInfixOf` name
+      || ( "python" `Text.isPrefixOf` name && ["-m", w] `isInfixOf` Shell.getArgs cmd )
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
