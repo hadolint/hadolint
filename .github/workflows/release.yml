@@ -34,7 +34,7 @@ jobs:
     - name: Save Release URL File for publish
       uses: actions/upload-artifact@v2.2.2
       with:
-        name: release_url
+        name: release_url.txt
         path: release_url.txt
 
   build_artifact:
@@ -116,8 +116,7 @@ jobs:
     - name: Load Release URL File from release job
       uses: actions/download-artifact@v2.0.8
       with:
-        name: release_url
-        path: release_url.txt
+        name: release_url.txt
 
     - name: Get Release File Name & Upload URL
       id: get_release_info

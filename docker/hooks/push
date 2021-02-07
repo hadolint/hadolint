@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=> Fetch unshallow origin"
-git fetch --unshallow origin || true
+git describe || git fetch --unshallow origin || true
 
 echo "=> Tag image: 'scratch' (default)"
 docker tag "${IMAGE_NAME}" "${DOCKER_REPO}:$(git describe --long --always)"
