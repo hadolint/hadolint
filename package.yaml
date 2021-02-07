@@ -13,7 +13,7 @@ extra-source-files: README.md
 flags:
   static:
     description: Use static linking for the hadolint executable
-    default: false
+    default: true
     manual: true
 ghc-options:
   - -Wall

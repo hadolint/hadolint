@@ -84,7 +84,7 @@ jobs:
     - name: Build binary
       run: |
         mkdir dist
-        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options=-fPIC --flags="static"
+        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options=-fPIC
 
     - if: matrix.os == 'windows-latest'
       name: Set extension to .exe on Windows

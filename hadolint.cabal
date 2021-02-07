@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dfb3ea2c67167b2789e8b91ab7b9fca216ae6529ac7eb7f239b62b98b5c85d2d
+-- hash: 4bff44eba649ab681f8d1557dee71dced9af6a5e5cc1b2f37eb0c558ef556bf1
 
 name:           hadolint
 version:        1.22.0
@@ -28,7 +28,7 @@ source-repository head
 flag static
   description: Use static linking for the hadolint executable
   manual: True
-  default: False
+  default: True
 
 library
   exposed-modules:
