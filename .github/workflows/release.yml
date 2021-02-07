@@ -117,11 +117,12 @@ jobs:
       uses: actions/download-artifact@v2.0.8
       with:
         name: release_url
+        path: release_url.txt
 
     - name: Get Release File Name & Upload URL
       id: get_release_info
       run: |
-        echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+        echo "::set-output name=upload_url::$(cat release_url.txt)"
 
     - name: Upload Release Asset
       id: upload-release-asset
