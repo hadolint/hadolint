@@ -12,11 +12,9 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char
 import Data.Foldable (toList)
 import Data.List (groupBy)
-import Data.Monoid (mconcat, (<>))
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
-import Hadolint.Rules (Metadata (..), RuleCheck (..))
-import ShellCheck.Interface
+import Hadolint.Rules (Metadata (..), RuleCheck (..), DLSeverity (..))
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -37,7 +35,7 @@ errorToCheckStyle err =
     { file = sourceName pos,
       line = unPos (sourceLine pos),
       column = unPos (sourceColumn pos),
-      impact = severityText ErrorC,
+      impact = severityText DLErrorC,
       msg = errorBundlePretty err,
       source = "DL1000"
     }

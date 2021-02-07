@@ -9,12 +9,10 @@ module Hadolint.Formatter.TTY
 where
 
 import Colourista
-import Data.Semigroup ((<>))
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rules
 import Language.Docker.Syntax
-import ShellCheck.Interface (Severity (..))
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Stream (VisualStream)
@@ -46,10 +44,11 @@ printResult Result {errors, checks} color = printErrors >> printChecks
     printErrors = mapM_ putStrLn (formatErrors errors)
     printChecks = mapM_ (putStrLn . Text.unpack) (formatChecks checks color)
 
-colorizedSeverity :: Severity -> Text.Text
+colorizedSeverity :: DLSeverity -> Text.Text
 colorizedSeverity s =
   case s of
-    ErrorC -> Text.pack $ formatWith [bold, red] $ severityText s
-    WarningC -> Text.pack $ formatWith [bold, yellow] $ severityText s
-    InfoC -> Text.pack $ formatWith [green] $ severityText s
-    StyleC -> Text.pack $ formatWith [cyan] $ severityText s
+    DLErrorC -> Text.pack $ formatWith [bold, red] $ severityText s
+    DLWarningC -> Text.pack $ formatWith [bold, yellow] $ severityText s
+    DLInfoC -> Text.pack $ formatWith [green] $ severityText s
+    DLStyleC -> Text.pack $ formatWith [cyan] $ severityText s
+    _ -> Text.pack $ severityText s

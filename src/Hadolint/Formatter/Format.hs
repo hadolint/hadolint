@@ -12,12 +12,9 @@ where
 
 import Data.List (sort)
 import qualified Data.List.NonEmpty as NE
-import Data.Monoid (Monoid)
-import Data.Semigroup
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Hadolint.Rules
-import ShellCheck.Interface
 import Text.Megaparsec (TraversableStream (..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
@@ -41,13 +38,14 @@ toResult res =
     Left err -> Result (Seq.singleton err) mempty
     Right c -> Result mempty (Seq.fromList (sort c))
 
-severityText :: Severity -> String
+severityText :: DLSeverity -> String
 severityText s =
   case s of
-    ErrorC -> "error"
-    WarningC -> "warning"
-    InfoC -> "info"
-    StyleC -> "style"
+    DLErrorC -> "error"
+    DLWarningC -> "warning"
+    DLInfoC -> "info"
+    DLStyleC -> "style"
+    _ -> ""
 
 stripNewlines :: String -> String
 stripNewlines =
