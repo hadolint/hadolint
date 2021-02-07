@@ -6,7 +6,6 @@ module Hadolint.Formatter.Format
     errorPositionPretty,
     Text.Megaparsec.Error.errorBundlePretty,
     Result (..),
-    isEmpty,
     toResult,
   )
 where
@@ -35,10 +34,6 @@ instance Semigroup (Result s e) where
 instance Monoid (Result s e) where
   mappend = (<>)
   mempty = Result mempty mempty
-
-isEmpty :: Result s e -> Bool
-isEmpty (Result Seq.Empty Seq.Empty) = True
-isEmpty _ = False
 
 toResult :: Either (ParseErrorBundle s e) [RuleCheck] -> Result s e
 toResult res =

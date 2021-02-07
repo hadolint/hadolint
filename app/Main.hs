@@ -5,9 +5,10 @@
 module Main where
 
 import Control.Applicative
-import qualified Data.List.NonEmpty as NonEmpty
 import Data.Semigroup ((<>))
 import qualified Data.Set as Set
+import qualified Data.Sequence as Seq
+import qualified Data.List.NonEmpty as NonEmpty
 import Data.String (IsString (fromString))
 import qualified Data.Version
 import qualified Development.GitRev
@@ -41,6 +42,7 @@ import System.Exit (exitFailure, exitSuccess)
 
 data CommandOptions = CommandOptions
   { showVersion :: Bool,
+    noFail :: Bool,
     configFile :: Maybe FilePath,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
@@ -68,12 +70,15 @@ parseOptions :: Parser CommandOptions
 parseOptions =
   CommandOptions
     <$> version -- CLI options parser definition
+    <*> noFail
     <*> configFile
     <*> outputFormat
     <*> files
     <*> lintOptions
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
+
+    noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
 
     configFile =
       optional
@@ -118,6 +123,23 @@ parseOptions =
               )
           )
 
+noFailure :: Hadolint.Result s e -> Bool
+noFailure (Hadolint.Result Seq.Empty Seq.Empty) = True
+noFailure _ = False
+
+exitProgram :: CommandOptions -> Hadolint.Result s e -> IO()
+exitProgram cmd res
+  | noFail cmd                                 = exitSuccess
+  | Hadolint.shallSkipErrorStatus (format cmd) = exitSuccess
+  | noFailure res                              = exitSuccess
+  | otherwise                                  = exitFailure
+
+runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO()
+runLint cmd conf files = do
+  res <-  Hadolint.lint conf files
+  Hadolint.printResults (format cmd) res
+  exitProgram cmd res
+
 main :: IO ()
 main = do
   cmd <- execParser opts
@@ -131,9 +153,7 @@ main = do
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
         Left err -> error err
-        Right conf -> do
-          res <- Hadolint.lint conf files
-          Hadolint.printResultsAndExit (format cmd) res
+        Right conf -> runLint cmd conf files
     opts =
       info
         (helper <*> parseOptions)
