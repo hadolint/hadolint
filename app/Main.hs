@@ -137,7 +137,8 @@ exitProgram cmd res
 runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO()
 runLint cmd conf files = do
   res <-  Hadolint.lint conf files
-  Hadolint.printResults (format cmd) res >>  exitProgram cmd res
+  Hadolint.printResults (format cmd) res
+  exitProgram cmd res
 
 main :: IO ()
 main = do
