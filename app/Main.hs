@@ -43,6 +43,7 @@ import System.Exit (exitFailure, exitSuccess)
 data CommandOptions = CommandOptions
   { showVersion :: Bool,
     noFail :: Bool,
+    color :: Bool,
     configFile :: Maybe FilePath,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
@@ -71,6 +72,7 @@ parseOptions =
   CommandOptions
     <$> version -- CLI options parser definition
     <*> noFail
+    <*> color
     <*> configFile
     <*> outputFormat
     <*> files
@@ -79,6 +81,8 @@ parseOptions =
     version = switch (long "version" <> short 'v' <> help "Show version")
 
     noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
+
+    color = switch (long "color" <> help "Colorize output")
 
     configFile =
       optional
@@ -137,7 +141,7 @@ exitProgram cmd res
 runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO()
 runLint cmd conf files = do
   res <-  Hadolint.lint conf files
-  Hadolint.printResults (format cmd) res
+  Hadolint.printResults (format cmd) (color cmd) res
   exitProgram cmd res
 
 main :: IO ()

@@ -37,10 +37,10 @@ data OutputFormat
   | Codacy
   deriving (Show, Eq)
 
-printResults :: OutputFormat -> Format.Result Text DockerfileError -> IO ()
-printResults format allResults = do
+printResults :: OutputFormat -> Bool -> Format.Result Text DockerfileError -> IO ()
+printResults format color allResults =
   case format of
-    TTY -> TTY.printResult allResults
+    TTY -> TTY.printResult allResults color
     Json -> Json.printResult allResults
     Checkstyle -> Checkstyle.printResult allResults
     CodeclimateJson -> Codeclimate.printResult allResults
