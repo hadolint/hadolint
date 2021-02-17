@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b62585868ea4e7cd1b565df9b434889d4b50d5a74d5984ceecc46973f5b2e1d9
+-- hash: 57c29478859116ae6879a5ab2dcdfe0ebb3703d11e66b4cba9af307566bdf072
 
 name:           hadolint
 version:        1.22.1
@@ -57,6 +57,7 @@ library
     , async
     , base >=4.8 && <5
     , bytestring
+    , colourista
     , containers
     , cryptonite
     , directory >=1.3.0

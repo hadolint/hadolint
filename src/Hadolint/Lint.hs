@@ -38,9 +38,9 @@ data OutputFormat
   deriving (Show, Eq)
 
 printResults :: OutputFormat -> Bool -> Format.Result Text DockerfileError -> IO ()
-printResults format color allResults =
+printResults format nocolor allResults =
   case format of
-    TTY -> TTY.printResult allResults color
+    TTY -> TTY.printResult allResults nocolor
     Json -> Json.printResult allResults
     Checkstyle -> Checkstyle.printResult allResults
     CodeclimateJson -> Codeclimate.printResult allResults
