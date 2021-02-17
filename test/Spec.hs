@@ -1422,6 +1422,15 @@ main =
       it "ok with `FROM` outside of `ONBUILD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "FROM debian:buster"
       it "ok with `MAINTAINER` outside of `ONBUILD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "MAINTAINER \"Some Guy\""
     --
+    describe "Selfreferencing `ENV`s" $ do
+      it "ok with normal ENV" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\"\nENV BLUBB=\"${BLA}/blubb\""
+      it "ok with partial match 1" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${FOOBLA}/blubb\""
+      it "ok with partial match 2" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLAFOO}/blubb\""
+      it "fail with selfreferencing with curly braces ENV" $
+          ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLA}/blubb\""
+      it "fail with selfreferencing without curly braces ENV" $
+          ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
+    --
     describe "Regression Tests" $
       it "Comments with backslashes at the end are just comments" $
         let dockerFile =
