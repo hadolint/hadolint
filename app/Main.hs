@@ -13,6 +13,7 @@ import Data.String (IsString (fromString))
 import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
+import Data.Maybe
 import Options.Applicative
   ( Parser,
     action,
@@ -38,11 +39,13 @@ import Options.Applicative
   )
 -- version from hadolint.cabal file
 import qualified Paths_hadolint as Meta
+import System.Environment
 import System.Exit (exitFailure, exitSuccess)
 
 data CommandOptions = CommandOptions
   { showVersion :: Bool,
     noFail :: Bool,
+    nocolor :: Bool,
     configFile :: Maybe FilePath,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
@@ -71,6 +74,7 @@ parseOptions =
   CommandOptions
     <$> version -- CLI options parser definition
     <*> noFail
+    <*> nocolor
     <*> configFile
     <*> outputFormat
     <*> files
@@ -79,6 +83,8 @@ parseOptions =
     version = switch (long "version" <> short 'v' <> help "Show version")
 
     noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
+
+    nocolor = switch (long "no-color" <> help "Don't colorize output")
 
     configFile =
       optional
@@ -137,7 +143,9 @@ exitProgram cmd res
 runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO()
 runLint cmd conf files = do
   res <-  Hadolint.lint conf files
-  Hadolint.printResults (format cmd) res
+  noColorEnv <- lookupEnv "NO_COLOR"
+  let noColor = nocolor cmd || isJust noColorEnv
+  Hadolint.printResults (format cmd) noColor res
   exitProgram cmd res
 
 main :: IO ()

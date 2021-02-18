@@ -1471,7 +1471,7 @@ onBuildRuleCatches rule s = assertOnBuildChecks rule s f
   where
     f checks = do
       when (length checks /= 1) $
-        assertFailure (Text.unpack . Text.unlines . formatChecks $ checks)
+        assertFailure (Text.unpack . Text.unlines . formatChecksNoColor $ checks)
       assertBool "Incorrect line number for result" $ null $ selectChecksWithLines checks
 
 ruleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
@@ -1481,7 +1481,7 @@ ruleCatchesNot rule s = assertChecks rule s f
       unless (null checks) $
         assertFailure $
           "Not expecting the following errors: \n"
-            ++ (Text.unpack . Text.unlines . formatChecks $ checks)
+            ++ (Text.unpack . Text.unlines . formatChecksNoColor $ checks)
 
 onBuildRuleCatchesNot :: HasCallStack => Rule -> Text.Text -> Assertion
 onBuildRuleCatchesNot rule s = assertOnBuildChecks rule s f
@@ -1490,4 +1490,7 @@ onBuildRuleCatchesNot rule s = assertOnBuildChecks rule s f
       unless (null checks) $
         assertFailure $
           "Not expecting the following errors: \n"
-            ++ (Text.unpack . Text.unlines . formatChecks $ checks)
+            ++ (Text.unpack . Text.unlines . formatChecksNoColor $ checks)
+
+formatChecksNoColor :: Functor f => f RuleCheck -> f Text.Text
+formatChecksNoColor checks = formatChecks checks False
