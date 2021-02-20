@@ -11,6 +11,7 @@ import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import Data.List.Index
 import qualified Data.Map as Map
+import Data.Maybe (isNothing, isJust, fromJust)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -237,7 +238,8 @@ rules =
     dnfVersionPinned,
     pipNoCacheDir,
     noIllegalInstructionInOnbuild,
-    noSelfreferencingEnv
+    noSelfreferencingEnv,
+    relativeCopyWithoutWorkdir
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1234,3 +1236,21 @@ noSelfreferencingEnv = instructionRuleState code severity message check Set.empt
         -- all characters valid in the inner of a shell variable name
         varChar :: String
         varChar = ['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ ['_']
+
+relativeCopyWithoutWorkdir :: Rule
+relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("", [])
+  where
+    code = "DL3045"
+    severity = DLWarningC
+    message = "`COPY` to a relative destination without `WORKDIR` set."
+    check st _ (From BaseImage {image, alias = Just als}) =
+        withState (unImageAlias als,
+                   snd st ++ [(unImageAlias als, dir) | (img, dir) <- snd st,
+                                                        img == imageName image]) True
+    check st _ (From BaseImage {image, alias = Nothing}) =
+        withState (imageName image, snd st) True
+    check st _ (Workdir dir) = withState (fst st, snd st ++ [(fst st, dir)]) True
+    check st _ (Copy (CopyArgs _ (TargetPath dest) _ _))
+      | fst st `elem` map fst (snd st) || "/" `Text.isPrefixOf` dest = withState st True
+      | otherwise = withState st False
+    check st _ _ = withState st True

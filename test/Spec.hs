@@ -908,6 +908,54 @@ main =
       it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
       it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
     --
+    describe "`COPY` without `WORKDIR` set" $ do
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+      it "ok: `COPY` with relative destination and `WORKDIR` set" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
+      it "not ok: `COPY` with relative destination and no `WORKDIR` set" $ do
+        ruleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
+        onBuildRuleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
+      it "not ok: `COPY` to relative destination if `WORKDIR` is set in a previous stage but not inherited" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as stage1",
+                  "WORKDIR /usr",
+                  "FROM debian:buster",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatches relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatches relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in base image" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as base",
+                  "WORKDIR /usr",
+                  "FROM debian:buster as stage-inbetween",
+                  "RUN foo",
+                  "FROM base",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in previous stage, deep case" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as base1",
+                  "WORKDIR /usr",
+                  "FROM base1 as base2",
+                  "RUN foo",
+                  "FROM base2",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+    --
     describe "other rules" $ do
       it "apt-get auto yes" $ do
         ruleCatches aptGetYes "RUN apt-get install python"
