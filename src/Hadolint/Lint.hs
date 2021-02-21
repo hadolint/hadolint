@@ -18,12 +18,21 @@ import qualified Language.Docker as Docker
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 
+
+type ErrorRule = Text
+type WarningRule = Text
+type InfoRule = Text
+type StyleRule = Text
 type IgnoreRule = Text
 
 type TrustedRegistry = Text
 
 data LintOptions = LintOptions
-  { ignoreRules :: [IgnoreRule],
+  { errorRules :: [ErrorRule],
+    warningRules :: [WarningRule],
+    infoRules :: [InfoRule],
+    styleRules :: [StyleRule],
+    ignoreRules :: [IgnoreRule],
     rulesConfig :: Rules.RulesConfig
   }
   deriving (Show)
@@ -48,32 +57,55 @@ printResults format nocolor allResults =
     Codacy -> Codacy.printResult allResults
 
 shallSkipErrorStatus:: OutputFormat -> Bool
-shallSkipErrorStatus format  = elem format [CodeclimateJson, Codacy]
-
+shallSkipErrorStatus format  = format `elem` [CodeclimateJson, Codacy]
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
 -- Depending on the preferred printing format, it will output the results to stdout
 lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
-lint LintOptions {ignoreRules = ignoreList, rulesConfig} dFiles = do
-  parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
-  let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
-  return $ mconcat results
-  where
-    parseFile :: String -> IO (Either Error Dockerfile)
-    parseFile "-" = Docker.parseStdin
-    parseFile s = Docker.parseFile s
+lint
+  LintOptions
+    { errorRules = errorList,
+      warningRules = warningList,
+      infoRules = infoList,
+      styleRules = styleList,
+      ignoreRules = ignoreList,
+      rulesConfig
+    }
+  dFiles = do
+    parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
+    let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
+    return $ mconcat results
+    where
+      parseFile :: String -> IO (Either Error Dockerfile)
+      parseFile "-" = Docker.parseStdin
+      parseFile s = Docker.parseFile s
 
-    lintAll = fmap (lintDockerfile ignoreList)
+      lintAll = fmap lintDockerfile
 
-    lintDockerfile ignoreRules ast = processedFile ast
-      where
-        processedFile = Format.toResult . fmap processRules
-        processRules fileLines = filter ignoredRules (analyzeAll rulesConfig fileLines)
-        ignoredRules = ignoreFilter ignoreRules
+      lintDockerfile = processedFile
+        where
+          processedFile = Format.toResult . fmap processRules
+          processRules fileLines =
+            filter ignoredRules $
+              map
+                ( makeSeverity Rules.DLErrorC errorList
+                . makeSeverity Rules.DLWarningC warningList
+                . makeSeverity Rules.DLInfoC infoList
+                . makeSeverity Rules.DLStyleC styleList
+                )
+                $ analyzeAll rulesConfig fileLines
 
-        ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-        ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code _ _) _ _ _) = code `notElem` rules
+          ignoredRules = ignoreFilter ignoreList
+
+          makeSeverity s rules rule@(Rules.RuleCheck (Rules.Metadata code _ message) filename linenumber success) =
+            if code `elem` rules
+              then Rules.RuleCheck (Rules.Metadata code s message) filename linenumber success
+              else rule
+
+          ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
+          ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
+            code `notElem` rules && severity /= Rules.DLIgnoreC
 
 -- | Returns the result of applying all the rules to the given dockerfile
 analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]

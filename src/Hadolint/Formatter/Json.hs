@@ -9,10 +9,8 @@ where
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.Monoid ((<>))
 import Hadolint.Formatter.Format (Result (..), errorPosition, severityText)
-import Hadolint.Rules (Metadata (..), RuleCheck (..))
-import ShellCheck.Interface
+import Hadolint.Rules (Metadata (..), RuleCheck (..), DLSeverity (..))
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -37,7 +35,7 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
       [ "file" .= sourceName pos,
         "line" .= unPos (sourceLine pos),
         "column" .= unPos (sourceColumn pos),
-        "level" .= severityText ErrorC,
+        "level" .= severityText DLErrorC,
         "code" .= ("DL1000" :: String),
         "message" .= errorBundlePretty err
       ]

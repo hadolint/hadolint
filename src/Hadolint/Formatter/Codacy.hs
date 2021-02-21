@@ -9,7 +9,6 @@ where
 
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.Monoid ((<>))
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format (Result (..), errorPosition)

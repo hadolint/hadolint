@@ -8,7 +8,6 @@ module Hadolint.Shell where
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
 import Data.Maybe (listToMaybe, mapMaybe)
-import Data.Semigroup ((<>))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text

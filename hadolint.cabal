@@ -60,6 +60,7 @@ library
     , colourista
     , containers
     , cryptonite
+    , deepseq ==1.4.4.*
     , directory >=1.3.0
     , filepath
     , language-docker >=9.1.2 && <10
