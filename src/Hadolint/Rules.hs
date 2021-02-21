@@ -1187,14 +1187,14 @@ noIllegalInstructionInOnbuild = instructionRule code severity message check
     check _ = True
 
 noSelfreferencingEnv :: Rule
-noSelfreferencingEnv = instructionRuleState code severity message check []
+noSelfreferencingEnv = instructionRuleState code severity message check Set.empty
   where
     code = "DL3044"
     severity = DLErrorC
     message = "Do not refer to an environment variable within the same `ENV` statement where it is defined."
-    check st _ (Env pairs) = withState (nub $ st ++ map fst pairs) $
-        null [ env | env <- listOfReferences pairs, env `notElem` st ]
-    check st _ (Arg arg _) = withState (nub $ st ++ [arg]) True
+    check st _ (Env pairs) = withState (Set.union st (Set.fromList (map fst pairs))) $
+        null [ env | env <- listOfReferences pairs, env `Set.notMember` st ]
+    check st _ (Arg arg _) = withState (Set.insert arg st) True
     check st _ _ = withState st True
 
     -- generates a list of references to variable names referenced on the right
