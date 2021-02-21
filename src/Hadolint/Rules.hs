@@ -1,6 +1,7 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 module Hadolint.Rules where
 
@@ -20,12 +21,12 @@ import qualified ShellCheck.Interface
 import qualified Text.Megaparsec as Megaparsec
 import qualified Text.Megaparsec.Char as Megaparsec
 
-
-data DLSeverity = DLErrorC
-                | DLWarningC
-                | DLInfoC
-                | DLStyleC
-                | DLIgnoreC
+data DLSeverity
+  = DLErrorC
+  | DLWarningC
+  | DLInfoC
+  | DLStyleC
+  | DLIgnoreC
   deriving (Show, Eq, Ord, Generic, NFData)
 
 data Metadata = Metadata
@@ -1061,7 +1062,6 @@ zypperVersionPinned = instructionRule code severity message check
         || "<" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
 
-
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
 zypperPackages args =
   [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "zypper" ["install", "in"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install", arg /= "in"
@@ -1107,7 +1107,7 @@ dnfCleanup = instructionRule code severity message check
     check (Run (RunArgs args _)) =
       argumentsRule (Shell.noCommands dnfInstall) args
         || ( argumentsRule (Shell.anyCommands dnfInstall) args
-              && argumentsRule (Shell.anyCommands dnfClean) args
+               && argumentsRule (Shell.anyCommands dnfClean) args
            )
     check _ = True
     dnfInstall = Shell.cmdHasArgs "dnf" ["install"]
@@ -1140,23 +1140,26 @@ pipNoCacheDir = instructionRule code severity message check
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands forgotNoCacheDir) args
     check _ = True
     forgotNoCacheDir cmd =
-      isPipInstall cmd && not(usesNoCacheDir cmd) && not (isPipWrapper cmd)
-    usesNoCacheDir cmd   = "--no-cache-dir" `elem` Shell.getArgs cmd
+      isPipInstall cmd && not (usesNoCacheDir cmd) && not (isPipWrapper cmd)
+    usesNoCacheDir cmd = "--no-cache-dir" `elem` Shell.getArgs cmd
 
 isPipInstall :: Shell.Command -> Bool
 isPipInstall cmd@(Shell.Command name _ _) = isStdPipInstall || isPythonPipInstall
   where
-    isStdPipInstall = "pip" `Text.isPrefixOf` name
-      && ["install"] `isInfixOf` Shell.getArgs cmd
-    isPythonPipInstall = "python" `Text.isPrefixOf` name
+    isStdPipInstall =
+      "pip" `Text.isPrefixOf` name
+        && ["install"] `isInfixOf` Shell.getArgs cmd
+    isPythonPipInstall =
+      "python" `Text.isPrefixOf` name
         && ["-m", "pip", "install"] `isInfixOf` Shell.getArgs cmd
 
 isPipWrapper :: Shell.Command -> Bool
 isPipWrapper cmd@(Shell.Command name _ _) = isWrapper "pipx" || isWrapper "pipenv"
   where
     isWrapper :: Text.Text -> Bool
-    isWrapper w = w `Text.isInfixOf` name
-      || ( "python" `Text.isPrefixOf` name && ["-m", w] `isInfixOf` Shell.getArgs cmd )
+    isWrapper w =
+      w `Text.isInfixOf` name
+        || ("python" `Text.isPrefixOf` name && ["-m", w] `isInfixOf` Shell.getArgs cmd)
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =
@@ -1172,7 +1175,6 @@ gems shell =
       arg /= "--"
   ]
 
-
 noIllegalInstructionInOnbuild :: Rule
 noIllegalInstructionInOnbuild = instructionRule code severity message check
   where
@@ -1184,20 +1186,24 @@ noIllegalInstructionInOnbuild = instructionRule code severity message check
     check (OnBuild (Maintainer _)) = False
     check _ = True
 
-
 noSelfreferencingEnv :: Rule
 noSelfreferencingEnv = instructionRule code severity message check
   where
     code = "DL3044"
-    severity = ErrorC
+    severity = DLErrorC
     message = "Do not refer to an environment variable within the same `ENV` statement where it is defined."
     check (Env pairs) = findReferences pairs
     check _ = True
 
     findReferences :: Pairs -> Bool
-    findReferences prs = null [ var | var <- map fst prs,
-                                      var `isSubstringOfAny` map snd prs ]
+    findReferences prs =
+      null
+        [ var | var <- map fst prs, var `isSubstringOfAny` map snd prs
+        ]
     isSubstringOfAny :: Text.Text -> [Text.Text] -> Bool
-    isSubstringOfAny t l = not $ null [ v | v <- l,
-        (Text.pack "${" <> t <> Text.pack "}") `Text.isInfixOf` v
-        || (Text.pack "$" <> t) `Text.isInfixOf` v]
+    isSubstringOfAny t l =
+      not $
+        null
+          [ v | v <- l, ("${" <> t <> "}") `Text.isInfixOf` v
+                          || ("$" <> t) `Text.isInfixOf` v
+          ]
