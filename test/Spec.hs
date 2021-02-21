@@ -1430,7 +1430,7 @@ main =
       it "fail with selfreferencing without curly braces ENV" $
           ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
     --
-    describe "Regression Tests" $
+    describe "Regression Tests" $ do
       it "Comments with backslashes at the end are just comments" $
         let dockerFile =
               [ "FROM alpine:3.6",
@@ -1442,6 +1442,16 @@ main =
                 "RUN echo \"kaka\" | sed 's/a/o/g' >> /root/afile"
               ]
          in ruleCatches usePipefail $ Text.unlines dockerFile
+      it "`ARG` can correctly unset variables" $
+        let dockerFile =
+              [ "ARG A_WITHOUT_EQ",
+                "ARG A_WITH_EQ=",
+                "RUN echo bla"
+              ]
+         in assertChecks
+              shellcheck
+              (Text.unlines dockerFile)
+              (assertBool "No Warnings or Errors should be triggered" . null)
 
     -- Run tests for the Config module
     ConfigSpec.tests
