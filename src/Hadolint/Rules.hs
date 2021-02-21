@@ -235,8 +235,7 @@ rules =
     dnfCleanup,
     dnfVersionPinned,
     pipNoCacheDir,
-    noIllegalInstructionInOnbuild,
-    noSelfreferencingEnv
+    noIllegalInstructionInOnbuild
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1185,25 +1184,3 @@ noIllegalInstructionInOnbuild = instructionRule code severity message check
     check (OnBuild (From _)) = False
     check (OnBuild (Maintainer _)) = False
     check _ = True
-
-noSelfreferencingEnv :: Rule
-noSelfreferencingEnv = instructionRule code severity message check
-  where
-    code = "DL3044"
-    severity = DLErrorC
-    message = "Do not refer to an environment variable within the same `ENV` statement where it is defined."
-    check (Env pairs) = findReferences pairs
-    check _ = True
-
-    findReferences :: Pairs -> Bool
-    findReferences prs =
-      null
-        [ var | var <- map fst prs, var `isSubstringOfAny` map snd prs
-        ]
-    isSubstringOfAny :: Text.Text -> [Text.Text] -> Bool
-    isSubstringOfAny t l =
-      not $
-        null
-          [ v | v <- l, ("${" <> t <> "}") `Text.isInfixOf` v
-                          || ("$" <> t) `Text.isInfixOf` v
-          ]
