@@ -235,7 +235,8 @@ rules =
     dnfCleanup,
     dnfVersionPinned,
     pipNoCacheDir,
-    noIllegalInstructionInOnbuild
+    noIllegalInstructionInOnbuild,
+    noSelfreferencingEnv
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1184,3 +1185,50 @@ noIllegalInstructionInOnbuild = instructionRule code severity message check
     check (OnBuild (From _)) = False
     check (OnBuild (Maintainer _)) = False
     check _ = True
+
+noSelfreferencingEnv :: Rule
+noSelfreferencingEnv = instructionRuleState code severity message check []
+  where
+    code = "DL3044"
+    severity = DLErrorC
+    message = "Do not refer to an environment variable within the same `ENV` statement where it is defined."
+    check st _ (Env pairs) = withState (nub $ st ++ map fst pairs) $
+        null [ env | env <- listOfReferences pairs, env `notElem` st ]
+    check st _ (Arg arg _) = withState (nub $ st ++ [arg]) True
+    check st _ _ = withState st True
+
+    -- generates a list of references to variable names referenced on the right
+    -- hand side of a variable definition
+    listOfReferences :: Pairs -> [Text.Text]
+    listOfReferences prs = [ var | var <- map fst prs,
+                                   var `isSubstringOfAny` map snd prs ]
+    -- is a reference of a variable substring of any text?
+    -- matches ${var_name} and $var_name, but not $var_nameblafoo
+    isSubstringOfAny :: Text.Text -> [Text.Text] -> Bool
+    isSubstringOfAny t l = not $ null [ v | v <- l,
+        (Text.pack "${" <> t <> Text.pack "}") `Text.isInfixOf` v
+        || (t `bareVariableInText` v)]
+
+    -- we find a 'bare' variable with name v in a text, if
+    -- '$v' is in the text at any place and any text following after that
+    -- occurence would terminate a variable name. To determine that, the text t
+    -- is split at every occurence of var, check if '$v' is in the text and if
+    -- any part of the split text would terminate a variable name.
+    bareVariableInText :: Text.Text -> Text.Text -> Bool
+    bareVariableInText v t =
+      let var = Text.pack "$" <> v
+          rest = Text.splitOn var t
+       in var `Text.isInfixOf` t && any terminatesVarName rest
+      where
+        -- x would terminate a variable name if it was appended directly to
+        -- that name
+        terminatesVarName :: Text.Text -> Bool
+        terminatesVarName x = not $ beginsWithAnyOf x varChar
+
+        -- txt begins with any character of String
+        beginsWithAnyOf :: Text.Text -> String -> Bool
+        beginsWithAnyOf txt str = Text.null txt || (Text.head txt `elem` str)
+
+        -- all characters valid in the inner of a shell variable name
+        varChar :: String
+        varChar = ['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ ['_']
