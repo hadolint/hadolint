@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 06df88cbceaf76da3599a8943568f912b17a63d1795839eb4da974832e1ae0d4
+-- hash: 86f9cfdca9eaa4b16ecd3292135ace357a7834b995350e9ce3b70acf1f9cfa63
 
 name:           hadolint
 version:        1.23.0
@@ -98,6 +98,7 @@ test-suite hadolint-unit-tests
   main-is: Spec.hs
   other-modules:
       ConfigSpec
+      ShellSpec
       Paths_hadolint
   hs-source-dirs:
       test
