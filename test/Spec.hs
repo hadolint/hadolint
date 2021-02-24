@@ -912,9 +912,15 @@ main =
       it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set - windows" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh c:\\system32\\blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh d:\\mypath\\blubb.sh"
       it "ok: `COPY` with relative destination and `WORKDIR` set" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
+      it "ok: `COPY` with relative destination and `WORKDIR` set - windows" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
       it "not ok: `COPY` with relative destination and no `WORKDIR` set" $ do
         ruleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
         onBuildRuleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
@@ -924,6 +930,17 @@ main =
                 [ "FROM debian:buster as stage1",
                   "WORKDIR /usr",
                   "FROM debian:buster",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatches relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatches relativeCopyWithoutWorkdir dockerFile
+      it "not ok: `COPY` to relative destination if `WORKDIR` is set in a previous stage but not inherited - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as stage1",
+                  "WORKDIR c:\\system32",
+                  "FROM microsoft/windowsservercore",
                   "COPY foo bar"
                 ]
         in do
@@ -942,11 +959,37 @@ main =
         in do
           ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
           onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in base image - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as base",
+                  "WORKDIR c:\\system32",
+                  "FROM microsoft/windowsservercore as stage-inbetween",
+                  "RUN foo",
+                  "FROM base",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
       it "ok: `COPY` to relative destination if `WORKDIR` has been set in previous stage, deep case" $
         let dockerFile =
               Text.unlines
                 [ "FROM debian:buster as base1",
                   "WORKDIR /usr",
+                  "FROM base1 as base2",
+                  "RUN foo",
+                  "FROM base2",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in previous stage, deep case - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as base1",
+                  "WORKDIR c:\\system32",
                   "FROM base1 as base2",
                   "RUN foo",
                   "FROM base2",

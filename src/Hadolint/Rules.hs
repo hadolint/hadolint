@@ -11,7 +11,7 @@ import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
 import Data.List.Index
 import qualified Data.Map as Map
-import Data.Maybe (isNothing, isJust, fromJust)
+import Data.Maybe ()
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Void (Void)
@@ -1237,20 +1237,25 @@ noSelfreferencingEnv = instructionRuleState code severity message check Set.empt
         varChar :: String
         varChar = ['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ ['_']
 
+-- The state here keeps the image name/alias of the current build stage in
+-- (fst st) and a map from image names/aliases to a Bool, saving whether or
+-- not a `WORKDIR` has been set in a build stage.
 relativeCopyWithoutWorkdir :: Rule
-relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("", [])
+relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("", Map.empty)
   where
     code = "DL3045"
     severity = DLWarningC
     message = "`COPY` to a relative destination without `WORKDIR` set."
     check st _ (From BaseImage {image, alias = Just als}) =
         withState (unImageAlias als,
-                   snd st ++ [(unImageAlias als, dir) | (img, dir) <- snd st,
-                                                        img == imageName image]) True
+                   Map.insert (unImageAlias als) (Map.findWithDefault False (imageName image) (snd st)) (snd st)) True
     check st _ (From BaseImage {image, alias = Nothing}) =
         withState (imageName image, snd st) True
-    check st _ (Workdir dir) = withState (fst st, snd st ++ [(fst st, dir)]) True
+    check st _ (Workdir _) =
+        withState (fst st, Map.insert (fst st) True (snd st)) True
     check st _ (Copy (CopyArgs _ (TargetPath dest) _ _))
-      | fst st `elem` map fst (snd st) || "/" `Text.isPrefixOf` dest = withState st True
-      | otherwise = withState st False
+        | uncurry Map.member st = withState st True  -- workdir has been set
+        | "/" `Text.isPrefixOf` dest = withState st True  -- absolute dest. normal
+        | ":\\" `Text.isPrefixOf` Text.drop 1 dest = withState st True  -- absolute dest. windows
+        | otherwise = withState st False
     check st _ _ = withState st True
