@@ -1218,63 +1218,34 @@ main =
          in ruleCatchesNot copyFromAnother $ Text.unlines dockerFile
     --
     describe "multiple COPY to same destination" $ do
-      it "warn on multiple COPY to same destination - single stage" $
+      it "not ok with multiple COPY to same destination - single stage" $
         let dockerFile =
               [ "FROM baseimage",
                 "COPY foo /asdf",
                 "COPY bar /asdf"
               ]
         in ruleCatches multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "don't warn on multiple COPY to new location" $
+      it "ok with multiple COPY to new location" $
         let dockerFile =
               [ "FROM baseimage",
                 "COPY foo /asdf",
                 "COPY bar /bazz"
               ]
         in ruleCatchesNot multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "warn on multiple COPY to same destination - simple multi stage" $
+      it "ok with multiple COPY to same destination in different build stages" $
         let dockerFile =
               [ "FROM baseimage as base",
                 "COPY foo /asdf",
                 "FROM base",
                 "COPY bar /asdf"
               ]
-        in ruleCatches multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "warn on multiple COPY to same destination - complex multi stage" $
+        in ruleCatchesNot multipleCopyToSameLocation $ Text.unlines dockerFile
+      it "ok with multiple COPY to new location - multi stage" $
         let dockerFile =
               [ "FROM baseimage as base1",
                 "COPY foo /asdf",
-                "FROM baseimage as base2",
-                "COPY baz /asdf",
-                "FROM base1",
-                "COPY bar /asdf"
-              ]
-        in ruleCatches multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "warn on multiple COPY to same destination - deep multi stage" $
-        let dockerFile =
-              [ "FROM baseimage as base1",
-                "COPY foo /asdf",
-                "FROM base1 as base2",
-                "FROM base2",
-                "COPY bar /asdf"
-              ]
-        in ruleCatches multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "don't warn on multiple COPY to new location - complex multi stage" $
-        let dockerFile =
-              [ "FROM baseimage as base1",
-                "COPY foo /asdf",
-                "FROM baseimage as base2",
-                "COPY baz /asdf",
                 "FROM base1",
                 "COPY bar /bazz"
-              ]
-        in ruleCatchesNot multipleCopyToSameLocation $ Text.unlines dockerFile
-      it "don't warn on multiple COPY to same destination of new image" $
-        let dockerFile =
-              [ "FROM baseimage",
-                "COPY foo /asdf",
-                "FROM newbase",
-                "COPY bar /asdf"
               ]
         in ruleCatchesNot multipleCopyToSameLocation $ Text.unlines dockerFile
     --
