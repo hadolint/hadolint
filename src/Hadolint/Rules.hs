@@ -9,6 +9,7 @@ import Control.Arrow ((&&&))
 import Control.DeepSeq (NFData)
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
+import Data.List.Index
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -1198,10 +1199,11 @@ noSelfreferencingEnv = instructionRuleState code severity message check Set.empt
     check st _ _ = withState st True
 
     -- generates a list of references to variable names referenced on the right
-    -- hand side of a variable definition
+    -- hand side of a variable definition, except when the variable is
+    -- referenced on its own right hand side.
     listOfReferences :: Pairs -> [Text.Text]
-    listOfReferences prs = [ var | var <- map fst prs,
-                                   var `isSubstringOfAny` map snd prs ]
+    listOfReferences prs = [ var | (idx, (var, _)) <- indexed prs,
+                                   var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (indexed prs))]
     -- is a reference of a variable substring of any text?
     -- matches ${var_name} and $var_name, but not $var_nameblafoo
     isSubstringOfAny :: Text.Text -> [Text.Text] -> Bool
