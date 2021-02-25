@@ -12,6 +12,7 @@ import Data.List.NonEmpty (toList)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import Data.Maybe (isJust, fromJust)
 import Data.Void (Void)
 import GHC.Generics (Generic)
 import qualified Hadolint.Shell as Shell
@@ -236,7 +237,8 @@ rules =
     dnfVersionPinned,
     pipNoCacheDir,
     noIllegalInstructionInOnbuild,
-    noSelfreferencingEnv
+    noSelfreferencingEnv,
+    hasMaintainerLabel
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -334,6 +336,41 @@ hasNoMaintainer = instructionRule code severity message check
     message = "MAINTAINER is deprecated"
     check (Maintainer _) = False
     check _ = True
+
+hasMaintainerLabel :: Rule
+hasMaintainerLabel dockerfile = instructionRuleState code severity message check [] dockerfile
+  where
+    code = "DL3012"
+    severity = DLIgnoreC
+    message = "Provide an email adress or URL as maintainer label"
+    check st line (From BaseImage {image, alias})
+      | imageName image `elem` map snd st
+          && isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
+      | imageName image `elem` map snd st = withState st True
+      | null (allLabelsInStage line dockerfile)
+          && null (allFromsAfter line dockerfile) =
+        withState st False
+      | null (allLabelsInStage line dockerfile) = withState st True
+      | isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
+      | otherwise = withState st True
+    check st _ _ = withState st True
+
+    allLabels df = [(l, h) | (l, Label h) <- instr df]
+    isMaintainer df = or ["maintainer" `Text.isInfixOf` (Text.toLower x) | (x,_) <- df]
+    allMaintainerLabels df = [(l, h) | (l, h) <- allLabels df, isMaintainer h]
+
+    allFroms df = [(l, f) | (l, From f) <- instr df]
+
+    allLabelsAfter line df = [(l, h) | (l, h) <- allMaintainerLabels df, l > line ]
+    allFromsAfter line df = [(l, f) | (l, f) <- allFroms df, l > line]
+
+    allLabelsInStage line df
+      | null $ allFromsAfter line df = allLabelsAfter line df
+      | otherwise =
+        [ (l, h) | (l, h) <- allLabelsAfter line df, (fl, _) <- [minimum $ allFromsAfter line df], l < fl
+        ]
+    instr = fmap (lineNumber &&& instruction)
+
 
 -- Check if a command contains a program call in the Run instruction
 usingProgram :: Text.Text -> Shell.ParsedShell -> Bool

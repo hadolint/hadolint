@@ -978,6 +978,20 @@ main =
       it "has no maintainer" $ ruleCatchesNot hasNoMaintainer "FROM debian"
       it "using add" $ ruleCatches copyInsteadAdd "ADD file /usr/src/app/"
 
+      it "should have maintainer label" $ ruleCatchesNot hasMaintainerLabel "FROM busybox\nLABEL maintainer=asd"
+
+      it "should have maintainer label uppercase" $ ruleCatchesNot hasMaintainerLabel "FROM busybox\nLABEL MAINTAINER=asd"
+
+      it "should have maintainer label in the last stage" $ ruleCatchesNot hasMaintainerLabel "FROM busybox AS temp\nLABEL MAINTAINER=asd\nFROM alpine\nLABEL MAINTAINER=asd"
+
+      it "should have maintainer label quotes" $ ruleCatchesNot hasMaintainerLabel "FROM busybox\nLABEL maintainer=\"asd\""
+
+      it "other labels present, but no maintainer" $ ruleCatches hasMaintainerLabel "FROM busybox\nLABEL foo=bar"
+
+      it "should have maintainer label in the last stage" $ ruleCatches hasMaintainerLabel "FROM busybox AS temp\nLABEL MAINTAINER=asd\nFROM alpine"
+
+      it "does not have maintainer label" $ ruleCatches hasMaintainerLabel "FROM busybox"
+
       it "many cmds" $
         let dockerFile =
               [ "FROM debian",
