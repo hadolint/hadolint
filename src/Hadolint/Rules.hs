@@ -220,6 +220,8 @@ rules =
     multipleCmds,
     multipleEntrypoints,
     useShell,
+    hasHealthcheck,
+    multipleHealthcheck,
     useJsonArgs,
     usePipefail,
     noApt,
@@ -839,6 +841,51 @@ useShell = instructionRule code severity message check
     message = "Use SHELL to change the default shell"
     check (Run (RunArgs args _)) = argumentsRule (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True
+
+hasHealthcheck :: Rule
+hasHealthcheck dockerfile = instructionRuleState code severity message check Map.empty dockerfile
+  where
+    code = "DL4007"
+    severity = DLIgnoreC
+    message = "No `HEALTHCHECK` instruction"
+    check st line (From BaseImage {image, alias = Just als})
+      | Map.findWithDefault False (imageName image) st =
+          withState (Map.insert (unImageAlias als) True st) True
+      | not (null (allHealthchecksInStage line dockerfile)) =
+          withState (Map.insert (unImageAlias als) True st) True
+      | not (null (allFromsAfter line dockerfile)) =
+          withState st True
+      | otherwise = withState st False
+    check st line (From BaseImage {image, alias = Nothing})
+      | Map.findWithDefault False (imageName image) st = withState st True
+      | null (allHealthchecksInStage line dockerfile)
+          && null (allFromsAfter line dockerfile) = withState st False
+      | null (allHealthchecksInStage line dockerfile) = withState st True
+      | otherwise = withState st True
+    check st _ _ = withState st True
+
+    allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr df]
+    allFroms df = [(l, f) | (l, From f) <- instr df]
+
+    allHealthchecksAfter line df = [(l, h) | (l, h) <- allHealthchecks df, l > line]
+    allFromsAfter line df = [(l, f) | (l, f) <- allFroms df, l > line]
+
+    allHealthchecksInStage line df
+      | null $ allFromsAfter line df = allHealthchecksAfter line df
+      | otherwise = [ (l, h) | (l, h) <- allHealthchecksAfter line df,
+                               (fl, _) <- [minimum $ allFromsAfter line df],
+                               l < fl ]
+    instr = fmap (lineNumber &&& instruction)
+
+multipleHealthcheck :: Rule
+multipleHealthcheck = instructionRuleState code severity message check False
+  where
+    code = "DL4008"
+    severity = DLErrorC
+    message = "Multiple `HEALTHCHECK` instructions"
+    check _ _ From {} = withState False True
+    check st _ Healthcheck {} = withState True (not st)
+    check st _ _ = withState st True
 
 useJsonArgs :: Rule
 useJsonArgs = instructionRule code severity message check

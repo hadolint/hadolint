@@ -1569,6 +1569,112 @@ main =
       it "ok with `useradd` and just flag `-l`" $ ruleCatchesNot useraddFlagL "RUN useradd -l luser"
       it "warn when `useradd` and long uid without flag `-l`" $ ruleCatches useraddFlagL "RUN useradd -u 123456 luser"
     --
+    describe "HEALTHCHECK DL4007" $ do
+      it "not ok with `HEALTHCHECK` missing" $ do
+        ruleCatches hasHealthcheck "FROM busybox"
+        onBuildRuleCatches hasHealthcheck "FROM busybox"
+      it "ok with `HEALTHCHECK` present" $ do
+        ruleCatchesNot hasHealthcheck "FROM busybox\nHEALTHCHECK CMD health"
+        onBuildRuleCatchesNot hasHealthcheck "FROM busybox\nHEALTHCHECK CMD health"
+      it "ok with `HEALTHCHECK` in all stages" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD check-2"
+              ]
+         in do
+              ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+              onBuildRuleCatchesNot hasHealthcheck$ Text.unlines dockerFile
+      it "ok with `HEALTHCHECK` in last stage only" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD check-2"
+              ]
+         in do
+            ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+      it "not ok with `HEALTHCHECK` in early stage only when using new baseimage" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM debian:buster"
+              ]
+         in do
+            ruleCatches hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatches hasHealthcheck $ Text.unlines dockerFile
+      it "ok with `HEALTHCHECK` in early stage when reusing stage" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM stage1"
+              ]
+         in do
+            ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+      it "ok with two buildstages and only one has a`HEALTHCHECK`, using that one" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD bla",
+                "FROM debian:buster as stage2",
+                "FROM stage1"
+              ]
+         in do
+            ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+      it "not ok with two buildstages and only one has a `HEALTHCHECK`, using the other one" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "FROM debian:buster as stage2",
+                "HEALTHCHECK CMD bla",
+                "FROM stage1"
+              ]
+         in do
+            ruleCatches hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatches hasHealthcheck $ Text.unlines dockerFile
+      it "ok with two consecutive buildstages and `HEALTHCHECK` defined in first" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD bla",
+                "FROM stage1 as stage2",
+                "FROM stage2"
+              ]
+         in do
+            ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+    --
+    describe "HEALTHCHECK DL4008" $ do
+      it "ok with `HEALTHCHECK` missing" $ do
+        ruleCatchesNot multipleHealthcheck "FROM busybox"
+        onBuildRuleCatchesNot multipleHealthcheck "FROM busybox"
+      it "ok with `HEALTHCHECK` present once" $ do
+        ruleCatchesNot multipleHealthcheck "FROM busybox\nHEALTHCHECK CMD health"
+        onBuildRuleCatchesNot multipleHealthcheck "FROM busybox\nHEALTHCHECK CMD health"
+      it "not ok with `HEALTHCHECK` present twice" $ do
+        ruleCatches multipleHealthcheck "FROM busybox\nHEALTHCHECK CMD health1\nHEALTHCHECK CMD health2"
+        onBuildRuleCatches multipleHealthcheck "FROM busybox\nHEALTHCHECK CMD health\nHEALTHCHECK CMD health2"
+      it "ok with `HEALTHCHECK` in all stages 1" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD check-2"
+              ]
+         in do
+              ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+              onBuildRuleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+      it "ok with `HEALTHCHECK` in all stages 2" $
+        let dockerFile =
+              [ "FROM debian:buster as stage1",
+                "HEALTHCHECK CMD check-1",
+                "FROM stage1",
+                "HEALTHCHECK CMD check-2"
+              ]
+         in do
+              ruleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+              onBuildRuleCatchesNot multipleHealthcheck $ Text.unlines dockerFile
+    --
     describe "Regression Tests" $ do
       it "Comments with backslashes at the end are just comments" $
         let dockerFile =
