@@ -1643,6 +1643,24 @@ main =
          in do
             ruleCatchesNot hasHealthcheck $ Text.unlines dockerFile
             onBuildRuleCatchesNot hasHealthcheck $ Text.unlines dockerFile
+      it "not ok with two images in one file, only one of which has `HEALTHCHECK` 1" $
+        let dockerFile =
+              [ "FROM debian:buster",
+                "HEALTHCHECK CMD bla",
+                "FROM debian:buster"
+              ]
+         in do
+            ruleCatches hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatches hasHealthcheck $ Text.unlines dockerFile
+      it "not ok with two images in one file, only one of which has `HEALTHCHECK` 2" $
+        let dockerFile =
+              [ "FROM debian:buster",
+                "FROM debian:buster",
+                "HEALTHCHECK CMD bla"
+              ]
+         in do
+            ruleCatches hasHealthcheck $ Text.unlines dockerFile
+            onBuildRuleCatches hasHealthcheck $ Text.unlines dockerFile
     --
     describe "HEALTHCHECK DL4008" $ do
       it "ok with `HEALTHCHECK` missing" $ do

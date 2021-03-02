@@ -853,22 +853,16 @@ hasHealthcheck dockerfile = instructionRuleState code severity message check Map
           withState (Map.insert (unImageAlias als) True st) True
       | not (null (allHealthchecksInStage line dockerfile)) =
           withState (Map.insert (unImageAlias als) True st) True
-      | not (null (allFromsAfter line dockerfile)) =
-          withState st True
+      | not (null (allFromsAfter line dockerfile)) = withState st True
       | otherwise = withState st False
     check st line (From BaseImage {image, alias = Nothing})
       | Map.findWithDefault False (imageName image) st = withState st True
-      | null (allHealthchecksInStage line dockerfile)
-          && null (allFromsAfter line dockerfile) = withState st False
-      | null (allHealthchecksInStage line dockerfile) = withState st True
+      | null (allHealthchecksInStage line dockerfile) = withState st False
       | otherwise = withState st True
     check st _ _ = withState st True
 
-    allHealthchecks df = [(l, h) | (l, Healthcheck h) <- instr df]
-    allFroms df = [(l, f) | (l, From f) <- instr df]
-
-    allHealthchecksAfter line df = [(l, h) | (l, h) <- allHealthchecks df, l > line]
-    allFromsAfter line df = [(l, f) | (l, f) <- allFroms df, l > line]
+    allHealthchecksAfter line df = [(l, h) | (l, Healthcheck h) <- instr df, l > line]
+    allFromsAfter line df = [(l, f) | (l, From f) <- instr df, l > line]
 
     allHealthchecksInStage line df
       | null $ allFromsAfter line df = allHealthchecksAfter line df
