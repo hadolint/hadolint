@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3ecbed4531d222b63b1238f288614505607a97e91af832440541cb8c7c678fa9
+-- hash: 06df88cbceaf76da3599a8943568f912b17a63d1795839eb4da974832e1ae0d4
 
 name:           hadolint
 version:        1.23.0
@@ -63,6 +63,7 @@ library
     , deepseq ==1.4.4.*
     , directory >=1.3.0
     , filepath
+    , ilist
     , language-docker >=9.1.3 && <10
     , megaparsec >=9.0.0
     , mtl

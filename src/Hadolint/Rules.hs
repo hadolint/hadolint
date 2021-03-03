@@ -9,10 +9,11 @@ import Control.Arrow ((&&&))
 import Control.DeepSeq (NFData)
 import Data.List (foldl', isInfixOf, isPrefixOf, mapAccumL, nub)
 import Data.List.NonEmpty (toList)
+import Data.List.Index
 import qualified Data.Map as Map
+import Data.Maybe ()
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import Data.Maybe (isJust, fromJust)
 import Data.Void (Void)
 import GHC.Generics (Generic)
 import qualified Hadolint.Shell as Shell
@@ -238,6 +239,7 @@ rules =
     pipNoCacheDir,
     noIllegalInstructionInOnbuild,
     noSelfreferencingEnv,
+    relativeCopyWithoutWorkdir,
     hasMaintainerLabel
   ]
 
@@ -337,21 +339,23 @@ hasNoMaintainer = instructionRule code severity message check
     check (Maintainer _) = False
     check _ = True
 
+
 hasMaintainerLabel :: Rule
-hasMaintainerLabel dockerfile = instructionRuleState code severity message check [] dockerfile
+hasMaintainerLabel dockerfile = instructionRuleState code severity message check Map.empty dockerfile
   where
     code = "DL3012"
     severity = DLIgnoreC
-    message = "Provide an email adress or URL as maintainer label"
-    check st line (From BaseImage {image, alias})
-      | imageName image `elem` map snd st
-          && isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
-      | imageName image `elem` map snd st = withState st True
-      | null (allLabelsInStage line dockerfile)
-          && null (allFromsAfter line dockerfile) =
-        withState st False
-      | null (allLabelsInStage line dockerfile) = withState st True
-      | isJust alias = withState (st ++ [(line, unImageAlias $ fromJust alias)]) True
+    message = "Provide an email address or URL as maintainer label"
+    check st line (From BaseImage {image, alias = Just als})
+      | Map.findWithDefault False (imageName image) st =
+          withState (Map.insert (unImageAlias als) True st) True
+      | not (null (allLabelsInStage line dockerfile)) =
+          withState (Map.insert (unImageAlias als) True st) True
+      | not (null (allFromsAfter line dockerfile)) = withState st True
+      | otherwise = withState st False
+    check st line (From BaseImage {image, alias = Nothing})
+      | Map.findWithDefault False (imageName image) st = withState st True
+      | null (allLabelsInStage line dockerfile) = withState st False
       | otherwise = withState st True
     check st _ _ = withState st True
 
@@ -359,17 +363,16 @@ hasMaintainerLabel dockerfile = instructionRuleState code severity message check
     isMaintainer df = or ["maintainer" `Text.isInfixOf` (Text.toLower x) | (x,_) <- df]
     allMaintainerLabels df = [(l, h) | (l, h) <- allLabels df, isMaintainer h]
 
-    allFroms df = [(l, f) | (l, From f) <- instr df]
-
-    allLabelsAfter line df = [(l, h) | (l, h) <- allMaintainerLabels df, l > line ]
-    allFromsAfter line df = [(l, f) | (l, f) <- allFroms df, l > line]
+    allLabelsAfter line df = [(l, h) | (l, h) <- allMaintainerLabels df, l > line]
+    allFromsAfter line df = [(l, f) | (l, From f) <- instr df, l > line]
 
     allLabelsInStage line df
       | null $ allFromsAfter line df = allLabelsAfter line df
-      | otherwise =
-        [ (l, h) | (l, h) <- allLabelsAfter line df, (fl, _) <- [minimum $ allFromsAfter line df], l < fl
-        ]
+      | otherwise = [ (l, h) | (l, h) <- allLabelsAfter line df,
+                               (fl, _) <- [minimum $ allFromsAfter line df],
+                               l < fl ]
     instr = fmap (lineNumber &&& instruction)
+
 
 
 -- Check if a command contains a program call in the Run instruction
@@ -1235,10 +1238,11 @@ noSelfreferencingEnv = instructionRuleState code severity message check Set.empt
     check st _ _ = withState st True
 
     -- generates a list of references to variable names referenced on the right
-    -- hand side of a variable definition
+    -- hand side of a variable definition, except when the variable is
+    -- referenced on its own right hand side.
     listOfReferences :: Pairs -> [Text.Text]
-    listOfReferences prs = [ var | var <- map fst prs,
-                                   var `isSubstringOfAny` map snd prs ]
+    listOfReferences prs = [ var | (idx, (var, _)) <- indexed prs,
+                                   var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (indexed prs))]
     -- is a reference of a variable substring of any text?
     -- matches ${var_name} and $var_name, but not $var_nameblafoo
     isSubstringOfAny :: Text.Text -> [Text.Text] -> Bool
@@ -1269,3 +1273,26 @@ noSelfreferencingEnv = instructionRuleState code severity message check Set.empt
         -- all characters valid in the inner of a shell variable name
         varChar :: String
         varChar = ['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ ['_']
+
+-- The state here keeps the image name/alias of the current build stage in
+-- (fst st) and a map from image names/aliases to a Bool, saving whether or
+-- not a `WORKDIR` has been set in a build stage.
+relativeCopyWithoutWorkdir :: Rule
+relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("", Map.empty)
+  where
+    code = "DL3045"
+    severity = DLWarningC
+    message = "`COPY` to a relative destination without `WORKDIR` set."
+    check st _ (From BaseImage {image, alias = Just als}) =
+        withState (unImageAlias als,
+                   Map.insert (unImageAlias als) (Map.findWithDefault False (imageName image) (snd st)) (snd st)) True
+    check st _ (From BaseImage {image, alias = Nothing}) =
+        withState (imageName image, snd st) True
+    check st _ (Workdir _) =
+        withState (fst st, Map.insert (fst st) True (snd st)) True
+    check st _ (Copy (CopyArgs _ (TargetPath dest) _ _))
+        | uncurry Map.member st = withState st True  -- workdir has been set
+        | "/" `Text.isPrefixOf` dest = withState st True  -- absolute dest. normal
+        | ":\\" `Text.isPrefixOf` Text.drop 1 dest = withState st True  -- absolute dest. windows
+        | otherwise = withState st False
+    check st _ _ = withState st True

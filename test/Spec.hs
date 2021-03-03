@@ -908,6 +908,97 @@ main =
       it "use add" $ ruleCatches useAdd "COPY packaged-app.tar /usr/src/app"
       it "use not add" $ ruleCatchesNot useAdd "COPY package.json /usr/src/app"
     --
+    describe "`COPY` without `WORKDIR` set" $ do
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set - windows" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh c:\\system32\\blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh d:\\mypath\\blubb.sh"
+      it "ok: `COPY` with relative destination and `WORKDIR` set" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
+      it "ok: `COPY` with relative destination and `WORKDIR` set - windows" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
+      it "not ok: `COPY` with relative destination and no `WORKDIR` set" $ do
+        ruleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
+        onBuildRuleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
+      it "not ok: `COPY` to relative destination if `WORKDIR` is set in a previous stage but not inherited" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as stage1",
+                  "WORKDIR /usr",
+                  "FROM debian:buster",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatches relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatches relativeCopyWithoutWorkdir dockerFile
+      it "not ok: `COPY` to relative destination if `WORKDIR` is set in a previous stage but not inherited - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as stage1",
+                  "WORKDIR c:\\system32",
+                  "FROM microsoft/windowsservercore",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatches relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatches relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in base image" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as base",
+                  "WORKDIR /usr",
+                  "FROM debian:buster as stage-inbetween",
+                  "RUN foo",
+                  "FROM base",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in base image - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as base",
+                  "WORKDIR c:\\system32",
+                  "FROM microsoft/windowsservercore as stage-inbetween",
+                  "RUN foo",
+                  "FROM base",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in previous stage, deep case" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster as base1",
+                  "WORKDIR /usr",
+                  "FROM base1 as base2",
+                  "RUN foo",
+                  "FROM base2",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set in previous stage, deep case - windows" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM microsoft/windowsservercore as base1",
+                  "WORKDIR c:\\system32",
+                  "FROM base1 as base2",
+                  "RUN foo",
+                  "FROM base2",
+                  "COPY foo bar"
+                ]
+        in do
+          ruleCatchesNot relativeCopyWithoutWorkdir dockerFile
+          onBuildRuleCatchesNot relativeCopyWithoutWorkdir dockerFile
+    --
     describe "other rules" $ do
       it "apt-get auto yes" $ do
         ruleCatches aptGetYes "RUN apt-get install python"
@@ -1436,18 +1527,32 @@ main =
       it "ok with `MAINTAINER` outside of `ONBUILD`" $ ruleCatchesNot noIllegalInstructionInOnbuild "MAINTAINER \"Some Guy\""
     --
     describe "Selfreferencing `ENV`s" $ do
-      it "ok with normal ENV" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\"\nENV BLUBB=\"${BLA}/blubb\""
-      it "ok with partial match 1" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${FOOBLA}/blubb\""
-      it "ok with partial match 2" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLAFOO}/blubb\""
-      it "ok with partial match 3" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$FOOBLA/blubb\""
-      it "ok with partial match 4" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLAFOO/blubb\""
-      it "fail with partial match 5" $ ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/$BLAFOO/blubb\""
-      it "ok when previously defined in `ARG`" $ ruleCatchesNot noSelfreferencingEnv "ARG BLA\nENV BLA=${BLA}"
-      it "ok when previously defined in `ENV`" $ ruleCatchesNot noSelfreferencingEnv "ENV BLA blubb\nENV BLA=${BLA}"
+      it "ok with normal ENV" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\"\nENV BLUBB=\"${BLA}/blubb\""
+      it "ok with partial match 1" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${FOOBLA}/blubb\""
+      it "ok with partial match 2" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLAFOO}/blubb\""
+      it "ok with partial match 3" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$FOOBLA/blubb\""
+      it "ok with partial match 4" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLAFOO/blubb\""
+      it "fail with partial match 5" $
+        ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/$BLAFOO/blubb\""
+      it "ok when previously defined in `ARG`" $
+        ruleCatchesNot noSelfreferencingEnv "ARG BLA\nENV BLA=${BLA}"
+      it "ok when previously defined in `ENV`" $
+        ruleCatchesNot noSelfreferencingEnv "ENV BLA blubb\nENV BLA=${BLA}"
+      it "ok with referencing a variable on its own right hand side" $
+        ruleCatchesNot noSelfreferencingEnv "ENV PATH=/bla:${PATH}"
+      it "ok with referencing a variable on its own right side twice in different `ENV`s" $
+        ruleCatchesNot noSelfreferencingEnv "ENV PATH=/bla:${PATH}\nENV PATH=/blubb:${PATH}"
+      it "fail when referencing a variable on its own right side twice within the same `ENV`" $
+        ruleCatches noSelfreferencingEnv "ENV PATH=/bla:${PATH} PATH=/blubb:${PATH}"
       it "fail with selfreferencing with curly braces ENV" $
-          ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLA}/blubb\""
+        ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"${BLA}/blubb\""
       it "fail with selfreferencing without curly braces ENV" $
-          ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
+        ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
     --
     describe "Regression Tests" $ do
       it "Comments with backslashes at the end are just comments" $
