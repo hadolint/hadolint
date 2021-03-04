@@ -1255,7 +1255,14 @@ relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("
         withState (fst st, Map.insert (fst st) True (snd st)) True
     check st _ (Copy (CopyArgs _ (TargetPath dest) _ _))
         | uncurry Map.member st = withState st True  -- workdir has been set
-        | "/" `Text.isPrefixOf` dest = withState st True  -- absolute dest. normal
-        | ":\\" `Text.isPrefixOf` Text.drop 1 dest = withState st True  -- absolute dest. windows
+        | "/" `Text.isPrefixOf` Text.dropAround quotePredicate dest = withState st True  -- absolute dest. normal
+        | ":\\" `Text.isPrefixOf` Text.drop 1 (Text.dropAround quotePredicate dest) = withState st True  -- absolute dest. windows
+        | "$" `Text.isPrefixOf` Text.dropAround quotePredicate dest = withState st True -- dest is a variable
         | otherwise = withState st False
     check st _ _ = withState st True
+
+    quotePredicate :: Char -> Bool
+    quotePredicate c
+        | c == '"' = True
+        | c == '\'' = True
+        | otherwise = False

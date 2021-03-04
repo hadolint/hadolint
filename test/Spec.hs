@@ -912,18 +912,39 @@ main =
       it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh /usr/local/bin/blubb.sh"
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set with quotes" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh \"/usr/local/bin/blubb.s\""
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh \"/usr/local/bin/blubb.sh\""
       it "ok: `COPY` with absolute destination and no `WORKDIR` set - windows" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh c:\\system32\\blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh d:\\mypath\\blubb.sh"
+      it "ok: `COPY` with absolute destination and no `WORKDIR` set - windows with quotes" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh \"c:\\system32\\blubb.sh\""
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY bla.sh \"d:\\mypath\\blubb.sh\""
       it "ok: `COPY` with relative destination and `WORKDIR` set" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR /usr\nCOPY bla.sh blubb.sh"
       it "ok: `COPY` with relative destination and `WORKDIR` set - windows" $ do
         ruleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
         onBuildRuleCatchesNot relativeCopyWithoutWorkdir "WORKDIR c:\\system32\nCOPY bla.sh blubb.sh"
+      it "ok: `COPY` with destination being an environment variable 1" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh ${SRC_BASE_ENV}"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh ${SRC_BASE_ENV}"
+      it "ok: `COPY` with destination being an environment variable 2" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh $SRC_BASE_ENV"
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh $SRC_BASE_ENV"
+      it "ok: `COPY` with destination being an environment variable 3" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh \"${SRC_BASE_ENV}\""
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh \"${SRC_BASE_ENV}\""
+      it "ok: `COPY` with destination being an environment variable 4" $ do
+        ruleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh \"$SRC_BASE_ENV\""
+        onBuildRuleCatchesNot relativeCopyWithoutWorkdir "COPY src.sh \"$SRC_BASE_ENV\""
       it "not ok: `COPY` with relative destination and no `WORKDIR` set" $ do
         ruleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
         onBuildRuleCatches relativeCopyWithoutWorkdir "COPY bla.sh blubb.sh"
+      it "not ok: `COPY` with relative destination and no `WORKDIR` set with quotes" $ do
+        ruleCatches relativeCopyWithoutWorkdir "COPY bla.sh \"blubb.sh\""
+        onBuildRuleCatches relativeCopyWithoutWorkdir "COPY bla.sh \"blubb.sh\""
       it "not ok: `COPY` to relative destination if `WORKDIR` is set in a previous stage but not inherited" $
         let dockerFile =
               Text.unlines
