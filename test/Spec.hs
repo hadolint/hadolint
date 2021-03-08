@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified ConfigSpec
+import qualified ShellSpec
 import Control.Monad (unless, when)
 import qualified Data.Text as Text
 import Hadolint.Formatter.TTY (formatChecks, formatError)
@@ -1561,6 +1562,13 @@ main =
       it "fail with selfreferencing without curly braces ENV" $
         ruleCatches noSelfreferencingEnv "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
     --
+    describe "warn when using `useradd` with long UID and without `-l`" $ do
+      it "ok with `useradd` alone" $ ruleCatchesNot useraddFlagL "RUN useradd luser"
+      it "ok with `useradd` short uid" $ ruleCatchesNot useraddFlagL "RUN useradd -u 12345 luser"
+      it "ok with `useradd` long uid and flag `-l`" $ ruleCatchesNot useraddFlagL "RUN useradd -l -u 123456 luser"
+      it "ok with `useradd` and just flag `-l`" $ ruleCatchesNot useraddFlagL "RUN useradd -l luser"
+      it "warn when `useradd` and long uid without flag `-l`" $ ruleCatches useraddFlagL "RUN useradd -u 123456 luser"
+    --
     describe "Regression Tests" $ do
       it "Comments with backslashes at the end are just comments" $
         let dockerFile =
@@ -1586,6 +1594,8 @@ main =
 
     -- Run tests for the Config module
     ConfigSpec.tests
+    -- Run tests for the Shell module
+    ShellSpec.tests
 
 assertChecks :: HasCallStack => Rule -> Text.Text -> ([RuleCheck] -> IO a) -> IO a
 assertChecks rule s makeAssertions =

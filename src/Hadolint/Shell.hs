@@ -201,5 +201,14 @@ dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdA
     idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
     filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
+-- given a flag and a command, return list of arguments for that particulat
+-- flag. E.g., if the command is `useradd -u 12345 luser` and this function is
+-- called for the command `u`, it returns ["12345"].
+getFlagArg :: Text.Text -> Command -> [Text.Text]
+getFlagArg flag Command {arguments, flags} = extractArgs
+  where
+    idsToGet = [getValueId fId arguments | CmdPart f fId <- flags, f == flag]
+    extractArgs = [arg | (CmdPart arg aId) <- arguments, aId `elem` idsToGet]
+
 getValueId :: Int -> [CmdPart] -> Int
 getValueId fId flags = foldl min (maxBound :: Int) $ filter (> fId) $ map partId flags

@@ -239,7 +239,8 @@ rules =
     pipNoCacheDir,
     noIllegalInstructionInOnbuild,
     noSelfreferencingEnv,
-    relativeCopyWithoutWorkdir
+    relativeCopyWithoutWorkdir,
+    useraddFlagL
   ]
 
 optionalRules :: RulesConfig -> [Rule]
@@ -1266,3 +1267,20 @@ relativeCopyWithoutWorkdir = instructionRuleState code severity message check ("
         | c == '"' = True
         | c == '\'' = True
         | otherwise = False
+
+
+useraddFlagL :: Rule
+useraddFlagL = instructionRule code severity message check
+  where
+    code = "DL3046"
+    severity = DLWarningC
+    message = "`useradd` without flag `-l` and high UID will result in excessively large Image."
+    check (Run (RunArgs args _)) =
+      argumentsRule (Shell.noCommands forgotFlagL) args
+    check _ = True
+
+    forgotFlagL cmd = isUseradd cmd && (not (hasLFlag cmd) && hasUFlag cmd && hasLongUID cmd)
+    isUseradd (Shell.Command name _ _) = name == "useradd"
+    hasLFlag = Shell.hasAnyFlag ["l", "no-log-init"]
+    hasUFlag = Shell.hasAnyFlag ["u", "uid"]
+    hasLongUID cmd = any ((> 5) . Text.length) (Shell.getFlagArg "u" cmd)
