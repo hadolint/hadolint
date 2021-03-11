@@ -2,6 +2,7 @@ module Hadolint.Rule where
 
 import Control.DeepSeq (NFData)
 import qualified Control.Foldl as Foldl
+import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import Data.String (IsString (..))
 import qualified Data.Text as Text
@@ -45,6 +46,11 @@ data State a = State
     state :: a
   }
   deriving (Show)
+
+type LabelName = Text.Text
+type LabelType = Text.Text
+type LabelSchema = Map.Map LabelName LabelType
+
 
 withLineNumber ::
   (Linenumber -> t1 -> Instruction args -> t2) ->

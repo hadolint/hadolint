@@ -6,13 +6,16 @@ module Main where
 
 import Control.Applicative
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Data.String (IsString (fromString))
+import qualified Data.Text as Text
 import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
+import qualified Hadolint.Rule as Rule
 import Options.Applicative
   ( Parser,
     action,
@@ -84,6 +87,9 @@ parseOptions =
     noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
 
     nocolor = switch (long "no-color" <> help "Don't colorize output")
+
+    strictlabels = switch (long "strict-labels"
+        <> help "Do not permit labels other than specified in `label-schema`")
 
     configFile =
       optional
@@ -161,8 +167,22 @@ parseOptions =
         <*> ignoreList
         <*> parseRulesConfig
 
+    labels = Map.fromList . fmap labelParser
+        <$> many
+          ( strOption
+              ( long "require-label"
+                  <> help "The option --require-label=label:format makes Hadolint check that the label `label` conforms to format requirement `format`"
+                  <> metavar "LABELSCHEMA (e.g. maintainer:text)"
+              )
+          )
+
     parseRulesConfig =
-      Hadolint.RulesConfig . Set.fromList . fmap fromString
+      Hadolint.RulesConfig
+        <$> parseAllowedRegistries
+        <*> labels
+        <*> strictlabels
+
+    parseAllowedRegistries = Set.fromList . fmap fromString
         <$> many
           ( strOption
               ( long "trusted-registry"
@@ -170,6 +190,9 @@ parseOptions =
                   <> metavar "REGISTRY (e.g. docker.io)"
               )
           )
+
+labelParser :: Text.Text -> (Rule.LabelName, Rule.LabelType)
+labelParser = Text.breakOn ":"
 
 noFailure :: Hadolint.Result s e -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) = True

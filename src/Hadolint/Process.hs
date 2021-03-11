@@ -1,12 +1,13 @@
 module Hadolint.Process (run, RulesConfig (..)) where
 
 import qualified Control.Foldl as Foldl
-import qualified Data.IntMap.Strict as Map
+import qualified Data.IntMap.Strict as SMap
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Ignore
 import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
+import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Rule.DL3000
 import qualified Hadolint.Rule.DL3001
 import qualified Hadolint.Rule.DL3002
@@ -55,7 +56,19 @@ import qualified Hadolint.Rule.DL3044
 import qualified Hadolint.Rule.DL3045
 import qualified Hadolint.Rule.DL3046
 import qualified Hadolint.Rule.DL3047
+<<<<<<< HEAD
 import qualified Hadolint.Rule.DL3057
+=======
+import qualified Hadolint.Rule.DL3048
+import qualified Hadolint.Rule.DL3049
+import qualified Hadolint.Rule.DL3050
+import qualified Hadolint.Rule.DL3051
+import qualified Hadolint.Rule.DL3052
+import qualified Hadolint.Rule.DL3053
+import qualified Hadolint.Rule.DL3054
+import qualified Hadolint.Rule.DL3055
+import qualified Hadolint.Rule.DL3056
+>>>>>>> label-schema: Add configurable rules checking a label schema
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
 import qualified Hadolint.Rule.DL4003
@@ -66,22 +79,29 @@ import qualified Hadolint.Rule.Shellcheck
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 -- | Contains the required parameters for optional rules
-newtype RulesConfig = RulesConfig
+data RulesConfig = RulesConfig
   { -- | The docker registries that are allowed in FROM
-    allowedRegistries :: Set.Set Registry
+    allowedRegistries :: Set.Set Registry,
+    labelSchema :: Rule.LabelSchema,
+    strictLabels :: Bool
   }
   deriving (Show, Eq)
 
 instance Semigroup RulesConfig where
-  RulesConfig a <> RulesConfig b = RulesConfig (a <> b)
+  RulesConfig a1 a2 a3 <> RulesConfig b1 b2 b3 =
+    RulesConfig
+      (a1 <> b1)
+      (a2 <> b2)
+      (a3 || b3)
 
 instance Monoid RulesConfig where
-  mempty = RulesConfig mempty
+  mempty = RulesConfig mempty mempty False
 
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
-    ignored :: Map.IntMap (Set.Set RuleCode),
+    ignored :: SMap.IntMap (Set.Set RuleCode),
     -- | A set of failures collected for reach rule
     failed :: Failures
   }
@@ -93,7 +113,7 @@ run config dockerfile = Seq.filter shouldKeep failed
 
     shouldKeep CheckFailure {line, code} =
       Just True /= do
-        ignoreList <- Map.lookup line ignored
+        ignoreList <- SMap.lookup line ignored
         return $ code `Set.member` ignoreList
 
 analyze :: RulesConfig -> Foldl.Fold (InstructionPos Text.Text) AnalisisResult
@@ -118,7 +138,7 @@ onBuildFailures config =
     unwrapOnbuild inst = inst
 
 failures :: RulesConfig -> Rule Shell.ParsedShell
-failures RulesConfig {allowedRegistries} =
+failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
   Hadolint.Rule.DL3000.rule
     <> Hadolint.Rule.DL3001.rule
     <> Hadolint.Rule.DL3002.rule
@@ -167,6 +187,15 @@ failures RulesConfig {allowedRegistries} =
     <> Hadolint.Rule.DL3045.rule
     <> Hadolint.Rule.DL3046.rule
     <> Hadolint.Rule.DL3047.rule
+    <> Hadolint.Rule.DL3048.rule
+    <> Hadolint.Rule.DL3049.rule labelSchema
+    <> Hadolint.Rule.DL3050.rule labelSchema strictLabels
+    <> Hadolint.Rule.DL3051.rule labelSchema
+    <> Hadolint.Rule.DL3052.rule labelSchema
+    <> Hadolint.Rule.DL3053.rule labelSchema
+    <> Hadolint.Rule.DL3054.rule labelSchema
+    <> Hadolint.Rule.DL3055.rule labelSchema
+    <> Hadolint.Rule.DL3056.rule labelSchema
     <> Hadolint.Rule.DL3057.rule
     <> Hadolint.Rule.DL4000.rule
     <> Hadolint.Rule.DL4001.rule

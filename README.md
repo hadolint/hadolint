@@ -152,6 +152,62 @@ RUN cd /tmp && echo "hello!"
 
 Inline ignores will only work if place directly above the instruction.
 
+## Linting Labels
+
+Hadolint has the ability to check that specific labels be present and conform
+to a predefined label schema.
+First a label schema must be defined either via commandline:
+```bash
+$ hadolint --require-label author:text --require-label version:semver Dockerfile
+```
+or via config file:
+
+```yaml
+label-schema:
+  author: text
+  created: rfc3339
+  version: semver
+  documentation: url
+  git-revision: hash
+  license: spdx
+```
+The value of a label can be either of `text`, `url`, `semver`, `hash` or
+`rfc3339`:
+| Schema  | Description                                        |
+|:--------|:---------------------------------------------------|
+| text    | Anything                                           |
+| rfc3339 | A time, formatted according to [RFC 3339][rfc3339] |
+| semver  | A [semantic version][semver]                       |
+| url     | A URI as described in [RFC 3986][rfc3986]          |
+| hash    | Either a short or a long [Git hash][githash]       |
+| spdx    | An [SPDX license identifier][spdxid]               |
+
+By default, Hadolint ignores any label not specified in the label schema. To
+warn on such additional labels, turn on strict labels:
+```bash
+$ hadolint --strict-labels --require-label version:semver Dockerfile
+```
+or in the config file:
+```yaml
+strict-labels: true
+```
+When strict labels is enabled, but no label schema has been specified, Hadolint
+will warn if any label is present.
+
+### Note on dealing with variables in labels
+It is a common pattern to fill the value of a label not statically, but rather
+dynamically at build time by using a variable:
+```dockerfile
+FROM debian:buster
+ARG VERSION="du-jour"
+LABEL version="${VERSION}"
+```
+To allow this, the label schema must specify `text` as value for that label:
+```yaml
+label-schema:
+  version: text
+```
+
 ## Integrations
 
 To get most of `hadolint` it is useful to integrate it as a check to your CI
@@ -226,6 +282,15 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3045](https://github.com/hadolint/hadolint/wiki/DL3045)   | `COPY` to a relative destination without `WORKDIR` set.                                                                                             |
 | [DL3046](https://github.com/hadolint/hadolint/wiki/DL3046)   | `useradd` without flag `-l` and high UID will result in excessively large Image.                                                                    |
 | [DL3047](https://github.com/hadolint/hadolint/wiki/DL3047)   | `wget` without flag `--progress` will result in excessively bloated build logs when downloading larger files.                                       |
+| [DL3048](https://github.com/hadolint/hadolint/wiki/DL3048)   | Invalid Label Key                                                                                                                                   |
+| [DL3049](https://github.com/hadolint/hadolint/wiki/DL3049)   | Label `<label>` is missing.                                                                                                                         |
+| [DL3050](https://github.com/hadolint/hadolint/wiki/DL3050)   | Superfluous label(s) present.                                                                                                                       |
+| [DL3051](https://github.com/hadolint/hadolint/wiki/DL3051)   | Label `<label>` is empty.                                                                                                                           |
+| [DL3052](https://github.com/hadolint/hadolint/wiki/DL3052)   | Label `<label>` is not a valid URL.                                                                                                                 |
+| [DL3053](https://github.com/hadolint/hadolint/wiki/DL3053)   | Label `<label>` is not a valid time format - must be conform to RFC3339.                                                                            |
+| [DL3054](https://github.com/hadolint/hadolint/wiki/DL3054)   | Label `<label>` is not a valid SPDX license identifier.                                                                                             |
+| [DL3055](https://github.com/hadolint/hadolint/wiki/DL3055)   | Label `<label>` is not a valid git hash.                                                                                                            |
+| [DL3056](https://github.com/hadolint/hadolint/wiki/DL3056)   | Label `<label>` does not conform to semantic versioning.                                                                                            |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | MAINTAINER is deprecated.                                                                                                                           |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Multiple `CMD` instructions found.                                                                                                                  |
@@ -345,3 +410,8 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
 [syntax.hs]: https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html
+[rfc3339]: https://www.ietf.org/rfc/rfc3339.txt
+[semver]: https://semver.org/
+[rfc3986]: https://www.ietf.org/rfc/rfc3986.txt
+[githash]: https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
+[spdxid]: https://spdx.org/licenses/
