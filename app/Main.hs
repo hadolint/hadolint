@@ -5,14 +5,14 @@
 module Main where
 
 import Control.Applicative
-import Data.String (IsString (fromString))
 import qualified Data.List.NonEmpty as NonEmpty
+import Data.Maybe
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
+import Data.String (IsString (fromString))
 import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
-import Data.Maybe
 import Options.Applicative
   ( Parser,
     action,
@@ -108,37 +108,37 @@ parseOptions =
     errorList =
       many
         ( strOption
-          ( long "error"
-              <> help "Make the rule `RULECODE` have the level `error`"
-              <> metavar "RULECODE"
-          )
+            ( long "error"
+                <> help "Make the rule `RULECODE` have the level `error`"
+                <> metavar "RULECODE"
+            )
         )
 
     warningList =
       many
         ( strOption
-          ( long "warning"
-              <> help "Make the rule `RULECODE` have the level `warning`"
-              <> metavar "RULECODE"
-          )
+            ( long "warning"
+                <> help "Make the rule `RULECODE` have the level `warning`"
+                <> metavar "RULECODE"
+            )
         )
 
     infoList =
       many
         ( strOption
-          ( long "info"
-              <> help "Make the rule `RULECODE` have the level `info`"
-              <> metavar "RULECODE"
-          )
+            ( long "info"
+                <> help "Make the rule `RULECODE` have the level `info`"
+                <> metavar "RULECODE"
+            )
         )
 
     styleList =
       many
         ( strOption
-          ( long "style"
-              <> help "Make the rule `RULECODE` have the level `style`"
-              <> metavar "RULECODE"
-          )
+            ( long "style"
+                <> help "Make the rule `RULECODE` have the level `style`"
+                <> metavar "RULECODE"
+            )
         )
 
     ignoreList =
@@ -172,19 +172,19 @@ parseOptions =
           )
 
 noFailure :: Hadolint.Result s e -> Bool
-noFailure (Hadolint.Result Seq.Empty Seq.Empty) = True
+noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) = True
 noFailure _ = False
 
-exitProgram :: CommandOptions -> Hadolint.Result s e -> IO()
+exitProgram :: Foldable f => CommandOptions -> f (Hadolint.Result s e) -> IO ()
 exitProgram cmd res
-  | noFail cmd                                 = exitSuccess
+  | noFail cmd = exitSuccess
   | Hadolint.shallSkipErrorStatus (format cmd) = exitSuccess
-  | noFailure res                              = exitSuccess
-  | otherwise                                  = exitFailure
+  | all noFailure res = exitSuccess
+  | otherwise = exitFailure
 
-runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO()
+runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO ()
 runLint cmd conf files = do
-  res <-  Hadolint.lint conf files
+  res <- Hadolint.lintIO conf files
   noColorEnv <- lookupEnv "NO_COLOR"
   let noColor = nocolor cmd || isJust noColorEnv
   Hadolint.printResults (format cmd) noColor res

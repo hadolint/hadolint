@@ -1,29 +1,42 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Hadolint.Lint where
+module Hadolint.Lint
+  ( lintIO,
+    lint,
+    analyze,
+    LintOptions (..),
+    ErrorRule,
+    WarningRule,
+    InfoRule,
+    StyleRule,
+    IgnoreRule,
+    TrustedRegistry,
+  )
+where
 
 import qualified Control.Concurrent.Async as Async
 import Control.Parallel.Strategies (parListChunk, rseq, using)
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Sequence as Seq
 import Data.Text (Text)
-import GHC.Conc (numCapabilities)
-import qualified Hadolint.Formatter.Checkstyle as Checkstyle
-import qualified Hadolint.Formatter.Codacy as Codacy
-import qualified Hadolint.Formatter.Codeclimate as Codeclimate
+import qualified Data.Text as Text
+import qualified GHC.Conc
 import qualified Hadolint.Formatter.Format as Format
-import qualified Hadolint.Formatter.Json as Json
-import qualified Hadolint.Formatter.TTY as TTY
-import qualified Hadolint.Rules as Rules
+import qualified Hadolint.Process
+import qualified Hadolint.Rule
 import qualified Language.Docker as Docker
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 
-
 type ErrorRule = Text
+
 type WarningRule = Text
+
 type InfoRule = Text
+
 type StyleRule = Text
-type IgnoreRule = Text
+
+type IgnoreRule = Hadolint.Rule.RuleCode
 
 type TrustedRegistry = Text
 
@@ -33,85 +46,76 @@ data LintOptions = LintOptions
     infoRules :: [InfoRule],
     styleRules :: [StyleRule],
     ignoreRules :: [IgnoreRule],
-    rulesConfig :: Rules.RulesConfig
+    rulesConfig :: Hadolint.Process.RulesConfig
   }
   deriving (Show)
 
-data OutputFormat
-  = Json
-  | TTY
-  | CodeclimateJson
-  | GitlabCodeclimateJson
-  | Checkstyle
-  | Codacy
-  deriving (Show, Eq)
+instance Semigroup LintOptions where
+  LintOptions a1 a2 a3 a4 a5 a6 <> LintOptions b1 b2 b3 b4 b5 b6 =
+    LintOptions
+      (a1 <> b1)
+      (a2 <> b2)
+      (a3 <> b3)
+      (a4 <> b4)
+      (a5 <> b5)
+      (a6 <> b6)
 
-printResults :: OutputFormat -> Bool -> Format.Result Text DockerfileError -> IO ()
-printResults format nocolor allResults =
-  case format of
-    TTY -> TTY.printResult allResults nocolor
-    Json -> Json.printResult allResults
-    Checkstyle -> Checkstyle.printResult allResults
-    CodeclimateJson -> Codeclimate.printResult allResults
-    GitlabCodeclimateJson -> Codeclimate.printGitlabResult allResults
-    Codacy -> Codacy.printResult allResults
-
-shallSkipErrorStatus:: OutputFormat -> Bool
-shallSkipErrorStatus format  = format `elem` [CodeclimateJson, Codacy]
+instance Monoid LintOptions where
+  mempty = LintOptions mempty mempty mempty mempty mempty mempty
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
--- Depending on the preferred printing format, it will output the results to stdout
-lint :: LintOptions -> NonEmpty.NonEmpty String -> IO (Format.Result Text DockerfileError)
-lint
-  LintOptions
-    { errorRules = errorList,
-      warningRules = warningList,
-      infoRules = infoList,
-      styleRules = styleList,
-      ignoreRules = ignoreList,
-      rulesConfig
-    }
-  dFiles = do
-    parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
-    let results = lintAll parsedFiles `using` parListChunk (div numCapabilities 2) rseq
-    return $ mconcat results
-    where
-      parseFile :: String -> IO (Either Error Dockerfile)
-      parseFile "-" = Docker.parseStdin
-      parseFile s = Docker.parseFile s
+lintIO :: LintOptions -> NonEmpty.NonEmpty FilePath -> IO (NonEmpty.NonEmpty (Format.Result Text DockerfileError))
+lintIO options dFiles = do
+  parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
+  return $ NonEmpty.fromList (lint options parsedFiles)
+  where
+    parseFile :: String -> IO (Text, Either Error Dockerfile)
+    parseFile "-" = do
+      res <- Docker.parseStdin
+      return (Text.pack "-", res)
+    parseFile s = do
+      res <- Docker.parseFile s
+      return (Text.pack s, res)
 
-      lintAll = fmap lintDockerfile
+lint ::
+  LintOptions ->
+  [(Text, Either Error Dockerfile)] ->
+  [Format.Result Text DockerfileError]
+lint options parsedFiles = gather results
+  where
+    gather = fmap (uncurry Format.toResult)
+    results =
+      [ ( name,
+          fmap (analyze options) f
+        )
+        | (name, f) <- parsedFiles
+      ]
+        `using` parallelRun
+    parallelRun = parListChunk (div GHC.Conc.numCapabilities 2) rseq
 
-      lintDockerfile = processedFile
-        where
-          processedFile = Format.toResult . fmap processRules
-          processRules fileLines =
-            filter ignoredRules $
-              map
-                ( makeSeverity Rules.DLErrorC errorList
-                . makeSeverity Rules.DLWarningC warningList
-                . makeSeverity Rules.DLInfoC infoList
-                . makeSeverity Rules.DLStyleC styleList
-                )
-                $ analyzeAll rulesConfig fileLines
+analyze :: LintOptions -> Dockerfile -> Seq.Seq Hadolint.Rule.CheckFailure
+analyze options dockerfile = fixer process
+  where
+    fixer = fixSeverity options
+    process = Hadolint.Process.run (rulesConfig options) dockerfile
 
-          ignoredRules = ignoreFilter ignoreList
+fixSeverity :: LintOptions -> Seq.Seq Hadolint.Rule.CheckFailure -> Seq.Seq Hadolint.Rule.CheckFailure
+fixSeverity LintOptions {..} = Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
+  where
+    correctSeverity =
+      makeSeverity Hadolint.Rule.DLErrorC (fmap Hadolint.Rule.RuleCode errorRules)
+        . makeSeverity Hadolint.Rule.DLWarningC (fmap Hadolint.Rule.RuleCode warningRules)
+        . makeSeverity Hadolint.Rule.DLInfoC (fmap Hadolint.Rule.RuleCode infoRules)
+        . makeSeverity Hadolint.Rule.DLStyleC (fmap Hadolint.Rule.RuleCode styleRules)
 
-          makeSeverity s rules rule@(Rules.RuleCheck (Rules.Metadata code _ message) filename linenumber success) =
-            if code `elem` rules
-              then Rules.RuleCheck (Rules.Metadata code s message) filename linenumber success
-              else rule
+    ignoredRules = ignoreFilter ignoreRules
 
-          ignoreFilter :: [IgnoreRule] -> Rules.RuleCheck -> Bool
-          ignoreFilter rules (Rules.RuleCheck (Rules.Metadata code severity _) _ _ _) =
-            code `notElem` rules && severity /= Rules.DLIgnoreC
+    makeSeverity s rules rule@Hadolint.Rule.CheckFailure {code} =
+      if code `elem` rules
+        then rule {Hadolint.Rule.severity = s}
+        else rule
 
--- | Returns the result of applying all the rules to the given dockerfile
-analyzeAll :: Rules.RulesConfig -> Dockerfile -> [Rules.RuleCheck]
-analyzeAll config = Rules.analyze (Rules.rules ++ Rules.optionalRules config)
-
--- | Helper to analyze AST quickly in GHCI
-analyzeEither :: Rules.RulesConfig -> Either t Dockerfile -> [Rules.RuleCheck]
-analyzeEither _ (Left _) = []
-analyzeEither config (Right dockerFile) = analyzeAll config dockerFile
+    ignoreFilter :: [IgnoreRule] -> Hadolint.Rule.CheckFailure -> Bool
+    ignoreFilter ignored Hadolint.Rule.CheckFailure {code, severity} =
+      code `notElem` ignored && severity /= Hadolint.Rule.DLIgnoreC

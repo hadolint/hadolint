@@ -10,41 +10,35 @@ module Hadolint.Formatter.Format
   )
 where
 
-import Data.List (sort)
 import qualified Data.List.NonEmpty as NE
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Hadolint.Rules
+import qualified Data.Text as Text
+import qualified Hadolint.Rule
 import Text.Megaparsec (TraversableStream (..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 import Text.Megaparsec.Stream (VisualStream)
 
 data Result s e = Result
-  { errors :: !(Seq (ParseErrorBundle s e)),
-    checks :: !(Seq RuleCheck)
+  { fileName :: Text.Text,
+    errors :: Seq (ParseErrorBundle s e),
+    checks :: Hadolint.Rule.Failures
   }
 
-instance Semigroup (Result s e) where
-  (Result e1 c1) <> (Result e2 c2) = Result (e1 <> e2) (c1 <> c2)
-
-instance Monoid (Result s e) where
-  mappend = (<>)
-  mempty = Result mempty mempty
-
-toResult :: Either (ParseErrorBundle s e) [RuleCheck] -> Result s e
-toResult res =
+toResult :: Text.Text -> Either (ParseErrorBundle s e) Hadolint.Rule.Failures -> Result s e
+toResult file res =
   case res of
-    Left err -> Result (Seq.singleton err) mempty
-    Right c -> Result mempty (Seq.fromList (sort c))
+    Left err -> Result file (Seq.singleton err) mempty
+    Right c -> Result file mempty (Seq.unstableSort c)
 
-severityText :: DLSeverity -> String
+severityText :: Hadolint.Rule.DLSeverity -> Text.Text
 severityText s =
   case s of
-    DLErrorC -> "error"
-    DLWarningC -> "warning"
-    DLInfoC -> "info"
-    DLStyleC -> "style"
+    Hadolint.Rule.DLErrorC -> "error"
+    Hadolint.Rule.DLWarningC -> "warning"
+    Hadolint.Rule.DLInfoC -> "info"
+    Hadolint.Rule.DLStyleC -> "style"
     _ -> ""
 
 stripNewlines :: String -> String

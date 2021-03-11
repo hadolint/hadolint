@@ -26,6 +26,13 @@ dependencies:
   - base >=4.8 && <5
   - megaparsec >= 9.0.0
   - language-docker >=9.1.3 && < 10
+default-extensions:
+  - OverloadedStrings
+  - NamedFieldPuns
+  - DeriveGeneric
+  - DeriveAnyClass
+  - RecordWildCards
+  - StrictData
 library:
   source-dirs: src
   generated-other-modules:
@@ -49,6 +56,7 @@ library:
     - parallel
     - text
     - void
+    - foldl
 executables:
   hadolint:
     main: Main.hs
@@ -80,3 +88,5 @@ tests:
       - hspec
       - hadolint
       - HsYAML
+      - foldl
+      - containers

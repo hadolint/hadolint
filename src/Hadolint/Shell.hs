@@ -7,6 +7,7 @@ module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
+import Data.List (isInfixOf)
 import Data.Maybe (listToMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -212,3 +213,17 @@ getFlagArg flag Command {arguments, flags} = extractArgs
 
 getValueId :: Int -> [CmdPart] -> Int
 getValueId fId flags = foldl min (maxBound :: Int) $ filter (> fId) $ map partId flags
+
+-- | Check if a command contains a program call in the Run instruction
+usingProgram :: Text.Text -> ParsedShell -> Bool
+usingProgram prog args = not $ null [cmd | cmd <- findCommandNames args, cmd == prog]
+
+isPipInstall :: Command -> Bool
+isPipInstall cmd@(Command name _ _) = isStdPipInstall || isPythonPipInstall
+  where
+    isStdPipInstall =
+      "pip" `Text.isPrefixOf` name
+        && ["install"] `isInfixOf` getArgs cmd
+    isPythonPipInstall =
+      "python" `Text.isPrefixOf` name
+        && ["-m", "pip", "install"] `isInfixOf` getArgs cmd
