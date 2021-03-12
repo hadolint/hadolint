@@ -14,3 +14,4 @@ rule = simpleRule code severity message check
     check (OnBuild (From _)) = False
     check (OnBuild (Maintainer _)) = False
     check _ = True
+{-# INLINEABLE rule #-}

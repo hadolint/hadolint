@@ -21,3 +21,4 @@ rule = customRule check (emptyState NoEntry)
     -- Add a failure if we found another entrypoint in the same stage
     check line st@(State _ HasEntry) Entrypoint {} = st |> addFail (CheckFailure {..})
     check _ st _ = st
+{-# INLINEABLE rule #-}

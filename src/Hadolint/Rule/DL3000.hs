@@ -19,3 +19,4 @@ rule = simpleRule code severity message check
       | chr == '\"' = True
       | chr == '\'' = True
       | otherwise = False
+{-# INLINEABLE rule #-}

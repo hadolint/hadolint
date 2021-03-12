@@ -16,3 +16,4 @@ rule = customRule check (emptyState Set.empty)
       | Set.member s (state st) = st
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
+{-# INLINEABLE rule #-}

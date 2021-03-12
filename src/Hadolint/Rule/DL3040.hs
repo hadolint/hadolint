@@ -20,3 +20,4 @@ rule = simpleRule code severity message check
 
     dnfInstall = Shell.cmdHasArgs "dnf" ["install"]
     dnfClean = Shell.cmdHasArgs "dnf" ["clean", "all"]
+{-# INLINEABLE rule #-}

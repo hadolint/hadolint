@@ -20,3 +20,4 @@ rule = simpleRule code severity message check
 
     yumInstall = Shell.cmdHasArgs "yum" ["install"]
     yumClean = Shell.cmdHasArgs "yum" ["clean", "all"]
+{-# INLINEABLE rule #-}

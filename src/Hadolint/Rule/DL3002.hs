@@ -34,6 +34,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     markFailures (State fails (Acc _ st)) = Map.foldl' (Seq.|>) fails (fmap makeFail st)
     markFailures st = failures st
     makeFail line = CheckFailure {..}
+{-# INLINEABLE rule #-}
 
 rememberStage :: StageLine -> Acc -> Acc
 rememberStage from (Acc _ m) = Acc from m

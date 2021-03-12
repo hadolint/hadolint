@@ -13,3 +13,4 @@ rule = simpleRule code severity message check
       \to a release tag"
     check (From BaseImage {tag = Just t}) = t /= "latest"
     check _ = True
+{-# INLINEABLE rule #-}

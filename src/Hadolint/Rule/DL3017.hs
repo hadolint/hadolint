@@ -13,3 +13,4 @@ rule = simpleRule code severity message check
     message = "Do not use apk upgrade"
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands (Shell.cmdHasArgs "apk" ["upgrade"])) args
     check _ = True
+{-# INLINEABLE rule #-}

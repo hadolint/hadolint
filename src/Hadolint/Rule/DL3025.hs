@@ -13,3 +13,4 @@ rule = simpleRule code severity message check
     check (Cmd (ArgumentsText _)) = False
     check (Entrypoint (ArgumentsText _)) = False
     check _ = True
+{-# INLINEABLE rule #-}

@@ -12,3 +12,4 @@ rule = simpleRule code severity message check
 
     check (From BaseImage {platform = Just p}) = p == ""
     check _ = True
+{-# INLINEABLE rule #-}

@@ -18,6 +18,7 @@ rule = simpleRule code severity message check
     versionFixed package =
       "-" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
+{-# INLINEABLE rule #-}
 
 dnfPackages :: Shell.ParsedShell -> [Text.Text]
 dnfPackages args =

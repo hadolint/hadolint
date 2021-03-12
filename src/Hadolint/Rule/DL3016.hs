@@ -55,6 +55,7 @@ rule = simpleRule code severity message check
           if "@" `Text.isPrefixOf` pkg
             then Text.dropWhile ('/' <) pkg
             else pkg
+{-# INLINEABLE rule #-}
 
 stripInstallPrefix :: [Text.Text] -> [Text.Text]
 stripInstallPrefix cmd = dropWhile (== "install") (dropWhile (/= "install") cmd)

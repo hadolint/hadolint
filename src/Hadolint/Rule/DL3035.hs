@@ -25,3 +25,4 @@ rule = simpleRule code severity message check
         )
         args
     check _ = True
+{-# INLINEABLE rule #-}

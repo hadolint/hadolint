@@ -18,6 +18,7 @@ rule = simpleRule code severity message check
     forgotNoCacheDir cmd =
       Shell.isPipInstall cmd && not (usesNoCacheDir cmd) && not (isPipWrapper cmd)
     usesNoCacheDir cmd = "--no-cache-dir" `elem` Shell.getArgs cmd
+{-# INLINEABLE rule #-}
 
 isPipWrapper :: Shell.Command -> Bool
 isPipWrapper cmd@(Shell.Command name _ _) = isWrapper "pipx" || isWrapper "pipenv"

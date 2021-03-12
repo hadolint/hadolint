@@ -35,3 +35,4 @@ rule = simpleRule code severity message check
         ".tar.Z",
         ".tZ"
       ]
+{-# INLINEABLE rule #-}

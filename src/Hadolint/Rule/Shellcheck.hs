@@ -20,6 +20,7 @@ rule = customRule check (emptyState Shell.defaultShellOpts)
         getFailures = foldArguments (runShellCheck (state st)) args
         runShellCheck opts script = Set.fromList [toFailure line c | c <- Shell.shellcheck opts script]
     check _ st _ = st
+{-# INLINEABLE rule #-}
 
 -- | Converts ShellCheck errors into our own errors type
 toFailure :: Linenumber -> ShellCheck.Interface.PositionedComment -> CheckFailure

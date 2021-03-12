@@ -17,3 +17,4 @@ rule = simpleRule code severity message check
     check _ = True
 
     endsWithSlash (TargetPath t) = not (Text.null t) && Text.last t == '/'
+{-# INLINEABLE rule #-}

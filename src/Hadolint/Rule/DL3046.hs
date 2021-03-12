@@ -21,3 +21,4 @@ rule = simpleRule code severity message check
     hasLFlag = Shell.hasAnyFlag ["l", "no-log-init"]
     hasUFlag = Shell.hasAnyFlag ["u", "uid"]
     hasLongUID cmd = any ((> 5) . Text.length) (Shell.getFlagArg "u" cmd)
+{-# INLINEABLE rule #-}

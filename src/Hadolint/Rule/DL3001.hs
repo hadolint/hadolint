@@ -30,3 +30,4 @@ rule = simpleRule code severity message check
           "top",
           "vim"
         ]
+{-# INLINEABLE rule #-}

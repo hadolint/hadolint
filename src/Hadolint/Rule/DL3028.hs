@@ -19,6 +19,7 @@ rule = simpleRule code severity message check
     check _ = True
 
     versionFixed package = ":" `Text.isInfixOf` package
+{-# INLINEABLE rule #-}
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =

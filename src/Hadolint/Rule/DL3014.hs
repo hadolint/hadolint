@@ -18,3 +18,4 @@ rule = simpleRule code severity message check
     forgotAptYesOption cmd = isAptGetInstall cmd && not (hasYesOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     hasYesOption = Shell.hasAnyFlag ["y", "yes", "q", "assume-yes"]
+{-# INLINEABLE rule #-}

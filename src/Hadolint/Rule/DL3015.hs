@@ -20,3 +20,4 @@ rule = simpleRule code severity message check
     disablesRecommendOption cmd =
       Shell.hasFlag "no-install-recommends" cmd
         || Shell.hasArg "APT::Install-Recommends=false" cmd
+{-# INLINEABLE rule #-}

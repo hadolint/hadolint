@@ -39,6 +39,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
             -- If the same alias is used in another stage, fail
             pure CheckFailure {..}
           | otherwise = mempty
+{-# INLINEABLE rule #-}
 
 rememberStage :: Linenumber -> BaseImage -> Acc -> Acc
 rememberStage line from@BaseImage {image = Image _ als} (Acc _ stages o) = Acc from (Map.insert als line stages) o

@@ -26,3 +26,4 @@ rule allowed = customRule check (emptyState Set.empty)
       imageName == "scratch"
         || Set.member "docker.io" allowed
         || Set.member "hub.docker.com" allowed
+{-# INLINEABLE rule #-}

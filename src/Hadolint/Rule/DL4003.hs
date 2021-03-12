@@ -22,3 +22,4 @@ rule = customRule check (emptyState NoCmd)
     check line st@(State _ HasCmd) Cmd {} = st |> addFail (CheckFailure {..})
     -- otherwise return the accumulator
     check _ st _ = st
+{-# INLINEABLE rule #-}

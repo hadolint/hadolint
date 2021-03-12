@@ -13,3 +13,4 @@ rule = simpleRule code severity message check
       and [p <= 65535 | Port p _ <- ports]
         && and [l <= 65535 && m <= 65535 | PortRange l m _ <- ports]
     check _ = True
+{-# INLINEABLE rule #-}

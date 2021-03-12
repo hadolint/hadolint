@@ -32,6 +32,7 @@ rule = customRule check (emptyState Empty)
       | "$" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- dest is a variable
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
+{-# INLINEABLE rule #-}
 
 rememberStage :: BaseImage -> Acc -> Acc
 rememberStage BaseImage {alias = Just als} Empty =

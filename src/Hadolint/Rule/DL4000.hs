@@ -11,3 +11,4 @@ rule = simpleRule code severity message check
     message = "MAINTAINER is deprecated"
     check (Maintainer _) = False
     check _ = True
+{-# INLINEABLE rule #-}

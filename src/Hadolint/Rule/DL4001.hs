@@ -21,6 +21,7 @@ rule = customRule check (emptyState Set.empty)
     -- Reset the state for each stage
     check _ st From {} = st |> replaceWith Set.empty
     check _ st _ = st
+{-# INLINEABLE rule #-}
 
 extractCommands :: Shell.ParsedShell -> Set.IntSet
 extractCommands args =

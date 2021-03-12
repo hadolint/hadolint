@@ -1,8 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
@@ -20,22 +15,22 @@ import ShellCheck.Interface
 import qualified ShellCheck.Parser
 
 data CmdPart = CmdPart
-  { arg :: !Text,
-    partId :: !Int
+  { arg :: Text,
+    partId :: Int
   }
   deriving (Show)
 
 data Command = Command
-  { name :: !Text.Text,
+  { name :: Text.Text,
     arguments :: [CmdPart],
     flags :: [CmdPart]
   }
   deriving (Show)
 
 data ParsedShell = ParsedShell
-  { original :: !Text.Text,
-    parsed :: !ParseResult,
-    presentCommands :: ![Command]
+  { original :: Text.Text,
+    parsed :: ParseResult,
+    presentCommands :: [Command]
   }
 
 data ShellOpts = ShellOpts

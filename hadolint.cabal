@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f931a3a37a90e14ce8447a58df4fddaecdbc5d51c29aec74e46310d0b8c315db
+-- hash: bbaa329ad89795c9120842d01a939dfc0028f95c5f8cdd4fec8902c0d3938576
 
 name:           hadolint
 version:        1.23.0
@@ -104,13 +104,12 @@ library
       Paths_hadolint
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       HsYAML
     , ShellCheck >=0.7.1
     , aeson
-    , async
     , base >=4.8 && <5
     , bytestring
     , colourista
@@ -136,8 +135,8 @@ executable hadolint
       Paths_hadolint
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
     , containers
@@ -160,8 +159,8 @@ test-suite hadolint-unit-tests
       Paths_hadolint
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       HUnit >=1.2
     , HsYAML

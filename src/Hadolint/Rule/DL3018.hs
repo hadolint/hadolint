@@ -16,6 +16,7 @@ rule = simpleRule code severity message check
     check (Run (RunArgs args _)) = foldArguments (\as -> and [versionFixed p | p <- apkAddPackages as]) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package
+{-# INLINEABLE rule #-}
 
 apkAddPackages :: ParsedShell -> [Text.Text]
 apkAddPackages args =

@@ -12,13 +12,11 @@ module Hadolint.Lint
   )
 where
 
-import qualified Control.Concurrent.Async as Async
-import Control.Parallel.Strategies (parListChunk, rseq, using)
+import qualified Control.Parallel.Strategies as Parallel
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
 import Data.Text (Text)
 import qualified Data.Text as Text
-import qualified GHC.Conc
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Process
 import qualified Hadolint.Rule
@@ -65,7 +63,7 @@ instance Monoid LintOptions where
 -- rules, depending on the list of ignored rules.
 lintIO :: LintOptions -> NonEmpty.NonEmpty FilePath -> IO (NonEmpty.NonEmpty (Format.Result Text DockerfileError))
 lintIO options dFiles = do
-  parsedFiles <- Async.mapConcurrently parseFile (NonEmpty.toList dFiles)
+  parsedFiles <- mapM parseFile (NonEmpty.toList dFiles)
   return $ NonEmpty.fromList (lint options parsedFiles)
   where
     parseFile :: String -> IO (Text, Either Error Dockerfile)
@@ -80,17 +78,16 @@ lint ::
   LintOptions ->
   [(Text, Either Error Dockerfile)] ->
   [Format.Result Text DockerfileError]
-lint options parsedFiles = gather results
+lint options parsedFiles = gather results `Parallel.using` parallelRun
   where
     gather = fmap (uncurry Format.toResult)
     results =
       [ ( name,
-          fmap (analyze options) f
+          fmap (analyze options) parseResult
         )
-        | (name, f) <- parsedFiles
+        | (name, parseResult) <- parsedFiles
       ]
-        `using` parallelRun
-    parallelRun = parListChunk (div GHC.Conc.numCapabilities 2) rseq
+    parallelRun = Parallel.parList Parallel.rseq
 
 analyze :: LintOptions -> Dockerfile -> Seq.Seq Hadolint.Rule.CheckFailure
 analyze options dockerfile = fixer process

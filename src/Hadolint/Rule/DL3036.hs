@@ -20,3 +20,4 @@ rule = simpleRule code severity message check
 
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
     zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
+{-# INLINEABLE rule #-}

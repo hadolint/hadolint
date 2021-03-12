@@ -15,6 +15,7 @@ rule = simpleRule code severity message check
     check (Add (AddArgs srcs _ _)) =
       and [isArchive src || isUrl src | SourcePath src <- toList srcs]
     check _ = True
+{-# INLINEABLE rule #-}
 
 isArchive :: Text.Text -> Bool
 isArchive path =

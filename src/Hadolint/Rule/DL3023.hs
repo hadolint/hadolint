@@ -16,3 +16,4 @@ rule = customRule check (emptyState Nothing)
       | otherwise = st |> addFail CheckFailure {..}
     -- cannot copy from the same stage!
     check _ st _ = st
+{-# INLINEABLE rule #-}

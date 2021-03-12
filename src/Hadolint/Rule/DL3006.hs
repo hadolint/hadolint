@@ -26,6 +26,7 @@ rule = customRule check (emptyState Set.empty)
                 else newState |> addFail (CheckFailure {..})
             _ -> newState
     check _ st _ = st
+{-# INLINEABLE rule #-}
 
 insertFromAlias :: BaseImage -> Set.Set Text -> Set.Set Text
 insertFromAlias BaseImage {alias = Just a} st = st |> Set.insert (unImageAlias a)

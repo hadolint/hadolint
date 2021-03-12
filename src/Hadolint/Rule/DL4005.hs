@@ -14,3 +14,4 @@ rule = simpleRule code severity message check
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True
+{-# INLINEABLE rule #-}

@@ -16,3 +16,4 @@ rule = simpleRule code severity message check
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotCacheOption) args
     check _ = True
     forgotCacheOption cmd = Shell.cmdHasArgs "apk" ["add"] cmd && not (Shell.hasFlag "no-cache" cmd)
+{-# INLINEABLE rule #-}

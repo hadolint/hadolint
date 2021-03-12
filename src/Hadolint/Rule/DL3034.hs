@@ -27,3 +27,4 @@ rule = simpleRule code severity message check
           "patch"
         ]
     hasYesOption = Shell.hasAnyFlag ["no-confirm", "y"]
+{-# INLINEABLE rule #-}

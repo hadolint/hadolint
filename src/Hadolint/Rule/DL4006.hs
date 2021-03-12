@@ -38,3 +38,4 @@ rule = customRule check (emptyState False)
               arg <- Shell.arg <$> arguments,
               arg == "pipefail"
           ]
+{-# INLINEABLE rule #-}

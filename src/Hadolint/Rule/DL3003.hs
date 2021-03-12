@@ -12,3 +12,4 @@ rule = simpleRule code severity message check
     message = "Use WORKDIR to switch to a directory"
     check (Run (RunArgs args _)) = foldArguments (not . usingProgram "cd") args
     check _ = True
+{-# INLINEABLE rule #-}

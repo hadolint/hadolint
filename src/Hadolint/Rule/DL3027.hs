@@ -15,3 +15,4 @@ rule = simpleRule code severity message check
 
     check (Run (RunArgs args _)) = foldArguments (not . Shell.usingProgram "apt") args
     check _ = True
+{-# INLINEABLE rule #-}

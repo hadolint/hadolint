@@ -17,3 +17,4 @@ rule = simpleRule code severity message check
     forgotYumYesOption cmd = isYumInstall cmd && not (hasYesOption cmd)
     isYumInstall = Shell.cmdHasArgs "yum" ["install", "groupinstall", "localinstall"]
     hasYesOption = Shell.hasAnyFlag ["y", "assumeyes"]
+{-# INLINEABLE rule #-}

@@ -14,3 +14,4 @@ rule = simpleRule code severity message check
       \root"
     check (Run (RunArgs args _)) = foldArguments (not . usingProgram "sudo") args
     check _ = True
+{-# INLINEABLE rule #-}

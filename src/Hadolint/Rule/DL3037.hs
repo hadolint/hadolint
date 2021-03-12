@@ -22,6 +22,7 @@ rule = simpleRule code severity message check
         || "<=" `Text.isInfixOf` package
         || "<" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
+{-# INLINEABLE rule #-}
 
 zypperPackages :: Shell.ParsedShell -> [Text.Text]
 zypperPackages args =

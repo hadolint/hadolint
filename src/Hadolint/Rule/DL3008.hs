@@ -17,6 +17,7 @@ rule = simpleRule code severity message check
     check (Run (RunArgs args _)) = foldArguments (all versionFixed . aptGetPackages) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package || ("/" `Text.isInfixOf` package || ".deb" `Text.isSuffixOf` package)
+{-# INLINEABLE rule #-}
 
 aptGetPackages :: ParsedShell -> [Text.Text]
 aptGetPackages args =

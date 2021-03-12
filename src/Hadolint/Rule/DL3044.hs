@@ -20,6 +20,7 @@ rule = customRule check (emptyState Set.empty)
             else newState |> addFail CheckFailure {..}
     check _ st (Arg arg _) = st |> modify (Set.insert arg)
     check _ st _ = st
+{-# INLINEABLE rule #-}
 
 -- | generates a list of references to variable names referenced on the right
 -- hand side of a variable definition, except when the variable is

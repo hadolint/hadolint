@@ -22,6 +22,7 @@ ghc-options:
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
   - -optP-Wno-nonportable-include-path
+  - -flate-dmd-anal
 dependencies:
   - base >=4.8 && <5
   - megaparsec >= 9.0.0
@@ -33,6 +34,8 @@ default-extensions:
   - DeriveAnyClass
   - RecordWildCards
   - StrictData
+  - ScopedTypeVariables
+  - PatternSynonyms
 library:
   source-dirs: src
   generated-other-modules:
@@ -43,7 +46,6 @@ library:
     - &split split >=0.2
     - HsYAML
     - aeson
-    - async
     - bytestring
     - colourista
     - containers

@@ -18,6 +18,7 @@ rule = simpleRule code severity message check
     versionFixed package =
       "-" `Text.isInfixOf` package
         || ".rpm" `Text.isSuffixOf` package
+{-# INLINEABLE rule #-}
 
 yumPackages :: Shell.ParsedShell -> [Text.Text]
 yumPackages args =
