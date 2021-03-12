@@ -15,7 +15,7 @@ rule = customRule check (emptyState Set.empty)
     check line st (Run (RunArgs args _)) =
       let newArgs = foldArguments extractCommands args
           newState = st |> modify (Set.union newArgs)
-       in if Set.size (state newState) >= 2
+       in if Set.size newArgs > 0 && Set.size (state newState) >= 2
             then newState |> addFail (CheckFailure {..})
             else newState
     -- Reset the state for each stage

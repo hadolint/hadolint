@@ -44,6 +44,7 @@ data State a = State
   { failures :: Failures,
     state :: a
   }
+  deriving (Show)
 
 withLineNumber ::
   (Linenumber -> t1 -> Instruction args -> t2) ->

@@ -15,7 +15,7 @@ ignored = Foldl.Fold parse mempty id
   where
     parse acc InstructionPos {instruction = Comment comment, lineNumber = line} =
       case parseComment comment of
-        Just ignores@(_ : _) -> Map.insert line (Set.fromList . fmap RuleCode $ ignores) acc
+        Just ignores@(_ : _) -> Map.insert (line + 1) (Set.fromList . fmap RuleCode $ ignores) acc
         _ -> acc
     parse acc _ = acc
 

@@ -13,6 +13,7 @@ type UserLine = Linenumber
 data Acc
   = Acc StageLine (Map.IntMap UserLine)
   | Empty
+  deriving (Show)
 
 rule :: Rule args
 rule = veryCustomRule check (emptyState Empty) markFailures
@@ -21,10 +22,10 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     severity = DLWarningC
     message = "Last USER should not be root"
 
-    check line st@(State _ acc) (From _) = st |> replaceWith (rememberStage acc line)
-    check line st@(State _ acc) (User user)
-      | isRoot user = st |> replaceWith (forgetStage acc)
-      | otherwise = st |> replaceWith (rememberLine acc line)
+    check line st (From _) = st |> modify (rememberStage line)
+    check line st (User user)
+      | not (isRoot user) = st |> modify forgetStage
+      | otherwise = st |> modify (rememberLine line)
     check _ st _ = st
 
     isRoot user =
@@ -34,14 +35,14 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     markFailures st = failures st
     makeFail line = CheckFailure {..}
 
-rememberStage :: Acc -> StageLine -> Acc
-rememberStage (Acc _ m) from = Acc from m
-rememberStage Empty from = Acc from Map.empty
+rememberStage :: StageLine -> Acc -> Acc
+rememberStage from (Acc _ m) = Acc from m
+rememberStage from Empty = Acc from Map.empty
 
 forgetStage :: Acc -> Acc
 forgetStage (Acc from m) = Acc from (m |> Map.delete from)
 forgetStage Empty = Empty
 
-rememberLine :: Acc -> UserLine -> Acc
-rememberLine (Acc from m) line = Acc from (m |> Map.insert from line)
-rememberLine Empty _ = Empty
+rememberLine :: StageLine -> Acc -> Acc
+rememberLine line (Acc from m) = Acc from (m |> Map.insert from line)
+rememberLine _ Empty = Empty

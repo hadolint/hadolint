@@ -60,6 +60,7 @@ import qualified Hadolint.Rule.DL4003
 import qualified Hadolint.Rule.DL4004
 import qualified Hadolint.Rule.DL4005
 import qualified Hadolint.Rule.DL4006
+import qualified Hadolint.Rule.Shellcheck
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
@@ -168,5 +169,6 @@ failures RulesConfig {allowedRegistries} =
         Hadolint.Rule.DL4003.rule,
         Hadolint.Rule.DL4004.rule,
         Hadolint.Rule.DL4005.rule,
-        Hadolint.Rule.DL4006.rule
+        Hadolint.Rule.DL4006.rule,
+        Hadolint.Rule.Shellcheck.rule
       ]

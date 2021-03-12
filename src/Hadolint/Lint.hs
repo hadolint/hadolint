@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 module Hadolint.Lint
   ( lintIO,
     lint,
