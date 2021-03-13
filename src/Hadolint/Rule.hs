@@ -63,7 +63,7 @@ addFail failure state@(State fails _) =
     }
 
 emptyState :: a -> State a
-emptyState st = State Seq.empty st
+emptyState = State Seq.empty
 
 simpleState :: State ()
 simpleState = State Seq.empty ()
@@ -76,26 +76,49 @@ replaceWith newState s = s {state = newState}
 
 type Rule args = Foldl.Fold (InstructionPos args) Failures
 
-simpleRule :: RuleCode -> DLSeverity -> Text.Text -> (Instruction args -> Bool) -> Rule args
-simpleRule code severity message checker =
-  Foldl.Fold (withLineNumber step) simpleState failures
+-- | A simple rule that can be implemented in terms of returning True or False for each instruction
+-- If you need to calculate some state to decide upon past information, use 'customRule'
+simpleRule ::
+  -- | rule code
+  RuleCode ->
+  -- | severity for the rule
+  DLSeverity ->
+  -- | failure message for the rule
+  Text.Text ->
+  -- | step calculation for the rule. Returns True or False for each line in the dockerfile depending on its validity.
+  (Instruction args -> Bool) ->
+  Rule args
+simpleRule code severity message checker = customRule step simpleState
   where
     step line s instr
       | checker instr = s
       | otherwise = s |> addFail (CheckFailure code severity message line)
 
+-- | A rule that accumulates a State a. The state contains the collection of failed lines and a custom data
+-- type that can be used to track properties for the rule. Each step always returns the new State, which offers
+-- the ability to both accumulate properties and mark failures for every given instruction.
 customRule ::
   (Linenumber -> State a -> Instruction args -> State a) ->
   State a ->
   Rule args
-customRule step initial = Foldl.Fold (withLineNumber step) initial failures
+customRule step initial = veryCustomRule step initial failures
 
+-- | Similarly to 'customRule', it returns a State a for each step, but it has the ability to run a
+-- done callback as the last step of the rule. The done callback can be used to transform the state
+-- and mark failures for any arbitrary line in the input. This helper is meant for rules that need
+-- to do lookahead. Instead of looking ahead, the state should store the facts and make a decision about
+-- them once the input is finished.
 veryCustomRule ::
+  -- | step calculation for the rule. Called for each instruction in the docker file
+  -- it must return the state after being modified by the rule
   (Linenumber -> State a -> Instruction args -> State a) ->
+  -- | initial state
   State a ->
+  -- | done callaback. It is passed the final accumulated state and it should return all failures
+  -- found by the rule
   (State a -> Failures) ->
   Rule args
-veryCustomRule step initial extract = Foldl.Fold (withLineNumber step) initial extract
+veryCustomRule step = Foldl.Fold (withLineNumber step)
 
 foldArguments :: (a -> b) -> Arguments a -> b
 foldArguments applyRule args =

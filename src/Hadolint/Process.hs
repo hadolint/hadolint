@@ -2,7 +2,6 @@ module Hadolint.Process (run, RulesConfig (..)) where
 
 import qualified Control.Foldl as Foldl
 import qualified Data.IntMap.Strict as Map
-import Data.Maybe (fromMaybe)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -89,9 +88,10 @@ run config dockerfile = Seq.filter shouldKeep failed
   where
     AnalisisResult {..} = Foldl.fold (analyze config) dockerfile
 
-    shouldKeep CheckFailure {line, code} = fromMaybe True $ do
-      ignoreList <- Map.lookup line ignored
-      return $ not $ code `Set.member` ignoreList
+    shouldKeep CheckFailure {line, code} =
+      Just True /= do
+        ignoreList <- Map.lookup line ignored
+        return $ code `Set.member` ignoreList
 
 analyze :: RulesConfig -> Foldl.Fold (InstructionPos Text.Text) AnalisisResult
 analyze config =
