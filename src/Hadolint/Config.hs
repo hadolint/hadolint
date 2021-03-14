@@ -4,6 +4,7 @@
 
 module Hadolint.Config (applyConfig, ConfigFile (..), OverrideConfig (..)) where
 
+import qualified Control.Foldl.Text as Text
 import Control.Monad (filterM)
 import qualified Data.ByteString as Bytes
 import Data.Coerce (coerce)
@@ -13,7 +14,8 @@ import Data.YAML ((.:?))
 import qualified Data.YAML as Yaml
 import GHC.Generics (Generic)
 import qualified Hadolint.Lint as Lint
-import qualified Hadolint.Rules as Rules
+import qualified Hadolint.Process
+import qualified Hadolint.Rule
 import qualified Language.Docker as Docker
 import System.Directory
   ( XdgDirectory (..),
@@ -22,7 +24,6 @@ import System.Directory
     getXdgDirectory,
   )
 import System.FilePath ((</>))
-
 
 data OverrideConfig = OverrideConfig
   { overrideErrorRules :: Maybe [Lint.ErrorRule],
@@ -39,20 +40,21 @@ data ConfigFile = ConfigFile
   }
   deriving (Show, Eq, Generic)
 
-instance Yaml.FromYAML OverrideConfig
-  where
-    parseYAML = Yaml.withMap "OverrideConfig" $ \m -> OverrideConfig
-        <$> m .:? "error"
-        <*> m .:? "warning"
-        <*> m .:? "info"
-        <*> m .:? "style"
+instance Yaml.FromYAML OverrideConfig where
+  parseYAML = Yaml.withMap "OverrideConfig" $ \m ->
+    OverrideConfig
+      <$> m .:? "error"
+      <*> m .:? "warning"
+      <*> m .:? "info"
+      <*> m .:? "style"
 
 instance Yaml.FromYAML ConfigFile where
-  parseYAML = Yaml.withMap "ConfigFile" $ \m ->
-    ConfigFile
-      <$> m .:? "override"
-      <*> m .:? "ignored"
-      <*> m .:? "trustedRegistries"
+  parseYAML = Yaml.withMap "ConfigFile" $ \m -> do
+    overrideRules <- m .:? "override"
+    ignored <- m .:? "ignored"
+    let ignoredRules = coerce (ignored :: Maybe [Text.Text])
+    trustedRegistries <- m .:? "trustedRegistries"
+    return ConfigFile {..}
 
 -- | If both the ignoreRules and rulesConfig properties of Lint options are empty
 -- then this function will fill them with the default found in the passed config
@@ -122,11 +124,11 @@ applyConfig maybeConfig o
         _ -> opts
 
     applyTrusted trusted opts
-      | null (Rules.allowedRegistries (Lint.rulesConfig opts)) =
+      | null (Hadolint.Process.allowedRegistries (Lint.rulesConfig opts)) =
         opts {Lint.rulesConfig = toRules trusted <> Lint.rulesConfig opts}
       | otherwise = opts
 
-    toRules (Just trusted) = Rules.RulesConfig (Set.fromList . coerce $ trusted)
+    toRules (Just trusted) = Hadolint.Process.RulesConfig (Set.fromList . coerce $ trusted)
     toRules _ = mempty
 
     formatError err config =

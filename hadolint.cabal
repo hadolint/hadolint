@@ -4,10 +4,10 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 86f9cfdca9eaa4b16ecd3292135ace357a7834b995350e9ce3b70acf1f9cfa63
+-- hash: 0894de2541e49590657147243a298ff0585a0acb41aa2dbaf9cf5666f1b25348
 
 name:           hadolint
-version:        1.23.0
+version:        2.0.0
 synopsis:       Dockerfile Linter JavaScript API
 description:    A smarter Dockerfile linter that helps you build best practice Docker images.
 category:       Development
@@ -40,8 +40,63 @@ library
       Hadolint.Formatter.Format
       Hadolint.Formatter.Json
       Hadolint.Formatter.TTY
+      Hadolint.Ignore
       Hadolint.Lint
-      Hadolint.Rules
+      Hadolint.Process
+      Hadolint.Rule
+      Hadolint.Rule.DL3000
+      Hadolint.Rule.DL3001
+      Hadolint.Rule.DL3002
+      Hadolint.Rule.DL3003
+      Hadolint.Rule.DL3004
+      Hadolint.Rule.DL3005
+      Hadolint.Rule.DL3006
+      Hadolint.Rule.DL3007
+      Hadolint.Rule.DL3008
+      Hadolint.Rule.DL3009
+      Hadolint.Rule.DL3010
+      Hadolint.Rule.DL3011
+      Hadolint.Rule.DL3013
+      Hadolint.Rule.DL3014
+      Hadolint.Rule.DL3015
+      Hadolint.Rule.DL3016
+      Hadolint.Rule.DL3017
+      Hadolint.Rule.DL3018
+      Hadolint.Rule.DL3019
+      Hadolint.Rule.DL3020
+      Hadolint.Rule.DL3021
+      Hadolint.Rule.DL3022
+      Hadolint.Rule.DL3023
+      Hadolint.Rule.DL3024
+      Hadolint.Rule.DL3025
+      Hadolint.Rule.DL3026
+      Hadolint.Rule.DL3027
+      Hadolint.Rule.DL3028
+      Hadolint.Rule.DL3029
+      Hadolint.Rule.DL3030
+      Hadolint.Rule.DL3031
+      Hadolint.Rule.DL3032
+      Hadolint.Rule.DL3033
+      Hadolint.Rule.DL3034
+      Hadolint.Rule.DL3035
+      Hadolint.Rule.DL3036
+      Hadolint.Rule.DL3037
+      Hadolint.Rule.DL3038
+      Hadolint.Rule.DL3039
+      Hadolint.Rule.DL3040
+      Hadolint.Rule.DL3041
+      Hadolint.Rule.DL3042
+      Hadolint.Rule.DL3043
+      Hadolint.Rule.DL3044
+      Hadolint.Rule.DL3045
+      Hadolint.Rule.DL3046
+      Hadolint.Rule.DL4000
+      Hadolint.Rule.DL4001
+      Hadolint.Rule.DL4003
+      Hadolint.Rule.DL4004
+      Hadolint.Rule.DL4005
+      Hadolint.Rule.DL4006
+      Hadolint.Rule.Shellcheck
       Hadolint.Shell
   other-modules:
       Paths_hadolint
@@ -49,12 +104,12 @@ library
       Paths_hadolint
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       HsYAML
     , ShellCheck >=0.7.1
     , aeson
-    , async
     , base >=4.8 && <5
     , bytestring
     , colourista
@@ -63,6 +118,7 @@ library
     , deepseq ==1.4.4.*
     , directory >=1.3.0
     , filepath
+    , foldl
     , ilist
     , language-docker >=9.1.3 && <10
     , megaparsec >=9.0.0
@@ -79,7 +135,8 @@ executable hadolint
       Paths_hadolint
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
     , containers
@@ -102,7 +159,8 @@ test-suite hadolint-unit-tests
       Paths_hadolint
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path
+  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       HUnit >=1.2
     , HsYAML
@@ -110,6 +168,8 @@ test-suite hadolint-unit-tests
     , aeson
     , base >=4.8 && <5
     , bytestring >=0.10
+    , containers
+    , foldl
     , hadolint
     , hspec
     , language-docker >=9.1.3 && <10

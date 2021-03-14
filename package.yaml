@@ -1,5 +1,5 @@
 name: hadolint
-version: "1.23.0"
+version: "2.0.0"
 synopsis: Dockerfile Linter JavaScript API
 description: A smarter Dockerfile linter that helps you build best practice Docker images.
 category: Development
@@ -22,10 +22,20 @@ ghc-options:
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
   - -optP-Wno-nonportable-include-path
+  - -flate-dmd-anal
 dependencies:
   - base >=4.8 && <5
   - megaparsec >= 9.0.0
   - language-docker >=9.1.3 && < 10
+default-extensions:
+  - OverloadedStrings
+  - NamedFieldPuns
+  - DeriveGeneric
+  - DeriveAnyClass
+  - RecordWildCards
+  - StrictData
+  - ScopedTypeVariables
+  - PatternSynonyms
 library:
   source-dirs: src
   generated-other-modules:
@@ -36,7 +46,6 @@ library:
     - &split split >=0.2
     - HsYAML
     - aeson
-    - async
     - bytestring
     - colourista
     - containers
@@ -49,6 +58,7 @@ library:
     - parallel
     - text
     - void
+    - foldl
 executables:
   hadolint:
     main: Main.hs
@@ -80,3 +90,5 @@ tests:
       - hspec
       - hadolint
       - HsYAML
+      - foldl
+      - containers

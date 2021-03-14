@@ -1,13 +1,9 @@
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
-import Data.Maybe (listToMaybe, mapMaybe)
+import Data.List (isInfixOf)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -19,22 +15,22 @@ import ShellCheck.Interface
 import qualified ShellCheck.Parser
 
 data CmdPart = CmdPart
-  { arg :: !Text,
-    partId :: !Int
+  { arg :: Text,
+    partId :: Int
   }
   deriving (Show)
 
 data Command = Command
-  { name :: !Text.Text,
+  { name :: Text.Text,
     arguments :: [CmdPart],
     flags :: [CmdPart]
   }
   deriving (Show)
 
 data ParsedShell = ParsedShell
-  { original :: !Text.Text,
-    parsed :: !ParseResult,
-    presentCommands :: ![Command]
+  { original :: Text.Text,
+    parsed :: ParseResult,
+    presentCommands :: [Command]
   }
 
 data ShellOpts = ShellOpts
@@ -80,15 +76,14 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
           csShellTypeOverride = Nothing,
           csMinSeverity = StyleC
         }
-    script = "#!" ++ extractShell sh ++ "\n" ++ printVars ++ Text.unpack txt
+    script = Text.unpack $ "#!" <> extractShell sh <> "\n" <> printVars <> txt
     exclusions =
       [ 2187, -- exclude the warning about the ash shell not being supported
         1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
       ]
 
-    extractShell s =
-      maybe "" Text.unpack (listToMaybe . Text.words $ s)
-    printVars = Text.unpack . Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
+    extractShell s = fromMaybe "" (listToMaybe . Text.words $ s)
+    printVars = Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
 
 parseShell :: Text.Text -> ParsedShell
 parseShell txt = ParsedShell {original = txt, parsed = parsedResult, presentCommands = commands}
@@ -99,7 +94,7 @@ parseShell txt = ParsedShell {original = txt, parsed = parsedResult, presentComm
           (mockedSystemInterface [("", "")])
           newParseSpec
             { psFilename = "", -- There is no filename
-              psScript = "#!/bin/bash\n" ++ Text.unpack txt,
+              psScript = Text.unpack $ "#!/bin/bash\n" <> txt,
               psCheckSourced = False
             }
 
@@ -164,7 +159,7 @@ extractAllArgs (T_SimpleCommand _ _ (_ : allArgs)) = map mkPart allArgs
   where
     mkPart token =
       CmdPart
-        (Text.pack . concat $ ShellCheck.ASTLib.oversimplify token)
+        (Text.concat . fmap Text.pack $ ShellCheck.ASTLib.oversimplify token)
         (mkId (ShellCheck.AST.getId token))
     mkId (Id i) = i
 extractAllArgs _ = []
@@ -201,7 +196,7 @@ dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdA
     idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
     filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
--- given a flag and a command, return list of arguments for that particulat
+-- | given a flag and a command, return list of arguments for that particulat
 -- flag. E.g., if the command is `useradd -u 12345 luser` and this function is
 -- called for the command `u`, it returns ["12345"].
 getFlagArg :: Text.Text -> Command -> [Text.Text]
@@ -212,3 +207,17 @@ getFlagArg flag Command {arguments, flags} = extractArgs
 
 getValueId :: Int -> [CmdPart] -> Int
 getValueId fId flags = foldl min (maxBound :: Int) $ filter (> fId) $ map partId flags
+
+-- | Check if a command contains a program call in the Run instruction
+usingProgram :: Text.Text -> ParsedShell -> Bool
+usingProgram prog args = not $ null [cmd | cmd <- findCommandNames args, cmd == prog]
+
+isPipInstall :: Command -> Bool
+isPipInstall cmd@(Command name _ _) = isStdPipInstall || isPythonPipInstall
+  where
+    isStdPipInstall =
+      "pip" `Text.isPrefixOf` name
+        && ["install"] `isInfixOf` getArgs cmd
+    isPythonPipInstall =
+      "python" `Text.isPrefixOf` name
+        && ["-m", "pip", "install"] `isInfixOf` getArgs cmd
