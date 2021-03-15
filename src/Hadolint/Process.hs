@@ -53,6 +53,7 @@ import qualified Hadolint.Rule.DL3043
 import qualified Hadolint.Rule.DL3044
 import qualified Hadolint.Rule.DL3045
 import qualified Hadolint.Rule.DL3046
+import qualified Hadolint.Rule.DL3047
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
 import qualified Hadolint.Rule.DL4003
@@ -162,6 +163,7 @@ failures RulesConfig {allowedRegistries} =
     <> Hadolint.Rule.DL3044.rule
     <> Hadolint.Rule.DL3045.rule
     <> Hadolint.Rule.DL3046.rule
+    <> Hadolint.Rule.DL3047.rule
     <> Hadolint.Rule.DL4000.rule
     <> Hadolint.Rule.DL4001.rule
     <> Hadolint.Rule.DL4003.rule
