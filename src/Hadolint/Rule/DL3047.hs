@@ -21,16 +21,16 @@ rule = simpleRule code severity message check
     isWget (Shell.Command name _ _) = name == "wget"
     hasProgressOption cmd = Shell.hasFlag "progress" cmd
 
-    hasSpecialFlags cmd = 
+    hasSpecialFlags cmd =
       hasQuietFlag cmd
-        || hasOutputFlag cmd 
-          || hasAppendOutputFlag cmd 
-            || hasNoVerboseFlag cmd 
+        || hasOutputFlag cmd
+        || hasAppendOutputFlag cmd
+        || hasNoVerboseFlag cmd
 
     hasQuietFlag cmd = Shell.hasAnyFlag ["q", "quiet"] cmd
     hasOutputFlag cmd = Shell.hasAnyFlag ["o", "output-file"] cmd
     hasAppendOutputFlag cmd = Shell.hasAnyFlag ["a", "append-output"] cmd
-    hasNoVerboseFlag cmd = 
+    hasNoVerboseFlag cmd =
       Shell.hasAnyFlag ["no-verbose"] cmd
-      || Shell.cmdHasArgs "wget" ["-nv"] cmd
+        || Shell.cmdHasArgs "wget" ["-nv"] cmd
 {-# INLINEABLE rule #-}
