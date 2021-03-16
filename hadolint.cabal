@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0894de2541e49590657147243a298ff0585a0acb41aa2dbaf9cf5666f1b25348
+-- hash: c7489925f7c60f72f7b137aaa8665b6eaa1e6ca5c4d8785d1f31bc5a55573914
 
 name:           hadolint
 version:        2.0.0
@@ -90,6 +90,7 @@ library
       Hadolint.Rule.DL3044
       Hadolint.Rule.DL3045
       Hadolint.Rule.DL3046
+      Hadolint.Rule.DL3047
       Hadolint.Rule.DL4000
       Hadolint.Rule.DL4001
       Hadolint.Rule.DL4003
