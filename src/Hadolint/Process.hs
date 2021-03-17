@@ -19,6 +19,7 @@ import qualified Hadolint.Rule.DL3008
 import qualified Hadolint.Rule.DL3009
 import qualified Hadolint.Rule.DL3010
 import qualified Hadolint.Rule.DL3011
+import qualified Hadolint.Rule.DL3012
 import qualified Hadolint.Rule.DL3013
 import qualified Hadolint.Rule.DL3014
 import qualified Hadolint.Rule.DL3015
@@ -54,6 +55,7 @@ import qualified Hadolint.Rule.DL3044
 import qualified Hadolint.Rule.DL3045
 import qualified Hadolint.Rule.DL3046
 import qualified Hadolint.Rule.DL3047
+import qualified Hadolint.Rule.DL3057
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
 import qualified Hadolint.Rule.DL4003
@@ -129,6 +131,7 @@ failures RulesConfig {allowedRegistries} =
     <> Hadolint.Rule.DL3009.rule
     <> Hadolint.Rule.DL3010.rule
     <> Hadolint.Rule.DL3011.rule
+    <> Hadolint.Rule.DL3012.rule
     <> Hadolint.Rule.DL3013.rule
     <> Hadolint.Rule.DL3014.rule
     <> Hadolint.Rule.DL3015.rule
@@ -164,6 +167,7 @@ failures RulesConfig {allowedRegistries} =
     <> Hadolint.Rule.DL3045.rule
     <> Hadolint.Rule.DL3046.rule
     <> Hadolint.Rule.DL3047.rule
+    <> Hadolint.Rule.DL3057.rule
     <> Hadolint.Rule.DL4000.rule
     <> Hadolint.Rule.DL4001.rule
     <> Hadolint.Rule.DL4003.rule
