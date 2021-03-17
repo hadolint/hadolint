@@ -1569,6 +1569,26 @@ main =
               ]
          in ruleCatchesNot "DL3047" $ Text.unlines dockerFile
     --
+    describe "DL3012 - Multiple `HEALTHCHECK` instructions" $ do
+      it "ok with no HEALTHCHECK instruction" $
+        ruleCatchesNot "DL3012" "FROM scratch"
+      it "ok with one HEALTHCHECK instruction" $
+        ruleCatchesNot "DL3012" "FROM scratch\nHEALTHCHECK CMD /bin/bla"
+      it "ok with two HEALTHCHECK instructions in two stages" $
+        ruleCatchesNot "DL3012" "FROM scratch\nHEALTHCHECK CMD /bin/bla1\nFROM scratch\nHEALTHCHECK CMD /bin/bla2"
+      it "warn with two HEALTHCHECK instructions" $
+        ruleCatches "DL3012" "FROM scratch\nHEALTHCHECK CMD /bin/bla1\nHEALTHCHECK CMD /bin/bla2"
+    --
+    describe "DL3057 - `HEALTHCHECK instruction missing" $ do
+      it "warn with no HEALTHCHECK instructions" $
+        ruleCatches "DL3057" "FROM scratch"
+      it "ok with one HEALTHCHECK instruction" $
+        ruleCatchesNot "DL3057" "FROM scratch\nHEALTHCHECK CMD /bin/bla"
+      it "ok with inheriting HEALTHCHECK instruction" $
+        ruleCatchesNot "DL3057" "FROM scratch AS base\nHEALTHCHECK CMD /bin/bla\nFROM base"
+      it "warn when not inheriting with no HEALTHCHECK instruction" $
+        ruleCatches "DL3057" "FROM scratch AS base\nHEALTHCHECK CMD /bin/bla\nFROM scratch"
+    --
     describe "ONBUILD" $ do
       it "error when using `ONBUILD` within `ONBUILD`" $
         let dockerFile =
