@@ -1636,6 +1636,8 @@ main =
         ruleCatchesNot "DL3044" "ENV BLA=\"blubb\" BLUBB=\"$BLAFOO/blubb\""
       it "fail with partial match 5" $
         ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"$BLA/$BLAFOO/blubb\""
+      it "ok with parial match 6" $
+        ruleCatchesNot "DL3044" "ENV BLA=\"blubb\" BLUBB=\"BLA/$BLAFOO/BLA\""
       it "ok when previously defined in `ARG`" $
         ruleCatchesNot "DL3044" "ARG BLA\nENV BLA=${BLA}"
       it "ok when previously defined in `ENV`" $
@@ -1650,6 +1652,10 @@ main =
         ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"${BLA}/blubb\""
       it "fail with selfreferencing without curly braces ENV" $
         ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"$BLA/blubb\""
+      it "fail with full match 1" $
+        ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"$BLA\""
+      it "fail with full match 2" $
+        ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"${BLA}\""
     --
     describe "warn when using `useradd` with long UID and without `-l`" $ do
       it "ok with `useradd` alone" $ ruleCatchesNot "DL3046" "RUN useradd luser"
