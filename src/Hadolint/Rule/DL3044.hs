@@ -52,17 +52,17 @@ isSubstringOfAny t l =
 bareVariableInText :: Text.Text -> Text.Text -> Bool
 bareVariableInText v t =
   let var = "$" <> v
-      rest = Text.splitOn var t
+      rest = drop 1 $ Text.splitOn var t
    in var `Text.isInfixOf` t && any terminatesVarName rest
   where
     -- x would terminate a variable name if it was appended directly to
     -- that name
     terminatesVarName :: Text.Text -> Bool
-    terminatesVarName x = not $ beginsWithAnyOf x varChar
+    terminatesVarName x = Text.null x || not (beginsWithAnyOf x varChar)
 
     -- txt begins with any character of String
     beginsWithAnyOf :: Text.Text -> Set.Set Char -> Bool
-    beginsWithAnyOf txt str = Text.null txt || (Text.head txt `elem` str)
+    beginsWithAnyOf txt str = any (`Text.isPrefixOf` txt) (Set.map Text.singleton str)
 
     -- all characters valid in the inner of a shell variable name
     varChar :: Set.Set Char
