@@ -24,18 +24,18 @@ RUN scripts/fetch_version.sh \
   && stack install --ghc-options="-fPIC" --flag hadolint:static
 
 # COMPRESS WITH UPX
-RUN curl -sSL https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz \
-  | tar -x --xz --strip-components 1 upx-3.94-amd64_linux/upx \
+RUN curl -sSL https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz \
+  | tar -x --xz --strip-components 1 upx-3.96-amd64_linux/upx \
   && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
 FROM debian:stretch-slim AS debian-distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
 
-FROM scratch AS distro
+FROM alpine:3 AS alpine-distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
 
-FROM alpine:3 AS alpine-distro
+FROM scratch
 COPY --from=builder /root/.local/bin/hadolint /bin/
 CMD ["/bin/hadolint", "-"]
