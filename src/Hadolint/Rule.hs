@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import Data.String (IsString (..))
 import qualified Data.Text as Text
+import qualified Data.YAML as Yaml
 import GHC.Generics (Generic)
 import Language.Docker.Syntax
 
@@ -48,7 +49,36 @@ data State a = State
   deriving (Show)
 
 type LabelName = Text.Text
-type LabelType = Text.Text
+
+data LabelType
+  = RawText
+  | Url
+  | Spdx
+  | GitHash
+  | Rfc3339
+  | SemVer
+  deriving (Eq, Read, Show)
+
+read :: Text.Text -> Either Text.Text LabelType
+read "url"     = Right Url
+read "spdx"    = Right Spdx
+read "hash"    = Right GitHash
+read "rfc3339" = Right Rfc3339
+read "semver"  = Right SemVer
+read "text"    = Right RawText
+read ""        = Right RawText
+read t         = Left ("Invalid label type: " <> t)
+
+instance Yaml.FromYAML LabelType where
+  parseYAML = withLabelType pure
+
+withLabelType :: (LabelType -> Yaml.Parser a) -> Yaml.Node Yaml.Pos -> Yaml.Parser a
+withLabelType f v@(Yaml.Scalar _ (Yaml.SStr b)) =
+    case Hadolint.Rule.read b of
+      Right lt -> f lt
+      Left _ -> Yaml.typeMismatch "labeltype" v
+withLabelType _ v = Yaml.typeMismatch "labeltype" v
+
 type LabelSchema = Map.Map LabelName LabelType
 
 

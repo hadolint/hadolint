@@ -57,6 +57,7 @@ library:
     - ilist
     - mtl
     - network-uri
+    - parsec >= 3.1.14
     - parallel
     - semver
     - spdx

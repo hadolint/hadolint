@@ -8,7 +8,7 @@ import Language.Docker.Syntax
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $
-  fmap labelIsNotGitHashRule (Map.keys (Map.filter (== "hash") labelschema))
+  fmap labelIsNotGitHashRule (Map.keys (Map.filter (== GitHash) labelschema))
 {-# INLINEABLE rule #-}
 
 labelIsNotGitHashRule :: LabelName -> Rule args

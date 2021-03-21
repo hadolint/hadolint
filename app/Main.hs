@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -5,6 +6,7 @@
 module Main where
 
 import Control.Applicative
+import qualified Data.Bifunctor as Bifunctor
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import Data.Maybe
@@ -21,6 +23,7 @@ import Options.Applicative
     action,
     argument,
     completeWith,
+    eitherReader,
     execParser,
     fullDesc,
     header,
@@ -32,6 +35,7 @@ import Options.Applicative
     metavar,
     option,
     progDesc,
+    ReadM,
     short,
     showDefaultWith,
     str,
@@ -167,9 +171,9 @@ parseOptions =
         <*> ignoreList
         <*> parseRulesConfig
 
-    labels = Map.fromList . fmap labelParser
+    labels = Map.fromList
         <$> many
-          ( strOption
+          ( option readSingleLabelSchema
               ( long "require-label"
                   <> help "The option --require-label=label:format makes Hadolint check that the label `label` conforms to format requirement `format`"
                   <> metavar "LABELSCHEMA (e.g. maintainer:text)"
@@ -191,8 +195,16 @@ parseOptions =
               )
           )
 
-labelParser :: Text.Text -> (Rule.LabelName, Rule.LabelType)
-labelParser = Text.breakOn ":"
+type SingleLabelSchema = (Rule.LabelName, Rule.LabelType)
+
+readSingleLabelSchema :: ReadM SingleLabelSchema
+readSingleLabelSchema = eitherReader $ \s -> labelParser (Text.pack s)
+
+labelParser :: Text.Text -> Either String (Rule.LabelName, Rule.LabelType)
+labelParser l =
+    case Bifunctor.second (Rule.read . Text.drop 1) $ Text.breakOn ":" l of
+      (ln, Right lt) -> Right (ln, lt)
+      (_, Left e) -> Left $ Text.unpack e
 
 noFailure :: Hadolint.Result s e -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) = True

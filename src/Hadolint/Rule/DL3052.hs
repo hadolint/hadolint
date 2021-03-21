@@ -10,7 +10,7 @@ import Network.URI as Uri
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $
-  fmap labelIsNotUrlRule (Map.keys (Map.filter (== "url") labelschema))
+  fmap labelIsNotUrlRule (Map.keys (Map.filter (== Url) labelschema))
 {-# INLINEABLE rule #-}
 
 labelIsNotUrlRule :: LabelName -> Rule args

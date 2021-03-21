@@ -9,7 +9,7 @@ import Language.Docker.Syntax
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $
-  fmap labelIsNotRFC3339Rule (Map.keys (Map.filter (== "rfc3339") labelschema))
+  fmap labelIsNotRFC3339Rule (Map.keys (Map.filter (== Rfc3339) labelschema))
 {-# INLINEABLE rule #-}
 
 

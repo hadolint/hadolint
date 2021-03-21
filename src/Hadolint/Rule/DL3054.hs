@@ -11,7 +11,7 @@ import Language.Docker.Syntax
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $
-  fmap labelIsNotSPDXRule (Map.keys (Map.filter (== "spdx") labelschema))
+  fmap labelIsNotSPDXRule (Map.keys (Map.filter (== Spdx) labelschema))
 {-# INLINEABLE rule #-}
 
 labelIsNotSPDXRule :: LabelName -> Rule args

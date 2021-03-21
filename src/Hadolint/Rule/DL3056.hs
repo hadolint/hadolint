@@ -10,7 +10,7 @@ import Language.Docker.Syntax
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $
-  fmap labelIsNotSemVerRule (Map.keys (Map.filter (== "semver") labelschema))
+  fmap labelIsNotSemVerRule (Map.keys (Map.filter (== SemVer) labelschema))
 {-# INLINEABLE rule #-}
 
 labelIsNotSemVerRule :: LabelName -> Rule args

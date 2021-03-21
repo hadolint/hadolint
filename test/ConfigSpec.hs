@@ -7,6 +7,7 @@ import qualified Data.ByteString.Char8 as Bytes
 import Data.Map
 import qualified Data.YAML as Yaml
 import Hadolint.Config
+import Hadolint.Rule as Rule
 import Test.HUnit
 import Test.Hspec
 
@@ -81,7 +82,7 @@ tests =
               "  author: text",
               "  url: url"
             ]
-          expected = ConfigFile Nothing Nothing Nothing (Just (fromList [("author", "text"), ("url", "url")])) Nothing
+          expected = ConfigFile Nothing Nothing Nothing (Just (fromList [("author", Rule.RawText), ("url", Rule.Url)])) Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only label-schema" $
@@ -113,7 +114,7 @@ tests =
               "  url: url"
             ]
           override = Just (OverrideConfig (Just ["DL3001"]) (Just ["DL3003"]) (Just ["DL3002"]) (Just ["DL3004"]))
-          labelschema = Just (fromList [("author", "text"), ("url", "url")])
+          labelschema = Just (fromList [("author", Rule.RawText), ("url", Rule.Url)])
           expected = ConfigFile override (Just ["DL3000"]) (Just ["hub.docker.com"]) labelschema (Just False)
        in assertConfig expected (Bytes.unlines configFile)
 

@@ -11,6 +11,7 @@ import qualified Data.Text as Text
 import Hadolint.Formatter.TTY (formatCheck, formatError)
 import qualified Hadolint.Process
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
+import Hadolint.Rule as Rule
 import Language.Docker.Parser
 import Language.Docker.Syntax
 import qualified ShellSpec
@@ -1665,7 +1666,7 @@ main =
       it "warn when `useradd` and long uid without flag `-l`" $ ruleCatches "DL3046" "RUN useradd -u 123456 luser"
     --
     describe "Missing label rule tests" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("foo", "text")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("foo", Rule.RawText)]) False
        in do
     -- single stage tests
       it "not ok: single stage, no label" $ do
@@ -1734,7 +1735,7 @@ main =
               (Text.unlines dockerFile)
               (failsWith 0 "DL3049")
     describe "Strict Labels" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("required", "text")]) True
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("required", Rule.RawText)]) True
        in do
       it "ok with no label" $ do
         ruleCatchesNot "DL3050" ""
@@ -1749,7 +1750,7 @@ main =
         ruleCatches "DL3050" "LABEL required=\"foo\" other=\"bar\""
         onBuildRuleCatches "DL3050" "LABEL required=\"foo\" other=\"bar\""
     describe "Label is not empty rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("emptylabel", "text")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("emptylabel", Rule.RawText)]) False
        in do
       it "not ok with label empty" $ do
         ruleCatches "DL3051" "LABEL emptylabel=\"\""
@@ -1761,7 +1762,7 @@ main =
         ruleCatchesNot "DL3051" "LABEL other=\"\""
         onBuildRuleCatchesNot "DL3051" "LABEL other=\"\""
     describe "Label is not URL rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("urllabel", "url")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("urllabel", Rule.Url)]) False
        in do
       it "not ok with label not containing URL" $ do
         ruleCatches "DL3052" "LABEL urllabel=\"not-url\""
@@ -1773,7 +1774,7 @@ main =
         ruleCatchesNot "DL3052" "LABEL other=\"foo\""
         onBuildRuleCatchesNot "DL3052" "LABEL other=\"bar\""
     describe "Label is not RFC3339 date rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("datelabel", "rfc3339")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("datelabel", Rule.Rfc3339)]) False
        in do
       it "not ok with label not containing RFC3339 date" $ do
         ruleCatches "DL3053" "LABEL datelabel=\"not-date\""
@@ -1785,7 +1786,7 @@ main =
         ruleCatchesNot "DL3053" "LABEL other=\"doo\""
         onBuildRuleCatchesNot "DL3053" "LABEL other=\"bar\""
     describe "Label is not SPDX license identifier rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("spdxlabel", "spdx")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("spdxlabel", Rule.Spdx)]) False
        in do
       it "not ok with label not containing SPDX identifier" $ do
         ruleCatches "DL3054" "LABEL spdxlabel=\"not-spdx\""
@@ -1797,7 +1798,7 @@ main =
         ruleCatchesNot "DL3054" "LABEL other=\"fooo\""
         onBuildRuleCatchesNot "DL3054" "LABEL other=\"bar\""
     describe "Label is not git hash rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("githash", "hash")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("githash", Rule.GitHash)]) False
        in do
       it "not ok with label not containing git hash" $ do
         ruleCatches "DL3055" "LABEL githash=\"not-git-hash\""
@@ -1812,7 +1813,7 @@ main =
         ruleCatchesNot "DL3055" "LABEL other=\"foo\""
         onBuildRuleCatchesNot "DL3055" "LABEL other=\"bar\""
     describe "Label is not semantic version rule" $
-      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("semver", "semver")]) False
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("semver", Rule.SemVer)]) False
        in do
       it "not ok with label not containing semantic version" $ do
         ruleCatches "DL3056" "LABEL semver=\"not-sem-ver\""

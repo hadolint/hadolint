@@ -1,7 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hadolint.Config
   ( applyConfig,
     ConfigFile (..),
@@ -20,7 +16,7 @@ import qualified Data.YAML as Yaml
 import GHC.Generics (Generic)
 import qualified Hadolint.Lint as Lint
 import qualified Hadolint.Process as Process
-import qualified Hadolint.Rule
+import qualified Hadolint.Rule as Rule
 import qualified Language.Docker as Docker
 import System.Directory
   ( XdgDirectory (..),
@@ -29,6 +25,7 @@ import System.Directory
     getXdgDirectory,
   )
 import System.FilePath ((</>))
+
 
 data OverrideConfig = OverrideConfig
   { overrideErrorRules :: Maybe [Lint.ErrorRule],
@@ -42,7 +39,7 @@ data ConfigFile = ConfigFile
   { overrideRules :: Maybe OverrideConfig,
     ignoredRules :: Maybe [Lint.IgnoreRule],
     trustedRegistries :: Maybe [Lint.TrustedRegistry],
-    labelSchemaConfig :: Maybe Hadolint.Rule.LabelSchema,
+    labelSchemaConfig :: Maybe Rule.LabelSchema,
     strictLabelSchema :: Maybe Bool
   }
   deriving (Show, Eq, Generic)
@@ -143,7 +140,7 @@ applyConfig maybeConfig o
         rc { Process.strictLabels = Process.strictLabels rc || strict }
     applyStrictLabels rc _ = rc
 
-    applyLabelSchema :: Process.RulesConfig -> Maybe Hadolint.Rule.LabelSchema -> Process.RulesConfig
+    applyLabelSchema :: Process.RulesConfig -> Maybe Rule.LabelSchema -> Process.RulesConfig
     applyLabelSchema rc (Just labelschema)
         | Map.null (Process.labelSchema rc) =
             rc { Process.labelSchema = labelschema}
@@ -159,7 +156,7 @@ applyConfig maybeConfig o
 
 
     formatError err config =
-      unlines
+      Prelude.unlines
         [ "Error parsing your config file in  '" ++ config ++ "':",
           "It should contain one of the keys 'override', 'ignored'",
           "or 'trustedRegistries'. For example:\n",

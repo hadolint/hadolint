@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9005197a6ffe91fc38b440f234b96e25dbb18c603db1ceb521f1026e4f24e4a7
+-- hash: 6dc5574db9b4edf093ae954fa31aa254d6a3b1a37aa6dc0bf793182d24daf375
 
 name:           hadolint
 version:        2.0.0
@@ -138,6 +138,7 @@ library
     , mtl
     , network-uri
     , parallel
+    , parsec >=3.1.14
     , semver
     , spdx
     , split >=0.2

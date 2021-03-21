@@ -56,9 +56,6 @@ import qualified Hadolint.Rule.DL3044
 import qualified Hadolint.Rule.DL3045
 import qualified Hadolint.Rule.DL3046
 import qualified Hadolint.Rule.DL3047
-<<<<<<< HEAD
-import qualified Hadolint.Rule.DL3057
-=======
 import qualified Hadolint.Rule.DL3048
 import qualified Hadolint.Rule.DL3049
 import qualified Hadolint.Rule.DL3050
@@ -68,7 +65,7 @@ import qualified Hadolint.Rule.DL3053
 import qualified Hadolint.Rule.DL3054
 import qualified Hadolint.Rule.DL3055
 import qualified Hadolint.Rule.DL3056
->>>>>>> label-schema: Add configurable rules checking a label schema
+import qualified Hadolint.Rule.DL3057
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
 import qualified Hadolint.Rule.DL4003
