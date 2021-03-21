@@ -1,21 +1,22 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-
-module Hadolint.Config (applyConfig, ConfigFile (..), OverrideConfig (..)) where
+module Hadolint.Config
+  ( applyConfig,
+    ConfigFile (..),
+    OverrideConfig (..)
+  ) where
 
 import qualified Control.Foldl.Text as Text
 import Control.Monad (filterM)
 import qualified Data.ByteString as Bytes
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Map as Map
 import qualified Data.Set as Set
 import Data.YAML ((.:?))
 import qualified Data.YAML as Yaml
 import GHC.Generics (Generic)
 import qualified Hadolint.Lint as Lint
-import qualified Hadolint.Process
-import qualified Hadolint.Rule
+import qualified Hadolint.Process as Process
+import qualified Hadolint.Rule as Rule
 import qualified Language.Docker as Docker
 import System.Directory
   ( XdgDirectory (..),
@@ -24,6 +25,7 @@ import System.Directory
     getXdgDirectory,
   )
 import System.FilePath ((</>))
+
 
 data OverrideConfig = OverrideConfig
   { overrideErrorRules :: Maybe [Lint.ErrorRule],
@@ -36,7 +38,9 @@ data OverrideConfig = OverrideConfig
 data ConfigFile = ConfigFile
   { overrideRules :: Maybe OverrideConfig,
     ignoredRules :: Maybe [Lint.IgnoreRule],
-    trustedRegistries :: Maybe [Lint.TrustedRegistry]
+    trustedRegistries :: Maybe [Lint.TrustedRegistry],
+    labelSchemaConfig :: Maybe Rule.LabelSchema,
+    strictLabelSchema :: Maybe Bool
   }
   deriving (Show, Eq, Generic)
 
@@ -54,6 +58,8 @@ instance Yaml.FromYAML ConfigFile where
     ignored <- m .:? "ignored"
     let ignoredRules = coerce (ignored :: Maybe [Text.Text])
     trustedRegistries <- m .:? "trustedRegistries"
+    labelSchemaConfig <- m .:? "label-schema"
+    strictLabelSchema <- m .:? "strict-labels"
     return ConfigFile {..}
 
 -- | If both the ignoreRules and rulesConfig properties of Lint options are empty
@@ -62,7 +68,7 @@ instance Yaml.FromYAML ConfigFile where
 -- return the error string.
 applyConfig :: Maybe FilePath -> Lint.LintOptions -> IO (Either String Lint.LintOptions)
 applyConfig maybeConfig o
-  | not (null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
+  | not (Prelude.null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
   | otherwise = do
     theConfig <-
       case maybeConfig of
@@ -82,15 +88,15 @@ applyConfig maybeConfig o
       contents <- Bytes.readFile configFile
       case Yaml.decode1Strict contents of
         Left (_, err) -> return $ Left (formatError err configFile)
-        Right (ConfigFile Nothing ignore trusted) ->
+        Right (ConfigFile Nothing ignore trusted labelschema strictlabels) ->
           return $
-            Right (applyOverride Nothing Nothing Nothing Nothing ignore trusted)
-        Right (ConfigFile (Just (OverrideConfig errors warnings infos styles)) ignore trusted) ->
+            Right (applyOverride Nothing Nothing Nothing Nothing ignore trusted labelschema strictlabels)
+        Right (ConfigFile (Just (OverrideConfig errors warnings infos styles)) ignore trusted labelschema strictlabels) ->
           return $
-            Right (applyOverride errors warnings infos styles ignore trusted)
+            Right (applyOverride errors warnings infos styles ignore trusted labelschema strictlabels)
 
-    applyOverride errors warnings infos styles ignore trusted =
-      applyTrusted trusted
+    applyOverride errors warnings infos styles ignore trusted labelschema strictlabels =
+      applyRulesConfig trusted labelschema strictlabels
         . applyIgnore ignore
         . applyStyles styles
         . applyInfos infos
@@ -123,16 +129,34 @@ applyConfig maybeConfig o
         [] -> opts {Lint.ignoreRules = fromMaybe [] ignore}
         _ -> opts
 
-    applyTrusted trusted opts
-      | null (Hadolint.Process.allowedRegistries (Lint.rulesConfig opts)) =
-        opts {Lint.rulesConfig = toRules trusted <> Lint.rulesConfig opts}
-      | otherwise = opts
+    applyRulesConfig trusted labelschema strictlabels opts =
+      opts { Lint.rulesConfig =
+        ((`applyLabelSchema` labelschema) .
+        (`applyStrictLabels` strictlabels) .
+        (`applyTrustedRegistries` trusted)) (Lint.rulesConfig opts) }
 
-    toRules (Just trusted) = Hadolint.Process.RulesConfig (Set.fromList . coerce $ trusted)
-    toRules _ = mempty
+    applyStrictLabels :: Process.RulesConfig -> Maybe Bool -> Process.RulesConfig
+    applyStrictLabels rc (Just strict) =
+        rc { Process.strictLabels = Process.strictLabels rc || strict }
+    applyStrictLabels rc _ = rc
+
+    applyLabelSchema :: Process.RulesConfig -> Maybe Rule.LabelSchema -> Process.RulesConfig
+    applyLabelSchema rc (Just labelschema)
+        | Map.null (Process.labelSchema rc) =
+            rc { Process.labelSchema = labelschema}
+        | otherwise = rc
+    applyLabelSchema rc _ = rc
+
+    applyTrustedRegistries :: Process.RulesConfig -> Maybe [Lint.TrustedRegistry] -> Process.RulesConfig
+    applyTrustedRegistries rc (Just trusted)
+        | Prelude.null (Process.allowedRegistries rc) =
+            rc { Process.allowedRegistries = Set.fromList . coerce $ trusted }
+        | otherwise = rc
+    applyTrustedRegistries rc _ = rc
+
 
     formatError err config =
-      unlines
+      Prelude.unlines
         [ "Error parsing your config file in  '" ++ config ++ "':",
           "It should contain one of the keys 'override', 'ignored'",
           "or 'trustedRegistries'. For example:\n",

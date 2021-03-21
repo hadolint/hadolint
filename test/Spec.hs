@@ -6,10 +6,12 @@ import qualified ConfigSpec
 import qualified Control.Foldl as Foldl
 import Control.Monad (unless, when)
 import qualified Data.Sequence as Seq
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import Hadolint.Formatter.TTY (formatCheck, formatError)
 import qualified Hadolint.Process
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
+import Hadolint.Rule as Rule
 import Language.Docker.Parser
 import Language.Docker.Syntax
 import qualified ShellSpec
@@ -879,7 +881,6 @@ main =
               -- This is debatable, as it should actaully pass, but detecting it correctly
               -- is quite difficult
               assertOnBuildChecks dockerFile failsShellcheck
-
       it "Resets the SHELL to sh after a FROM" $
         let dockerFile =
               Text.unlines
@@ -1413,21 +1414,21 @@ main =
         let dockerFile =
               [ "FROM random.com/debian"
               ]
-        let ?rulesConfig = Hadolint.Process.RulesConfig ["docker.io"]
+        let ?rulesConfig = Hadolint.Process.RulesConfig ["docker.io"] Map.empty False
         ruleCatches "DL3026" $ Text.unlines dockerFile
 
       it "does not warn on allowed registries" $ do
         let dockerFile =
               [ "FROM random.com/debian"
               ]
-        let ?rulesConfig = Hadolint.Process.RulesConfig ["x.com", "random.com"]
+        let ?rulesConfig = Hadolint.Process.RulesConfig ["x.com", "random.com"] Map.empty False
         ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
       it "doesn't warn on scratch image" $ do
         let dockerFile =
               [ "FROM scratch"
               ]
-        let ?rulesConfig = Hadolint.Process.RulesConfig ["x.com", "random.com"]
+        let ?rulesConfig = Hadolint.Process.RulesConfig ["x.com", "random.com"] Map.empty False
         ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
       it "allows boths all forms of docker.io" $ do
@@ -1436,7 +1437,7 @@ main =
                 "FROM zemanlx/ubuntu:18.04 AS builder2",
                 "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
               ]
-        let ?rulesConfig = Hadolint.Process.RulesConfig ["docker.io"]
+        let ?rulesConfig = Hadolint.Process.RulesConfig ["docker.io"] Map.empty False
         ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
       it "allows using previous stages" $ do
@@ -1444,7 +1445,7 @@ main =
               [ "FROM random.com/foo AS builder1",
                 "FROM builder1 AS builder2"
               ]
-        let ?rulesConfig = Hadolint.Process.RulesConfig ["random.com"]
+        let ?rulesConfig = Hadolint.Process.RulesConfig ["random.com"] Map.empty False
         ruleCatchesNot "DL3026" $ Text.unlines dockerFile
     --
     describe "Wget or Curl" $ do
@@ -1663,6 +1664,195 @@ main =
       it "ok with `useradd` long uid and flag `-l`" $ ruleCatchesNot "DL3046" "RUN useradd -l -u 123456 luser"
       it "ok with `useradd` and just flag `-l`" $ ruleCatchesNot "DL3046" "RUN useradd -l luser"
       it "warn when `useradd` and long uid without flag `-l`" $ ruleCatches "DL3046" "RUN useradd -u 123456 luser"
+    --
+    describe "Missing label rule tests" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("foo", Rule.RawText)]) False
+       in do
+    -- single stage tests
+      it "not ok: single stage, no label" $ do
+        ruleCatches "DL3049" "FROM baseimage"
+        onBuildRuleCatches "DL3049" "FROM baseimage"
+      it "not ok: single stage, wrong label" $ do
+        ruleCatches "DL3049" "FROM baseimage\nLABEL bar=\"baz\""
+        onBuildRuleCatches "DL3049" "FROM baseimage\nLABEL bar=\"baz\""
+      it "ok: single stage, label present" $ do
+        ruleCatchesNot "DL3049" "FROM baseimage\nLABEL foo=\"bar\""
+        onBuildRuleCatchesNot "DL3049" "FROM baseimage\nLABEL foo=\"bar\""
+    -- multi stage tests
+      it "warn twice: two stages, no labels" $
+        let dockerFile =
+              [ "FROM stage1",
+                "FROM stage2"
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 2 "DL3049")
+      it "warn twice: two stages, wrong labels only" $
+        let dockerFile =
+              [ "FROM stage1",
+                "LABEL bar=\"baz\"",
+                "FROM stage2",
+                "LABEL buzz=\"fuzz\""
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 2 "DL3049")
+      it "warn once: two stages, label present in second only" $
+        let dockerFile =
+              [ "FROM baseimage",
+                "FROM newimage",
+                "LABEL foo=\"bar\""
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 1 "DL3049")
+      it "warn once: two stages, no inheritance, wrong label in one" $
+        let dockerFile =
+              [ "FROM baseimage",
+                "LABEL baz=\"bar\"",
+                "FROM newimage",
+                "LABEL foo=\"bar\""
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 1 "DL3049")
+      it "warn once: two stages, inheritance, label only defined in second stage" $
+        let dockerFile =
+              [ "FROM baseimage as base",
+                "FROM base",
+                "LABEL foo=\"bar\""
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 1 "DL3049")
+      it "don't warn: two stages, inheritance" $
+        let dockerFile =
+              [ "FROM baseimage as base",
+                "LABEL foo=\"bar\"",
+                "FROM base"
+              ]
+         in assertChecks
+              (Text.unlines dockerFile)
+              (failsWith 0 "DL3049")
+    describe "Strict Labels" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("required", Rule.RawText)]) True
+       in do
+      it "ok with no label" $ do
+        ruleCatchesNot "DL3050" ""
+        onBuildRuleCatchesNot "DL3050" ""
+      it "ok with required label" $ do
+        ruleCatchesNot "DL3050" "LABEL required=\"foo\""
+        onBuildRuleCatchesNot "DL3050" "LABEL required=\"bar\""
+      it "not ok with just other label" $ do
+        ruleCatches "DL3050" "LABEL other=\"bar\""
+        onBuildRuleCatches "DL3050" "LABEL other=\"bar\""
+      it "not ok with other label and required label" $ do
+        ruleCatches "DL3050" "LABEL required=\"foo\" other=\"bar\""
+        onBuildRuleCatches "DL3050" "LABEL required=\"foo\" other=\"bar\""
+    describe "Label is not empty rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("emptylabel", Rule.RawText)]) False
+       in do
+      it "not ok with label empty" $ do
+        ruleCatches "DL3051" "LABEL emptylabel=\"\""
+        onBuildRuleCatches "DL3051" "LABEL emptylabel=\"\""
+      it "ok with label not empty" $ do
+        ruleCatchesNot "DL3051" "LABEL emptylabel=\"foo\""
+        onBuildRuleCatchesNot "DL3051" "LABEL emptylabel=\"bar\""
+      it "ok with other label empty" $ do
+        ruleCatchesNot "DL3051" "LABEL other=\"\""
+        onBuildRuleCatchesNot "DL3051" "LABEL other=\"\""
+    describe "Label is not URL rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("urllabel", Rule.Url)]) False
+       in do
+      it "not ok with label not containing URL" $ do
+        ruleCatches "DL3052" "LABEL urllabel=\"not-url\""
+        onBuildRuleCatches "DL3052" "LABEL urllabel=\"not-url\""
+      it "ok with label containing URL" $ do
+        ruleCatchesNot "DL3052" "LABEL urllabel=\"http://example.com\""
+        onBuildRuleCatchesNot "DL3052" "LABEL urllabel=\"http://example.com\""
+      it "ok with other label not containing URL" $ do
+        ruleCatchesNot "DL3052" "LABEL other=\"foo\""
+        onBuildRuleCatchesNot "DL3052" "LABEL other=\"bar\""
+    describe "Label is not RFC3339 date rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("datelabel", Rule.Rfc3339)]) False
+       in do
+      it "not ok with label not containing RFC3339 date" $ do
+        ruleCatches "DL3053" "LABEL datelabel=\"not-date\""
+        onBuildRuleCatches "DL3053" "LABEL datelabel=\"not-date\""
+      it "ok with label containing RFC3339 date" $ do
+        ruleCatchesNot "DL3053" "LABEL datelabel=\"2021-03-10T10:26:33.564595127+01:00\""
+        onBuildRuleCatchesNot "DL3053" "LABEL datelabel=\"2021-03-10T10:26:33.564595127+01:00\""
+      it "ok with other label not containing RFC3339 date" $ do
+        ruleCatchesNot "DL3053" "LABEL other=\"doo\""
+        onBuildRuleCatchesNot "DL3053" "LABEL other=\"bar\""
+    describe "Label is not SPDX license identifier rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("spdxlabel", Rule.Spdx)]) False
+       in do
+      it "not ok with label not containing SPDX identifier" $ do
+        ruleCatches "DL3054" "LABEL spdxlabel=\"not-spdx\""
+        onBuildRuleCatches "DL3054" "LABEL spdxlabel=\"not-spdx\""
+      it "ok with label containing SPDX identifier" $ do
+        ruleCatchesNot "DL3054" "LABEL spdxlabel=\"BSD-3-Clause\""
+        onBuildRuleCatchesNot "DL3054" "LABEL spdxlabel=\"MIT\""
+      it "ok with other label not containing SPDX identifier" $ do
+        ruleCatchesNot "DL3054" "LABEL other=\"fooo\""
+        onBuildRuleCatchesNot "DL3054" "LABEL other=\"bar\""
+    describe "Label is not git hash rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("githash", Rule.GitHash)]) False
+       in do
+      it "not ok with label not containing git hash" $ do
+        ruleCatches "DL3055" "LABEL githash=\"not-git-hash\""
+        onBuildRuleCatches "DL3055" "LABEL githash=\"not-git-hash\""
+      it "ok with label containing short git hash" $ do
+        ruleCatchesNot "DL3055" "LABEL githash=\"2dbfae9\""
+        onBuildRuleCatchesNot "DL3055" "LABEL githash=\"2dbfae9\""
+      it "ok with label containing long git hash" $ do
+        ruleCatchesNot "DL3055" "LABEL githash=\"43c572f1272b6b3171dd1db9e41b7027128ce080\""
+        onBuildRuleCatchesNot "DL3055" "LABEL githash=\"43c572f1272b6b3171dd1db9e41b7027128ce080\""
+      it "ok with other label not containing git hash" $ do
+        ruleCatchesNot "DL3055" "LABEL other=\"foo\""
+        onBuildRuleCatchesNot "DL3055" "LABEL other=\"bar\""
+    describe "Label is not semantic version rule" $
+      let ?rulesConfig = Hadolint.Process.RulesConfig [] (Map.fromList [("semver", Rule.SemVer)]) False
+       in do
+      it "not ok with label not containing semantic version" $ do
+        ruleCatches "DL3056" "LABEL semver=\"not-sem-ver\""
+        onBuildRuleCatches "DL3056" "LABEL semver=\"not-sem-ver\""
+      it "ok with label containing semantic version" $ do
+        ruleCatchesNot "DL3056" "LABEL semver=\"1.0.0\""
+        onBuildRuleCatchesNot "DL3056" "LABEL semver=\"2.0.1-rc1\""
+      it "ok with other label not containing semantic version" $ do
+        ruleCatchesNot "DL3056" "LABEL other=\"foo\""
+        onBuildRuleCatchesNot "DL3056" "LABEL other=\"bar\""
+    --
+    describe "Invalid Label Key Rule" $ do
+      it "not ok with reserved namespace" $ do
+        ruleCatches "DL3048" "LABEL com.docker.label=\"foo\""
+        ruleCatches "DL3048" "LABEL io.docker.label=\"foo\""
+        ruleCatches "DL3048" "LABEL org.dockerproject.label=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL com.docker.label=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL io.docker.label=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL org.dockerproject.label=\"foo\""
+      it "not ok with invalid character" $ do
+        ruleCatches "DL3048" "LABEL invalid$character=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL invalid$character=\"foo\""
+      it "not ok with invalid start and end characters" $ do
+        ruleCatches "DL3048" "LABEL .invalid =\"foo\""
+        ruleCatches "DL3048" "LABEL -invalid =\"foo\""
+        ruleCatches "DL3048" "LABEL 1invalid =\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL .invalid=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL -invalid=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL 1invalid=\"foo\""
+      it "not ok with consecutive dividers" $ do
+        ruleCatches "DL3048" "LABEL invalid..character=\"foo\""
+        ruleCatches "DL3048" "LABEL invalid--character=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL invalid..character=\"foo\""
+        onBuildRuleCatches "DL3048" "LABEL invalid--character=\"foo\""
+      it "ok with valid labels" $ do
+        ruleCatchesNot "DL3048" "LABEL org.valid-key.label3=\"foo\""
+        ruleCatchesNot "DL3048" "LABEL validlabel=\"foo\""
+        onBuildRuleCatchesNot "DL3048" "LABEL org.valid-key.label3=\"foo\""
+        onBuildRuleCatchesNot "DL3048" "LABEL validlabel=\"foo\""
     --
     describe "Regression Tests" $ do
       it "Comments with backslashes at the end are just comments" $

@@ -44,6 +44,7 @@ library:
     - &ShellCheck ShellCheck >=0.7.1
     - &bytestring bytestring >=0.10
     - &split split >=0.2
+    - Cabal
     - HsYAML
     - aeson
     - bytestring
@@ -55,8 +56,14 @@ library:
     - filepath
     - ilist
     - mtl
+    - network-uri
+    - parsec >= 3.1.14
     - parallel
+    - semver
+    - spdx
     - text
+    - time
+    - timerep >= 2.0
     - void
     - foldl
 executables:

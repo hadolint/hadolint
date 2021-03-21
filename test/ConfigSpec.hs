@@ -4,8 +4,10 @@ module ConfigSpec where
 
 import Control.Monad (unless)
 import qualified Data.ByteString.Char8 as Bytes
+import Data.Map
 import qualified Data.YAML as Yaml
 import Hadolint.Config
+import Hadolint.Rule as Rule
 import Test.HUnit
 import Test.Hspec
 
@@ -20,7 +22,7 @@ tests =
               "    - SC1010"
             ]
           override = Just (OverrideConfig (Just ["DL3000", "SC1010"]) Nothing Nothing Nothing)
-          expected = ConfigFile override Nothing Nothing
+          expected = ConfigFile override Nothing Nothing Nothing Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only warning severities" $
@@ -31,7 +33,7 @@ tests =
               "    - SC1010"
             ]
           override = Just (OverrideConfig Nothing (Just ["DL3000", "SC1010"]) Nothing Nothing)
-          expected = ConfigFile override Nothing Nothing
+          expected = ConfigFile override Nothing Nothing Nothing Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only info severities" $
@@ -42,7 +44,7 @@ tests =
               "    - SC1010"
             ]
           override = Just (OverrideConfig Nothing Nothing (Just ["DL3000", "SC1010"]) Nothing)
-          expected = ConfigFile override Nothing Nothing
+          expected = ConfigFile override Nothing Nothing Nothing Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only style severities" $
@@ -53,7 +55,7 @@ tests =
               "    - SC1010"
             ]
           override = Just (OverrideConfig Nothing Nothing Nothing (Just ["DL3000", "SC1010"]))
-          expected = ConfigFile override Nothing Nothing
+          expected = ConfigFile override Nothing Nothing Nothing Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only ignores" $
@@ -62,7 +64,7 @@ tests =
               "- DL3000",
               "- SC1010"
             ]
-          expected = ConfigFile Nothing (Just ["DL3000", "SC1010"]) Nothing
+          expected = ConfigFile Nothing (Just ["DL3000", "SC1010"]) Nothing Nothing Nothing
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses config with only trustedRegistries" $
@@ -71,7 +73,21 @@ tests =
               "- hub.docker.com",
               "- my.shady.xyz"
             ]
-          expected = ConfigFile Nothing Nothing (Just ["hub.docker.com", "my.shady.xyz"])
+          expected = ConfigFile Nothing Nothing (Just ["hub.docker.com", "my.shady.xyz"]) Nothing Nothing
+       in assertConfig expected (Bytes.unlines configFile)
+
+    it "Parses config with only label-schema" $
+      let configFile =
+            [ "label-schema:",
+              "  author: text",
+              "  url: url"
+            ]
+          expected = ConfigFile Nothing Nothing Nothing (Just (fromList [("author", Rule.RawText), ("url", Rule.Url)])) Nothing
+       in assertConfig expected (Bytes.unlines configFile)
+
+    it "Parses config with only label-schema" $
+      let configFile = [ "strict-labels: true" ]
+          expected = ConfigFile Nothing Nothing Nothing Nothing (Just True)
        in assertConfig expected (Bytes.unlines configFile)
 
     it "Parses full file" $
@@ -90,10 +106,16 @@ tests =
               "- hub.docker.com",
               "",
               "ignored:",
-              "- DL3000"
+              "- DL3000",
+              "",
+              "strict-labels: false",
+              "label-schema:",
+              "  author: text",
+              "  url: url"
             ]
           override = Just (OverrideConfig (Just ["DL3001"]) (Just ["DL3003"]) (Just ["DL3002"]) (Just ["DL3004"]))
-          expected = ConfigFile override (Just ["DL3000"]) (Just ["hub.docker.com"])
+          labelschema = Just (fromList [("author", Rule.RawText), ("url", Rule.Url)])
+          expected = ConfigFile override (Just ["DL3000"]) (Just ["hub.docker.com"]) labelschema (Just False)
        in assertConfig expected (Bytes.unlines configFile)
 
 assertConfig :: HasCallStack => ConfigFile -> Bytes.ByteString -> Assertion

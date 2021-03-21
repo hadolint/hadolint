@@ -8,5 +8,6 @@ extra-deps:
   - colourista-0.1.0.0
   - language-docker-9.1.3
   - megaparsec-9.0.0@sha256:920d1e469056c746b532333a078c2a9a195fab5e860e0c9734ee92a28c2bfb65,3117
+  - spdx-1.0.0.2@sha256:7dfac9b454ff2da0abb7560f0ffbe00ae442dd5cb76e8be469f77e6988a70fed,2008
 ghc-options:
   "$everything": -haddock
