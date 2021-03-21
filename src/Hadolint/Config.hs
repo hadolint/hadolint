@@ -1,15 +1,16 @@
 module Hadolint.Config
   ( applyConfig,
     ConfigFile (..),
-    OverrideConfig (..)
-  ) where
+    OverrideConfig (..),
+  )
+where
 
+import Control.Applicative ((<|>))
 import qualified Control.Foldl.Text as Text
 import Control.Monad (filterM)
 import qualified Data.ByteString as Bytes
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe, listToMaybe)
-import Data.Map as Map
 import qualified Data.Set as Set
 import Data.YAML ((.:?))
 import qualified Data.YAML as Yaml
@@ -26,7 +27,6 @@ import System.Directory
   )
 import System.FilePath ((</>))
 
-
 data OverrideConfig = OverrideConfig
   { overrideErrorRules :: Maybe [Lint.ErrorRule],
     overrideWarningRules :: Maybe [Lint.WarningRule],
@@ -34,6 +34,13 @@ data OverrideConfig = OverrideConfig
     overrideStyleRules :: Maybe [Lint.StyleRule]
   }
   deriving (Show, Eq, Generic)
+
+instance Semigroup OverrideConfig where
+  OverrideConfig a1 a2 a3 a4 <> OverrideConfig b1 b2 b3 b4 =
+    OverrideConfig (a1 <> b1) (a2 <> b2) (a3 <> b3) (a4 <> b4)
+
+instance Monoid OverrideConfig where
+  mempty = OverrideConfig Nothing Nothing Nothing Nothing
 
 data ConfigFile = ConfigFile
   { overrideRules :: Maybe OverrideConfig,
@@ -86,74 +93,42 @@ applyConfig maybeConfig o
     parseAndApply :: FilePath -> IO (Either String Lint.LintOptions)
     parseAndApply configFile = do
       contents <- Bytes.readFile configFile
-      case Yaml.decode1Strict contents of
-        Left (_, err) -> return $ Left (formatError err configFile)
-        Right (ConfigFile Nothing ignore trusted labelschema strictlabels) ->
-          return $
-            Right (applyOverride Nothing Nothing Nothing Nothing ignore trusted labelschema strictlabels)
-        Right (ConfigFile (Just (OverrideConfig errors warnings infos styles)) ignore trusted labelschema strictlabels) ->
-          return $
-            Right (applyOverride errors warnings infos styles ignore trusted labelschema strictlabels)
+      return $ case Yaml.decode1Strict contents of
+        Left (_, err) -> Left (formatError err configFile)
+        Right config -> Right $ fromMaybe o (applyOverride config)
 
-    applyOverride errors warnings infos styles ignore trusted labelschema strictlabels =
-      applyRulesConfig trusted labelschema strictlabels
-        . applyIgnore ignore
-        . applyStyles styles
-        . applyInfos infos
-        . applyWarnings warnings
-        . applyErrors errors
-        $ o
+    applyOverride ConfigFile {..} =
+      -- Maybe.do
+      do
+        OverrideConfig {..} <- overrideRules <|> Just mempty
+        overrideError <- overrideErrorRules <|> Just mempty
+        overrideWarning <- overrideWarningRules <|> Just mempty
+        overrideInfo <- overrideInfoRules <|> Just mempty
+        overrideStyle <- overrideStyleRules <|> Just mempty
+        overrideIgnored <- ignoredRules <|> Just mempty
 
-    applyErrors errors opts =
-      case Lint.errorRules opts of
-        [] -> opts {Lint.errorRules = fromMaybe [] errors}
-        _ -> opts
+        trusted <- Set.fromList . coerce <$> (trustedRegistries <|> Just mempty)
+        schema <- labelSchemaConfig <|> Just mempty
+        strictLabels <- strictLabelSchema <|> Just False
 
-    applyWarnings warnings opts =
-      case Lint.warningRules opts of
-        [] -> opts {Lint.warningRules = fromMaybe [] warnings}
-        _ -> opts
+        let rulesConfig = Lint.rulesConfig o
 
-    applyInfos infos opts =
-      case Lint.infoRules opts of
-        [] -> opts {Lint.infoRules = fromMaybe [] infos}
-        _ -> opts
+        return $
+          Lint.LintOptions
+            { Lint.errorRules = Lint.errorRules o <|> overrideError,
+              Lint.warningRules = Lint.warningRules o <|> overrideWarning,
+              Lint.infoRules = Lint.infoRules o <|> overrideInfo,
+              Lint.styleRules = Lint.styleRules o <|> overrideStyle,
+              Lint.ignoreRules = Lint.ignoreRules o <|> overrideIgnored,
+              Lint.rulesConfig =
+                Process.RulesConfig
+                  { Process.allowedRegistries = Process.allowedRegistries rulesConfig `ifNull` trusted,
+                    Process.labelSchema = Process.labelSchema rulesConfig `ifNull` schema,
+                    Process.strictLabels = Process.strictLabels rulesConfig || strictLabels
+                  }
+            }
 
-    applyStyles styles opts =
-      case Lint.styleRules opts of
-        [] -> opts {Lint.styleRules = fromMaybe [] styles}
-        _ -> opts
-
-    applyIgnore ignore opts =
-      case Lint.ignoreRules opts of
-        [] -> opts {Lint.ignoreRules = fromMaybe [] ignore}
-        _ -> opts
-
-    applyRulesConfig trusted labelschema strictlabels opts =
-      opts { Lint.rulesConfig =
-        ((`applyLabelSchema` labelschema) .
-        (`applyStrictLabels` strictlabels) .
-        (`applyTrustedRegistries` trusted)) (Lint.rulesConfig opts) }
-
-    applyStrictLabels :: Process.RulesConfig -> Maybe Bool -> Process.RulesConfig
-    applyStrictLabels rc (Just strict) =
-        rc { Process.strictLabels = Process.strictLabels rc || strict }
-    applyStrictLabels rc _ = rc
-
-    applyLabelSchema :: Process.RulesConfig -> Maybe Rule.LabelSchema -> Process.RulesConfig
-    applyLabelSchema rc (Just labelschema)
-        | Map.null (Process.labelSchema rc) =
-            rc { Process.labelSchema = labelschema}
-        | otherwise = rc
-    applyLabelSchema rc _ = rc
-
-    applyTrustedRegistries :: Process.RulesConfig -> Maybe [Lint.TrustedRegistry] -> Process.RulesConfig
-    applyTrustedRegistries rc (Just trusted)
-        | Prelude.null (Process.allowedRegistries rc) =
-            rc { Process.allowedRegistries = Set.fromList . coerce $ trusted }
-        | otherwise = rc
-    applyTrustedRegistries rc _ = rc
-
+    ifNull value override = if null value then override else value
 
     formatError err config =
       Prelude.unlines
