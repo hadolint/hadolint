@@ -38,7 +38,7 @@ jobs:
 
     - name: Setup Haskell
       id: setup-haskell-cabal
-      uses: actions/setup-haskell@v1.1.4
+      uses: haskell/actions/setup@v1
 
     - name: Freeze
       run: cabal freeze
