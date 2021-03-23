@@ -1028,6 +1028,16 @@ main =
          in do
               ruleCatchesNot "DL3045" dockerFile
               onBuildRuleCatchesNot "DL3045" dockerFile
+      it "ok: `COPY` to relative destination if `WORKDIR` has been set, both within an `ONBUILD` context" $
+        let dockerFile =
+              Text.unlines
+                [ "FROM debian:buster",
+                  "ONBUILD WORKDIR /usr/local/lib",
+                  "ONBUILD COPY foo bar"
+                ]
+         in do
+              ruleCatchesNot "DL3045" dockerFile
+              onBuildRuleCatchesNot "DL3045" dockerFile
     --
     describe "other rules" $ do
       it "apt-get auto yes" $ do
