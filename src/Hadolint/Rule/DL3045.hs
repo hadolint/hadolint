@@ -8,13 +8,19 @@ import qualified Data.Text as Text
 import Hadolint.Rule
 import Language.Docker.Syntax
 
+-- This data encapsulates the name of a build stage. It may be None withing an
+-- `ONBUILD` context.
+data Stage
+  = Stage {stage :: Text}
+  | None
+  deriving (Eq, Ord)
+
 -- | The state here keeps the image name/alias of the current build stage
 -- and a map from image names/aliases to a Bool, saving whether or
 -- not a `WORKDIR` has been set in a build stage.
 data Acc
-  = Acc {current :: Text, workdirSet :: Map Text Bool}
+  = Acc {current :: Stage, workdirSet :: Map Stage Bool}
   | Empty
-  deriving (Show)
 
 rule :: Rule args
 rule = customRule check (emptyState Empty)
@@ -37,37 +43,37 @@ rule = customRule check (emptyState Empty)
 rememberStage :: BaseImage -> Acc -> Acc
 rememberStage BaseImage {alias = Just als} Empty =
   Acc
-    { current = unImageAlias als,
+    { current = Stage {stage = unImageAlias als},
       workdirSet = mempty
     }
 rememberStage BaseImage {alias = Nothing, image} Empty =
   Acc
-    { current = imageName image,
+    { current = Stage {stage = imageName image},
       workdirSet = mempty
     }
 rememberStage BaseImage {alias = Just als, image} Acc {..} =
   Acc
-    { current = unImageAlias als,
+    { current = Stage {stage = unImageAlias als},
       workdirSet =
         let parentValue =
-              Map.lookup (imageName image) workdirSet
+              Map.lookup (Stage { stage = imageName image}) workdirSet
                 |> fromMaybe False
          in workdirSet
-              |> Map.insert (unImageAlias als) parentValue
+              |> Map.insert (Stage {stage = unImageAlias als}) parentValue
     }
 rememberStage BaseImage {alias = Nothing, image} Acc {..} =
   Acc
-    { current = imageName image,
+    { current = Stage {stage = imageName image},
       workdirSet =
         let parentValue =
-              Map.lookup (imageName image) workdirSet
+              Map.lookup (Stage {stage = imageName image}) workdirSet
                 |> fromMaybe False
          in workdirSet
-              |> Map.insert (imageName image) parentValue
+              |> Map.insert (Stage {stage = imageName image}) parentValue
     }
 
 rememberWorkdir :: Acc -> Acc
-rememberWorkdir Empty = Empty
+rememberWorkdir Empty = Acc {current = None, workdirSet = Map.insert None True Map.empty}
 rememberWorkdir Acc {..} = Acc {current, workdirSet = Map.insert current True workdirSet}
 
 quotePredicate :: Char -> Bool
