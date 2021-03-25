@@ -292,6 +292,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3055](https://github.com/hadolint/hadolint/wiki/DL3055)   | Label `<label>` is not a valid git hash.                                                                                                            |
 | [DL3056](https://github.com/hadolint/hadolint/wiki/DL3056)   | Label `<label>` does not conform to semantic versioning.                                                                                            |
 | [DL3057](https://github.com/hadolint/hadolint/wiki/DL3057)   | `HEALTHCHECK` instruction missing.                                                                                                                  |
+| [DL3058](https://github.com/hadolint/hadolint/wiki/DL3058)   | Label `<label>` is not a valid email format - must be conform to RFC5322.                                                                           |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | MAINTAINER is deprecated.                                                                                                                           |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Multiple `CMD` instructions found.                                                                                                                  |

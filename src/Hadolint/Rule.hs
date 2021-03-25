@@ -57,6 +57,7 @@ data LabelType
   | GitHash
   | Rfc3339
   | SemVer
+  | Email
   deriving (Eq, Read, Show)
 
 read :: Text.Text -> Either Text.Text LabelType
@@ -65,6 +66,7 @@ read "spdx"    = Right Spdx
 read "hash"    = Right GitHash
 read "rfc3339" = Right Rfc3339
 read "semver"  = Right SemVer
+read "email"   = Right Email
 read "text"    = Right RawText
 read ""        = Right RawText
 read t         = Left ("Invalid label type: " <> t)
