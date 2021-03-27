@@ -35,6 +35,7 @@ rule = customRule check (emptyState Empty)
       | Acc s m <- state st, Just True <- Map.lookup s m = st -- workdir has been set
       | "/" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- absolute dest. normal
       | ":\\" `Text.isPrefixOf` Text.drop 1 (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
+      | ":/" `Text.isPrefixOf` Text.drop 1 (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
       | "$" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- dest is a variable
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
