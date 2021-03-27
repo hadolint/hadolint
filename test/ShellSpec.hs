@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module ShellSpec where
 
 import Data.Text as Text
