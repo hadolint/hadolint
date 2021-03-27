@@ -1,4 +1,4 @@
-module DL3045 where
+module DL3045 (tests) where
 
 import Data.Text as Text
 import Helpers

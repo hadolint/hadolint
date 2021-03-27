@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1ab67eeb4b3cbfca4c468e7dd8016d3db259e617addcf7e20fab0580d48e5df6
+-- hash: aa46b173e0c30014808a39481ef96f5cfc3d04d9aa8f55e8cb9f3b664b729b75
 
 name:           hadolint
 version:        2.0.0
@@ -174,8 +174,72 @@ test-suite hadolint-unit-tests
   main-is: Spec.hs
   other-modules:
       ConfigSpec
+      DL3000
+      DL3001
+      DL3002
+      DL3003
+      DL3004
+      DL3005
+      DL3006
+      DL3007
+      DL3008
+      DL3009
+      DL3010
+      DL3011
+      DL3012
+      DL3013
+      DL3014
+      DL3015
+      DL3016
+      DL3017
+      DL3018
+      DL3019
+      DL3020
+      DL3021
+      DL3022
+      DL3023
+      DL3024
+      DL3025
+      DL3026
+      DL3027
+      DL3028
+      DL3029
+      DL3030
+      DL3031
+      DL3032
+      DL3033
+      DL3034
+      DL3035
+      DL3036
+      DL3037
+      DL3038
+      DL3039
+      DL3040
+      DL3041
+      DL3042
+      DL3043
+      DL3044
       DL3045
+      DL3046
+      DL3047
+      DL3048
+      DL3049
+      DL3050
+      DL3051
+      DL3052
+      DL3053
+      DL3054
+      DL3055
+      DL3056
+      DL3057
+      DL4000
+      DL4001
+      DL4003
+      DL4004
+      DL4005
+      DL4006
       Helpers
+      Shellcheck
       ShellSpec
       Paths_hadolint
   hs-source-dirs:
