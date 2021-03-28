@@ -17,3 +17,10 @@ tests = do
     it "workdir relative double quotes" $ ruleCatches "DL3000" "WORKDIR \"relative/dir\""
     it "workdir absolute double quotes" $ ruleCatchesNot "DL3000" "WORKDIR \"/usr/local\""
     it "workdir variable double quotes" $ ruleCatchesNot "DL3000" "WORKDIR \"${dir}\""
+    --
+    it "workdir absolute windows" $ ruleCatchesNot "DL3000" "WORKDIR \'C:\\\'"
+    it "workdir absolute windows quotes" $ ruleCatchesNot "DL3000" "WORKDIR \"C:\\\""
+    it "workdir absolute windows alternative" $
+      ruleCatchesNot "DL3000" "WORKDIR C:/"
+    it "workdir absolute windows quotes alternative" $
+      ruleCatchesNot "DL3000" "WORKDIR \"C:/\""
