@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3045 (rule) where
 
+import qualified Data.Char as Char
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
@@ -34,8 +35,7 @@ rule = customRule check (emptyState Empty)
     check line st (Copy (CopyArgs _ (TargetPath dest) _ _))
       | Acc s m <- state st, Just True <- Map.lookup s m = st -- workdir has been set
       | "/" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- absolute dest. normal
-      | ":\\" `Text.isPrefixOf` Text.drop 1 (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
-      | ":/" `Text.isPrefixOf` Text.drop 1 (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
+      | isWindowsAbsolute (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
       | "$" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- dest is a variable
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
@@ -81,4 +81,9 @@ quotePredicate :: Char -> Bool
 quotePredicate c
   | c == '"' = True
   | c == '\'' = True
+  | otherwise = False
+
+isWindowsAbsolute :: Text.Text -> Bool
+isWindowsAbsolute path
+  | Char.isLetter (Text.index path 0) && (':' == Text.index path 1) = True
   | otherwise = False
