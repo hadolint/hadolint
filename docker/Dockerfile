@@ -24,8 +24,17 @@ RUN scripts/fetch_version.sh \
   && stack install --ghc-options="-fPIC" --flag hadolint:static
 
 # COMPRESS WITH UPX
-RUN curl -sSL https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz \
-  | tar -x --xz --strip-components 1 upx-3.96-amd64_linux/upx \
+RUN case "$(uname -m)" in \
+  x86_64|amd64) \
+  LONG_ARCH="x86_64" \
+  SHORT_ARCH="amd64" \
+  ;; \
+  aarch64|arm64) \
+  LONG_ARCH="aarch64" \
+  SHORT_ARCH="arm64" \
+  ;; \
+  curl -sSL https://github.com/upx/upx/releases/download/v3.96/upx-3.96-${SHORT_ARCH}_linux.tar.xz \
+  | tar -x --xz --strip-components 1 upx-3.96-${SHORT_ARCH}_linux/upx \
   && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
 FROM debian:stretch-slim AS debian-distro
