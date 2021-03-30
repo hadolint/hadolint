@@ -18,14 +18,14 @@ data CmdPart = CmdPart
   { arg :: Text,
     partId :: Int
   }
-  deriving (Show)
+  deriving (Eq, Show)
 
 data Command = Command
   { name :: Text.Text,
     arguments :: [CmdPart],
     flags :: [CmdPart]
   }
-  deriving (Show)
+  deriving (Eq, Show)
 
 data ParsedShell = ParsedShell
   { original :: Text.Text,
@@ -202,8 +202,8 @@ dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdA
 getFlagArg :: Text.Text -> Command -> [Text.Text]
 getFlagArg flag Command {arguments, flags} = extractArgs
   where
-    idsToGet = [getValueId fId arguments | CmdPart f fId <- flags, f == flag]
-    extractArgs = [arg | (CmdPart arg aId) <- arguments, aId `elem` idsToGet]
+    idsToGet = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f == flag]
+    extractArgs = [arg | (CmdPart arg aId) <- arguments, aId `Set.member` idsToGet]
 
 getValueId :: Int -> [CmdPart] -> Int
 getValueId fId flags = foldl min (maxBound :: Int) $ filter (> fId) $ map partId flags
