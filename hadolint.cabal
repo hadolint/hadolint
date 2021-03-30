@@ -1,8 +1,10 @@
 cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.34.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: ee0fee7ef0d9f3f60869ced9a2b60a56a23799dac82c833ff5b8dba976515fdf
 
 name:           hadolint
 version:        2.0.0
