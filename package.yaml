@@ -88,6 +88,9 @@ tests:
   hadolint-unit-tests:
     main: Spec.hs
     source-dirs: test
+    default-extensions:
+      - ImplicitParams
+      - OverloadedLists
     dependencies:
       - *bytestring
       - *split

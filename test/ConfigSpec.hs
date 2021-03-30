@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module ConfigSpec where
 
 import Control.Monad (unless)
