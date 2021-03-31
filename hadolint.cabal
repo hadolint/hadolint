@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa46b173e0c30014808a39481ef96f5cfc3d04d9aa8f55e8cb9f3b664b729b75
+-- hash: ee0fee7ef0d9f3f60869ced9a2b60a56a23799dac82c833ff5b8dba976515fdf
 
 name:           hadolint
 version:        2.0.0
@@ -102,6 +102,7 @@ library
       Hadolint.Rule.DL3055
       Hadolint.Rule.DL3056
       Hadolint.Rule.DL3057
+      Hadolint.Rule.DL3058
       Hadolint.Rule.DL4000
       Hadolint.Rule.DL4001
       Hadolint.Rule.DL4003
@@ -130,6 +131,7 @@ library
     , cryptonite
     , deepseq ==1.4.4.*
     , directory >=1.3.0
+    , email-validate
     , filepath
     , foldl
     , ilist
@@ -232,6 +234,7 @@ test-suite hadolint-unit-tests
       DL3055
       DL3056
       DL3057
+      DL3058
       DL4000
       DL4001
       DL4003

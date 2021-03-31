@@ -66,6 +66,7 @@ library:
     - timerep >= 2.0
     - void
     - foldl
+    - email-validate
 executables:
   hadolint:
     main: Main.hs
