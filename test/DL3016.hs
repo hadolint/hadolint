@@ -118,3 +118,6 @@ tests = do
     it "commit not pinned for git" $ do
       ruleCatches "DL3016" "RUN npm install git://github.com/npm/npm.git"
       onBuildRuleCatches "DL3016" "RUN npm install git://github.com/npm/npm.git"
+    it "don't fire on loglevel flag" $ do
+      ruleCatchesNot "DL3016" "RUN npm install --loglevel verbose sax@0.1.1"
+      onBuildRuleCatchesNot "DL3016" "RUN npm install --loglevel verbose sax@0.1.1"
