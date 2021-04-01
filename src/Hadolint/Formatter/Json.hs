@@ -4,8 +4,10 @@ module Hadolint.Formatter.Json
   )
 where
 
+import qualified Control.Foldl as Foldl
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
+import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format (Result (..), errorPosition, severityText)
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), unRuleCode)
@@ -44,17 +46,13 @@ printResults ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
   f (Result s e) ->
   IO ()
-printResults = mapM_ printResult
+printResults results = B.putStr . encode $ flattened
+  where
+    flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
 
-formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Value
-formatResult (Result fileName errors checks) = toJSON allMessages
+formatResult :: Result s e -> Seq (JsonFormat s e)
+formatResult (Result fileName errors checks) = allMessages
   where
     allMessages = errorMessages <> checkMessages
     errorMessages = fmap JsonParseError errors
     checkMessages = fmap (JsonCheck fileName) checks
-
-printResult ::
-  (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  Result s e ->
-  IO ()
-printResult result = B.putStrLn (encode (formatResult result))
