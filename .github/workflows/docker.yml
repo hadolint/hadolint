@@ -60,5 +60,7 @@ jobs:
           tags: |
             hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
             hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+            hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
             ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
             ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
