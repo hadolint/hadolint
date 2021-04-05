@@ -1,6 +1,5 @@
 module ShellSpec where
 
-import Data.Text as Text
 import Hadolint.Shell
 import Test.Hspec
 

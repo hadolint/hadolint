@@ -59,6 +59,7 @@ import qualified DL3055
 import qualified DL3056
 import qualified DL3057
 import qualified DL3058
+import qualified DL3059
 import qualified DL4001
 import qualified DL4003
 import qualified DL4004
@@ -220,6 +221,7 @@ main =
     DL3056.tests
     DL3057.tests
     DL3058.tests
+    DL3059.tests
     DL4001.tests
     DL4003.tests
     DL4004.tests
