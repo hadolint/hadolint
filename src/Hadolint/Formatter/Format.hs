@@ -1,6 +1,7 @@
 module Hadolint.Formatter.Format
   ( severityText,
     stripNewlines,
+    errorMessage,
     errorMessageLine,
     errorPosition,
     errorPositionPretty,
@@ -53,6 +54,10 @@ stripNewlines =
 errorMessageLine :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> String
 errorMessageLine err@(ParseErrorBundle e _) =
   errorPositionPretty err ++ " " ++ parseErrorTextPretty (NE.head e)
+
+errorMessage :: (VisualStream s, ShowErrorComponent e) => ParseErrorBundle s e -> String
+errorMessage (ParseErrorBundle e _) =
+  reverse . dropWhile (== '\n') . reverse $ parseErrorTextPretty (NE.head e)
 
 errorPositionPretty :: TraversableStream s => ParseErrorBundle s e -> String
 errorPositionPretty err = sourcePosPretty (errorPosition err)
