@@ -9,7 +9,12 @@ import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
-import Hadolint.Formatter.Format (Result (..), errorPosition, severityText)
+import Hadolint.Formatter.Format
+  ( Result (..),
+    errorPosition,
+    severityText,
+    errorMessage
+  )
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), unRuleCode)
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
@@ -37,7 +42,7 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
         "column" .= unPos (sourceColumn pos),
         "level" .= severityText DLErrorC,
         "code" .= ("DL1000" :: Text.Text),
-        "message" .= errorBundlePretty err
+        "message" .= errorMessage err
       ]
     where
       pos = errorPosition err
