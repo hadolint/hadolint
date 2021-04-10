@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a3dcae5731e589aef133f0480f631dbd365f68690d730bcc58e422a3e7db16d0
+-- hash: aa0ac9f26b38f2272e5695efd11f6325a66424f4859915d2508e07512d94c0ed
 
 name:           hadolint
 version:        2.1.0
@@ -137,7 +137,7 @@ library
     , filepath
     , foldl
     , ilist
-    , language-docker >=9.1.3 && <10
+    , language-docker >=9.2.0 && <10
     , megaparsec >=9.0.0
     , mtl
     , network-uri
@@ -165,7 +165,7 @@ executable hadolint
     , containers
     , gitrev >=1.3.1
     , hadolint
-    , language-docker >=9.1.3 && <10
+    , language-docker >=9.2.0 && <10
     , megaparsec >=9.0.0
     , optparse-applicative >=0.14.0
     , text
@@ -264,7 +264,7 @@ test-suite hadolint-unit-tests
     , foldl
     , hadolint
     , hspec
-    , language-docker >=9.1.3 && <10
+    , language-docker >=9.2.0 && <10
     , megaparsec >=9.0.0
     , split >=0.2
     , text
