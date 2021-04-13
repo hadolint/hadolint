@@ -145,7 +145,7 @@ applyConfig maybeConfig o
           "\terror:",
           "\t\t- DL3008\n\n",
           "The key 'trustedRegistries' should contain the names of the allowed docker registries:\n",
-          "allowedRegistries:",
+          "trustedRegistries:",
           "\t- docker.io",
           "\t- my-company.com",
           "",
