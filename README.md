@@ -36,6 +36,10 @@ $ docker run --rm -i hadolint/hadolint < Dockerfile
 $ docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
+or if you are using Windows PowerShell:
+```powershell
+> cat .\Dockerfile | docker run --rm -i hadolint/hadolint
+```
 ## Install
 
 You can download prebuilt binaries for OSX, Windows and Linux from the latest
@@ -107,6 +111,21 @@ trustedRegistries:
   - my-company.com:5000
 ```
 
+If you want to override the severity of specific rules, you can do that too:
+```yaml
+override:
+  error:
+    - DL3001
+    - DL3002
+  warning:
+    - DL3042
+    - DL3033
+  info:
+    - DL3032
+  style:
+    - DL3015
+```
+
 Configuration files can be used globally or per project. By default, `hadolint` will look for
 a configuration file in the current directory with the name `.hadolint.yaml`
 
@@ -165,6 +184,7 @@ or via config file:
 ```yaml
 label-schema:
   author: text
+  contact: email
   created: rfc3339
   version: semver
   documentation: url
@@ -181,6 +201,7 @@ The value of a label can be either of `text`, `url`, `semver`, `hash` or
 | url     | A URI as described in [RFC 3986][rfc3986]          |
 | hash    | Either a short or a long [Git hash][githash]       |
 | spdx    | An [SPDX license identifier][spdxid]               |
+| email   | An email address conforming to [RFC 5322][rfc5322] |
 
 By default, Hadolint ignores any label not specified in the label schema. To
 warn on such additional labels, turn on strict labels:
@@ -419,3 +440,4 @@ a look at [Syntax.hs][] in the `language-docker` project to see the AST definiti
 [rfc3986]: https://www.ietf.org/rfc/rfc3986.txt
 [githash]: https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
 [spdxid]: https://spdx.org/licenses/
+[rfc5322]: https://www.ietf.org/rfc/rfc5322.txt
