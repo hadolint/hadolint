@@ -1,5 +1,6 @@
 module DL3042 (tests) where
 
+import Data.Text as Text
 import Helpers
 import Test.Hspec
 
@@ -32,3 +33,54 @@ tests = do
     it "don't match on pipenv" $ do
       ruleCatchesNot "DL3042" "RUN pipenv install library"
       onBuildRuleCatchesNot "DL3042" "RUN pipenv install library"
+
+    -- ENV won't work with the onBuildRuleCatches[Not] wrapper:
+    it "respect ENV PIP_NO_CACHE_DIR with truthy values" $ do
+      ruleCatchesNot "DL3042" "ENV PIP_NO_CACHE_DIR=1\nRUN pip install MySQL_python"
+      ruleCatchesNot "DL3042" "ENV PIP_NO_CACHE_DIR=on\nRUN pip install MySQL_python"
+      ruleCatchesNot "DL3042" "ENV PIP_NO_CACHE_DIR=yes\nRUN pip install MySQL_python"
+      ruleCatchesNot "DL3042" "ENV PIP_NO_CACHE_DIR=true\nRUN pip install MySQL_python"
+    it "respect RUN PIP_NO_CACHE_DIR=... with truthy values" $ do
+      ruleCatchesNot "DL3042" "RUN PIP_NO_CACHE_DIR=1 pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN PIP_NO_CACHE_DIR=on pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN PIP_NO_CACHE_DIR=yes pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN PIP_NO_CACHE_DIR=true pip install MySQL_python"
+    it "respect RUN export PIP_NO_CACHE_DIR=... with truthy values" $ do
+      ruleCatchesNot "DL3042" "RUN export PIP_NO_CACHE_DIR=1 && pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN export PIP_NO_CACHE_DIR=on && pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN export PIP_NO_CACHE_DIR=yes && pip install MySQL_python"
+      ruleCatchesNot "DL3042" "RUN export PIP_NO_CACHE_DIR=true && pip install MySQL_python"
+    it "respect ENV PIP_NO_CACHE_DIR with falsy values" $ do
+      ruleCatches "DL3042" "ENV PIP_NO_CACHE_DIR=0\nRUN pip install MySQL_python"
+      ruleCatches "DL3042" "ENV PIP_NO_CACHE_DIR=off\nRUN pip install MySQL_python"
+      ruleCatches "DL3042" "ENV PIP_NO_CACHE_DIR=no\nRUN pip install MySQL_python"
+      ruleCatches "DL3042" "ENV PIP_NO_CACHE_DIR=false\nRUN pip install MySQL_python"
+    it "respect RUN PIP_NO_CACHE_DIR=... with falsy values" $ do
+      ruleCatches "DL3042" "RUN PIP_NO_CACHE_DIR=0 pip install MySQL_python"
+      ruleCatches "DL3042" "RUN PIP_NO_CACHE_DIR=off pip install MySQL_python"
+      ruleCatches "DL3042" "RUN PIP_NO_CACHE_DIR=no pip install MySQL_python"
+      ruleCatches "DL3042" "RUN PIP_NO_CACHE_DIR=false pip install MySQL_python"
+    it "respect RUN export PIP_NO_CACHE_DIR=... with falsy values" $ do
+      ruleCatches "DL3042" "RUN export PIP_NO_CACHE_DIR=0 && pip install MySQL_python"
+      ruleCatches "DL3042" "RUN export PIP_NO_CACHE_DIR=off && pip install MySQL_python"
+      ruleCatches "DL3042" "RUN export PIP_NO_CACHE_DIR=no && pip install MySQL_python"
+      ruleCatches "DL3042" "RUN export PIP_NO_CACHE_DIR=false && pip install MySQL_python"
+
+    it "don't trigger if PIP_NO_CACHE_DIR is inherited" $
+      let dockerFile = Text.unlines
+            [ "FROM debian:buster as base",
+              "ENV PIP_NO_CACHE_DIR=1",
+              "FROM base",
+              "RUN pip install six"
+            ]
+       in do
+        ruleCatchesNot "DL3042" dockerFile
+    it "trigger if PIP_NO_CACHE_DIR is not inherited" $
+      let dockerFile = Text.unlines
+            [ "FROM debian:buster as base",
+              "ENV PIP_NO_CACHE_DIR=1",
+              "FROM debian:buster",
+              "RUN pip install six"
+            ]
+       in do
+        ruleCatches "DL3042" dockerFile
