@@ -1,8 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Main where
 
 import Control.Applicative
@@ -18,6 +13,7 @@ import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
 import qualified Hadolint.Rule as Rule
+import qualified Hadolint.Formatter.Format as Format
 import Options.Applicative
   ( Parser,
     action,
@@ -75,6 +71,15 @@ showFormat Hadolint.GitlabCodeclimateJson = "gitlab_codeclimate"
 showFormat Hadolint.Checkstyle = "checkstyle"
 showFormat Hadolint.Codacy = "codacy"
 
+toNofailSeverity :: String -> Maybe Rule.DLSeverity
+toNofailSeverity "error" = Just Rule.DLErrorC
+toNofailSeverity "warning" = Just Rule.DLWarningC
+toNofailSeverity "info" = Just Rule.DLInfoC
+toNofailSeverity "style" = Just Rule.DLStyleC
+toNofailSeverity "ignore" = Just Rule.DLIgnoreC
+toNofailSeverity "none" = Just Rule.DLIgnoreC
+toNofailSeverity _ = Nothing
+
 parseOptions :: Parser CommandOptions
 parseOptions =
   CommandOptions
@@ -89,6 +94,20 @@ parseOptions =
     version = switch (long "version" <> short 'v' <> help "Show version")
 
     noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
+
+    noFailCutoff =
+      option
+        (maybeReader toNofailSeverity)
+        ( short 't'
+            <> long "failure-theshold"
+            <> help "Exit with failure code only when rules with a severity \
+                    \above THRESHOLD are violated. Accepted values: \
+                    \[error | warning | info | style | ignore | none]"
+            <> value Rule.DLInfoC
+            <> metavar "THRESHOLD"
+            <> showDefaultWith (Text.unpack . Format.severityText)
+            <> completeWith ["error", "warning", "info", "style", "ignore", "none"]
+        )
 
     nocolor = switch (long "no-color" <> help "Don't colorize output")
 
@@ -170,6 +189,7 @@ parseOptions =
         <*> styleList
         <*> ignoreList
         <*> parseRulesConfig
+        <*> noFailCutoff
 
     labels = Map.fromList
         <$> many
@@ -206,15 +226,21 @@ labelParser l =
       (ln, Right lt) -> Right (ln, lt)
       (_, Left e) -> Left $ Text.unpack e
 
-noFailure :: Hadolint.Result s e -> Bool
-noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) = True
-noFailure _ = False
+noFailure :: Hadolint.Result s e -> Rule.DLSeverity -> Bool
+noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) _ = True
+noFailure (Hadolint.Result _ Seq.Empty fails) cutoff =
+  Seq.null (Seq.filter (\f -> Rule.severity f < cutoff) fails)
+noFailure _ _ = False
 
-exitProgram :: Foldable f => CommandOptions -> f (Hadolint.Result s e) -> IO ()
-exitProgram cmd res
+exitProgram :: Foldable f =>
+  CommandOptions ->
+  Hadolint.LintOptions ->
+  f (Hadolint.Result s e) ->
+  IO ()
+exitProgram cmd conf res
   | noFail cmd = exitSuccess
   | Hadolint.shallSkipErrorStatus (format cmd) = exitSuccess
-  | all noFailure res = exitSuccess
+  | all (`noFailure` Hadolint.failThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
 runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO ()
@@ -223,7 +249,7 @@ runLint cmd conf files = do
   noColorEnv <- lookupEnv "NO_COLOR"
   let noColor = nocolor cmd || isJust noColorEnv
   Hadolint.printResults (format cmd) noColor res
-  exitProgram cmd res
+  exitProgram cmd conf res
 
 main :: IO ()
 main = do

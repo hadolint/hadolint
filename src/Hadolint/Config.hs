@@ -47,7 +47,8 @@ data ConfigFile = ConfigFile
     ignoredRules :: Maybe [Lint.IgnoreRule],
     trustedRegistries :: Maybe [Lint.TrustedRegistry],
     labelSchemaConfig :: Maybe Rule.LabelSchema,
-    strictLabelSchema :: Maybe Bool
+    strictLabelSchema :: Maybe Bool,
+    failureThreshold :: Maybe Rule.DLSeverity
   }
   deriving (Show, Eq, Generic)
 
@@ -67,7 +68,19 @@ instance Yaml.FromYAML ConfigFile where
     trustedRegistries <- m .:? "trustedRegistries"
     labelSchemaConfig <- m .:? "label-schema"
     strictLabelSchema <- m .:? "strict-labels"
+    threshold <- m .:? "failure-threshold"
+    let failureThreshold = toFailureThreshold threshold
     return ConfigFile {..}
+
+toFailureThreshold :: Maybe Text.Text -> Maybe Rule.DLSeverity
+toFailureThreshold (Just "error") = Just Rule.DLErrorC
+toFailureThreshold (Just "warning") = Just Rule.DLWarningC
+toFailureThreshold (Just "info") = Just Rule.DLInfoC
+toFailureThreshold (Just "style") = Just Rule.DLStyleC
+toFailureThreshold (Just "ignore") = Just Rule.DLIgnoreC
+toFailureThreshold (Just "none") = Just Rule.DLIgnoreC
+toFailureThreshold (Just _) = Nothing
+toFailureThreshold Nothing = Nothing
 
 -- | If both the ignoreRules and rulesConfig properties of Lint options are empty
 -- then this function will fill them with the default found in the passed config
@@ -106,6 +119,7 @@ applyConfig maybeConfig o
         overrideInfo <- overrideInfoRules <|> Just mempty
         overrideStyle <- overrideStyleRules <|> Just mempty
         overrideIgnored <- ignoredRules <|> Just mempty
+        overrideThreshold <- min failureThreshold (Just Rule.DLIgnoreC)
 
         trusted <- Set.fromList . coerce <$> (trustedRegistries <|> Just mempty)
         schema <- labelSchemaConfig <|> Just mempty
@@ -125,7 +139,8 @@ applyConfig maybeConfig o
                   { Process.allowedRegistries = Process.allowedRegistries rulesConfig `ifNull` trusted,
                     Process.labelSchema = Process.labelSchema rulesConfig `ifNull` schema,
                     Process.strictLabels = Process.strictLabels rulesConfig || strictLabels
-                  }
+                  },
+              Lint.failThreshold = min (Lint.failThreshold o) overrideThreshold
             }
 
     ifNull value override = if null value then override else value
