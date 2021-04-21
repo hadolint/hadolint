@@ -32,7 +32,7 @@ rule = customRule check (emptyState Empty)
 
     check _ st (From from) = st |> modify (rememberStage from)
     check _ st (Workdir _) = st |> modify rememberWorkdir
-    check line st (Copy (CopyArgs _ (TargetPath dest) _ _))
+    check line st (Copy (CopyArgs _ (TargetPath dest) _ _ _))
       | Acc s m <- state st, Just True <- Map.lookup s m = st -- workdir has been set
       | "/" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- absolute dest. normal
       | isWindowsAbsolute (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
@@ -57,7 +57,7 @@ rememberStage BaseImage {alias = Just als, image} Acc {..} =
     { current = Stage {stage = unImageAlias als},
       workdirSet =
         let parentValue =
-              Map.lookup (Stage { stage = imageName image}) workdirSet
+              Map.lookup (Stage {stage = imageName image}) workdirSet
                 |> fromMaybe False
          in workdirSet
               |> Map.insert (Stage {stage = unImageAlias als}) parentValue

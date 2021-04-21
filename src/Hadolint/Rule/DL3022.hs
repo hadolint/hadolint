@@ -12,7 +12,7 @@ rule = customRule check (emptyState Set.empty)
     message = "COPY --from should reference a previously defined FROM alias"
 
     check _ st (From BaseImage {alias = Just (ImageAlias als)}) = st |> modify (Set.insert als)
-    check line st (Copy (CopyArgs _ _ _ (CopySource s)))
+    check line st (Copy (CopyArgs _ _ _ _ (CopySource s)))
       | Set.member s (state st) = st
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
