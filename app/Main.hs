@@ -1,6 +1,12 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main where
 
 import Control.Applicative
+import Control.Monad (when)
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
@@ -12,10 +18,11 @@ import qualified Data.Text as Text
 import qualified Data.Version
 import qualified Development.GitRev
 import qualified Hadolint
-import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Formatter.Format as Format
+import qualified Hadolint.Rule as Rule
 import Options.Applicative
   ( Parser,
+    ReadM,
     action,
     argument,
     completeWith,
@@ -31,7 +38,6 @@ import Options.Applicative
     metavar,
     option,
     progDesc,
-    ReadM,
     short,
     showDefaultWith,
     str,
@@ -49,6 +55,7 @@ data CommandOptions = CommandOptions
     noFail :: Bool,
     nocolor :: Bool,
     configFile :: Maybe FilePath,
+    showConfigFile :: Bool,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
     lintingOptions :: Hadolint.LintOptions
@@ -87,6 +94,7 @@ parseOptions =
     <*> noFail
     <*> nocolor
     <*> configFile
+    <*> showConfigFile
     <*> outputFormat
     <*> files
     <*> lintOptions
@@ -100,9 +108,10 @@ parseOptions =
         (maybeReader toNofailSeverity)
         ( short 't'
             <> long "failure-theshold"
-            <> help "Exit with failure code only when rules with a severity \
-                    \above THRESHOLD are violated. Accepted values: \
-                    \[error | warning | info | style | ignore | none]"
+            <> help
+              "Exit with failure code only when rules with a severity \
+              \above THRESHOLD are violated. Accepted values: \
+              \[error | warning | info | style | ignore | none]"
             <> value Rule.DLInfoC
             <> metavar "THRESHOLD"
             <> showDefaultWith (Text.unpack . Format.severityText)
@@ -111,8 +120,11 @@ parseOptions =
 
     nocolor = switch (long "no-color" <> help "Don't colorize output")
 
-    strictlabels = switch (long "strict-labels"
-        <> help "Do not permit labels other than specified in `label-schema`")
+    strictlabels =
+      switch
+        ( long "strict-labels"
+            <> help "Do not permit labels other than specified in `label-schema`"
+        )
 
     configFile =
       optional
@@ -121,6 +133,8 @@ parseOptions =
                 <> help "Path to the configuration file"
             )
         )
+
+    showConfigFile = switch (long "showConfig" <> short 's' <> help "Show config file used")
 
     outputFormat =
       option
@@ -191,9 +205,11 @@ parseOptions =
         <*> parseRulesConfig
         <*> noFailCutoff
 
-    labels = Map.fromList
+    labels =
+      Map.fromList
         <$> many
-          ( option readSingleLabelSchema
+          ( option
+              readSingleLabelSchema
               ( long "require-label"
                   <> help "The option --require-label=label:format makes Hadolint check that the label `label` conforms to format requirement `format`"
                   <> metavar "LABELSCHEMA (e.g. maintainer:text)"
@@ -206,7 +222,8 @@ parseOptions =
         <*> labels
         <*> strictlabels
 
-    parseAllowedRegistries = Set.fromList . fmap fromString
+    parseAllowedRegistries =
+      Set.fromList . fmap fromString
         <$> many
           ( strOption
               ( long "trusted-registry"
@@ -222,9 +239,9 @@ readSingleLabelSchema = eitherReader $ \s -> labelParser (Text.pack s)
 
 labelParser :: Text.Text -> Either String (Rule.LabelName, Rule.LabelType)
 labelParser l =
-    case Bifunctor.second (Rule.read . Text.drop 1) $ Text.breakOn ":" l of
-      (ln, Right lt) -> Right (ln, lt)
-      (_, Left e) -> Left $ Text.unpack e
+  case Bifunctor.second (Rule.read . Text.drop 1) $ Text.breakOn ":" l of
+    (ln, Right lt) -> Right (ln, lt)
+    (_, Left e) -> Left $ Text.unpack e
 
 noFailure :: Hadolint.Result s e -> Rule.DLSeverity -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) _ = True
@@ -232,7 +249,8 @@ noFailure (Hadolint.Result _ Seq.Empty fails) cutoff =
   Seq.null (Seq.filter (\f -> Rule.severity f < cutoff) fails)
 noFailure _ _ = False
 
-exitProgram :: Foldable f =>
+exitProgram ::
+  Foldable f =>
   CommandOptions ->
   Hadolint.LintOptions ->
   f (Hadolint.Result s e) ->
@@ -260,6 +278,7 @@ main = do
     execute CommandOptions {dockerfiles = []} =
       putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
+      when (showConfigFile cmd) (putStrLn $ getFilePathDescription (configFile cmd))
       lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
@@ -279,3 +298,7 @@ getVersion
   | otherwise = "Haskell Dockerfile Linter " ++ version
   where
     version = $(Development.GitRev.gitDescribe)
+
+getFilePathDescription :: Maybe FilePath -> String
+getFilePathDescription Nothing = "No configuration was specified. Using default configuration"
+getFilePathDescription (Just filepath) = "Configuration file used: " ++ filepath
