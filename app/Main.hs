@@ -49,6 +49,7 @@ import Options.Applicative
 import qualified Paths_hadolint as Meta
 import System.Environment
 import System.Exit (exitFailure, exitSuccess)
+import System.IO (hPutStrLn, stderr)
 
 data CommandOptions = CommandOptions
   { showVersion :: Bool,
@@ -278,7 +279,7 @@ main = do
     execute CommandOptions {dockerfiles = []} =
       putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
-      when (showConfigFile cmd) (putStrLn $ getFilePathDescription (configFile cmd))
+      when (showConfigFile cmd) (hPutStrLn stderr $ getFilePathDescription (configFile cmd))
       lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
