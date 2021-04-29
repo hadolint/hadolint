@@ -98,10 +98,12 @@ applyConfig maybeConfig o
       Nothing -> return (Right o)
       Just config -> parseAndApply config
   where
+    acceptedConfigs = [".hadolint.yaml", ".hadolint.yml"]
+
     findConfig = do
-      localConfigFile <- (</> ".hadolint.yaml") <$> getCurrentDirectory
-      configFile <- getXdgDirectory XdgConfig "hadolint.yaml"
-      listToMaybe <$> filterM doesFileExist [localConfigFile, configFile]
+      localConfigFiles <- traverse (\filePath -> (</> filePath) <$> getCurrentDirectory) acceptedConfigs
+      configFiles <- traverse (getXdgDirectory XdgConfig) acceptedConfigs
+      listToMaybe <$> filterM doesFileExist (localConfigFiles ++ configFiles)
 
     parseAndApply :: FilePath -> IO (Either String Lint.LintOptions)
     parseAndApply configFile = do
