@@ -1,5 +1,6 @@
 module Hadolint.Config
   ( applyConfig,
+    getConfig,
     ConfigFile (..),
     OverrideConfig (..),
   )
@@ -90,21 +91,10 @@ applyConfig :: Maybe FilePath -> Lint.LintOptions -> IO (Either String Lint.Lint
 applyConfig maybeConfig o
   | not (Prelude.null (Lint.ignoreRules o)) && Lint.rulesConfig o /= mempty = return (Right o)
   | otherwise = do
-    theConfig <-
-      case maybeConfig of
-        Nothing -> findConfig
-        c -> return c
-    case theConfig of
+    case maybeConfig of
       Nothing -> return (Right o)
       Just config -> parseAndApply config
   where
-    acceptedConfigs = [".hadolint.yaml", ".hadolint.yml"]
-
-    findConfig = do
-      localConfigFiles <- traverse (\filePath -> (</> filePath) <$> getCurrentDirectory) acceptedConfigs
-      configFiles <- traverse (getXdgDirectory XdgConfig) acceptedConfigs
-      listToMaybe <$> filterM doesFileExist (localConfigFiles ++ configFiles)
-
     parseAndApply :: FilePath -> IO (Either String Lint.LintOptions)
     parseAndApply configFile = do
       contents <- Bytes.readFile configFile
@@ -168,3 +158,18 @@ applyConfig maybeConfig o
           "",
           err
         ]
+
+-- | Gets the configuration file which Hadolint uses
+getConfig :: Maybe FilePath -> IO (Maybe FilePath)
+getConfig maybeConfig =
+  case maybeConfig of
+    Nothing -> findConfig
+    _ -> return maybeConfig
+  where
+    findConfig :: IO (Maybe FilePath)
+    findConfig = do
+      localConfigFiles <- traverse (\filePath -> (</> filePath) <$> getCurrentDirectory) acceptedConfigs
+      configFiles <- traverse (getXdgDirectory XdgConfig) acceptedConfigs
+      listToMaybe <$> filterM doesFileExist (localConfigFiles ++ configFiles)
+      where
+        acceptedConfigs = [".hadolint.yaml", ".hadolint.yml"]
