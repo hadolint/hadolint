@@ -279,8 +279,9 @@ main = do
     execute CommandOptions {dockerfiles = []} =
       putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
-      when (isVerbose cmd) (hPutStrLn stderr $ getFilePathDescription (configFile cmd))
-      lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
+      maybeConfig <- Hadolint.getConfig (configFile cmd)
+      when (isVerbose cmd) (hPutStrLn stderr $ getFilePathDescription maybeConfig)
+      lintConfig <- Hadolint.applyConfig maybeConfig (lintingOptions cmd)
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
         Left err -> error err
