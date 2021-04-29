@@ -56,7 +56,7 @@ data CommandOptions = CommandOptions
     noFail :: Bool,
     nocolor :: Bool,
     configFile :: Maybe FilePath,
-    showConfigFile :: Bool,
+    isVerbose :: Bool,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
     lintingOptions :: Hadolint.LintOptions
@@ -95,7 +95,7 @@ parseOptions =
     <*> noFail
     <*> nocolor
     <*> configFile
-    <*> showConfigFile
+    <*> isVerbose
     <*> outputFormat
     <*> files
     <*> lintOptions
@@ -135,7 +135,7 @@ parseOptions =
             )
         )
 
-    showConfigFile = switch (long "showConfig" <> short 's' <> help "Show config file used")
+    isVerbose = switch (long "verbose" <> short 'V' <> help "Enables verbose logging of hadolint's output to stderr")
 
     outputFormat =
       option
@@ -279,7 +279,7 @@ main = do
     execute CommandOptions {dockerfiles = []} =
       putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
-      when (showConfigFile cmd) (hPutStrLn stderr $ getFilePathDescription (configFile cmd))
+      when (isVerbose cmd) (hPutStrLn stderr $ getFilePathDescription (configFile cmd))
       lintConfig <- Hadolint.applyConfig (configFile cmd) (lintingOptions cmd)
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
