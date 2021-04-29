@@ -85,7 +85,7 @@ main =
             expectedMsg =
               "<string>:1:1 unexpected 'F' expecting '#', ADD, ARG, CMD, COPY, ENTRYPOINT, "
                 <> "ENV, EXPOSE, FROM, HEALTHCHECK, LABEL, MAINTAINER, ONBUILD, RUN, SHELL, STOPSIGNAL, "
-                <> "USER, VOLUME, WORKDIR, or end of input "
+                <> "USER, VOLUME, WORKDIR, a pragma, end of input, or whitespaces "
         case ast of
           Left err -> assertEqual "Unexpected error msg" expectedMsg (formatError err)
           Right _ -> assertFailure "AST should fail parsing"
