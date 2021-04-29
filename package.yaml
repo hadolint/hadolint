@@ -78,6 +78,8 @@ executables:
       - text
       - containers
     ghc-options: -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
+    default-extensions:
+      - TemplateHaskell
     when:
       # OS X does not support static build https://developer.apple.com/library/content/qa/qa1118
       - condition: "flag(static) && !(os(osx))"

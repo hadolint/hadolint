@@ -42,12 +42,13 @@ data LintOptions = LintOptions
     infoRules :: [InfoRule],
     styleRules :: [StyleRule],
     ignoreRules :: [IgnoreRule],
-    rulesConfig :: Hadolint.Process.RulesConfig
+    rulesConfig :: Hadolint.Process.RulesConfig,
+    failThreshold :: Hadolint.Rule.DLSeverity
   }
   deriving (Show)
 
 instance Semigroup LintOptions where
-  LintOptions a1 a2 a3 a4 a5 a6 <> LintOptions b1 b2 b3 b4 b5 b6 =
+  LintOptions a1 a2 a3 a4 a5 a6 a7 <> LintOptions b1 b2 b3 b4 b5 b6 b7 =
     LintOptions
       (a1 <> b1)
       (a2 <> b2)
@@ -55,9 +56,10 @@ instance Semigroup LintOptions where
       (a4 <> b4)
       (a5 <> b5)
       (a6 <> b6)
+      (min a7 b7)
 
 instance Monoid LintOptions where
-  mempty = LintOptions mempty mempty mempty mempty mempty mempty
+  mempty = LintOptions mempty mempty mempty mempty mempty mempty Hadolint.Rule.DLIgnoreC
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.

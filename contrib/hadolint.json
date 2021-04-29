@@ -1,0 +1,598 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JSON Schema for Hadolint, a Dockerfile linter tool",
+  "description": "Dockerfile linter, validate inline bash, written in Haskell",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "failure-threshold": {
+      "type": "string",
+      "description": "A threshold controlling how severe a rule violation must be before the return code indicates failure.",
+      "oneOf": [
+        {
+          "const": "error",
+          "description": "Never return failure."
+        },
+        {
+          "const": "warning",
+          "description": "Return failure if only rules of severity above `warning` are violated"
+        },
+        {
+          "const": "info",
+          "description": "Return failure if only rules of severity above `info` are violated"
+        },
+        {
+          "const": "style",
+          "description": "Return failure if only rules of severity above `style` are violated"
+        },
+        {
+          "const": "ignore",
+          "description": "Return failure if any rule is violated."
+        },
+        {
+          "const": "none",
+          "description": "Return failure if any rule is violated."
+        }
+      ]
+    },
+    "strict-labels": {
+      "type": "boolean",
+      "description": "Strictly adhere to label-schem, don't allow additional labels."
+    },
+    "label-schema": {
+      "type": "object",
+      "description": "A label-schema. See https://github.com/hadolint/hadolint#linting-labels for reference.",
+      "additionalProperties": true
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "array",
+          "description": "A list of rules to be treated with \"error\" severity",
+          "items": {
+            "$ref": "#/properties/ignored/items"
+          }
+        },
+        "warning": {
+          "type": "array",
+          "description": "A list of rules to be treated with \"warning\" severity",
+          "items": {
+            "$ref": "#/properties/ignored/items"
+          }
+        },
+        "info": {
+          "type": "array",
+          "description": "A list of rules to be treated with \"info\" severity",
+          "items": {
+            "$ref": "#/properties/ignored/items"
+          }
+        },
+        "style": {
+          "type": "array",
+          "description": "A list of rules to be treated with \"style\" severity",
+          "items": {
+            "$ref": "#/properties/ignored/items"
+          }
+        }
+      }
+    },
+    "ignored": {
+      "type": "array",
+      "description": "A list of rules to be ignored",
+      "items": {
+        "type": "string",
+        "oneOf": [
+          {
+            "const": "DL3000",
+            "description": "Use absolute WORKDIR.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3000"
+          },
+          {
+            "const": "DL3001",
+            "description": "For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3001"
+          },
+          {
+            "const": "DL3002",
+            "description": "Last user should not be root.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3002"
+          },
+          {
+            "const": "DL3003",
+            "description": "Use WORKDIR to switch to a directory.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3003"
+          },
+          {
+            "const": "DL3004",
+            "description": "Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3004"
+          },
+          {
+            "const": "DL3005",
+            "description": "Do not use apt-get upgrade or dist-upgrade.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3005"
+          },
+          {
+            "const": "DL3006",
+            "description": "Always tag the version of an image explicitly.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3006"
+          },
+          {
+            "const": "DL3007",
+            "description": "Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3007"
+          },
+          {
+            "const": "DL3008",
+            "description": "Pin versions in apt-get install.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3008"
+          },
+          {
+            "const": "DL3009",
+            "description": "Delete the apt-get lists after installing something.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3009"
+          },
+          {
+            "const": "DL3010",
+            "description": "Use ADD for extracting archives into an image.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3010"
+          },
+          {
+            "const": "DL3011",
+            "description": "Valid UNIX ports range from 0 to 65535.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3011"
+          },
+          {
+            "const": "DL3012",
+            "description": "Multiple `HEALTHCHECK` instructions.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3012"
+          },
+          {
+            "const": "DL3013",
+            "description": "Pin versions in pip.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3013"
+          },
+          {
+            "const": "DL3014",
+            "description": "Use the `-y` switch.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3014"
+          },
+          {
+            "const": "DL3015",
+            "description": "Avoid additional packages by specifying --no-install-recommends.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3015"
+          },
+          {
+            "const": "DL3016",
+            "description": "Pin versions in `npm`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3016"
+          },
+          {
+            "const": "DL3017",
+            "description": "Do not use `apk upgrade`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3017"
+          },
+          {
+            "const": "DL3018",
+            "description": "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3018"
+          },
+          {
+            "const": "DL3019",
+            "description": "Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3019"
+          },
+          {
+            "const": "DL3020",
+            "description": "Use `COPY` instead of `ADD` for files and folders.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3020"
+          },
+          {
+            "const": "DL3021",
+            "description": "`COPY` with more than 2 arguments requires the last argument to end with `/`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3021"
+          },
+          {
+            "const": "DL3022",
+            "description": "`COPY --from` should reference a previously defined `FROM` alias",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3022"
+          },
+          {
+            "const": "DL3023",
+            "description": "`COPY --from` cannot reference its own `FROM` alias",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3023"
+          },
+          {
+            "const": "DL3024",
+            "description": "`FROM` aliases (stage names) must be unique",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3024"
+          },
+          {
+            "const": "DL3025",
+            "description": "Use arguments JSON notation for CMD and ENTRYPOINT arguments",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3025"
+          },
+          {
+            "const": "DL3026",
+            "description": "Use only an allowed registry in the FROM image",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3026"
+          },
+          {
+            "const": "DL3027",
+            "description": "Do not use `apt` as it is meant to be an end-user tool, use `apt-get` or `apt-cache` instead",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3027"
+          },
+          {
+            "const": "DL3028",
+            "description": "Pin versions in gem install. Instead of `gem install <gem>` use `gem install <gem>:<version>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3028"
+          },
+          {
+            "const": "DL3029",
+            "description": "Do not use --platform flag with FROM.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3029"
+          },
+          {
+            "const": "DL3030",
+            "description": "Use the `-y` switch to avoid manual input `yum install -y <package>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3030"
+          },
+          {
+            "const": "DL3031",
+            "description": "Do not use `yum update`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3031"
+          },
+          {
+            "const": "DL3032",
+            "description": "`yum clean all` missing after yum command.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3032"
+          },
+          {
+            "const": "DL3033",
+            "description": "Specify version with `yum install -y <package>-<version>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3033"
+          },
+          {
+            "const": "DL3034",
+            "description": "Non-interactive switch missing from `zypper` command: `zypper install -y`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3034"
+          },
+          {
+            "const": "DL3035",
+            "description": "Do not use `zypper update`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3035"
+          },
+          {
+            "const": "DL3036",
+            "description": "`zypper clean` missing after zypper use.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3036"
+          },
+          {
+            "const": "DL3037",
+            "description": "Specify version with `zypper install -y <package>[=]<version>`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3037"
+          },
+          {
+            "const": "DL3038",
+            "description": "Use the `-y` switch to avoid manual input `dnf install -y <package>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3038"
+          },
+          {
+            "const": "DL3039",
+            "description": "Do not use `dnf update`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3039"
+          },
+          {
+            "const": "DL3040",
+            "description": "`dnf clean all` missing after dnf command.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3040"
+          },
+          {
+            "const": "DL3041",
+            "description": "Specify version with `dnf install -y <package>-<version>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3041"
+          },
+          {
+            "const": "DL3042",
+            "description": "Avoid cache directory with `pip install --no-cache-dir <package>`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3042"
+          },
+          {
+            "const": "DL3043",
+            "description": "`ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3043"
+          },
+          {
+            "const": "DL3044",
+            "description": "Do not refer to an environment variable within the same `ENV` statement where it is defined.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3044"
+          },
+          {
+            "const": "DL3045",
+            "description": "`COPY` to a relative destination without `WORKDIR` set.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3045"
+          },
+          {
+            "const": "DL3046",
+            "description": " `useradd` without flag `-l` and high UID will result in excessively large Image.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3046"
+          },
+          {
+            "const": "DL3047",
+            "description": "`wget` without flag `--progress` will result in excessively bloated build logs when downloading larger files.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3047"
+          },
+          {
+            "const": "DL3048",
+            "description": "Invalid Label Key",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3048"
+          },
+          {
+            "const": "DL3049",
+            "description": "Label `<label>` is missing.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3049"
+          },
+          {
+            "const": "DL3050",
+            "description": "Superfluous label(s) present.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3050"
+          },
+          {
+            "const": "DL3051",
+            "description": "Label `<label>` is empty.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3051"
+          },
+          {
+            "const": "DL3052",
+            "description": "Label `<label>` is not a valid URL.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3052"
+          },
+          {
+            "const": "DL3053",
+            "description": "Label `<label>` is not a valid time format - must be conform to RFC3339.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3053"
+          },
+          {
+            "const": "DL3054",
+            "description": "Label `<label>` is not a valid SPDX license identifier.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3054"
+          },
+          {
+            "const": "DL3055",
+            "description": "Label `<label>` is not a valid git hash.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3055"
+          },
+          {
+            "const": "DL3056",
+            "description": "Label `<label>` does not conform to semantic versioning.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3056"
+          },
+          {
+            "const": "DL3057",
+            "description": "`HEALTHCHECK` instruction missing.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3057"
+          },
+          {
+            "const": "DL3058",
+            "description": "Label `<label>` is not a valid email format - must be conform to RFC5322.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3058"
+          },
+          {
+            "const": "DL3059",
+            "description": "Multiple consecutive `RUN` instructions. Consider consolidation.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3059"
+          },
+          {
+            "const": "DL3060",
+            "description": "`yarn cache clean` missing after `yarn install` was run.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3060"
+          },
+          {
+            "const": "DL4000",
+            "description": "MAINTAINER is deprecated.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4000"
+          },
+          {
+            "const": "DL4001",
+            "description": "Either use Wget or Curl but not both.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4001"
+          },
+          {
+            "const": "DL4003",
+            "description": "Multiple `CMD` instructions found.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4003"
+          },
+          {
+            "const": "DL4004",
+            "description": "Multiple `ENTRYPOINT` instructions found.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4004"
+          },
+          {
+            "const": "DL4005",
+            "description": "Use `SHELL` to change the default shell.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4005"
+          },
+          {
+            "const": "DL4006",
+            "description": "Set the `SHELL` option -o pipefail before `RUN` with a pipe in it",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL4006"
+          },
+          {
+            "const": "SC1000",
+            "description": "`$` is not used specially and should therefore be escaped.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1000"
+          },
+          {
+            "const": "SC1001",
+            "description": "This `\\c` will be a regular `'c'`  in this context.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1001"
+          },
+          {
+            "const": "SC1007",
+            "description": "Remove space after `=` if trying to assign a value (or for empty string, use `var='' ...`).",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1007"
+          },
+          {
+            "const": "SC1010",
+            "description": "Use semicolon or linefeed before `done` (or quote to make it literal).",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1010"
+          },
+          {
+            "const": "SC1018",
+            "description": "This is a unicode non-breaking space. Delete it and retype as space.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1018"
+          },
+          {
+            "const": "SC1035",
+            "description": "You need a space here",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1035"
+          },
+          {
+            "const": "SC1045",
+            "description": "It's not `foo &; bar`, just `foo & bar`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1045"
+          },
+          {
+            "const": "SC1065",
+            "description": "Trying to declare parameters? Don't. Use `()` and refer to params as `$1`, `$2` etc.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1065"
+          },
+          {
+            "const": "SC1066",
+            "description": "Don't use $ on the left side of assignments.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1066"
+          },
+          {
+            "const": "SC1068",
+            "description": "Don't put spaces around the `=` in assignments.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1068"
+          },
+          {
+            "const": "SC1077",
+            "description": "For command expansion, the tick should slant left (\\` vs ´).",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1077"
+          },
+          {
+            "const": "SC1078",
+            "description": "Did you forget to close this double-quoted string?",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1078"
+          },
+          {
+            "const": "SC1079",
+            "description": "This is actually an end quote, but due to next char, it looks suspect.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1079"
+          },
+          {
+            "const": "SC1081",
+            "description": "Scripts are case sensitive. Use `if`, not `If`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1081"
+          },
+          {
+            "const": "SC1083",
+            "description": "This `{/}` is literal. Check expression (missing `;/\\n`?) or quote it.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1083"
+          },
+          {
+            "const": "SC1086",
+            "description": "Don't use `$` on the iterator name in for loops.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1086"
+          },
+          {
+            "const": "SC1087",
+            "description": "Braces are required when expanding arrays, as in `${array[idx]}`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1087"
+          },
+          {
+            "const": "SC1095",
+            "description": "You need a space or linefeed between the function name and body.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1095"
+          },
+          {
+            "const": "SC1097",
+            "description": "Unexpected `==`. For assignment, use `=`. For comparison, use `[ .. ]` or `[[ .. ]]`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1097"
+          },
+          {
+            "const": "SC1098",
+            "description": "Quote/escape special characters when using `eval`, e.g. `eval \"a=(b)\"`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1098"
+          },
+          {
+            "const": "SC1099",
+            "description": "You need a space before the `#`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1099"
+          },
+          {
+            "const": "SC2002",
+            "description": "Useless cat. Consider `cmd < file | ..` or `cmd file | ..` instead.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2002"
+          },
+          {
+            "const": "SC2015",
+            "description": "Note that `A && B || C` is not if-then-else. C may run when A is true.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2015"
+          },
+          {
+            "const": "SC2026",
+            "description": "This word is outside of quotes. Did you intend to 'nest '\"'single quotes'\"' instead'?",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2026"
+          },
+          {
+            "const": "SC2028",
+            "description": "`echo` won't expand escape sequences. Consider `printf`.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2028"
+          },
+          {
+            "const": "SC2035",
+            "description": "Use `./*glob*` or `-- *glob*` so names with dashes won't become options.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2035"
+          },
+          {
+            "const": "SC2039",
+            "description": "In POSIX sh, something is undefined.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2039"
+          },
+          {
+            "const": "SC2046",
+            "description": "Quote this to prevent word splitting",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2046"
+          },
+          {
+            "const": "SC2086",
+            "description": "Double quote to prevent globbing and word splitting.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2086"
+          },
+          {
+            "const": "SC2140",
+            "description": "Word is in the form `\"A\"B\"C\"` (B indicated). Did you mean `\"ABC\"` or `\"A\\\"B\\\"C\"`?",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2140"
+          },
+          {
+            "const": "SC2154",
+            "description": "var is referenced but not assigned.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2154"
+          },
+          {
+            "const": "SC2155",
+            "description": "Declare and assign separately to avoid masking return values.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2155"
+          },
+          {
+            "const": "SC2164",
+            "description": "Use `cd ... || exit` in case `cd` fails.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2164"
+          }
+        ]
+      }
+    },
+    "trustedRegistries": {
+      "type": "array",
+      "description": "A list of trusted registries. Ex: docker.io",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
