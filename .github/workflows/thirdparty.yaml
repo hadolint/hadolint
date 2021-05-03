@@ -1,0 +1,25 @@
+name: Third Party Notices Update
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  third_party_notices_update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+      - name: Setup Haskell
+        id: setup-haskell-cabal
+        uses: haskell/actions/setup@v1
+        with:
+          ghc-version: "8.10"
+      - name: Update ThirdPartyNotices.txt
+        run: cabal update && cabal install licensor --constraint 'licensor >= 0.4 && <0.5' && /home/runner/.cabal/bin/licensor --silent > ThirdPartyNotices.txt
+      - name: Commit ThirdPartyNotices.txt
+        uses: EndBug/add-and-commit@v7
+        with:
+          add: "ThirdPartyNotices.txt"
+          message: "Update ThirdPartyNotices.txt"
