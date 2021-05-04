@@ -1,0 +1,19 @@
+Package: hadolint-2.3.0 (License: GPL-3.0-only)
+-----
+1 package licensed under BSD-2: text-1.2.4.1
+-----
+22 packages licensed under BSD-3: Cabal-3.2.1.0, array-0.5.4.0, base-4.14.1.0, binary-0.8.8.0, bytestring-0.10.12.0, containers-0.6.2.1, deepseq-1.4.4.0, directory-1.3.6.0, filepath-1.4.2.1, ghc-boot-th-8.10.4, ghc-prim-0.6.1, integer-gmp-1.0.3.0, mtl-2.2.2, parsec-3.1.14.0, pretty-1.1.3.6, process-1.6.9.0, rts-1.0, stm-2.5.0.0, template-haskell-2.16.0.0, time-1.9.3, transformers-0.5.6.2, unix-2.7.2.2
+-----
+4 packages licensed under BSD2: indexed-traversable-0.1.1, math-functions-0.3.4.1, megaparsec-9.0.0, prettyprinter-1.7.0
+-----
+51 packages licensed under BSD3: Diff-0.4.0, QuickCheck-2.14.2, StateVar-1.2.1, aeson-1.5.6.0, ansi-terminal-0.10.3, ansi-wl-pprint-0.6.9, assoc-1.0.2, attoparsec-0.13.2.5, basement-0.0.11, bifunctors-5.5.10, case-insensitive-1.2.1.0, comonad-5.0.8, contravariant-1.5.3, cryptonite-0.27, data-default-class-0.1.2.0, data-fix-0.3.1, distributive-0.6.2.1, dlist-0.8.0.8, email-validate-2.3.2.13, foldl-1.4.11, gitrev-1.3.1, hashable-1.3.0.0, memory-0.15.0, monoid-subclasses-1.0.1, mwc-random-0.14.0.0, network-uri-2.6.4.1, optparse-applicative-0.15.1.0, parallel-3.2.2.0, parser-combinators-1.2.1, primes-0.2.1.0, primitive-0.7.1.0, profunctors-5.5.2, random-1.1, regex-base-0.94.0.1, regex-tdfa-1.3.1.0, scientific-0.3.6.2, semigroupoids-5.3.5, spdx-1.0.0.2, split-0.2.3.4, splitmix-0.1.0.3, strict-0.4.0.1, tagged-0.8.6.1, th-compat-0.1.1, these-1.1.1.1, time-compat-1.9.5, timerep-2.0.1.0, transformers-compat-0.6.6, unordered-containers-0.2.13.0, uuid-types-1.0.4, vector-0.12.1.2, void-0.7.3
+-----
+1 package licensed under GPL-2: HsYAML-0.2.1.0
+-----
+2 packages licensed under GPL-3: ShellCheck-0.7.1, language-docker-9.3.0
+-----
+1 package licensed under ISC: th-abstraction-0.4.2.0
+-----
+5 packages licensed under MIT: base-compat-0.11.2, base-compat-batteries-0.11.2, base-orphans-0.8.4, colour-2.3.5, integer-logarithms-1.0.3.1
+-----
+3 packages licensed under MPL-2.0: colourista-0.1.0.0, ilist-0.4.0.1, semver-0.4.0.1
