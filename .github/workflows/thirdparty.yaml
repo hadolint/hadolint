@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches: [master]
+    paths:
+      - ".github/workflows/haskell.yml"
+      - "stack*.yaml"
+      - "hadolint.cabal"
+      - "app/**"
+      - "src/**"
+      - "test/**"
 
 jobs:
   third_party_notices_update:
