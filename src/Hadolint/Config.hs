@@ -54,12 +54,16 @@ data ConfigFile = ConfigFile
   deriving (Show, Eq, Generic)
 
 instance Yaml.FromYAML OverrideConfig where
-  parseYAML = Yaml.withMap "OverrideConfig" $ \m ->
-    OverrideConfig
-      <$> m .:? "error"
-      <*> m .:? "warning"
-      <*> m .:? "info"
-      <*> m .:? "style"
+  parseYAML = Yaml.withMap "OverrideConfig" $ \m -> do
+    err <- m .:? "error"
+    wrn <- m .:? "warning"
+    inf <- m .:? "info"
+    sty <- m .:? "style"
+    let overrideErrorRules = coerce (err :: Maybe [Text.Text])
+        overrideWarningRules = coerce (wrn :: Maybe [Text.Text])
+        overrideInfoRules = coerce (inf :: Maybe [Text.Text])
+        overrideStyleRules = coerce (sty:: Maybe [Text.Text])
+    return OverrideConfig {..}
 
 instance Yaml.FromYAML ConfigFile where
   parseYAML = Yaml.withMap "ConfigFile" $ \m -> do
@@ -69,19 +73,8 @@ instance Yaml.FromYAML ConfigFile where
     trustedRegistries <- m .:? "trustedRegistries"
     labelSchemaConfig <- m .:? "label-schema"
     strictLabelSchema <- m .:? "strict-labels"
-    threshold <- m .:? "failure-threshold"
-    let failureThreshold = toFailureThreshold threshold
+    failureThreshold <- m .:? "failure-threshold"
     return ConfigFile {..}
-
-toFailureThreshold :: Maybe Text.Text -> Maybe Rule.DLSeverity
-toFailureThreshold (Just "error") = Just Rule.DLErrorC
-toFailureThreshold (Just "warning") = Just Rule.DLWarningC
-toFailureThreshold (Just "info") = Just Rule.DLInfoC
-toFailureThreshold (Just "style") = Just Rule.DLStyleC
-toFailureThreshold (Just "ignore") = Just Rule.DLIgnoreC
-toFailureThreshold (Just "none") = Just Rule.DLIgnoreC
-toFailureThreshold (Just _) = Nothing
-toFailureThreshold Nothing = Nothing
 
 -- | If both the ignoreRules and rulesConfig properties of Lint options are empty
 -- then this function will fill them with the default found in the passed config
@@ -111,7 +104,7 @@ applyConfig maybeConfig o
         overrideInfo <- overrideInfoRules <|> Just mempty
         overrideStyle <- overrideStyleRules <|> Just mempty
         overrideIgnored <- ignoredRules <|> Just mempty
-        overrideThreshold <- min failureThreshold (Just Rule.DLIgnoreC)
+        overrideThreshold <- failureThreshold <|> Just mempty
 
         trusted <- Set.fromList . coerce <$> (trustedRegistries <|> Just mempty)
         schema <- labelSchemaConfig <|> Just mempty
@@ -132,7 +125,7 @@ applyConfig maybeConfig o
                     Process.labelSchema = Process.labelSchema rulesConfig `ifNull` schema,
                     Process.strictLabels = Process.strictLabels rulesConfig || strictLabels
                   },
-              Lint.failThreshold = min (Lint.failThreshold o) overrideThreshold
+            Lint.failThreshold = Lint.failThreshold o <> overrideThreshold
             }
 
     ifNull value override = if null value then override else value
