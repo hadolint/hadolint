@@ -64,6 +64,7 @@ data CommandOptions = CommandOptions
 
 toOutputFormat :: String -> Maybe Hadolint.OutputFormat
 toOutputFormat "json" = Just Hadolint.Json
+toOutputFormat "sonarqube" = Just Hadolint.SonarQube
 toOutputFormat "tty" = Just Hadolint.TTY
 toOutputFormat "codeclimate" = Just Hadolint.CodeclimateJson
 toOutputFormat "gitlab_codeclimate" = Just Hadolint.GitlabCodeclimateJson
@@ -73,6 +74,7 @@ toOutputFormat _ = Nothing
 
 showFormat :: Hadolint.OutputFormat -> String
 showFormat Hadolint.Json = "json"
+showFormat Hadolint.SonarQube = "sonarqube"
 showFormat Hadolint.TTY = "tty"
 showFormat Hadolint.CodeclimateJson = "codeclimate"
 showFormat Hadolint.GitlabCodeclimateJson = "gitlab_codeclimate"
