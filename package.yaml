@@ -26,7 +26,7 @@ ghc-options:
 dependencies:
   - base >=4.8 && <5
   - megaparsec >= 9.0.0
-  - language-docker >=9.3.0 && < 10
+  - language-docker >=10.0.0 && <11
 default-extensions:
   - OverloadedStrings
   - NamedFieldPuns

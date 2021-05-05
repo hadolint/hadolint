@@ -127,11 +127,12 @@ override:
 ```
 
 Configuration files can be used globally or per project. By default, `hadolint` will look for
-a configuration file in the current directory with the name `.hadolint.yaml`
+a configuration file in the current directory with the name `.hadolint.yaml` or
+`.hadolint.yml`
 
 The global configuration file should be placed in the folder specified by `XDG_CONFIG_HOME`,
-with the name `hadolint.yaml`. In summary, the following locations are valid for the configuration
-file, in order or preference:
+with the name `hadolint.yaml` or `hadolint.yml`. In summary, the following locations are valid
+for the configuration file, in order or preference:
 
 - `$PWD/.hadolint.yaml`
 - `$XDG_CONFIG_HOME/hadolint.yaml`

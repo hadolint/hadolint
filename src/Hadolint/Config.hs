@@ -161,8 +161,10 @@ getConfig maybeConfig =
   where
     findConfig :: IO (Maybe FilePath)
     findConfig = do
-      localConfigFiles <- traverse (\filePath -> (</> filePath) <$> getCurrentDirectory) acceptedConfigs
+      localConfigFiles <- traverse
+                            (\filePath -> (</> filePath) <$> getCurrentDirectory)
+                            (fmap ("."++) acceptedConfigs)
       configFiles <- traverse (getXdgDirectory XdgConfig) acceptedConfigs
       listToMaybe <$> filterM doesFileExist (localConfigFiles ++ configFiles)
       where
-        acceptedConfigs = [".hadolint.yaml", ".hadolint.yml"]
+        acceptedConfigs = ["hadolint.yaml", "hadolint.yml"]
