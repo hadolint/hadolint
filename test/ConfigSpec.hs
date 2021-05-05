@@ -93,11 +93,6 @@ tests =
           expected = ConfigFile Nothing Nothing Nothing Nothing Nothing (Just Rule.DLErrorC)
        in assertConfig expected (Bytes.unlines configFile)
 
-    it "Parses config with invalid failure-threshold" $
-      let configFile = [ "failure-threshold: foo" ]
-          expected = ConfigFile Nothing Nothing Nothing Nothing Nothing Nothing
-       in assertConfig expected (Bytes.unlines configFile)
-
     it "Parses full file" $
       let configFile =
             [ "override:",

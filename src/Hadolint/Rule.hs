@@ -21,7 +21,30 @@ data DLSeverity
   | DLInfoC
   | DLStyleC
   | DLIgnoreC
-  deriving (Show, Eq, Ord, Generic, NFData)
+  deriving (Show, Read, Eq, Ord, Generic, NFData)
+
+instance Yaml.FromYAML DLSeverity where
+  parseYAML = withSeverity pure
+
+withSeverity :: (DLSeverity -> Yaml.Parser a) -> Yaml.Node Yaml.Pos -> Yaml.Parser a
+withSeverity f v@(Yaml.Scalar _ (Yaml.SStr b)) =
+  case Hadolint.Rule.readSeverity b of
+    Right s -> f s
+    Left _ -> Yaml.typeMismatch "severity" v
+withSeverity _ v = Yaml.typeMismatch "severity" v
+
+readSeverity :: Text.Text -> Either Text.Text DLSeverity
+readSeverity "error" = Right DLErrorC
+readSeverity "warning" = Right DLWarningC
+readSeverity "info" = Right DLInfoC
+readSeverity "style" = Right DLStyleC
+readSeverity "ignore" = Right DLIgnoreC
+readSeverity "none" = Right DLIgnoreC
+readSeverity t = Left ("Invalid severity: " <> t)
+
+instance Semigroup DLSeverity where s1 <> s2 = min s1 s2
+
+instance Monoid DLSeverity where mempty = DLIgnoreC
 
 newtype RuleCode = RuleCode {unRuleCode :: Text.Text}
   deriving (Show, Eq, Ord)

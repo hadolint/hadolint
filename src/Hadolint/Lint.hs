@@ -24,13 +24,13 @@ import qualified Language.Docker as Docker
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 
-type ErrorRule = Text
+type ErrorRule = Hadolint.Rule.RuleCode
 
-type WarningRule = Text
+type WarningRule = Hadolint.Rule.RuleCode
 
-type InfoRule = Text
+type InfoRule = Hadolint.Rule.RuleCode
 
-type StyleRule = Text
+type StyleRule = Hadolint.Rule.RuleCode
 
 type IgnoreRule = Hadolint.Rule.RuleCode
 
@@ -56,10 +56,10 @@ instance Semigroup LintOptions where
       (a4 <> b4)
       (a5 <> b5)
       (a6 <> b6)
-      (min a7 b7)
+      (a7 <> b7)
 
 instance Monoid LintOptions where
-  mempty = LintOptions mempty mempty mempty mempty mempty mempty Hadolint.Rule.DLIgnoreC
+  mempty = LintOptions mempty mempty mempty mempty mempty mempty mempty
 
 -- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
 -- rules, depending on the list of ignored rules.
@@ -101,10 +101,10 @@ fixSeverity :: LintOptions -> Seq.Seq Hadolint.Rule.CheckFailure -> Seq.Seq Hado
 fixSeverity LintOptions {..} = Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
   where
     correctSeverity =
-      makeSeverity Hadolint.Rule.DLErrorC (fmap Hadolint.Rule.RuleCode errorRules)
-        . makeSeverity Hadolint.Rule.DLWarningC (fmap Hadolint.Rule.RuleCode warningRules)
-        . makeSeverity Hadolint.Rule.DLInfoC (fmap Hadolint.Rule.RuleCode infoRules)
-        . makeSeverity Hadolint.Rule.DLStyleC (fmap Hadolint.Rule.RuleCode styleRules)
+      makeSeverity Hadolint.Rule.DLErrorC errorRules
+        . makeSeverity Hadolint.Rule.DLWarningC warningRules
+        . makeSeverity Hadolint.Rule.DLInfoC infoRules
+        . makeSeverity Hadolint.Rule.DLStyleC styleRules
 
     ignoredRules = ignoreFilter ignoreRules
 
