@@ -10,7 +10,7 @@ Package: hadolint-2.3.0 (License: GPL-3.0-only)
 -----
 1 package licensed under GPL-2: HsYAML-0.2.1.0
 -----
-2 packages licensed under GPL-3: ShellCheck-0.7.1, language-docker-9.3.0
+2 packages licensed under GPL-3: ShellCheck-0.7.1, language-docker-10.0.0
 -----
 1 package licensed under ISC: th-abstraction-0.4.2.0
 -----
