@@ -151,9 +151,9 @@ To pass a custom configuration file (using relative or absolute path) to a conta
 use the following command:
 
 ```bash
-$ docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+$ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
 # or
-$ docker run --rm -i -v ./your/path/to/hadolint.yaml:/root/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+$ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 ## Inline ignores
