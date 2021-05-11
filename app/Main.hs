@@ -108,7 +108,7 @@ parseOptions =
       option
         (maybeReader toNofailSeverity)
         ( short 't'
-            <> long "failure-theshold"
+            <> long "failure-threshold"
             <> help
               "Exit with failure code only when rules with a severity \
               \above THRESHOLD are violated. Accepted values: \
