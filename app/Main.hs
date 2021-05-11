@@ -111,7 +111,7 @@ parseOptions =
             <> long "failure-threshold"
             <> help
               "Exit with failure code only when rules with a severity \
-              \above THRESHOLD are violated. Accepted values: \
+              \equal to or above THRESHOLD are violated. Accepted values: \
               \[error | warning | info | style | ignore | none]"
             <> value Rule.DLInfoC
             <> metavar "THRESHOLD"
