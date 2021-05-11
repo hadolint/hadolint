@@ -150,3 +150,7 @@ tests = do
        in do
             ruleCatchesNot "DL3045" dockerFile
             onBuildRuleCatchesNot "DL3045" dockerFile
+
+    it "regression: don't crash with single character paths" $ do
+      ruleCatches "DL3045" "COPY a b"
+      onBuildRuleCatches "DL3045" "COPY a b"
