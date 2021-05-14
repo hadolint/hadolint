@@ -1,4 +1,4 @@
-Package: hadolint-2.4.0 (License: GPL-3.0-only)
+Package: hadolint-2.4.1 (License: GPL-3.0-only)
 -----
 1 package licensed under BSD-2: text-1.2.4.1
 -----
