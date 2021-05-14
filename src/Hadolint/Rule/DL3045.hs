@@ -85,5 +85,7 @@ quotePredicate c
 
 isWindowsAbsolute :: Text.Text -> Bool
 isWindowsAbsolute path
-  | Char.isLetter (Text.index path 0) && (':' == Text.index path 1) = True
+  | Just (d, r1) <- Text.uncons path,
+    Just (c, _) <- Text.uncons r1,
+    Char.isLetter d && ':' == c = True
   | otherwise = False
