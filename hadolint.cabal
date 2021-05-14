@@ -1,13 +1,13 @@
 cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0122b347f3d7e60bbead61f38f32acd69b57e1794597b5243bb2b6cabf2a358f
+-- hash: 81ce3bbf6ac259bb1aeda5e670d68ec5cbcb3bf9d955d085de125eb4e39f3fc8
 
 name:           hadolint
-version:        2.4.0
+version:        2.4.1
 synopsis:       Dockerfile Linter JavaScript API
 description:    A smarter Dockerfile linter that helps you build best practice Docker images.
 category:       Development
@@ -119,7 +119,15 @@ library
       Paths_hadolint
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms
+  default-extensions:
+      OverloadedStrings
+      NamedFieldPuns
+      DeriveGeneric
+      DeriveAnyClass
+      RecordWildCards
+      StrictData
+      ScopedTypeVariables
+      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       Cabal
@@ -158,7 +166,16 @@ executable hadolint
       Paths_hadolint
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms TemplateHaskell
+  default-extensions:
+      OverloadedStrings
+      NamedFieldPuns
+      DeriveGeneric
+      DeriveAnyClass
+      RecordWildCards
+      StrictData
+      ScopedTypeVariables
+      PatternSynonyms
+      TemplateHaskell
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
@@ -251,7 +268,17 @@ test-suite hadolint-unit-tests
       Paths_hadolint
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings NamedFieldPuns DeriveGeneric DeriveAnyClass RecordWildCards StrictData ScopedTypeVariables PatternSynonyms ImplicitParams OverloadedLists
+  default-extensions:
+      OverloadedStrings
+      NamedFieldPuns
+      DeriveGeneric
+      DeriveAnyClass
+      RecordWildCards
+      StrictData
+      ScopedTypeVariables
+      PatternSynonyms
+      ImplicitParams
+      OverloadedLists
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       HUnit >=1.2
