@@ -39,6 +39,7 @@ library
       Hadolint.Formatter.Codeclimate
       Hadolint.Formatter.Format
       Hadolint.Formatter.Json
+      Hadolint.Formatter.SonarQube
       Hadolint.Formatter.TTY
       Hadolint.Ignore
       Hadolint.Lint

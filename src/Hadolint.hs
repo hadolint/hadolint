@@ -16,6 +16,7 @@ import qualified Hadolint.Formatter.Codacy
 import qualified Hadolint.Formatter.Codeclimate
 import Hadolint.Formatter.Format (Result (..))
 import qualified Hadolint.Formatter.Json
+import qualified Hadolint.Formatter.SonarQube
 import qualified Hadolint.Formatter.TTY
 import Hadolint.Lint
 import Hadolint.Process
@@ -23,6 +24,7 @@ import Language.Docker.Parser (DockerfileError)
 
 data OutputFormat
   = Json
+  | SonarQube
   | TTY
   | CodeclimateJson
   | GitlabCodeclimateJson
@@ -37,6 +39,7 @@ printResults :: Foldable f => OutputFormat -> Bool -> f (Result Text DockerfileE
 printResults format nocolor allResults =
   case format of
     TTY -> Hadolint.Formatter.TTY.printResults allResults nocolor
+    SonarQube -> Hadolint.Formatter.SonarQube.printResults allResults
     Json -> Hadolint.Formatter.Json.printResults allResults
     Checkstyle -> Hadolint.Formatter.Checkstyle.printResults allResults
     CodeclimateJson -> Hadolint.Formatter.Codeclimate.printResults allResults
