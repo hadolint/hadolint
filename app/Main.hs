@@ -59,7 +59,8 @@ data CommandOptions = CommandOptions
     isVerbose :: Bool,
     format :: Hadolint.OutputFormat,
     dockerfiles :: [String],
-    lintingOptions :: Hadolint.LintOptions
+    lintingOptions :: Hadolint.LintOptions,
+    filePathInReportOption :: Maybe FilePath
   }
 
 toOutputFormat :: String -> Maybe Hadolint.OutputFormat
@@ -99,6 +100,7 @@ parseOptions =
     <*> outputFormat
     <*> files
     <*> lintOptions
+    <*> filePathInReportOption
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
 
@@ -206,6 +208,14 @@ parseOptions =
         <*> parseRulesConfig
         <*> noFailCutoff
 
+    filePathInReportOption =
+      optional
+        ( strOption
+            ( long "file-path-in-report" <> metavar "FILEPATHINREPORT"
+                <> help "The file path referenced in the generated report. This only applies for the 'checkstyle' format and is useful when running Hadolint with Docker to set the correct file path."
+            )
+        )
+
     labels =
       Map.fromList
         <$> many
@@ -267,7 +277,8 @@ runLint cmd conf files = do
   res <- Hadolint.lintIO conf files
   noColorEnv <- lookupEnv "NO_COLOR"
   let noColor = nocolor cmd || isJust noColorEnv
-  Hadolint.printResults (format cmd) noColor res
+  let filePathInReport = filePathInReportOption cmd
+  Hadolint.printResults (format cmd) noColor filePathInReport res
   exitProgram cmd conf res
 
 main :: IO ()

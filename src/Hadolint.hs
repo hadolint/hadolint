@@ -33,12 +33,12 @@ data OutputFormat
 shallSkipErrorStatus :: OutputFormat -> Bool
 shallSkipErrorStatus format = format `elem` [CodeclimateJson, Codacy]
 
-printResults :: Foldable f => OutputFormat -> Bool -> f (Result Text DockerfileError) -> IO ()
-printResults format nocolor allResults =
+printResults :: Foldable f => OutputFormat -> Bool -> Maybe FilePath -> f (Result Text DockerfileError) -> IO ()
+printResults format nocolor filePathInReport allResults =
   case format of
     TTY -> Hadolint.Formatter.TTY.printResults allResults nocolor
     Json -> Hadolint.Formatter.Json.printResults allResults
-    Checkstyle -> Hadolint.Formatter.Checkstyle.printResults allResults
+    Checkstyle -> Hadolint.Formatter.Checkstyle.printResults allResults filePathInReport
     CodeclimateJson -> Hadolint.Formatter.Codeclimate.printResults allResults
     GitlabCodeclimateJson -> Hadolint.Formatter.Codeclimate.printGitlabResults allResults
     Codacy -> Hadolint.Formatter.Codacy.printResults allResults

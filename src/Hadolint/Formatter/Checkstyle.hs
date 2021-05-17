@@ -81,8 +81,8 @@ escape = Text.concatMap doEscape
         else "&#" <> Text.pack (show (ord c)) <> ";"
     isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
 
-formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Builder.Builder
-formatResult (Result filename errors checks) = header <> xmlBody <> footer
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Builder.Builder
+formatResult (Result filename errors checks) filePathInReport = header <> xmlBody <> footer
   where
     xmlBody = Foldl.fold (Foldl.premap toXml Foldl.mconcat) issues
 
@@ -91,21 +91,29 @@ formatResult (Result filename errors checks) = header <> xmlBody <> footer
     checkstyleChecks = fmap ruleToCheckStyle checks
 
     isEmpty = null checks && null errors
+    name = if null filePathInReport then filename else getFilePath filePathInReport
     header =
       if isEmpty
         then ""
-        else "<file " <> attr "name" (encode filename) <> ">"
+        else "<file " <> attr "name" (encode name) <> ">"
     footer = if isEmpty then "" else "</file>"
 
 printResults ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  f (Result s e) ->
+  f (Result s e) -> Maybe FilePath ->
   IO ()
-printResults results = do
+printResults results filePathInReport = do
   B.putStr header
   mapM_ put results
   B.putStr footer
   where
     header = "<?xml version='1.0' encoding='UTF-8'?><checkstyle version='4.3'>"
     footer = "</checkstyle>"
-    put result = Builder.hPutBuilder stdout (formatResult result)
+    put result = Builder.hPutBuilder stdout (formatResult result filePathInReport)
+
+getFilePath :: Maybe FilePath -> Text.Text 
+getFilePath Nothing = ""
+getFilePath (Just filePath) = toText [filePath]
+
+toText :: [FilePath] -> Text.Text 
+toText = foldMap Text.pack
