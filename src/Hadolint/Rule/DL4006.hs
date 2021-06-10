@@ -18,14 +18,15 @@ rule = customRule check (emptyState False)
 
     check _ st From {} = st |> replaceWith False -- Reset the state each time we find a new FROM
     check _ st (Shell args)
-      | foldArguments isPowerShell args = st |> replaceWith True
+      | foldArguments isNonPosixShell args = st |> replaceWith True
       | otherwise = st |> replaceWith (foldArguments hasPipefailOption args)
     check line st@(State _ False) (Run (RunArgs args _))
       | foldArguments hasPipes args = st |> addFail CheckFailure {..}
       | otherwise = st
     check _ st _ = st
 
-    isPowerShell (Shell.ParsedShell orig _ _) = "pwsh" `Text.isPrefixOf` orig
+    isNonPosixShell (Shell.ParsedShell orig _ _) =
+      any (`Text.isPrefixOf` orig) Shell.nonPosixShells
     hasPipes script = Shell.hasPipes script
     hasPipefailOption script =
       not $

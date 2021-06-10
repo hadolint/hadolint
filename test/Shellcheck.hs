@@ -110,10 +110,19 @@ tests = do
             assertChecks dockerFile passesShellcheck
             assertOnBuildChecks dockerFile passesShellcheck
 
-    it "Does not complain on powershell" $
+    it "Does not complain on non-posix shells: pwsh" $
       let dockerFile =
             Text.unlines
               [ "SHELL [\"pwsh\", \"-c\"]",
+                "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
+              ]
+       in do
+            assertChecks dockerFile passesShellcheck
+            assertOnBuildChecks dockerFile passesShellcheck
+    it "Does not complain on non-posix shells: cmd.exe" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"cmd.exe\", \"/c\"]",
                 "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
               ]
        in do

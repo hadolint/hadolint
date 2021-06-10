@@ -81,3 +81,24 @@ tests = do
               "RUN wget -O - https://some.site | wc -l file > /number"
             ]
        in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "ignore non posix shells: pwsh" $
+      let dockerFile =
+            [ "FROM mcr.microsoft.com/powershell:ubuntu-16.04",
+              "SHELL [ \"pwsh\", \"-c\" ]",
+              "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "ignore non posix shells: powershell" $
+      let dockerFile =
+            [ "FROM mcr.microsoft.com/powershell:ubuntu-16.04",
+              "SHELL [ \"powershell.exe\" ]",
+              "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "ignore non posix shells: cmd.exe" $
+      let dockerFile =
+            [ "FROM mcr.microsoft.com/powershell:ubuntu-16.04",
+              "SHELL [ \"cmd.exe\", \"/c\" ]",
+              "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
