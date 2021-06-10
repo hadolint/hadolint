@@ -61,8 +61,8 @@ setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
-  if "pwsh" `Text.isPrefixOf` sh
-    then [] -- Do no run for powershell
+  if any (`Text.isPrefixOf` sh) nonPosixShells
+    then [] -- Do no run for non-posix shells i.e. powershell, cmd.exe
     else runShellCheck
   where
     runShellCheck = crComments $ runIdentity $ checkScript si spec
@@ -84,6 +84,9 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
 
     extractShell s = fromMaybe "" (listToMaybe . Text.words $ s)
     printVars = Text.unlines . Set.toList $ Set.map (\v -> "export " <> v <> "=1") env
+
+nonPosixShells :: [Text.Text]
+nonPosixShells = ["pwsh", "powershell", "cmd"]
 
 parseShell :: Text.Text -> ParsedShell
 parseShell txt = ParsedShell {original = txt, parsed = parsedResult, presentCommands = commands}
