@@ -249,7 +249,7 @@ labelParser l =
 noFailure :: Hadolint.Result s e -> Rule.DLSeverity -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) _ = True
 noFailure (Hadolint.Result _ Seq.Empty fails) cutoff =
-  Seq.null (Seq.filter (\f -> Rule.severity f < cutoff) fails)
+  Seq.null (Seq.filter (\f -> Rule.severity f <= cutoff) fails)
 noFailure _ _ = False
 
 exitProgram ::
