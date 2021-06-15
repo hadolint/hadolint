@@ -147,10 +147,10 @@ parseOptions =
         ( long "format"
             <> short 'f' -- options for the output format
             <> help
-              "The output format for the results [tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy]"
+              "The output format for the results [tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy | sonarqube]"
             <> value Hadolint.TTY
             <> showDefaultWith showFormat -- The default value
-            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "codacy"]
+            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "codacy", "sonarqube"]
         )
 
     errorList =
