@@ -9,7 +9,7 @@ rule :: Rule ParsedShell
 rule = simpleRule code severity message check
   where
     code = "DL3047"
-    severity = DLWarningC
+    severity = DLInfoC
     message =
       "Avoid use of wget without progress bar. Use `wget --progress=dot:giga <url>`.\
       \Or consider using `-q` or `-nv` (shorthands for `--quiet` or `--no-verbose`)."
