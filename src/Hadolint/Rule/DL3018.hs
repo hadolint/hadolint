@@ -12,10 +12,20 @@ rule = simpleRule code severity message check
     code = "DL3018"
     severity = DLWarningC
     message =
-      "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`"
-    check (Run (RunArgs args _)) = foldArguments (\as -> and [versionFixed p | p <- apkAddPackages as]) args
+      "Pin versions in apk add. Instead of `apk add <package>` \
+      \use `apk add <package>=<version>`"
+    check (Run (RunArgs args _)) =
+      foldArguments
+        ( \as ->
+            and
+              [ versionFixed p || packageFile p
+                | p <- apkAddPackages as
+              ]
+        )
+        args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package
+    packageFile package = ".apk" `Text.isSuffixOf` package
 {-# INLINEABLE rule #-}
 
 apkAddPackages :: ParsedShell -> [Text.Text]
