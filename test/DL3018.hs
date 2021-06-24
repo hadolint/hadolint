@@ -84,3 +84,7 @@ tests = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
+    it "don't trigger when installing from .apk file" $ do
+      ruleCatchesNot "DL3018" "RUN apk add mypackage-1.1.1.apk"
+      onBuildRuleCatchesNot "DL3018" "RUN apk add mypackage-1.1.1.apk"
