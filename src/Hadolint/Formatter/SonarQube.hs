@@ -49,7 +49,7 @@ instance (VisualStream s,
             "textRange" .= object
               [ "startLine" .= line,
                 "endLine" .= line,
-                "startColumn" .= (1 :: Int),
+                "startColumn" .= (0 :: Int),
                 "endColumn" .= (1 :: Int)
               ]
           ]
