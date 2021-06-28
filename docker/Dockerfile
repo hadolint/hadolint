@@ -1,4 +1,4 @@
-FROM debian:stretch-slim AS builder
+FROM debian:stretch-slim AS stack-build-env-amd64
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -15,6 +15,33 @@ RUN apt-get update \
  && curl -sSL https://get.haskellstack.org/ | sh \
  && rm -rf /var/lib/apt/lists/*
 
+# COPY from https://github.com/commercialhaskell/stack/blob/master/etc/dockerfiles/arm64.Dockerfile#L3-L5
+FROM ubuntu:20.04 AS stack-build-env-arm64
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+
+RUN apt-get update && apt-get install -y \
+        curl build-essential curl libffi-dev libffi7 libgmp-dev libgmp10 libncurses-dev libncurses5 libtinfo5 libnuma-dev xz-utils \
+        g++ gcc libc6-dev libgmp-dev make zlib1g-dev git gnupg netbase
+
+
+WORKDIR /tmp
+
+ENV LLVM_VERSION=9.0.1
+
+RUN curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu.tar.xz --output /tmp/llvm.tar.xz && \
+    unxz /tmp/llvm.tar.xz && \
+    tar xfv /tmp/llvm.tar --strip-components 1 -C /usr && \
+    rm /tmp/llvm.tar
+
+RUN curl -sSL https://github.com/commercialhaskell/stack/releases/download/v2.7.1/stack-2.7.1-linux-$(uname -m).bin > /usr/local/bin/stack && \
+    chmod +x /usr/local/bin/stack
+
+FROM stack-build-env-${TARGETARCH} AS builder
+
 WORKDIR /opt/hadolint/
 COPY stack.yaml package.yaml /opt/hadolint/
 RUN stack --no-terminal --install-ghc test --only-dependencies
@@ -22,11 +49,6 @@ RUN stack --no-terminal --install-ghc test --only-dependencies
 COPY . /opt/hadolint
 RUN scripts/fetch_version.sh \
   && stack install --ghc-options="-fPIC" --flag hadolint:static
-
-# COMPRESS WITH UPX
-RUN curl -sSL https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz \
-  | tar -x --xz --strip-components 1 upx-3.96-amd64_linux/upx \
-  && ./upx --best --ultra-brute /root/.local/bin/hadolint
 
 FROM debian:stretch-slim AS debian-distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
