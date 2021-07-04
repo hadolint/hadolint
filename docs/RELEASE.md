@@ -7,7 +7,6 @@ Only `master` branch is used for releases.
     Use the new version you're going to release.
     And push to master.
 
-
 1.  Create branch to update release number in `package.yaml` and
     [integration](INTEGRATION.md) guide and merge it when it pass CI.
 
