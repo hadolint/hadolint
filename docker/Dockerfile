@@ -23,23 +23,42 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 
-RUN apt-get update && apt-get install -y \
-        curl build-essential curl libffi-dev libffi7 libgmp-dev libgmp10 libncurses-dev libncurses5 libtinfo5 libnuma-dev xz-utils \
-        g++ gcc libc6-dev libgmp-dev make zlib1g-dev git gnupg netbase
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl=7.* \
+    ca-certificates=* \
+    build-essential=* \
+    libffi-dev=* \
+    git=1:2.* \
+    netbase=* \
+    libffi7=* \
+    libgmp-dev=* \
+    libgmp10=* \
+    libncurses-dev=* \
+    libncurses5=* \
+    libtinfo5=* \
+    libnuma-dev=* \
+    xz-utils=* \
+    g++=* \
+    gcc=* \
+    libc6-dev=* \
+    libgmp-dev=* \
+    make=* \
+    zlib1g-dev=* \
+    gnupg=*
 
 
 WORKDIR /tmp
 
 ENV LLVM_VERSION=9.0.1
 
-RUN curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu.tar.xz --output /tmp/llvm.tar.xz && \
-    unxz /tmp/llvm.tar.xz && \
-    tar xfv /tmp/llvm.tar --strip-components 1 -C /usr && \
-    rm /tmp/llvm.tar
+RUN curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu.tar.xz --output /tmp/llvm.tar.xz \
+ && unxz /tmp/llvm.tar.xz \
+ && tar xfv /tmp/llvm.tar --strip-components 1 -C /usr \
+ && rm /tmp/llvm.tar \
+ && curl -sSL https://github.com/commercialhaskell/stack/releases/download/v2.7.1/stack-2.7.1-linux-"$(uname -m)".bin > /usr/local/bin/stack \
+ && chmod +x /usr/local/bin/stack
 
-RUN curl -sSL https://github.com/commercialhaskell/stack/releases/download/v2.7.1/stack-2.7.1-linux-$(uname -m).bin > /usr/local/bin/stack && \
-    chmod +x /usr/local/bin/stack
-
+# hadolint ignore=DL3006
 FROM stack-build-env-${TARGETARCH} AS builder
 
 WORKDIR /opt/hadolint/
