@@ -162,7 +162,7 @@ workflows:
   lint:
     jobs:
       - docker/hadolint:
-          dockerfiles: 'path/to/Dockerfile,path/to/another/Dockerfile'
+          dockerfiles: 'path/to/Dockerfile:path/to/another/Dockerfile'
           ignore-rules: 'DL4005,DL3008'
           trusted-registries: 'docker.io,my-company.com:5000'
 ```
