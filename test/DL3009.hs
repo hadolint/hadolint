@@ -75,3 +75,7 @@ tests = do
        in do
             ruleCatchesNot "DL3009" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: BuildKit cache mount to apt lists directory" $ do
+      ruleCatchesNot "DL3009" "RUN --mount=type=cache,target=/var/lib/apt/lists apt-get update && apt-get install python"
+      onBuildRuleCatchesNot "DL3009" "RUN --mount=type=cache,target=/var/lib/apt/lists apt-get update && apt-get install python"
