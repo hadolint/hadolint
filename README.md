@@ -1,5 +1,3 @@
-# Haskell Dockerfile Linter
-
 [![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
