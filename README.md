@@ -153,12 +153,12 @@ a configuration file in the current directory with the name `.hadolint.yaml` or
 
 ```yaml
 failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)                
-format: string                          # (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
-ignored: string | [string]              # rule or list of rules
-label-schema:                           # See below for specific label-schema details
+format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
+ignored: [string]                       # list of rules
+label-schema:                           # See Linting Labels below for specific label-schema details
   author: string                        # Your name
   contact: string                       # email address
-  created: timestamp                    # rfc3339
+  created: timestamp                    # rfc3339 datetime
   version: string                       # semver
   documentation: string                 # url
   git-revision: string                  # hash
@@ -166,10 +166,10 @@ label-schema:                           # See below for specific label-schema de
 no-color: boolean                       # true | false
 no-fail: boolean                        # true | false
 override:
-  error: string | [string]              # rule or list of rules
-  warning: string | [string]            # rule or list of rules
-  info: string | [string]               # rule or list of rules
-  style: string | [string]              # rule or list of rules
+  error: [string]                       # list of rules
+  warning: [string]                     # list of rules
+  info: [string]                        # list of rules
+  style: [string]                       # list of rules
 strict-labels: boolean                  # true | false
 trustedRegistries: string | [string]    # registry or list of registries
 ```
@@ -246,7 +246,7 @@ use the following command:
 
 ```bash
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
-# or
+# OR
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
