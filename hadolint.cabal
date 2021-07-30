@@ -60,7 +60,6 @@ library
       Hadolint.Rule.DL3014
       Hadolint.Rule.DL3015
       Hadolint.Rule.DL3016
-      Hadolint.Rule.DL3017
       Hadolint.Rule.DL3018
       Hadolint.Rule.DL3019
       Hadolint.Rule.DL3020
@@ -74,7 +73,6 @@ library
       Hadolint.Rule.DL3028
       Hadolint.Rule.DL3029
       Hadolint.Rule.DL3030
-      Hadolint.Rule.DL3031
       Hadolint.Rule.DL3032
       Hadolint.Rule.DL3033
       Hadolint.Rule.DL3034
@@ -82,7 +80,6 @@ library
       Hadolint.Rule.DL3036
       Hadolint.Rule.DL3037
       Hadolint.Rule.DL3038
-      Hadolint.Rule.DL3039
       Hadolint.Rule.DL3040
       Hadolint.Rule.DL3041
       Hadolint.Rule.DL3042
@@ -211,7 +208,6 @@ test-suite hadolint-unit-tests
       DL3014
       DL3015
       DL3016
-      DL3017
       DL3018
       DL3019
       DL3020
@@ -225,7 +221,6 @@ test-suite hadolint-unit-tests
       DL3028
       DL3029
       DL3030
-      DL3031
       DL3032
       DL3033
       DL3034
@@ -233,7 +228,6 @@ test-suite hadolint-unit-tests
       DL3036
       DL3037
       DL3038
-      DL3039
       DL3040
       DL3041
       DL3042

@@ -273,7 +273,6 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3014](https://github.com/hadolint/hadolint/wiki/DL3014)   | Use the `-y` switch.                                                                                                                                |
 | [DL3015](https://github.com/hadolint/hadolint/wiki/DL3015)   | Avoid additional packages by specifying --no-install-recommends.                                                                                    |
 | [DL3016](https://github.com/hadolint/hadolint/wiki/DL3016)   | Pin versions in `npm`.                                                                                                                              |
-| [DL3017](https://github.com/hadolint/hadolint/wiki/DL3017)   | Do not use `apk upgrade`.                                                                                                                           |
 | [DL3018](https://github.com/hadolint/hadolint/wiki/DL3018)   | Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`.                                                          |
 | [DL3019](https://github.com/hadolint/hadolint/wiki/DL3019)   | Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages.                        |
 | [DL3020](https://github.com/hadolint/hadolint/wiki/DL3020)   | Use `COPY` instead of `ADD` for files and folders.                                                                                                  |
@@ -287,7 +286,6 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3028](https://github.com/hadolint/hadolint/wiki/DL3028)   | Pin versions in gem install. Instead of `gem install <gem>` use `gem install <gem>:<version>`                                                       |
 | [DL3029](https://github.com/hadolint/hadolint/wiki/DL3029)   | Do not use --platform flag with FROM.                                                                                                               |
 | [DL3030](https://github.com/hadolint/hadolint/wiki/DL3030)   | Use the `-y` switch to avoid manual input `yum install -y <package>`                                                                                |
-| [DL3031](https://github.com/hadolint/hadolint/wiki/DL3031)   | Do not use `yum update`                                                                                                                             |
 | [DL3032](https://github.com/hadolint/hadolint/wiki/DL3032)   | `yum clean all` missing after yum command.                                                                                                          |
 | [DL3033](https://github.com/hadolint/hadolint/wiki/DL3033)   | Specify version with `yum install -y <package>-<version>`                                                                                           |
 | [DL3034](https://github.com/hadolint/hadolint/wiki/DL3034)   | Non-interactive switch missing from `zypper` command: `zypper install -y`                                                                           |
@@ -295,7 +293,6 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3036](https://github.com/hadolint/hadolint/wiki/DL3036)   | `zypper clean` missing after zypper use.                                                                                                            |
 | [DL3037](https://github.com/hadolint/hadolint/wiki/DL3037)   | Specify version with `zypper install -y <package>[=]<version>`.                                                                                     |
 | [DL3038](https://github.com/hadolint/hadolint/wiki/DL3038)   | Use the `-y` switch to avoid manual input `dnf install -y <package>`                                                                                |
-| [DL3039](https://github.com/hadolint/hadolint/wiki/DL3039)   | Do not use `dnf update`                                                                                                                             |
 | [DL3040](https://github.com/hadolint/hadolint/wiki/DL3040)   | `dnf clean all` missing after dnf command.                                                                                                          |
 | [DL3041](https://github.com/hadolint/hadolint/wiki/DL3041)   | Specify version with `dnf install -y <package>-<version>`                                                                                           |
 | [DL3042](https://github.com/hadolint/hadolint/wiki/DL3042)   | Avoid cache directory with `pip install --no-cache-dir <package>`.                                                                                  |
