@@ -11,28 +11,11 @@ rule = simpleRule code severity message check
     code = "DL3010"
     severity = DLInfoC
     message = "Use ADD for extracting archives into an image"
-    check (Copy (CopyArgs srcs _ _ _ _)) =
+    check (Copy (CopyArgs srcs _ _ _ NoSource)) =
       and
         [ not (format `Text.isSuffixOf` src)
           | SourcePath src <- toList srcs,
-            format <- archiveFormats
+            format <- archiveFileFormatExtensions
         ]
     check _ = True
-    archiveFormats =
-      [ ".tar",
-        ".tar.bz2",
-        ".tb2",
-        ".tbz",
-        ".tbz2",
-        ".tar.gz",
-        ".tgz",
-        ".tpz",
-        ".tar.lz",
-        ".tar.lzma",
-        ".tlz",
-        ".tar.xz",
-        ".txz",
-        ".tar.Z",
-        ".tZ"
-      ]
 {-# INLINEABLE rule #-}
