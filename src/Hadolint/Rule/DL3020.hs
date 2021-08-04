@@ -21,23 +21,7 @@ isArchive :: Text.Text -> Bool
 isArchive path =
   or
     ( [ ftype `Text.isSuffixOf` path
-        | ftype <-
-            [ ".tar",
-              ".gz",
-              ".bz2",
-              ".xz",
-              ".zip",
-              ".tgz",
-              ".tb2",
-              ".tbz",
-              ".tbz2",
-              ".lz",
-              ".lzma",
-              ".tlz",
-              ".txz",
-              ".Z",
-              ".tZ"
-            ]
+        | ftype <- archiveFileFormatExtensions
       ]
     )
 
