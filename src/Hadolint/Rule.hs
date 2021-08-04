@@ -195,3 +195,22 @@ aliasMustBe predicate fromInstr =
   case fromInstr of
     From BaseImage {alias = Just (ImageAlias as)} -> predicate as
     _ -> True
+
+archiveFileFormatExtensions :: [Text.Text]
+archiveFileFormatExtensions =
+  [ ".tar",
+    ".Z",
+    ".bz2",
+    ".gz",
+    ".lz",
+    ".lzma",
+    ".tZ",
+    ".tb2",
+    ".tbz",
+    ".tbz2",
+    ".tgz",
+    ".tlz",
+    ".tpz",
+    ".txz",
+    ".xz"
+  ]

@@ -23,8 +23,9 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     message = "Delete the apt-get lists after installing something"
 
     check line st (From from) = st |> modify (rememberStage line from)
-    check line st (Run (RunArgs args _))
-      | foldArguments forgotToCleanup args = st |> modify (rememberLine line)
+    check line st (Run (RunArgs args flags))
+      | hasNoCacheMount flags && foldArguments forgotToCleanup args =
+          st |> modify (rememberLine line)
       | otherwise = st
     check _ st _ = st
 
@@ -58,6 +59,13 @@ forgotToCleanup args
       any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
 
     hasUpdate = any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.presentCommands args)
+
+hasNoCacheMount :: RunFlags -> Bool
+hasNoCacheMount RunFlags
+  { mount =
+      Just (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = p}})
+  } = Text.dropWhileEnd (=='/') p /= "/var/lib/apt/lists"
+hasNoCacheMount RunFlags {} = True
 
 -- | Even though dockerfiles without a FROM are not valid, we still want to provide some feedback for this rule
 -- so we pretend there is a base image at the start of the file if there is none
