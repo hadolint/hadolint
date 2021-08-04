@@ -17,7 +17,6 @@ import qualified DL3013
 import qualified DL3014
 import qualified DL3015
 import qualified DL3016
-import qualified DL3017
 import qualified DL3018
 import qualified DL3019
 import qualified DL3020
@@ -31,7 +30,6 @@ import qualified DL3027
 import qualified DL3028
 import qualified DL3029
 import qualified DL3030
-import qualified DL3031
 import qualified DL3032
 import qualified DL3033
 import qualified DL3034
@@ -39,7 +37,6 @@ import qualified DL3035
 import qualified DL3036
 import qualified DL3037
 import qualified DL3038
-import qualified DL3039
 import qualified DL3040
 import qualified DL3041
 import qualified DL3042
@@ -188,7 +185,6 @@ main =
     DL3014.tests
     DL3015.tests
     DL3016.tests
-    DL3017.tests
     DL3018.tests
     DL3019.tests
     DL3020.tests
@@ -202,7 +198,6 @@ main =
     DL3028.tests
     DL3029.tests
     DL3030.tests
-    DL3031.tests
     DL3032.tests
     DL3033.tests
     DL3034.tests
@@ -210,7 +205,6 @@ main =
     DL3036.tests
     DL3037.tests
     DL3038.tests
-    DL3039.tests
     DL3040.tests
     DL3041.tests
     DL3042.tests

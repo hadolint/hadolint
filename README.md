@@ -273,7 +273,6 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3014](https://github.com/hadolint/hadolint/wiki/DL3014)   | Warning          | Use the `-y` switch.                                                                                                                                |
 | [DL3015](https://github.com/hadolint/hadolint/wiki/DL3015)   | Info             | Avoid additional packages by specifying --no-install-recommends.                                                                                    |
 | [DL3016](https://github.com/hadolint/hadolint/wiki/DL3016)   | Warning          | Pin versions in `npm`.                                                                                                                              |
-| [DL3017](https://github.com/hadolint/hadolint/wiki/DL3017)   | Error            | Do not use `apk upgrade`.                                                                                                                           |
 | [DL3018](https://github.com/hadolint/hadolint/wiki/DL3018)   | Warning          | Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`.                                                          |
 | [DL3019](https://github.com/hadolint/hadolint/wiki/DL3019)   | Info             | Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages.                        |
 | [DL3020](https://github.com/hadolint/hadolint/wiki/DL3020)   | Error            | Use `COPY` instead of `ADD` for files and folders.                                                                                                  |
@@ -287,15 +286,13 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3028](https://github.com/hadolint/hadolint/wiki/DL3028)   | Warning          | Pin versions in gem install. Instead of `gem install <gem>` use `gem install <gem>:<version>`                                                       |
 | [DL3029](https://github.com/hadolint/hadolint/wiki/DL3029)   | Warning          | Do not use --platform flag with FROM.                                                                                                               |
 | [DL3030](https://github.com/hadolint/hadolint/wiki/DL3030)   | Warning          | Use the `-y` switch to avoid manual input `yum install -y <package>`                                                                                |
-| [DL3031](https://github.com/hadolint/hadolint/wiki/DL3031)   | Error            | Do not use `yum update`                                                                                                                             |
 | [DL3032](https://github.com/hadolint/hadolint/wiki/DL3032)   | Warning          | `yum clean all` missing after yum command.                                                                                                          |
 | [DL3033](https://github.com/hadolint/hadolint/wiki/DL3033)   | Warning          | Specify version with `yum install -y <package>-<version>`                                                                                           |
 | [DL3034](https://github.com/hadolint/hadolint/wiki/DL3034)   | Warning          | Non-interactive switch missing from `zypper` command: `zypper install -y`                                                                           |
-| [DL3035](https://github.com/hadolint/hadolint/wiki/DL3035)   | Warning          | Do not use `zypper update`.                                                                                                                         |
+| [DL3035](https://github.com/hadolint/hadolint/wiki/DL3035)   | Warning          | Do not use `zypper dist-upgrade`.                                                                                                                  	|
 | [DL3036](https://github.com/hadolint/hadolint/wiki/DL3036)   | Warning          | `zypper clean` missing after zypper use.                                                                                                            |
 | [DL3037](https://github.com/hadolint/hadolint/wiki/DL3037)   | Warning          | Specify version with `zypper install -y <package>[=]<version>`.                                                                                     |
 | [DL3038](https://github.com/hadolint/hadolint/wiki/DL3038)   | Warning          | Use the `-y` switch to avoid manual input `dnf install -y <package>`                                                                                |
-| [DL3039](https://github.com/hadolint/hadolint/wiki/DL3039)   | Error            | Do not use `dnf update`                                                                                                                             |
 | [DL3040](https://github.com/hadolint/hadolint/wiki/DL3040)   | Warning          | `dnf clean all` missing after dnf command.                                                                                                          |
 | [DL3041](https://github.com/hadolint/hadolint/wiki/DL3041)   | Warning          | Specify version with `dnf install -y <package>-<version>`                                                                                           |
 | [DL3042](https://github.com/hadolint/hadolint/wiki/DL3042)   | Warning          | Avoid cache directory with `pip install --no-cache-dir <package>`.                                                                                  |
@@ -357,6 +354,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC2155](https://github.com/koalaman/shellcheck/wiki/SC2155) |                  | Declare and assign separately to avoid masking return values.                                                                                       |
 | [SC2164](https://github.com/koalaman/shellcheck/wiki/SC2164) |                  | Use <code>cd ... &#124;&#124; exit</code> in case `cd` fails.                                                                                       |
 <!--lint enable maximum-line-length-->
+
 ## Develop
 
 If you are an experienced Haskeller we would be really thankful if you would

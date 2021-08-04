@@ -9,16 +9,14 @@ rule = simpleRule code severity message check
   where
     code = "DL3035"
     severity = DLWarningC
-    message = "Do not use `zypper update`."
+    message = "Do not use `zypper dist-upgrade`."
 
     check (Run (RunArgs args _)) =
       foldArguments
         ( Shell.noCommands
             ( Shell.cmdHasArgs
                 "zypper"
-                [ "update",
-                  "up",
-                  "dist-upgrade",
+                [ "dist-upgrade",
                   "dup"
                 ]
             )

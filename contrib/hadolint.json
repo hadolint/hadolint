@@ -170,11 +170,6 @@
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3016"
           },
           {
-            "const": "DL3017",
-            "description": "Do not use `apk upgrade`.",
-            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3017"
-          },
-          {
             "const": "DL3018",
             "description": "Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3018"
@@ -240,11 +235,6 @@
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3030"
           },
           {
-            "const": "DL3031",
-            "description": "Do not use `yum update`",
-            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3031"
-          },
-          {
             "const": "DL3032",
             "description": "`yum clean all` missing after yum command.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3032"
@@ -261,7 +251,7 @@
           },
           {
             "const": "DL3035",
-            "description": "Do not use `zypper update`.",
+            "description": "Do not use `zypper dist-upgrade`.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3035"
           },
           {
@@ -278,11 +268,6 @@
             "const": "DL3038",
             "description": "Use the `-y` switch to avoid manual input `dnf install -y <package>`",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3038"
-          },
-          {
-            "const": "DL3039",
-            "description": "Do not use `dnf update`",
-            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3039"
           },
           {
             "const": "DL3040",

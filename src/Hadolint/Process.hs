@@ -25,7 +25,6 @@ import qualified Hadolint.Rule.DL3013
 import qualified Hadolint.Rule.DL3014
 import qualified Hadolint.Rule.DL3015
 import qualified Hadolint.Rule.DL3016
-import qualified Hadolint.Rule.DL3017
 import qualified Hadolint.Rule.DL3018
 import qualified Hadolint.Rule.DL3019
 import qualified Hadolint.Rule.DL3020
@@ -39,7 +38,6 @@ import qualified Hadolint.Rule.DL3027
 import qualified Hadolint.Rule.DL3028
 import qualified Hadolint.Rule.DL3029
 import qualified Hadolint.Rule.DL3030
-import qualified Hadolint.Rule.DL3031
 import qualified Hadolint.Rule.DL3032
 import qualified Hadolint.Rule.DL3033
 import qualified Hadolint.Rule.DL3034
@@ -47,7 +45,6 @@ import qualified Hadolint.Rule.DL3035
 import qualified Hadolint.Rule.DL3036
 import qualified Hadolint.Rule.DL3037
 import qualified Hadolint.Rule.DL3038
-import qualified Hadolint.Rule.DL3039
 import qualified Hadolint.Rule.DL3040
 import qualified Hadolint.Rule.DL3041
 import qualified Hadolint.Rule.DL3042
@@ -156,7 +153,6 @@ failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3014.rule
     <> Hadolint.Rule.DL3015.rule
     <> Hadolint.Rule.DL3016.rule
-    <> Hadolint.Rule.DL3017.rule
     <> Hadolint.Rule.DL3018.rule
     <> Hadolint.Rule.DL3019.rule
     <> Hadolint.Rule.DL3020.rule
@@ -170,7 +166,6 @@ failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3028.rule
     <> Hadolint.Rule.DL3029.rule
     <> Hadolint.Rule.DL3030.rule
-    <> Hadolint.Rule.DL3031.rule
     <> Hadolint.Rule.DL3032.rule
     <> Hadolint.Rule.DL3033.rule
     <> Hadolint.Rule.DL3034.rule
@@ -178,7 +173,6 @@ failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3036.rule
     <> Hadolint.Rule.DL3037.rule
     <> Hadolint.Rule.DL3038.rule
-    <> Hadolint.Rule.DL3039.rule
     <> Hadolint.Rule.DL3040.rule
     <> Hadolint.Rule.DL3041.rule
     <> Hadolint.Rule.DL3042.rule
