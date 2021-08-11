@@ -1,11 +1,11 @@
+# Haskell Dockerfile Linter
+
 [![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
-[![Github downloads][downloads-img]]()
+![Github downloads][downloads-img]
 <img align="right" alt="pipecat" width="150"
 src="https://hadolint.github.io/hadolint/img/cat_container.png" />
-
-# Haskell Dockerfile Linter
 
 A smarter Dockerfile linter that helps you build [best practice][] Docker
 images. The linter is parsing the Dockerfile into an AST and performs rules on
@@ -54,7 +54,8 @@ If you are on OSX you can use [brew](https://brew.sh/) to install `hadolint`.
 brew install hadolint
 ```
 
-On Windows you can use [scoop](https://github.com/lukesampson/scoop) to install `hadolint`.
+On Windows you can use [scoop](https://github.com/lukesampson/scoop) to
+install `hadolint`.
 
 ```batch
 scoop install hadolint
@@ -142,12 +143,11 @@ Available options:
                            none] (default: info)
 ```
 
-
 ## Configure
 
-Configuration files can be used globally or per project. By default, `hadolint` will look for
-a configuration file in the current directory with the name `.hadolint.yaml` or
-`.hadolint.yml`
+Configuration files can be used globally or per project. By default,
+`hadolint` will look for a configuration file in the current directory
+with the name `.hadolint.yaml` or `.hadolint.yml`
 
 `hadolint` full `yaml` config file schema
 
@@ -174,8 +174,9 @@ strict-labels: boolean                  # true | false
 trustedRegistries: string | [string]    # registry or list of registries
 ```
 
-`hadolint` supports specifying the ignored rules using a configuration file. The configuration
-file should be in `yaml` format. This is one valid configuration file as an example:
+`hadolint` supports specifying the ignored rules using a configuration
+file. The configuration file should be in `yaml` format. This is one
+valid configuration file as an example:
 
 ```yaml
 ignored:
@@ -183,9 +184,9 @@ ignored:
   - SC1010
 ```
 
-Additionally, `hadolint` can warn you when images from untrusted repositories are being
-used in Dockerfiles, you can append the `trustedRegistries` keys to the configuration
-file as shown below:
+Additionally, `hadolint` can warn you when images from untrusted
+repositories are being used in Dockerfiles, you can append the
+`trustedRegistries` keys to the configuration file as shown below:
 
 ```yaml
 ignored:
@@ -213,7 +214,8 @@ override:
     - DL3015
 ```
 
-`failure-threshold` Exit with failure code only when rules with a severity above THRESHOLD are violated (Available in v2.6.0+)
+`failure-threshold` Exit with failure code only when rules with a
+severity above THRESHOLD are violated (Available in v2.6.0+)
 
 ```yaml
 failure-threshold: info
@@ -224,9 +226,11 @@ warning:
     - DL3032
 ```
 
-The global configuration file should be placed in the folder specified by `XDG_CONFIG_HOME`,
-with the name `hadolint.yaml` or `hadolint.yml`. In summary, the following locations are valid
-for the configuration file, in order or preference:
+The global configuration file should be placed in the folder
+specified by `XDG_CONFIG_HOME`,
+with the name `hadolint.yaml` or `hadolint.yml`. In summary, the
+following locations are valid for the configuration file, in order
+or preference:
 
 - `$PWD/.hadolint.yaml`
 - `$XDG_CONFIG_HOME/hadolint.yaml`
@@ -241,8 +245,8 @@ the `--config` option
 hadolint --config /path/to/config.yaml Dockerfile
 ```
 
-To pass a custom configuration file (using relative or absolute path) to a container,
-use the following command:
+To pass a custom configuration file (using relative or absolute path) to 
+a container, use the following command:
 
 ```bash
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
@@ -252,8 +256,9 @@ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io
 
 ## Inline ignores
 
-It is also possible to ignore rules by using a special comment directly above the Dockerfile
-instruction you want to make an exception for. Ignore rule comments look like
+It is also possible to ignore rules by using a special comment directly
+above the Dockerfile instruction you want to make an exception for.
+Ignore rule comments look like
 `# hadolint ignore=DL3001,SC1081`. For example:
 
 ```dockerfile
