@@ -78,7 +78,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Lint Dockerfile
-        uses: brpaz/hadolint-action@master
+        uses: hadolint/hadolint-action@master
         with:
           dockerfile: "Dockerfile"
 
