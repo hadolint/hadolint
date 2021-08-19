@@ -515,8 +515,9 @@ Run integration tests.
 
 ### AST
 
-Dockerfile syntax is fully described in the [Dockerfile reference][]. Just take
-a look at [Syntax.hs][] in the `language-docker` project to see the AST definition.
+Dockerfile syntax is fully described in the [Dockerfile reference][].
+Just take a look at [Syntax.hs][] in the `language-docker` project to see
+the AST definition.
 
 ## Alternatives
 
