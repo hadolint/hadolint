@@ -356,10 +356,10 @@ write it. See our [Integration][] docs.
 An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
-- Rules with the prefix `DL` originate from `hadolint`. Take a look at
+-   Rules with the prefix `DL` originate from `hadolint`. Take a look at
 `Rules.hs` to find the implementation of the rules.
 
-- Rules with the `SC` prefix originate from **ShellCheck** (Only the most
+-   Rules with the `SC` prefix originate from **ShellCheck** (Only the most
 common rules are listed, there are dozens more)
 
 Please [create an issue][] if you have an idea for a good rule.
