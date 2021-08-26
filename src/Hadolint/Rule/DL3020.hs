@@ -26,4 +26,4 @@ isArchive path =
     )
 
 isUrl :: Text.Text -> Bool
-isUrl path = or ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://"]])
+isUrl path = or ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://", "\"https://", "\"http://"]])
