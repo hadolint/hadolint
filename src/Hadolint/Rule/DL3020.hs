@@ -20,10 +20,13 @@ rule = simpleRule code severity message check
 isArchive :: Text.Text -> Bool
 isArchive path =
   or
-    ( [ ftype `Text.isSuffixOf` path
+    ( [ ftype `Text.isSuffixOf` dropQuotes path
         | ftype <- archiveFileFormatExtensions
       ]
     )
 
 isUrl :: Text.Text -> Bool
-isUrl path = or ([proto `Text.isPrefixOf` path | proto <- ["https://", "http://", "\"https://", "\"http://"]])
+isUrl path = or
+  [ proto `Text.isPrefixOf` dropQuotes path
+    | proto <- ["https://", "http://"]
+  ]
