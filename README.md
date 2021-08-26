@@ -1,11 +1,11 @@
+# Haskell Dockerfile Linter
+
 [![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
-[![Github downloads][downloads-img]]()
+![Github downloads][downloads-img]
 <img align="right" alt="pipecat" width="150"
 src="https://hadolint.github.io/hadolint/img/cat_container.png" />
-
-# Haskell Dockerfile Linter
 
 A smarter Dockerfile linter that helps you build [best practice][] Docker
 images. The linter is parsing the Dockerfile into an AST and performs rules on
@@ -32,14 +32,16 @@ Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
 $ docker run --rm -i hadolint/hadolint < Dockerfile
-# or
+# OR
 $ docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 or if you are using Windows PowerShell:
+
 ```powershell
 > cat .\Dockerfile | docker run --rm -i hadolint/hadolint
 ```
+
 ## Install
 
 You can download prebuilt binaries for OSX, Windows and Linux from the latest
@@ -52,7 +54,8 @@ If you are on OSX you can use [brew](https://brew.sh/) to install `hadolint`.
 brew install hadolint
 ```
 
-On Windows you can use [scoop](https://github.com/lukesampson/scoop) to install `hadolint`.
+On Windows you can use [scoop](https://github.com/lukesampson/scoop) to
+install `hadolint`.
 
 ```batch
 scoop install hadolint
@@ -61,35 +64,119 @@ scoop install hadolint
 As shown before, `hadolint` is available as a Docker container:
 
 ```bash
-$ docker pull hadolint/hadolint
-# or
-$ docker pull ghcr.io/hadolint/hadolint
+docker pull hadolint/hadolint
+# OR
+docker pull ghcr.io/hadolint/hadolint
 ```
 
 If you need a Docker container with shell access, use the Debian or Alpine
 variants of the Docker image:
 
 ```bash
-$ docker pull hadolint/hadolint:latest-debian
-$ docker pull hadolint/hadolint:latest-alpine
-# or
-$ docker pull ghcr.io/hadolint/hadolint:latest-debian
-$ docker pull ghcr.io/hadolint/hadolint:latest-alpine
+docker pull hadolint/hadolint:latest-debian
+# OR 
+docker pull hadolint/hadolint:latest-alpine
+# OR
+docker pull ghcr.io/hadolint/hadolint:latest-debian
+# OR
+docker pull ghcr.io/hadolint/hadolint:latest-alpine
 ```
 
 You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
 build tool to build the binary.
 
 ```bash
-git clone https://github.com/hadolint/hadolint
-cd hadolint
-stack install
+git clone https://github.com/hadolint/hadolint \
+&& cd hadolint \
+&& stack install
+```
+
+## CLI
+
+```bash
+hadolint --help
+```
+
+```text
+hadolint - Dockerfile Linter written in Haskell
+
+Usage: hadolint [-v|--version] [--no-fail] [--no-color] [-c|--config FILENAME] 
+                [-V|--verbose] [-f|--format ARG] [DOCKERFILE...] 
+                [--error RULECODE] [--warning RULECODE] [--info RULECODE] 
+                [--style RULECODE] [--ignore RULECODE] 
+                [--trusted-registry REGISTRY (e.g. docker.io)] 
+                [--require-label LABELSCHEMA (e.g. maintainer:text)] 
+                [--strict-labels] [-t|--failure-theshold THRESHOLD]
+  Lint Dockerfile for errors and best practices
+
+Available options:
+  -h,--help                Show this help text
+  -v,--version             Show version
+  --no-fail                Don't exit with a failure status code when any rule
+                           is violated
+  --no-color               Don't colorize output
+  -c,--config FILENAME     Path to the configuration file
+  -V,--verbose             Enables verbose logging of hadolint's output to
+                           stderr
+  -f,--format ARG          The output format for the results [tty | json |
+                           checkstyle | codeclimate | gitlab_codeclimate |
+                           codacy] (default: tty)
+  --error RULECODE         Make the rule `RULECODE` have the level `error`
+  --warning RULECODE       Make the rule `RULECODE` have the level `warning`
+  --info RULECODE          Make the rule `RULECODE` have the level `info`
+  --style RULECODE         Make the rule `RULECODE` have the level `style`
+  --ignore RULECODE        A rule to ignore. If present, the ignore list in the
+                           config file is ignored
+  --trusted-registry REGISTRY (e.g. docker.io)
+                           A docker registry to allow to appear in FROM
+                           instructions
+  --require-label LABELSCHEMA (e.g. maintainer:text)
+                           The option --require-label=label:format makes
+                           Hadolint check that the label `label` conforms to
+                           format requirement `format`
+  --strict-labels          Do not permit labels other than specified in
+                           `label-schema`
+  -t,--failure-theshold THRESHOLD
+                           Exit with failure code only when rules with a
+                           severity above THRESHOLD are violated. Accepted
+                           values: [error | warning | info | style | ignore |
+                           none] (default: info)
 ```
 
 ## Configure
 
-`hadolint` supports specifying the ignored rules using a configuration file. The configuration
-file should be in `yaml` format. This is one valid configuration file as an example:
+Configuration files can be used globally or per project. By default,
+`hadolint` will look for a configuration file in the current directory
+with the name `.hadolint.yaml` or `.hadolint.yml`
+
+`hadolint` full `yaml` config file schema
+
+```yaml
+failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)                
+format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
+ignored: [string]                       # list of rules
+label-schema:                           # See Linting Labels below for specific label-schema details
+  author: string                        # Your name
+  contact: string                       # email address
+  created: timestamp                    # rfc3339 datetime
+  version: string                       # semver
+  documentation: string                 # url
+  git-revision: string                  # hash
+  license: string                       # spdx
+no-color: boolean                       # true | false
+no-fail: boolean                        # true | false
+override:
+  error: [string]                       # list of rules
+  warning: [string]                     # list of rules
+  info: [string]                        # list of rules
+  style: [string]                       # list of rules
+strict-labels: boolean                  # true | false
+trustedRegistries: string | [string]    # registry or list of registries
+```
+
+`hadolint` supports specifying the ignored rules using a configuration
+file. The configuration file should be in `yaml` format. This is one
+valid configuration file as an example:
 
 ```yaml
 ignored:
@@ -97,9 +184,9 @@ ignored:
   - SC1010
 ```
 
-Additionally, `hadolint` can warn you when images from untrusted repositories are being
-used in Dockerfiles, you can append the `trustedRegistries` keys to the configuration
-file as shown below:
+Additionally, `hadolint` can warn you when images from untrusted
+repositories are being used in Dockerfiles, you can append the
+`trustedRegistries` keys to the configuration file as shown below:
 
 ```yaml
 ignored:
@@ -112,6 +199,7 @@ trustedRegistries:
 ```
 
 If you want to override the severity of specific rules, you can do that too:
+
 ```yaml
 override:
   error:
@@ -126,13 +214,23 @@ override:
     - DL3015
 ```
 
-Configuration files can be used globally or per project. By default, `hadolint` will look for
-a configuration file in the current directory with the name `.hadolint.yaml` or
-`.hadolint.yml`
+`failure-threshold` Exit with failure code only when rules with a
+severity above THRESHOLD are violated (Available in v2.6.0+)
 
-The global configuration file should be placed in the folder specified by `XDG_CONFIG_HOME`,
-with the name `hadolint.yaml` or `hadolint.yml`. In summary, the following locations are valid
-for the configuration file, in order or preference:
+```yaml
+failure-threshold: info
+warning:
+    - DL3042
+    - DL3033
+  info:
+    - DL3032
+```
+
+The global configuration file should be placed in the folder
+specified by `XDG_CONFIG_HOME`,
+with the name `hadolint.yaml` or `hadolint.yml`. In summary, the
+following locations are valid for the configuration file, in order
+or preference:
 
 - `$PWD/.hadolint.yaml`
 - `$XDG_CONFIG_HOME/hadolint.yaml`
@@ -147,19 +245,20 @@ the `--config` option
 hadolint --config /path/to/config.yaml Dockerfile
 ```
 
-To pass a custom configuration file (using relative or absolute path) to a container,
-use the following command:
+To pass a custom configuration file (using relative or absolute path) to 
+a container, use the following command:
 
 ```bash
-$ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
-# or
-$ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+# OR
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 ## Inline ignores
 
-It is also possible to ignore rules by using a special comment directly above the Dockerfile
-instruction you want to make an exception for. Ignore rule comments look like
+It is also possible to ignore rules by using a special comment directly
+above the Dockerfile instruction you want to make an exception for.
+Ignore rule comments look like
 `# hadolint ignore=DL3001,SC1081`. For example:
 
 ```dockerfile
@@ -177,9 +276,11 @@ Inline ignores will only work if place directly above the instruction.
 Hadolint has the ability to check that specific labels be present and conform
 to a predefined label schema.
 First a label schema must be defined either via commandline:
+
 ```bash
-$ hadolint --require-label author:text --require-label version:semver Dockerfile
+hadolint --require-label author:text --require-label version:semver Dockerfile
 ```
+
 or via config file:
 
 ```yaml
@@ -192,6 +293,7 @@ label-schema:
   git-revision: hash
   license: spdx
 ```
+
 The value of a label can be either of `text`, `url`, `semver`, `hash` or
 `rfc3339`:
 | Schema  | Description                                        |
@@ -206,25 +308,33 @@ The value of a label can be either of `text`, `url`, `semver`, `hash` or
 
 By default, Hadolint ignores any label not specified in the label schema. To
 warn on such additional labels, turn on strict labels:
+
 ```bash
-$ hadolint --strict-labels --require-label version:semver Dockerfile
+hadolint --strict-labels --require-label version:semver Dockerfile
 ```
+
 or in the config file:
+
 ```yaml
 strict-labels: true
 ```
+
 When strict labels is enabled, but no label schema has been specified, Hadolint
 will warn if any label is present.
 
 ### Note on dealing with variables in labels
+
 It is a common pattern to fill the value of a label not statically, but rather
 dynamically at build time by using a variable:
+
 ```dockerfile
 FROM debian:buster
 ARG VERSION="du-jour"
 LABEL version="${VERSION}"
 ```
+
 To allow this, the label schema must specify `text` as value for that label:
+
 ```yaml
 label-schema:
   version: text
@@ -405,8 +515,9 @@ Run integration tests.
 
 ### AST
 
-Dockerfile syntax is fully described in the [Dockerfile reference][]. Just take
-a look at [Syntax.hs][] in the `language-docker` project to see the AST definition.
+Dockerfile syntax is fully described in the [Dockerfile reference][].
+Just take a look at [Syntax.hs][] in the `language-docker` project to see
+the AST definition.
 
 ## Alternatives
 
