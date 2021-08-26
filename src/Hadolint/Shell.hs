@@ -61,7 +61,7 @@ setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
-  if any (`Text.isPrefixOf` sh) nonPosixShells
+  if any (`Text.isPrefixOf` sh) nonPosixShells || hasUnsupportedShebang txt
     then [] -- Do no run for non-posix shells i.e. powershell, cmd.exe
     else runShellCheck
   where
@@ -87,6 +87,19 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
 
 nonPosixShells :: [Text.Text]
 nonPosixShells = ["pwsh", "powershell", "cmd"]
+
+hasUnsupportedShebang :: Text.Text -> Bool
+hasUnsupportedShebang script =
+  "#!" `Text.isPrefixOf` script &&
+  not ( any (`Text.isPrefixOf` script)
+          [ "#!/bin/sh",
+            "#!/bin/bash",
+            "#!/bin/ksh",
+            "#!/usr/bin/env sh",
+            "#!/usr/bin/env bash",
+            "#!/usr/bin/env ksh"
+          ]
+      )
 
 parseShell :: Text.Text -> ParsedShell
 parseShell txt = ParsedShell {original = txt, parsed = parsedResult, presentCommands = commands}
