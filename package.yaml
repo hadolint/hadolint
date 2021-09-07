@@ -1,5 +1,5 @@
 name: hadolint
-version: "2.7.1"
+version: "2.7.2"
 synopsis: Dockerfile Linter JavaScript API
 description: A smarter Dockerfile linter that helps you build best practice Docker images.
 category: Development
@@ -26,7 +26,7 @@ ghc-options:
 dependencies:
   - base >=4.8 && <5
   - megaparsec >= 9.0.0
-  - language-docker >=10.1.1 && <11
+  - language-docker >=10.1.2 && <11
 default-extensions:
   - OverloadedStrings
   - NamedFieldPuns
