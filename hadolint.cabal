@@ -37,10 +37,12 @@ library
       Hadolint.Formatter.Codeclimate
       Hadolint.Formatter.Format
       Hadolint.Formatter.Json
+      Hadolint.Formatter.Sarif
       Hadolint.Formatter.SonarQube
       Hadolint.Formatter.TTY
       Hadolint.Ignore
       Hadolint.Lint
+      Hadolint.Meta
       Hadolint.Process
       Hadolint.Rule
       Hadolint.Rule.DL3000
@@ -123,6 +125,7 @@ library
       RecordWildCards
       StrictData
       ScopedTypeVariables
+      TemplateHaskell
       PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
@@ -140,6 +143,7 @@ library
     , email-validate
     , filepath
     , foldl
+    , gitrev >=1.3.1
     , ilist
     , language-docker >=10.1.2 && <11
     , megaparsec >=9.0.0
@@ -170,13 +174,12 @@ executable hadolint
       RecordWildCards
       StrictData
       ScopedTypeVariables
-      PatternSynonyms
       TemplateHaskell
+      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
     , containers
-    , gitrev >=1.3.1
     , hadolint
     , language-docker >=10.1.2 && <11
     , megaparsec >=9.0.0
@@ -269,6 +272,7 @@ test-suite hadolint-unit-tests
       RecordWildCards
       StrictData
       ScopedTypeVariables
+      TemplateHaskell
       PatternSynonyms
       ImplicitParams
       OverloadedLists

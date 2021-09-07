@@ -2,6 +2,7 @@ module Hadolint
   ( module Hadolint.Lint,
     module Hadolint.Process,
     module Hadolint.Config,
+    module Hadolint.Meta,
     Result (..),
     OutputFormat (..),
     shallSkipErrorStatus,
@@ -16,10 +17,12 @@ import qualified Hadolint.Formatter.Codacy
 import qualified Hadolint.Formatter.Codeclimate
 import Hadolint.Formatter.Format (Result (..))
 import qualified Hadolint.Formatter.Json
+import qualified Hadolint.Formatter.Sarif
 import qualified Hadolint.Formatter.SonarQube
 import qualified Hadolint.Formatter.TTY
 import Hadolint.Lint
 import Hadolint.Process
+import Hadolint.Meta
 import Language.Docker.Parser (DockerfileError)
 
 data OutputFormat
@@ -30,6 +33,7 @@ data OutputFormat
   | GitlabCodeclimateJson
   | Checkstyle
   | Codacy
+  | Sarif
   deriving (Show, Eq)
 
 shallSkipErrorStatus :: OutputFormat -> Bool
@@ -45,3 +49,4 @@ printResults format nocolor filePathInReport allResults =
     CodeclimateJson -> Hadolint.Formatter.Codeclimate.printResults allResults
     GitlabCodeclimateJson -> Hadolint.Formatter.Codeclimate.printGitlabResults allResults
     Codacy -> Hadolint.Formatter.Codacy.printResults allResults
+    Sarif -> Hadolint.Formatter.Sarif.printResults allResults

@@ -1,8 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Main where
 
 import Control.Applicative
@@ -15,8 +10,6 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Data.String (IsString (fromString))
 import qualified Data.Text as Text
-import qualified Data.Version
-import qualified Development.GitRev
 import qualified Hadolint
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Rule as Rule
@@ -46,7 +39,6 @@ import Options.Applicative
     value,
   )
 -- version from hadolint.cabal file
-import qualified Paths_hadolint as Meta
 import System.Environment
 import System.Exit (exitFailure, exitSuccess)
 import System.IO (hPutStrLn, stderr)
@@ -71,6 +63,7 @@ toOutputFormat "codeclimate" = Just Hadolint.CodeclimateJson
 toOutputFormat "gitlab_codeclimate" = Just Hadolint.GitlabCodeclimateJson
 toOutputFormat "checkstyle" = Just Hadolint.Checkstyle
 toOutputFormat "codacy" = Just Hadolint.Codacy
+toOutputFormat "sarif" = Just Hadolint.Sarif
 toOutputFormat _ = Nothing
 
 showFormat :: Hadolint.OutputFormat -> String
@@ -81,6 +74,7 @@ showFormat Hadolint.CodeclimateJson = "codeclimate"
 showFormat Hadolint.GitlabCodeclimateJson = "gitlab_codeclimate"
 showFormat Hadolint.Checkstyle = "checkstyle"
 showFormat Hadolint.Codacy = "codacy"
+showFormat Hadolint.Sarif= "sarif"
 
 toNofailSeverity :: String -> Maybe Rule.DLSeverity
 toNofailSeverity "error" = Just Rule.DLErrorC
@@ -106,7 +100,11 @@ parseOptions =
   where
     version = switch (long "version" <> short 'v' <> help "Show version")
 
-    noFail = switch (long "no-fail" <> help "Don't exit with a failure status code when any rule is violated")
+    noFail =
+      switch
+        ( long "no-fail"
+            <> help "Don't exit with a failure status code when any rule is \
+                    \violated")
 
     noFailCutoff =
       option
@@ -120,7 +118,14 @@ parseOptions =
             <> value Rule.DLInfoC
             <> metavar "THRESHOLD"
             <> showDefaultWith (Text.unpack . Format.severityText)
-            <> completeWith ["error", "warning", "info", "style", "ignore", "none"]
+            <> completeWith
+                [ "error",
+                  "warning",
+                  "info",
+                  "style",
+                  "ignore",
+                  "none"
+                ]
         )
 
     nocolor = switch (long "no-color" <> help "Don't colorize output")
@@ -128,7 +133,8 @@ parseOptions =
     strictlabels =
       switch
         ( long "strict-labels"
-            <> help "Do not permit labels other than specified in `label-schema`"
+            <> help "Do not permit labels other than specified in \
+                    \`label-schema`"
         )
 
     configFile =
@@ -139,7 +145,12 @@ parseOptions =
             )
         )
 
-    isVerbose = switch (long "verbose" <> short 'V' <> help "Enables verbose logging of hadolint's output to stderr")
+    isVerbose =
+      switch
+        ( long "verbose"
+            <> short 'V'
+            <> help "Enables verbose logging of hadolint's output to stderr"
+        )
 
     outputFormat =
       option
@@ -147,10 +158,20 @@ parseOptions =
         ( long "format"
             <> short 'f' -- options for the output format
             <> help
-              "The output format for the results [tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy | sonarqube]"
+              "The output format for the results [tty | json | checkstyle | \
+              \codeclimate | gitlab_codeclimate | codacy | sonarqube | sarif]"
             <> value Hadolint.TTY
             <> showDefaultWith showFormat -- The default value
-            <> completeWith ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "codacy", "sonarqube"]
+            <> completeWith
+                [ "tty",
+                  "json",
+                  "checkstyle",
+                  "codeclimate",
+                  "gitlab_codeclimate",
+                  "codacy",
+                  "sonarqube",
+                  "sarif"
+                ]
         )
 
     errorList =
@@ -193,8 +214,9 @@ parseOptions =
       many
         ( strOption
             ( long "ignore"
-                <> help "A rule to ignore. If present, the ignore list in the config file is ignored"
                 <> metavar "RULECODE"
+                <> help "A rule to ignore. If present, the ignore list in the \
+                        \config file is ignored"
             )
         )
 
@@ -213,8 +235,12 @@ parseOptions =
     filePathInReportOption =
       optional
         ( strOption
-            ( long "file-path-in-report" <> metavar "FILEPATHINREPORT"
-                <> help "The file path referenced in the generated report. This only applies for the 'checkstyle' format and is useful when running Hadolint with Docker to set the correct file path."
+            ( long "file-path-in-report"
+                <> metavar "FILEPATHINREPORT"
+                <> help "The file path referenced in the generated report. \
+                        \This only applies for the 'checkstyle' format and is \
+                        \useful when running Hadolint with Docker to set the \
+                        \correct file path."
             )
         )
 
@@ -224,8 +250,10 @@ parseOptions =
           ( option
               readSingleLabelSchema
               ( long "require-label"
-                  <> help "The option --require-label=label:format makes Hadolint check that the label `label` conforms to format requirement `format`"
                   <> metavar "LABELSCHEMA (e.g. maintainer:text)"
+                  <> help "The option --require-label=label:format makes \
+                          \Hadolint check that the label `label` conforms to \
+                          \format requirement `format`"
               )
           )
 
@@ -240,8 +268,9 @@ parseOptions =
         <$> many
           ( strOption
               ( long "trusted-registry"
-                  <> help "A docker registry to allow to appear in FROM instructions"
                   <> metavar "REGISTRY (e.g. docker.io)"
+                  <> help "A docker registry to allow to appear in FROM \
+                          \instructions"
               )
           )
 
@@ -274,7 +303,11 @@ exitProgram cmd conf res
   | all (`noFailure` Hadolint.failThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
-runLint :: CommandOptions -> Hadolint.LintOptions -> NonEmpty.NonEmpty String -> IO ()
+runLint ::
+  CommandOptions ->
+  Hadolint.LintOptions ->
+  NonEmpty.NonEmpty String ->
+  IO ()
 runLint cmd conf files = do
   res <- Hadolint.lintIO conf files
   noColorEnv <- lookupEnv "NO_COLOR"
@@ -288,12 +321,14 @@ main = do
   cmd <- execParser opts
   execute cmd
   where
-    execute CommandOptions {showVersion = True} = putStrLn getVersion >> exitSuccess
+    execute CommandOptions {showVersion = True} =
+      putStrLn Hadolint.getVersion >> exitSuccess
     execute CommandOptions {dockerfiles = []} =
       putStrLn "Please provide a Dockerfile" >> exitFailure
     execute cmd = do
       maybeConfig <- Hadolint.getConfig (configFile cmd)
-      when (isVerbose cmd) (hPutStrLn stderr $ getFilePathDescription maybeConfig)
+      when (isVerbose cmd)
+        (hPutStrLn stderr $ getFilePathDescription maybeConfig)
       lintConfig <- Hadolint.applyConfig maybeConfig (lintingOptions cmd)
       let files = NonEmpty.fromList (dockerfiles cmd)
       case lintConfig of
@@ -306,14 +341,7 @@ main = do
             <> header "hadolint - Dockerfile Linter written in Haskell"
         )
 
-getVersion :: String
-getVersion
-  | version == "UNKNOWN" =
-    "Haskell Dockerfile Linter " ++ Data.Version.showVersion Meta.version ++ "-no-git"
-  | otherwise = "Haskell Dockerfile Linter " ++ version
-  where
-    version = $(Development.GitRev.gitDescribe)
-
 getFilePathDescription :: Maybe FilePath -> String
-getFilePathDescription Nothing = "No configuration was specified. Using default configuration"
+getFilePathDescription Nothing =
+  "No configuration was specified. Using default configuration"
 getFilePathDescription (Just filepath) = "Configuration file used: " ++ filepath
