@@ -214,3 +214,10 @@ archiveFileFormatExtensions =
     ".txz",
     ".xz"
   ]
+
+dropQuotes :: Text.Text -> Text.Text
+dropQuotes = Text.dropAround quotes
+  where
+    quotes '\"' = True
+    quotes '\'' = True
+    quotes _ = False

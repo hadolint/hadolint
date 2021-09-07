@@ -16,3 +16,6 @@ tests = do
     it "add for url" $ ruleCatchesNot "DL3020" "ADD http://file.com /usr/src/app/"
     it "using add" $ ruleCatches "DL3020" "ADD file /usr/src/app/"
     it "warn for zip" $ ruleCatches "DL3020" "ADD file.zip /usr/src/app/"
+    it "add for tgz with quotes" $ ruleCatchesNot "DL3020" "ADD \"file.tgz\" /usr/src/app/"
+    it "add for url with quotes" $ ruleCatchesNot "DL3020" "ADD \"http://file.com\" /usr/src/app/"
+    it "warn for zip with quotes" $ ruleCatches "DL3020" "ADD \"file.zip\" /usr/src/app/"

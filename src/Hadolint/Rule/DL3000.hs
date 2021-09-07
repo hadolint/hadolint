@@ -12,18 +12,12 @@ rule = simpleRule code severity message check
     severity = DLErrorC
     message = "Use absolute WORKDIR"
     check (Workdir loc)
-      | "$" `Text.isPrefixOf` Text.dropAround dropQuotes loc = True
-      | "/" `Text.isPrefixOf` Text.dropAround dropQuotes loc = True
-      | isWindowsAbsolute (Text.dropAround dropQuotes loc) = True
+      | "$" `Text.isPrefixOf` dropQuotes loc = True
+      | "/" `Text.isPrefixOf` dropQuotes loc = True
+      | isWindowsAbsolute (dropQuotes loc) = True
       | otherwise = False
     check _ = True
 {-# INLINEABLE rule #-}
-
-dropQuotes :: Char -> Bool
-dropQuotes chr
-  | chr == '\"' = True
-  | chr == '\'' = True
-  | otherwise = False
 
 isWindowsAbsolute :: Text.Text -> Bool
 isWindowsAbsolute path
