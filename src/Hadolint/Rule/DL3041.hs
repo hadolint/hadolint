@@ -12,15 +12,40 @@ rule = simpleRule code severity message check
     severity = DLWarningC
     message = "Specify version with `dnf install -y <package>-<version>`."
 
-    check (Run (RunArgs args _)) = foldArguments (all versionFixed . dnfPackages) args
+    check (Run (RunArgs args _)) =
+      foldArguments (all packageVersionFixed . dnfPackages) args
+        && foldArguments (all moduleVersionFixed . dnfModules) args
     check _ = True
-
-    versionFixed package =
-      "-" `Text.isInfixOf` package
-        || ".rpm" `Text.isSuffixOf` package
 {-# INLINEABLE rule #-}
 
 dnfPackages :: Shell.ParsedShell -> [Text.Text]
 dnfPackages args =
-  [ arg | cmd <- Shell.presentCommands args, Shell.cmdHasArgs "dnf" ["install"] cmd, arg <- Shell.getArgsNoFlags cmd, arg /= "install"
+    [ arg
+      | cmd <- Shell.presentCommands args,
+        not (Shell.cmdHasArgs "dnf" ["module"] cmd),
+        arg <- installFilter cmd
+    ]
+
+packageVersionFixed :: Text.Text -> Bool
+packageVersionFixed package =
+  "-" `Text.isInfixOf` package || ".rpm" `Text.isSuffixOf` package
+
+dnfModules :: Shell.ParsedShell -> [Text.Text]
+dnfModules args =
+  [ arg
+    | cmd <- Shell.presentCommands args,
+      Shell.cmdHasArgs "dnf" ["module"] cmd,
+      arg <- installFilter cmd
+  ]
+
+moduleVersionFixed :: Text.Text -> Bool
+moduleVersionFixed = Text.isInfixOf ":"
+
+installFilter :: Shell.Command -> [Text.Text]
+installFilter cmd =
+  [ arg
+    | Shell.cmdHasArgs "dnf" ["install"] cmd,
+      arg <- Shell.getArgsNoFlags cmd,
+      arg /= "install",
+      arg /= "module"
   ]
