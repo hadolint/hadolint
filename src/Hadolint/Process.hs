@@ -5,7 +5,7 @@ import qualified Data.IntMap.Strict as SMap
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import qualified Hadolint.Ignore
+import qualified Hadolint.Pragma
 import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
 import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Rule.DL3000
@@ -116,7 +116,7 @@ run config dockerfile = Seq.filter shouldKeep failed
 analyze :: RulesConfig -> Foldl.Fold (InstructionPos Text.Text) AnalisisResult
 analyze config =
   AnalisisResult
-    <$> Hadolint.Ignore.ignored
+    <$> Hadolint.Pragma.ignored
     <*> Foldl.premap parseShell (failures config <> onBuildFailures config)
 
 parseShell :: InstructionPos Text.Text -> InstructionPos Shell.ParsedShell
