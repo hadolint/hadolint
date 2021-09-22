@@ -106,7 +106,7 @@ Usage: hadolint [-v|--version] [--no-fail] [--no-color] [-c|--config FILENAME]
                 [--style RULECODE] [--ignore RULECODE] 
                 [--trusted-registry REGISTRY (e.g. docker.io)] 
                 [--require-label LABELSCHEMA (e.g. maintainer:text)] 
-                [--strict-labels] [-t|--failure-theshold THRESHOLD]
+                [--strict-labels] [-t|--failure-threshold THRESHOLD]
   Lint Dockerfile for errors and best practices
 
 Available options:
@@ -136,7 +136,7 @@ Available options:
                            format requirement `format`
   --strict-labels          Do not permit labels other than specified in
                            `label-schema`
-  -t,--failure-theshold THRESHOLD
+  -t,--failure-threshold THRESHOLD
                            Exit with failure code only when rules with a
                            severity above THRESHOLD are violated. Accepted
                            values: [error | warning | info | style | ignore |
