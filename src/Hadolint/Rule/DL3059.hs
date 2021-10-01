@@ -19,6 +19,7 @@ rule = customRule check (emptyState Empty)
     check line st (Run (RunArgs _ flags))
       | state st == Acc flags = st |> addFail CheckFailure {..}
       | otherwise = st |> modify (remember flags)
+    check _ st (Comment _) = st
     check _ st _ = st |> modify reset
 {-# INLINEABLE rule #-}
 
