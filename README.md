@@ -99,7 +99,10 @@ git clone https://github.com/hadolint/hadolint \
 && stack install
 ```
 
-If you want [VS Code hadolint extension](https://github.com/michaellzc/vscode-hadolint) to use `hadolint` in a container, you may try the [following wrapper script](https://github.com/hadolint/hadolint/issues/691#issuecomment-932116329):
+If you want the
+[VS Code Hadolint](https://github.com/michaellzc/vscode-hadolint)
+extension to use Hadolint in a container, you can use the following
+[wrapper script](https://github.com/hadolint/hadolint/issues/691#issuecomment-932116329):
 
 ```bash
 #!/bin/bash
@@ -374,10 +377,10 @@ An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
 - Rules with the prefix `DL` are from `hadolint`. Have a look at
-`Rules.hs` to find the implementation of the rules.
+  `Rules.hs` to find the implementation of the rules.
 
 - Rules with the `SC` prefix are from **ShellCheck** (only the most
-common rules are listed, there are dozens more)
+  common rules are listed, there are dozens more).
 
 Please [create an issue][] if you have an idea for a good rule.
 <!--lint disable maximum-line-length-->
@@ -539,8 +542,10 @@ the AST definition.
 ## Alternatives
 
 - replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
-  the other linter used by [super-linter]( https://github.com/github/super-linter/blob/main/README.md#supported-linters)
+  the other linter used by the [super-linter](https://github.com/github/super-linter/blob/main/README.md#supported-linters)
+
 - RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
+
 - projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
 
 <!-- References -->
