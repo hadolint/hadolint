@@ -17,6 +17,12 @@ tests = do
       ruleCatchesNot "DL3059" "RUN /foo.sh\nWORKDIR /\nRUN /bar.sh"
     it "not ok with two consecutive `RUN`s" $ do
       ruleCatches "DL3059" "RUN /foo.sh\nRUN /bar.sh"
+    it "not ok with two `RUN`s separated by a comment" $ do
+      ruleCatches "DL3059" "RUN /foo.sh\n# a comment\nRUN /bar.sh"
+    it "not ok with two `RUN`s separated by two comment" $ do
+      ruleCatches "DL3059" "RUN /foo.sh\n# a comment\n# another comment\nRUN /bar.sh"
+    it "ok with one `RUN` after a comment" $ do
+      ruleCatchesNot "DL3059" "# a comment\nRUN /foo.sh"
     it "ok with two consecutive `RUN`s when flags are different 1" $ do
       ruleCatchesNot "DL3059" "RUN --mount=type=secret,id=foo /foo.sh\nRUN /bar.sh"
     it "ok with two consecutive `RUN`s when flags are different 2" $ do
