@@ -21,7 +21,7 @@ RUN stack --no-terminal --install-ghc test --only-dependencies
 
 COPY . /opt/hadolint
 RUN scripts/fetch_version.sh \
-  && stack install --ghc-options="-fPIC" --flag hadolint:static
+  && stack install --flag hadolint:static
 
 FROM debian:stretch-slim AS debian-distro
 COPY --from=builder /root/.local/bin/hadolint /bin/
