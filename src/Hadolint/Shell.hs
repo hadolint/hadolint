@@ -61,7 +61,7 @@ setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
-  if any (`Text.isPrefixOf` sh) nonPosixShells || hasUnsupportedShebang txt
+  if any (`Text.isInfixOf` sh) nonPosixShells || hasUnsupportedShebang txt
     then [] -- Do no run for non-posix shells i.e. powershell, cmd.exe
     else runShellCheck
   where

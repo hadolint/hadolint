@@ -128,3 +128,42 @@ tests = do
        in do
             assertChecks dockerFile passesShellcheck
             assertOnBuildChecks dockerFile passesShellcheck
+
+    it "Does not complain on non-posix shells, powershell - absolute path" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\\
+                \v1.0\\\\powershell.exe\", \"-noprofile\", \"-noninteractive\"\
+                \, \"-command\"]",
+                "RUN Get-Variable PSVersionTable | Select-Object \
+                \-ExpandProperty Value"
+              ]
+       in do
+            assertChecks dockerFile passesShellcheck
+            assertOnBuildChecks dockerFile passesShellcheck
+
+    it "Respects shell pragma" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM mcr.microsoft.com/foo/bar/windows:10",
+                "# hadolint shell = powershell.exe",
+                "RUN Get-Variable PSVersionTable | Select-Object \
+                \-ExpandProperty Value"
+              ]
+       in do
+            assertChecks dockerFile passesShellcheck
+            assertOnBuildChecks dockerFile passesShellcheck
+    it "Respects global shell pragma" $
+      let dockerFile =
+            Text.unlines
+              [ "# hadolint shell=powershell.exe",
+                "FROM mcr.microsoft.com/foo/bar/windows:10",
+                "RUN Get-Variable PSVersionTable | Select-Object \
+                \-ExpandProperty Value",
+                "FROM mcr.microsoft.com/foo/bar/windows:10",
+                "RUN Get-Variable PSVersionTable | Select-Object \
+                \-ExpandProperty Value"
+              ]
+       in do
+            assertChecks dockerFile passesShellcheck
+            assertOnBuildChecks dockerFile passesShellcheck

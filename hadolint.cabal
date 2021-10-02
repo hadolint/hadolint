@@ -40,9 +40,9 @@ library
       Hadolint.Formatter.Sarif
       Hadolint.Formatter.SonarQube
       Hadolint.Formatter.TTY
-      Hadolint.Ignore
       Hadolint.Lint
       Hadolint.Meta
+      Hadolint.Pragma
       Hadolint.Process
       Hadolint.Rule
       Hadolint.Rule.DL3000
