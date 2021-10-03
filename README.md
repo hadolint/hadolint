@@ -8,8 +8,8 @@
 src="https://hadolint.github.io/hadolint/img/cat_container.png" />
 
 A smarter Dockerfile linter that helps you build [best practice][] Docker
-images. The linter is parsing the Dockerfile into an AST and performs rules on
-top of the AST. It is standing on the shoulders of [ShellCheck][] to lint
+images. The linter parses the Dockerfile into an AST and performs rules on
+top of the AST. It stands on the shoulders of [ShellCheck][] to lint
 the Bash code inside `RUN` instructions.
 
 [:globe_with_meridians: **Check the online version on
@@ -26,42 +26,50 @@ hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 hadolint --trusted-registry my-company.com:500 <Dockerfile> # Warn when using untrusted FROM images
 ```
 
-Docker comes to the rescue to provide an easy way how to run `hadolint` on most
+Docker comes to the rescue, providing an easy way how to run `hadolint` on most
 platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
-$ docker run --rm -i hadolint/hadolint < Dockerfile
+docker run --rm -i hadolint/hadolint < Dockerfile
 # OR
-$ docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
-or if you are using Windows PowerShell:
+or using [Podman](https://podman.io/):
+
+```bash
+podman run --rm -i docker.io/hadolint/hadolint < Dockerfile
+# OR
+podman run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+```
+
+or using Windows PowerShell:
 
 ```powershell
-> cat .\Dockerfile | docker run --rm -i hadolint/hadolint
+cat .\Dockerfile | docker run --rm -i hadolint/hadolint
 ```
 
 ## Install
 
 You can download prebuilt binaries for OSX, Windows and Linux from the latest
-[release page][]. However, if it doesn't work for you, please fall back to
-Docker, `brew` or source installation.
+[release page][]. However, if this does not work for you, please fall back to
+container (Docker), `brew` or source installation.
 
-If you are on OSX you can use [brew](https://brew.sh/) to install `hadolint`.
+On OSX, you can use [brew](https://brew.sh/) to install `hadolint`.
 
 ```bash
 brew install hadolint
 ```
 
-On Windows you can use [scoop](https://github.com/lukesampson/scoop) to
+On Windows, you can use [scoop](https://github.com/lukesampson/scoop) to
 install `hadolint`.
 
 ```batch
 scoop install hadolint
 ```
 
-As shown before, `hadolint` is available as a Docker container:
+As mentioned earlier, `hadolint` is available as a container image:
 
 ```bash
 docker pull hadolint/hadolint
@@ -69,8 +77,8 @@ docker pull hadolint/hadolint
 docker pull ghcr.io/hadolint/hadolint
 ```
 
-If you need a Docker container with shell access, use the Debian or Alpine
-variants of the Docker image:
+If you need a container with shell access, use the Debian or Alpine
+variants:
 
 ```bash
 docker pull hadolint/hadolint:latest-debian
@@ -89,6 +97,18 @@ build tool to build the binary.
 git clone https://github.com/hadolint/hadolint \
 && cd hadolint \
 && stack install
+```
+
+If you want the
+[VS Code Hadolint](https://github.com/michaellzc/vscode-hadolint)
+extension to use Hadolint in a container, you can use the following
+[wrapper script](https://github.com/hadolint/hadolint/issues/691#issuecomment-932116329):
+
+```bash
+#!/bin/bash
+dockerfile="$1"
+shift
+docker run --rm -i hadolint/hadolint hadolint "$@" - < "$dockerfile"
 ```
 
 ## CLI
@@ -146,8 +166,8 @@ Available options:
 ## Configure
 
 Configuration files can be used globally or per project. By default,
-`hadolint` will look for a configuration file in the current directory
-with the name `.hadolint.yaml` or `.hadolint.yml`
+`hadolint` looks for a configuration file named `.hadolint.yaml` or
+`.hadolint.yml` in the current directory. 
 
 `hadolint` full `yaml` config file schema
 
@@ -186,7 +206,7 @@ ignored:
 
 Additionally, `hadolint` can warn you when images from untrusted
 repositories are being used in Dockerfiles, you can append the
-`trustedRegistries` keys to the configuration file as shown below:
+`trustedRegistries` keys to the configuration file, as shown below:
 
 ```yaml
 ignored:
@@ -256,9 +276,9 @@ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io
 
 ## Inline ignores
 
-It is also possible to ignore rules by using a special comment directly
-above the Dockerfile instruction you want to make an exception for.
-Ignore rule comments look like
+It is also possible to ignore rules by adding a special comment directly
+above the Dockerfile statement for which you want to make an exception for.
+Such comments look like
 `# hadolint ignore=DL3001,SC1081`. For example:
 
 ```dockerfile
@@ -269,19 +289,19 @@ FROM ubuntu
 RUN cd /tmp && echo "hello!"
 ```
 
-Inline ignores will only work if place directly above the instruction.
+The comment "inline ignores" applies only to the statement following it.
 
 ## Linting Labels
 
-Hadolint has the ability to check that specific labels be present and conform
+Hadolint is able to check if specific labels are present and conform
 to a predefined label schema.
-First a label schema must be defined either via commandline:
+First, a label schema must be defined either via the command line:
 
 ```bash
 hadolint --require-label author:text --require-label version:semver Dockerfile
 ```
 
-or via config file:
+or via the config file:
 
 ```yaml
 label-schema:
@@ -306,20 +326,20 @@ The value of a label can be either of `text`, `url`, `semver`, `hash` or
 | spdx    | An [SPDX license identifier][spdxid]               |
 | email   | An email address conforming to [RFC 5322][rfc5322] |
 
-By default, Hadolint ignores any label not specified in the label schema. To
-warn on such additional labels, turn on strict labels:
+By default, Hadolint ignores any label that is not specified in the label schema. To
+warn against such additional labels, turn on strict labels, using the command line:
 
 ```bash
 hadolint --strict-labels --require-label version:semver Dockerfile
 ```
 
-or in the config file:
+or the config file:
 
 ```yaml
 strict-labels: true
 ```
 
-When strict labels is enabled, but no label schema has been specified, Hadolint
+When strict labels is enabled, but no label schema is specified, `hadolint`
 will warn if any label is present.
 
 ### Note on dealing with variables in labels
@@ -342,8 +362,8 @@ label-schema:
 
 ## Integrations
 
-To get most of `hadolint` it is useful to integrate it as a check to your CI
-or to your editor, or as a pre-commit hook, to lint your `Dockerfile` as you
+To get most of `hadolint`, it is useful to integrate it as a check in your CI
+or into your editor, or as a pre-commit hook, to lint your `Dockerfile` as you
 write it. See our [Integration][] docs.
 
 - [Code Review Platform Integrations][]
@@ -356,11 +376,11 @@ write it. See our [Integration][] docs.
 An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
--   Rules with the prefix `DL` originate from `hadolint`. Take a look at
-`Rules.hs` to find the implementation of the rules.
+- Rules with the prefix `DL` are from `hadolint`. Have a look at
+  `Rules.hs` to find the implementation of the rules.
 
--   Rules with the `SC` prefix originate from **ShellCheck** (Only the most
-common rules are listed, there are dozens more)
+- Rules with the `SC` prefix are from **ShellCheck** (only the most
+  common rules are listed, there are dozens more).
 
 Please [create an issue][] if you have an idea for a good rule.
 <!--lint disable maximum-line-length-->
@@ -467,7 +487,7 @@ Please [create an issue][] if you have an idea for a good rule.
 
 ## Develop
 
-If you are an experienced Haskeller we would be really thankful if you would
+If you are an experienced Haskeller, we would be very grateful if you would
 tear our code apart in a review.
 
 ### Setup
@@ -501,13 +521,13 @@ parseText "FROM debian:jessie"
 
 ### Tests
 
-Run unit tests.
+Run unit tests:
 
 ```bash
 stack test
 ```
 
-Run integration tests.
+Run integration tests:
 
 ```bash
 ./integration_test.sh
@@ -521,7 +541,11 @@ the AST definition.
 
 ## Alternatives
 
+- replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
+  the other linter used by the [super-linter](https://github.com/github/super-linter/blob/main/README.md#supported-linters)
+
 - RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
+
 - projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
 
 <!-- References -->
