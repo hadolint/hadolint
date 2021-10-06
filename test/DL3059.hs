@@ -20,11 +20,13 @@ tests = do
     it "not ok with two `RUN`s separated by a comment" $ do
       ruleCatches "DL3059" "RUN /foo.sh\n# a comment\nRUN /bar.sh"
     it "not ok with two `RUN`s separated by two comment" $ do
-      ruleCatches "DL3059" "RUN /foo.sh\n# a comment\n# another comment\nRUN /bar.sh"
+      ruleCatches "DL3059" "RUN /foo.sh\n# a comment\n# another comment\nRUN\
+                           \ /bar.sh"
     it "ok with one `RUN` after a comment" $ do
       ruleCatchesNot "DL3059" "# a comment\nRUN /foo.sh"
     it "ok with two consecutive `RUN`s when flags are different 1" $ do
-      ruleCatchesNot "DL3059" "RUN --mount=type=secret,id=foo /foo.sh\nRUN /bar.sh"
+      ruleCatchesNot "DL3059" "RUN --mount=type=secret,id=foo /foo.sh\nRUN\
+                              \ /bar.sh"
     it "ok with two consecutive `RUN`s when flags are different 2" $ do
       let dfile = [ "RUN --mount=type=secret,id=foo /foo.sh",
                     "RUN --mount=type=secret,id=bar /bar.sh"
@@ -33,5 +35,37 @@ tests = do
     it "not ok with two consecutive `RUN`s when flags are equal" $ do
       let dfile = [ "RUN --mount=type=secret,id=foo /foo.sh",
                     "RUN --mount=type=secret,id=foo /bar.sh"
+                  ]
+       in ruleCatches "DL3059" $ Text.unlines dfile
+
+    it "ok with two consecutive `RUN`s when commands are chained 1" $ do
+      let dfile = [ "RUN foo && bar",
+                    "RUN foobar"
+                  ]
+       in ruleCatchesNot "DL3059" $ Text.unlines dfile
+    it "ok with two consecutive `RUN`s when commands are chained 2" $ do
+      let dfile = [ "RUN foo; bar",
+                    "RUN foobar"
+                  ]
+       in ruleCatchesNot "DL3059" $ Text.unlines dfile
+    it "ok with two consecutive `RUN`s when commands are chained 3" $ do
+      let dfile = [ "RUN foobar",
+                    "RUN foo && bar"
+                  ]
+       in ruleCatchesNot "DL3059" $ Text.unlines dfile
+    it "ok with two consecutive `RUN`s when commands are chained 4" $ do
+      let dfile = [ "RUN foobar",
+                    "RUN foo; bar"
+                  ]
+       in ruleCatchesNot "DL3059" $ Text.unlines dfile
+    it "ok with two consecutive `RUN`s when commands are chained 5" $ do
+      let dfile = [ "RUN foo && bar",
+                    "RUN foo; bar"
+                  ]
+       in ruleCatchesNot "DL3059" $ Text.unlines dfile
+    it "not ok when more than one `RUN` has just one command in a row" $ do
+      let dfile = [ "RUN foo && bar",
+                    "RUN foo",
+                    "RUN bar"
                   ]
        in ruleCatches "DL3059" $ Text.unlines dfile
