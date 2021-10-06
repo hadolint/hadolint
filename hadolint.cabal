@@ -118,15 +118,16 @@ library
   hs-source-dirs:
       src
   default-extensions:
-      OverloadedStrings
-      NamedFieldPuns
-      DeriveGeneric
       DeriveAnyClass
-      RecordWildCards
-      StrictData
-      ScopedTypeVariables
-      TemplateHaskell
+      DeriveGeneric
+      NamedFieldPuns
+      OverloadedStrings
       PatternSynonyms
+      RecordWildCards
+      ScopedTypeVariables
+      StrictData
+      TemplateHaskell
+      TupleSections
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       Cabal
@@ -167,15 +168,16 @@ executable hadolint
   hs-source-dirs:
       app
   default-extensions:
-      OverloadedStrings
-      NamedFieldPuns
-      DeriveGeneric
       DeriveAnyClass
-      RecordWildCards
-      StrictData
-      ScopedTypeVariables
-      TemplateHaskell
+      DeriveGeneric
+      NamedFieldPuns
+      OverloadedStrings
       PatternSynonyms
+      RecordWildCards
+      ScopedTypeVariables
+      StrictData
+      TemplateHaskell
+      TupleSections
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
@@ -265,15 +267,16 @@ test-suite hadolint-unit-tests
   hs-source-dirs:
       test
   default-extensions:
-      OverloadedStrings
-      NamedFieldPuns
-      DeriveGeneric
       DeriveAnyClass
-      RecordWildCards
-      StrictData
-      ScopedTypeVariables
-      TemplateHaskell
+      DeriveGeneric
+      NamedFieldPuns
+      OverloadedStrings
       PatternSynonyms
+      RecordWildCards
+      ScopedTypeVariables
+      StrictData
+      TemplateHaskell
+      TupleSections
       ImplicitParams
       OverloadedLists
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal

@@ -28,15 +28,16 @@ dependencies:
   - megaparsec >= 9.0.0
   - language-docker >=10.1.2 && <11
 default-extensions:
-  - OverloadedStrings
-  - NamedFieldPuns
-  - DeriveGeneric
   - DeriveAnyClass
-  - RecordWildCards
-  - StrictData
-  - ScopedTypeVariables
-  - TemplateHaskell
+  - DeriveGeneric
+  - NamedFieldPuns
+  - OverloadedStrings
   - PatternSynonyms
+  - RecordWildCards
+  - ScopedTypeVariables
+  - StrictData
+  - TemplateHaskell
+  - TupleSections
 library:
   source-dirs: src
   generated-other-modules:
