@@ -1,0 +1,124 @@
+module Hadolint.Config.Environment
+  ( getConfigFromEnvironment
+  )
+where
+
+import Data.Coerce (coerce)
+import Data.Map (empty, fromList)
+import Data.Maybe
+import Data.Set (Set, empty, fromList)
+import Data.Text (Text, pack, unpack, drop, splitOn, breakOn)
+import Hadolint.Formatter.Format (OutputFormat (..), toMaybeOutputFormat)
+import Hadolint.Config.Configuration (Configuration (..))
+import Hadolint.Lint
+import Hadolint.Process (RulesConfig (..))
+import Hadolint.Rule
+import Language.Docker.Syntax
+import System.Environment
+import Text.Read (readEither)
+
+
+getConfigFromEnvironment :: IO Configuration
+getConfigFromEnvironment =
+  Configuration
+    <$> maybeTruthy "HADOLINT_NOFAIL"
+    <*> maybeTruthy "NO_COLOR"
+    <*> maybeTruthy "HADOLINT_VERBOSE"
+    <*> getFormat
+    <*> lintOptions
+    <*> getFailureThreshold
+  where
+    lintOptions =
+      LintOptions
+        <$> getOverrideList "HADOLINT_OVERRIDE_ERROR"
+        <*> getOverrideList "HADOLINT_OVERRIDE_WARNING"
+        <*> getOverrideList "HADOLINT_OVERRIDE_INFO"
+        <*> getOverrideList "HADOLINT_OVERRIDE_STYLE"
+        <*> getOverrideList "HADOLINT_IGNORE"
+        <*> rulesConfig
+
+    rulesConfig =
+      RulesConfig
+        <$> getAllowedSet "HADOLINT_ALLOWED_REGISTRIES"
+        <*> getLabelSchema "HADOLINT_REQUIRE_LABELS"
+        <*> maybeTruthy "HADOLINT_STRICT_LABELS"
+
+
+maybeTruthy :: String -> IO (Maybe Bool)
+maybeTruthy name = do
+  e <- lookupEnv name
+  case e of
+    Just v ->
+      if truthy v
+      then return $ Just True
+      else return $ Just False
+    Nothing -> return Nothing
+
+truthy :: String -> Bool
+truthy s = s `elem` ["1", "Y", "y", "On", "on", "True", "true", "Yes", "yes"]
+
+getFormat :: IO (Maybe OutputFormat)
+getFormat = do
+  fmt <- lookupEnv "HADOLINT_FORMAT"
+  if isJust fmt then
+    case (toMaybeOutputFormat . fromJust) fmt of
+      Just f -> return $ Just f
+      Nothing -> return Nothing
+  else
+    return Nothing
+
+getOverrideList :: String -> IO [RuleCode]
+getOverrideList env = do
+  maybeString <- lookupEnv env
+  case maybeString of
+    Just s -> return $ getRulecodes (pack s)
+    Nothing -> return []
+
+getRulecodes :: Text -> [RuleCode]
+getRulecodes s = do
+  list <- splitOn "," s
+  let rules = coerce (list :: Text)
+  return rules
+
+getAllowedSet :: String -> IO (Set Registry)
+getAllowedSet env = do
+  maybeString <- lookupEnv env
+  case maybeString of
+    Just s -> return $ Data.Set.fromList (getAllowed (pack s))
+    Nothing -> return Data.Set.empty
+
+getAllowed :: Text -> [Registry]
+getAllowed s = do
+  list <- splitOn "," s
+  let regs = coerce (list :: Text)
+  return regs
+
+getLabelSchema :: String -> IO LabelSchema
+getLabelSchema env = do
+  maybeString <- lookupEnv env
+  case maybeString of
+    Just s -> return $ Data.Map.fromList (labelSchemaFromText (pack s))
+    Nothing -> return Data.Map.empty
+
+labelSchemaFromText :: Text -> [(LabelName, LabelType)]
+labelSchemaFromText txt =
+  [ (ln, lt) | Right (ln, lt) <- map convertToLabelSchema (convertToPairs txt) ]
+
+convertToPairs :: Text -> [(Text, Text)]
+convertToPairs txt = map (breakOn ":") (splitOn "," txt)
+
+convertToLabelSchema :: (Text, Text) -> Either String (LabelName, LabelType)
+convertToLabelSchema (tln, tlt) =
+  case (readEither . unpack . Data.Text.drop 1) tlt of
+    Right lt -> Right (coerce tln :: Text, lt)
+    Left e -> Left e
+
+getFailureThreshold :: IO (Maybe DLSeverity)
+getFailureThreshold = do
+  ft <- lookupEnv "HADOLINT_FAILURE_THRESHOLD"
+  if isJust ft then
+    case (readSeverity . pack . fromJust) ft of
+      Right s -> return $ Just s
+      Left _ -> return Nothing
+  else
+    return Nothing

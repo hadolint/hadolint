@@ -32,6 +32,11 @@ library
   exposed-modules:
       Hadolint
       Hadolint.Config
+      Hadolint.Config.Commandline
+      Hadolint.Config.Configfile
+      Hadolint.Config.Configuration
+      Hadolint.Config.Environment
+      Hadolint.Formatter
       Hadolint.Formatter.Checkstyle
       Hadolint.Formatter.Codacy
       Hadolint.Formatter.Codeclimate
@@ -128,6 +133,7 @@ library
       StrictData
       TemplateHaskell
       TupleSections
+      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       Cabal
@@ -139,6 +145,7 @@ library
     , colourista
     , containers
     , cryptonite
+    , data-default
     , deepseq ==1.4.4.*
     , directory >=1.3.0
     , email-validate
@@ -150,6 +157,7 @@ library
     , megaparsec >=9.0.0
     , mtl
     , network-uri
+    , optparse-applicative >=0.14.0
     , parallel
     , parsec >=3.1.14
     , semver
@@ -178,10 +186,12 @@ executable hadolint
       StrictData
       TemplateHaskell
       TupleSections
+      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
     , containers
+    , data-default
     , hadolint
     , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
@@ -195,74 +205,82 @@ test-suite hadolint-unit-tests
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ConfigSpec
-      DL3000
-      DL3001
-      DL3002
-      DL3003
-      DL3004
-      DL3005
-      DL3006
-      DL3007
-      DL3008
-      DL3009
-      DL3010
-      DL3011
-      DL3012
-      DL3013
-      DL3014
-      DL3015
-      DL3016
-      DL3018
-      DL3019
-      DL3020
-      DL3021
-      DL3022
-      DL3023
-      DL3024
-      DL3025
-      DL3026
-      DL3027
-      DL3028
-      DL3029
-      DL3030
-      DL3032
-      DL3033
-      DL3034
-      DL3035
-      DL3036
-      DL3037
-      DL3038
-      DL3040
-      DL3041
-      DL3042
-      DL3043
-      DL3044
-      DL3045
-      DL3046
-      DL3047
-      DL3048
-      DL3049
-      DL3050
-      DL3051
-      DL3052
-      DL3053
-      DL3054
-      DL3055
-      DL3056
-      DL3057
-      DL3058
-      DL3059
-      DL3060
-      DL4000
-      DL4001
-      DL4003
-      DL4004
-      DL4005
-      DL4006
+      Hadolint.Config.CommandlineSpec
+      Hadolint.Config.ConfigfileSpec
+      Hadolint.Config.ConfigurationSpec
+      Hadolint.Config.EnvironmentSpec
+      Hadolint.Config.SpecHook
+      Hadolint.Formatter.ParseErrorSpec
+      Hadolint.Formatter.TTYSpec
+      Hadolint.PragmaSpec
+      Hadolint.Rule.DL3000Spec
+      Hadolint.Rule.DL3001Spec
+      Hadolint.Rule.DL3002Spec
+      Hadolint.Rule.DL3003Spec
+      Hadolint.Rule.DL3004Spec
+      Hadolint.Rule.DL3005Spec
+      Hadolint.Rule.DL3006Spec
+      Hadolint.Rule.DL3007Spec
+      Hadolint.Rule.DL3008Spec
+      Hadolint.Rule.DL3009Spec
+      Hadolint.Rule.DL3010Spec
+      Hadolint.Rule.DL3011Spec
+      Hadolint.Rule.DL3012Spec
+      Hadolint.Rule.DL3013Spec
+      Hadolint.Rule.DL3014Spec
+      Hadolint.Rule.DL3015Spec
+      Hadolint.Rule.DL3016Spec
+      Hadolint.Rule.DL3018Spec
+      Hadolint.Rule.DL3019Spec
+      Hadolint.Rule.DL3020Spec
+      Hadolint.Rule.DL3021Spec
+      Hadolint.Rule.DL3022Spec
+      Hadolint.Rule.DL3023Spec
+      Hadolint.Rule.DL3024Spec
+      Hadolint.Rule.DL3025Spec
+      Hadolint.Rule.DL3026Spec
+      Hadolint.Rule.DL3027Spec
+      Hadolint.Rule.DL3028Spec
+      Hadolint.Rule.DL3029Spec
+      Hadolint.Rule.DL3030Spec
+      Hadolint.Rule.DL3032Spec
+      Hadolint.Rule.DL3033Spec
+      Hadolint.Rule.DL3034Spec
+      Hadolint.Rule.DL3035Spec
+      Hadolint.Rule.DL3036Spec
+      Hadolint.Rule.DL3037Spec
+      Hadolint.Rule.DL3038Spec
+      Hadolint.Rule.DL3040Spec
+      Hadolint.Rule.DL3041Spec
+      Hadolint.Rule.DL3042Spec
+      Hadolint.Rule.DL3043Spec
+      Hadolint.Rule.DL3044Spec
+      Hadolint.Rule.DL3045Spec
+      Hadolint.Rule.DL3046Spec
+      Hadolint.Rule.DL3047Spec
+      Hadolint.Rule.DL3048Spec
+      Hadolint.Rule.DL3049Spec
+      Hadolint.Rule.DL3050Spec
+      Hadolint.Rule.DL3051Spec
+      Hadolint.Rule.DL3052Spec
+      Hadolint.Rule.DL3053Spec
+      Hadolint.Rule.DL3054Spec
+      Hadolint.Rule.DL3055Spec
+      Hadolint.Rule.DL3056Spec
+      Hadolint.Rule.DL3057Spec
+      Hadolint.Rule.DL3058Spec
+      Hadolint.Rule.DL3059Spec
+      Hadolint.Rule.DL3060Spec
+      Hadolint.Rule.DL4000Spec
+      Hadolint.Rule.DL4001Spec
+      Hadolint.Rule.DL4003Spec
+      Hadolint.Rule.DL4004Spec
+      Hadolint.Rule.DL4005Spec
+      Hadolint.Rule.DL4006Spec
+      Hadolint.Rule.ShellcheckSpec
+      Hadolint.ShellSpec
       Helpers
-      Shellcheck
-      ShellSpec
+      RegressionSpec
       Paths_hadolint
   hs-source-dirs:
       test
@@ -277,6 +295,7 @@ test-suite hadolint-unit-tests
       StrictData
       TemplateHaskell
       TupleSections
+      PatternSynonyms
       ImplicitParams
       OverloadedLists
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
@@ -288,11 +307,14 @@ test-suite hadolint-unit-tests
     , base >=4.8 && <5
     , bytestring >=0.10
     , containers
+    , data-default
     , foldl
     , hadolint
-    , hspec
+    , hspec >=2.8.3
     , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
+    , optparse-applicative >=0.14.0
+    , silently
     , split >=0.2
     , text
   default-language: Haskell2010

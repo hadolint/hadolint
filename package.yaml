@@ -1,7 +1,8 @@
 name: hadolint
 version: "2.7.2"
 synopsis: Dockerfile Linter JavaScript API
-description: A smarter Dockerfile linter that helps you build best practice Docker images.
+description:
+  A smarter Dockerfile linter that helps you build best practice Docker images.
 category: Development
 author: Lukas Martinelli
 maintainer: me@lukasmartinelli.ch
@@ -25,8 +26,12 @@ ghc-options:
   - -flate-dmd-anal
 dependencies:
   - base >=4.8 && <5
-  - megaparsec >= 9.0.0
+  - containers
+  - data-default
   - language-docker >=10.3.0 && <11
+  - megaparsec >= 9.0.0
+  - optparse-applicative >= 0.14.0
+  - text
 default-extensions:
   - DeriveAnyClass
   - DeriveGeneric
@@ -38,6 +43,8 @@ default-extensions:
   - StrictData
   - TemplateHaskell
   - TupleSections
+  - PatternSynonyms
+
 library:
   source-dirs: src
   generated-other-modules:
@@ -51,41 +58,39 @@ library:
     - aeson
     - bytestring
     - colourista
-    - containers
     - cryptonite
     - deepseq == 1.4.4.*
     - directory >= 1.3.0
+    - email-validate
     - filepath
+    - foldl
     - gitrev >=1.3.1
     - ilist
     - mtl
     - network-uri
-    - parsec >= 3.1.14
     - parallel
+    - parsec >= 3.1.14
     - semver
     - spdx
-    - text
     - time
     - timerep >= 2.0
     - void
-    - foldl
-    - email-validate
+
 executables:
   hadolint:
     main: Main.hs
     source-dirs: app
     dependencies:
       - hadolint
-      - optparse-applicative >= 0.14.0
-      - text
-      - containers
     ghc-options: -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
     when:
-      # OS X does not support static build https://developer.apple.com/library/content/qa/qa1118
+      # OS X does not support static build
+      # https://developer.apple.com/library/content/qa/qa1118
       - condition: "flag(static) && !(os(osx))"
         ld-options:
           - -static
           - -pthread
+
 tests:
   hadolint-unit-tests:
     main: Spec.hs
@@ -94,14 +99,13 @@ tests:
       - ImplicitParams
       - OverloadedLists
     dependencies:
+      - *ShellCheck
       - *bytestring
       - *split
-      - *ShellCheck
-      - aeson
-      - text
       - HUnit >=1.2
-      - hspec
-      - hadolint
       - HsYAML
+      - aeson
       - foldl
-      - containers
+      - hadolint
+      - hspec >= 2.8.3
+      - silently

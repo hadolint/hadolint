@@ -1,12 +1,15 @@
 module Hadolint.Process (run, RulesConfig (..)) where
 
+import Data.Default
+import Hadolint.Meta ((<>>))
+import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
+import Language.Docker.Syntax
 import qualified Control.Foldl as Foldl
 import qualified Data.IntMap.Strict as SMap
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Pragma
-import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
 import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Rule.DL3000
 import qualified Hadolint.Rule.DL3001
@@ -74,7 +77,6 @@ import qualified Hadolint.Rule.DL4005
 import qualified Hadolint.Rule.DL4006
 import qualified Hadolint.Rule.Shellcheck
 import qualified Hadolint.Shell as Shell
-import Language.Docker.Syntax
 
 
 -- | Contains the required parameters for optional rules
@@ -82,19 +84,30 @@ data RulesConfig = RulesConfig
   { -- | The docker registries that are allowed in FROM
     allowedRegistries :: Set.Set Registry,
     labelSchema :: Rule.LabelSchema,
-    strictLabels :: Bool
+    strictLabels :: Maybe Bool
   }
-  deriving (Show, Eq)
+  deriving (Eq)
+
+instance Show RulesConfig where
+  show rc =
+    Prelude.unlines
+      [ "strict labels: " ++ maybe "unset" show (strictLabels rc),
+        "label schema: " ++ show (labelSchema rc),
+        "allowed registries: " ++ show (allowedRegistries rc)
+      ]
 
 instance Semigroup RulesConfig where
   RulesConfig a1 a2 a3 <> RulesConfig b1 b2 b3 =
     RulesConfig
       (a1 <> b1)
       (a2 <> b2)
-      (a3 || b3)
+      (a3 <>> b3)
 
 instance Monoid RulesConfig where
-  mempty = RulesConfig mempty mempty False
+  mempty = RulesConfig mempty mempty Nothing
+
+instance Default RulesConfig where
+  def = RulesConfig mempty mempty (Just False)
 
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
@@ -183,7 +196,7 @@ failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3047.rule
     <> Hadolint.Rule.DL3048.rule
     <> Hadolint.Rule.DL3049.rule labelSchema
-    <> Hadolint.Rule.DL3050.rule labelSchema strictLabels
+    <> Hadolint.Rule.DL3050.rule labelSchema (Just True == strictLabels)
     <> Hadolint.Rule.DL3051.rule labelSchema
     <> Hadolint.Rule.DL3052.rule labelSchema
     <> Hadolint.Rule.DL3053.rule labelSchema

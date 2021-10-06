@@ -1,25 +1,89 @@
 module Hadolint.Formatter.Format
-  ( severityText,
-    stripNewlines,
+  ( OutputFormat (..),
+    Result (..),
+    Text.Megaparsec.Error.errorBundlePretty,
     errorMessage,
     errorMessageLine,
     errorPosition,
     errorPositionPretty,
-    Text.Megaparsec.Error.errorBundlePretty,
-    Result (..),
+    severityText,
+    stripNewlines,
+    toMaybeOutputFormat,
     toResult,
   )
 where
 
-import qualified Data.List.NonEmpty as NE
+import Data.Text (unpack)
 import Data.Sequence (Seq)
-import qualified Data.Sequence as Seq
-import qualified Data.Text as Text
-import qualified Hadolint.Rule
+import Data.YAML
 import Text.Megaparsec (TraversableStream (..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 import Text.Megaparsec.Stream (VisualStream)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Sequence as Seq
+import qualified Data.Text as Text
+import qualified Hadolint.Rule
+
+data OutputFormat
+  = Json
+  | SonarQube
+  | TTY
+  | CodeclimateJson
+  | GitlabCodeclimateJson
+  | Checkstyle
+  | Codacy
+  | Sarif
+  deriving (Eq)
+
+instance Read OutputFormat where
+  readsPrec _ "json" = [(Json, "")]
+  readsPrec _ "sonarqube" = [(SonarQube, "")]
+  readsPrec _ "tty" = [(TTY, "")]
+  readsPrec _ "codeclimate" = [(CodeclimateJson, "")]
+  readsPrec _ "gitlab_codeclimate" = [(GitlabCodeclimateJson, "")]
+  readsPrec _ "checkstyle" = [(Checkstyle, "")]
+  readsPrec _ "codacy" = [(Codacy, "")]
+  readsPrec _ "sarif" = [(Sarif, "")]
+  readsPrec _ _ = []
+
+instance Show OutputFormat where
+  show Json = "json"
+  show SonarQube = "sonarqube"
+  show TTY = "tty"
+  show CodeclimateJson = "codeclimate"
+  show GitlabCodeclimateJson = "gitlab_codeclimate"
+  show Checkstyle = "checkstyle"
+  show Codacy = "codacy"
+  show Sarif= "sarif"
+
+instance Semigroup OutputFormat where
+  _ <> f = f
+
+instance Monoid OutputFormat where
+  mempty = TTY
+
+instance FromYAML OutputFormat where
+  parseYAML = withOutputFormat pure
+
+withOutputFormat ::
+  (OutputFormat -> Parser a) ->
+  Node Pos ->
+  Parser a
+withOutputFormat f (Scalar _ (SStr b)) = f $ read (unpack b)
+withOutputFormat _ v = typeMismatch "output format" v
+
+
+toMaybeOutputFormat :: String -> Maybe OutputFormat
+toMaybeOutputFormat "json" = Just Json
+toMaybeOutputFormat "sonarqube" = Just SonarQube
+toMaybeOutputFormat "tty" = Just TTY
+toMaybeOutputFormat "codeclimate" = Just CodeclimateJson
+toMaybeOutputFormat "gitlab_codeclimate" = Just GitlabCodeclimateJson
+toMaybeOutputFormat "checkstyle" = Just Checkstyle
+toMaybeOutputFormat "codacy" = Just Codacy
+toMaybeOutputFormat "sarif" = Just Sarif
+toMaybeOutputFormat _ = Nothing
 
 data Result s e = Result
   { fileName :: Text.Text,

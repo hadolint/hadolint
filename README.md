@@ -169,14 +169,22 @@ Available options:
 
 ## Configure
 
-Configuration files can be used globally or per project. By default,
-`hadolint` looks for a configuration file named `.hadolint.yaml` or
-`.hadolint.yml` in the current directory.
+Configuration files can be used globally or per project.
+Hadolint looks for configuration files in the following locations or their
+platform specific equivalents in this order and uses the first one exclusively:
+- `$PWD/.hadolint.yaml`
+- `$XDG_CONFIG_HOME/hadolint.yaml`
+- `$HOME/.config/hadolint.yaml`
+- `$HOME/.hadolint/hadolint.yaml or $HOME/hadolint/config.yaml`
+- `$HOME/.hadolint.yaml`
+
+In windows, the `%LOCALAPPDATA%` environment variable is used instead of 
+`XDG_CONFIG_HOME`. Config files can have either `yaml` or `yml` extensions.
 
 `hadolint` full `yaml` config file schema
 
 ```yaml
-failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)                
+failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)
 format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
 ignored: [string]                       # list of rules
 label-schema:                           # See Linting Labels below for specific label-schema details
@@ -250,18 +258,6 @@ warning:
     - DL3032
 ```
 
-The global configuration file should be placed in the folder
-specified by `XDG_CONFIG_HOME`,
-with the name `hadolint.yaml` or `hadolint.yml`. In summary, the
-following locations are valid for the configuration file, in order
-or preference:
-
-- `$PWD/.hadolint.yaml`
-- `$XDG_CONFIG_HOME/hadolint.yaml`
-- `~/.config/hadolint.yaml`
-
-In windows, the `%LOCALAPPDATA%` environment variable is used instead of `XDG_CONFIG_HOME`
-
 Additionally, you can pass a custom configuration file in the command line with
 the `--config` option
 
@@ -276,6 +272,35 @@ a container, use the following command:
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
 # OR
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+```
+
+In addition to config files, Hadolint can be configured with environment
+variables.
+```bash
+NO_COLOR=1                               # Truthy value e.g. 1, true or yes
+HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
+HADOLINT_VERBOSE=1                       # Truthy value e.g. 1, true or yes
+HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy | sarif )
+HADOLINT_FAILURE_THRESHOLD=info          # threshold level (error | warning | info | style | ignore | none)
+HADOLINT_OVERRIDE_ERROR=DL3010,DL3020    # comma separated list of rule codes
+HADOLINT_OVERRIDE_WARNING=DL3010,DL3020  # comma separated list of rule codes
+HADOLINT_OVERRIDE_INFO=DL3010,DL3020     # comma separated list of rule codes
+HADOLINT_OVERRIDE_STYLE=DL3010,DL3020    # comma separated list of rule codes
+HADOLINT_IGNORE=DL3010,DL3020            # comma separated list of rule codes
+HADOLINT_STRICT_LABELS=1                 # Truthy value e.g. 1, true or yes
+HADOLINT_TRUSTED_REGISTRIES              # comma separated list of registry urls
+```
+
+## Non-Posix Shells
+
+When using base images with non-posix shells as default (e.g. Windows based
+images) a special pragma `hadolint shell` can specify which shell the base image
+uses, so that Hadolint can automatically ignore all shell-specific rules.
+
+```Dockerfile
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+# hadolint shell=powershell
+RUN Get-Process notepad | Stop-Process
 ```
 
 ## Inline ignores

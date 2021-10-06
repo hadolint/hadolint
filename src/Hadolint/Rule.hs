@@ -1,14 +1,16 @@
 module Hadolint.Rule where
 
 import Control.DeepSeq (NFData)
+import Data.String (IsString (..))
+import Data.Text (Text, unpack)
+import GHC.Generics (Generic)
+import Language.Docker.Syntax
+import Text.Read (readEither)
 import qualified Control.Foldl as Foldl
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
-import Data.String (IsString (..))
 import qualified Data.Text as Text
 import qualified Data.YAML as Yaml
-import GHC.Generics (Generic)
-import Language.Docker.Syntax
 
 infixl 0 |>
 
@@ -21,7 +23,23 @@ data DLSeverity
   | DLInfoC
   | DLStyleC
   | DLIgnoreC
-  deriving (Show, Read, Eq, Ord, Generic, NFData)
+  deriving (Eq, Ord, Generic, NFData)
+
+instance Show DLSeverity where
+  show DLErrorC = "error"
+  show DLWarningC = "warning"
+  show DLInfoC = "info"
+  show DLStyleC = "style"
+  show DLIgnoreC = "ignore"
+
+instance Read DLSeverity where
+  readsPrec _ "error" = [(DLErrorC, "")]
+  readsPrec _ "warning" = [(DLWarningC, "")]
+  readsPrec _ "info" = [(DLInfoC, "")]
+  readsPrec _ "style" = [(DLStyleC, "")]
+  readsPrec _ "ignore" = [(DLIgnoreC, "")]
+  readsPrec _ "none" = [(DLIgnoreC, "")]
+  readsPrec _ _ = []
 
 instance Yaml.FromYAML DLSeverity where
   parseYAML = withSeverity pure
@@ -33,7 +51,7 @@ withSeverity f v@(Yaml.Scalar _ (Yaml.SStr b)) =
     Left _ -> Yaml.typeMismatch "severity" v
 withSeverity _ v = Yaml.typeMismatch "severity" v
 
-readSeverity :: Text.Text -> Either Text.Text DLSeverity
+readSeverity :: Text -> Either Text DLSeverity
 readSeverity "error" = Right DLErrorC
 readSeverity "warning" = Right DLWarningC
 readSeverity "info" = Right DLInfoC
@@ -42,15 +60,20 @@ readSeverity "ignore" = Right DLIgnoreC
 readSeverity "none" = Right DLIgnoreC
 readSeverity t = Left ("Invalid severity: " <> t)
 
-instance Semigroup DLSeverity where s1 <> s2 = min s1 s2
+instance Semigroup DLSeverity where _ <> s2 = s2
 
 instance Monoid DLSeverity where mempty = DLIgnoreC
 
-newtype RuleCode = RuleCode {unRuleCode :: Text.Text}
-  deriving (Show, Eq, Ord)
+
+newtype RuleCode = RuleCode {unRuleCode :: Text}
+  deriving (Eq, Ord)
+
+instance Show RuleCode where
+  show rc = show (unRuleCode rc)
 
 instance IsString RuleCode where
   fromString = RuleCode . Text.pack
+
 
 data CheckFailure = CheckFailure
   { code :: RuleCode,
@@ -63,13 +86,16 @@ data CheckFailure = CheckFailure
 instance Ord CheckFailure where
   a `compare` b = line a `compare` line b
 
+
 type Failures = Seq.Seq CheckFailure
+
 
 data State a = State
   { failures :: Failures,
     state :: a
   }
   deriving (Show)
+
 
 type LabelName = Text.Text
 
@@ -81,25 +107,34 @@ data LabelType
   | Rfc3339
   | SemVer
   | Email
-  deriving (Eq, Read, Show)
+  deriving (Eq)
 
-read :: Text.Text -> Either Text.Text LabelType
-read "url"     = Right Url
-read "spdx"    = Right Spdx
-read "hash"    = Right GitHash
-read "rfc3339" = Right Rfc3339
-read "semver"  = Right SemVer
-read "email"   = Right Email
-read "text"    = Right RawText
-read ""        = Right RawText
-read t         = Left ("Invalid label type: " <> t)
+instance Show LabelType where
+  show RawText = "text"
+  show Url = "url"
+  show Spdx = "spdx"
+  show GitHash = "hash"
+  show Rfc3339 = "rfc3339"
+  show SemVer = "semver"
+  show Email = "email"
+
+instance Read LabelType where
+  readsPrec _ "email" = [(Email, "")]
+  readsPrec _ "hash" = [(GitHash, "")]
+  readsPrec _ "rfc3339" = [(Rfc3339, "")]
+  readsPrec _ "semver" = [(SemVer, "")]
+  readsPrec _ "spdx" = [(Spdx, "")]
+  readsPrec _ "text" = [(RawText, "")]
+  readsPrec _ "url" = [(Url, "")]
+  readsPrec _ "" = [(RawText, "")]
+  readsPrec _ _ = []
 
 instance Yaml.FromYAML LabelType where
   parseYAML = withLabelType pure
 
 withLabelType :: (LabelType -> Yaml.Parser a) -> Yaml.Node Yaml.Pos -> Yaml.Parser a
 withLabelType f v@(Yaml.Scalar _ (Yaml.SStr b)) =
-    case Hadolint.Rule.read b of
+    case (readEither . unpack) b of
       Right lt -> f lt
       Left _ -> Yaml.typeMismatch "labeltype" v
 withLabelType _ v = Yaml.typeMismatch "labeltype" v
@@ -215,7 +250,7 @@ archiveFileFormatExtensions =
     ".xz"
   ]
 
-dropQuotes :: Text.Text -> Text.Text
+dropQuotes :: Text -> Text
 dropQuotes = Text.dropAround quotes
   where
     quotes '\"' = True

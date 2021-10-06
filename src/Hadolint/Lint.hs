@@ -3,52 +3,53 @@ module Hadolint.Lint
     lint,
     analyze,
     LintOptions (..),
-    ErrorRule,
-    WarningRule,
-    InfoRule,
-    StyleRule,
-    IgnoreRule,
     TrustedRegistry,
   )
 where
 
+import Data.Default
+import Data.Text (Text)
+import Hadolint.Rule (RuleCode, DLSeverity (..))
+import Language.Docker.Parser (DockerfileError, Error)
+import Language.Docker.Syntax (Dockerfile)
 import qualified Control.Parallel.Strategies as Parallel
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
-import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Process
 import qualified Hadolint.Rule
 import qualified Language.Docker as Docker
-import Language.Docker.Parser (DockerfileError, Error)
-import Language.Docker.Syntax (Dockerfile)
-
-type ErrorRule = Hadolint.Rule.RuleCode
-
-type WarningRule = Hadolint.Rule.RuleCode
-
-type InfoRule = Hadolint.Rule.RuleCode
-
-type StyleRule = Hadolint.Rule.RuleCode
-
-type IgnoreRule = Hadolint.Rule.RuleCode
 
 type TrustedRegistry = Text
 
 data LintOptions = LintOptions
-  { errorRules :: [ErrorRule],
-    warningRules :: [WarningRule],
-    infoRules :: [InfoRule],
-    styleRules :: [StyleRule],
-    ignoreRules :: [IgnoreRule],
-    rulesConfig :: Hadolint.Process.RulesConfig,
-    failThreshold :: Hadolint.Rule.DLSeverity
+  { errorRules :: [RuleCode],
+    warningRules :: [RuleCode],
+    infoRules :: [RuleCode],
+    styleRules :: [RuleCode],
+    ignoreRules :: [RuleCode],
+    rulesConfig :: Hadolint.Process.RulesConfig
   }
-  deriving (Show)
+  deriving (Eq)
+
+instance Show LintOptions where
+  show o =
+    showRulelist "error" (errorRules o)
+      ++ showRulelist "warning" (warningRules o)
+      ++ showRulelist "info" (infoRules o)
+      ++ showRulelist "style" (styleRules o)
+      ++ showRulelist "ignore" (ignoreRules o)
+      ++ show (rulesConfig o)
+
+showRulelist :: String -> [RuleCode] -> String
+showRulelist _ [] = ""
+showRulelist name list =
+  Prelude.unlines $
+    ("override " ++ name ++ ": ") : fmap (\i -> " - " ++ show i) list
 
 instance Semigroup LintOptions where
-  LintOptions a1 a2 a3 a4 a5 a6 a7 <> LintOptions b1 b2 b3 b4 b5 b6 b7 =
+  LintOptions a1 a2 a3 a4 a5 a6 <> LintOptions b1 b2 b3 b4 b5 b6 =
     LintOptions
       (a1 <> b1)
       (a2 <> b2)
@@ -56,14 +57,19 @@ instance Semigroup LintOptions where
       (a4 <> b4)
       (a5 <> b5)
       (a6 <> b6)
-      (a7 <> b7)
 
 instance Monoid LintOptions where
-  mempty = LintOptions mempty mempty mempty mempty mempty mempty mempty
+  mempty = LintOptions mempty mempty mempty mempty mempty mempty
 
--- | Performs the process of parsing the dockerfile and analyzing it with all the applicable
--- rules, depending on the list of ignored rules.
-lintIO :: LintOptions -> NonEmpty.NonEmpty FilePath -> IO (NonEmpty.NonEmpty (Format.Result Text DockerfileError))
+instance Default LintOptions where
+  def = LintOptions mempty mempty mempty mempty mempty def
+
+-- | Performs the process of parsing the dockerfile and analyzing it with all
+-- the applicable rules, depending on the list of ignored rules.
+lintIO ::
+  LintOptions ->
+  NonEmpty.NonEmpty FilePath ->
+  IO (NonEmpty.NonEmpty (Format.Result Text DockerfileError))
 lintIO options dFiles = do
   parsedFiles <- mapM parseFile (NonEmpty.toList dFiles)
   return $ NonEmpty.fromList (lint options parsedFiles)
@@ -97,8 +103,12 @@ analyze options dockerfile = fixer process
     fixer = fixSeverity options
     process = Hadolint.Process.run (rulesConfig options) dockerfile
 
-fixSeverity :: LintOptions -> Seq.Seq Hadolint.Rule.CheckFailure -> Seq.Seq Hadolint.Rule.CheckFailure
-fixSeverity LintOptions {..} = Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
+fixSeverity ::
+  LintOptions ->
+  Seq.Seq Hadolint.Rule.CheckFailure ->
+  Seq.Seq Hadolint.Rule.CheckFailure
+fixSeverity LintOptions {..} =
+  Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
   where
     correctSeverity =
       makeSeverity Hadolint.Rule.DLErrorC errorRules
@@ -113,6 +123,6 @@ fixSeverity LintOptions {..} = Seq.filter ignoredRules . Seq.mapWithIndex (const
         then rule {Hadolint.Rule.severity = s}
         else rule
 
-    ignoreFilter :: [IgnoreRule] -> Hadolint.Rule.CheckFailure -> Bool
+    ignoreFilter :: [RuleCode] -> Hadolint.Rule.CheckFailure -> Bool
     ignoreFilter ignored Hadolint.Rule.CheckFailure {code, severity} =
       code `notElem` ignored && severity /= Hadolint.Rule.DLIgnoreC
