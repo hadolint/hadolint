@@ -13,7 +13,7 @@ top of the AST. It stands on the shoulders of [ShellCheck][] to lint
 the Bash code inside `RUN` instructions.
 
 [:globe_with_meridians: **Check the online version on
- hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
+hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
 [![Screenshot](screenshot.png)](https://hadolint.github.io/hadolint)
 
 ## How to use
@@ -82,7 +82,7 @@ variants:
 
 ```bash
 docker pull hadolint/hadolint:latest-debian
-# OR 
+# OR
 docker pull hadolint/hadolint:latest-alpine
 # OR
 docker pull ghcr.io/hadolint/hadolint:latest-debian
@@ -120,12 +120,12 @@ hadolint --help
 ```text
 hadolint - Dockerfile Linter written in Haskell
 
-Usage: hadolint [-v|--version] [--no-fail] [--no-color] [-c|--config FILENAME] 
-                [-V|--verbose] [-f|--format ARG] [DOCKERFILE...] 
-                [--error RULECODE] [--warning RULECODE] [--info RULECODE] 
-                [--style RULECODE] [--ignore RULECODE] 
-                [--trusted-registry REGISTRY (e.g. docker.io)] 
-                [--require-label LABELSCHEMA (e.g. maintainer:text)] 
+Usage: hadolint [-v|--version] [--no-fail] [--no-color] [-c|--config FILENAME]
+                [-V|--verbose] [-f|--format ARG] [DOCKERFILE...]
+                [--error RULECODE] [--warning RULECODE] [--info RULECODE]
+                [--style RULECODE] [--ignore RULECODE]
+                [--trusted-registry REGISTRY (e.g. docker.io)]
+                [--require-label LABELSCHEMA (e.g. maintainer:text)]
                 [--strict-labels] [-t|--failure-threshold THRESHOLD]
   Lint Dockerfile for errors and best practices
 
@@ -167,7 +167,7 @@ Available options:
 
 Configuration files can be used globally or per project. By default,
 `hadolint` looks for a configuration file named `.hadolint.yaml` or
-`.hadolint.yml` in the current directory. 
+`.hadolint.yml` in the current directory.
 
 `hadolint` full `yaml` config file schema
 
@@ -265,7 +265,7 @@ the `--config` option
 hadolint --config /path/to/config.yaml Dockerfile
 ```
 
-To pass a custom configuration file (using relative or absolute path) to 
+To pass a custom configuration file (using relative or absolute path) to
 a container, use the following command:
 
 ```bash
@@ -376,16 +376,18 @@ write it. See our [Integration][] docs.
 An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
-- Rules with the prefix `DL` are from `hadolint`. Have a look at
-  `Rules.hs` to find the implementation of the rules.
+-   Rules with the prefix `DL` are from `hadolint`. Have a look at
+    `Rules.hs` to find the implementation of the rules.
 
-- Rules with the `SC` prefix are from **ShellCheck** (only the most
-  common rules are listed, there are dozens more).
+-   Rules with the `SC` prefix are from **ShellCheck** (only the most
+    common rules are listed, there are dozens more).
 
 Please [create an issue][] if you have an idea for a good rule.
+
 <!--lint disable maximum-line-length-->
+
 | Rule                                                         | Default Severity | Description                                                                                                                                         |
-|:-------------------------------------------------------------|:-----------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|
+| :----------------------------------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [DL3000](https://github.com/hadolint/hadolint/wiki/DL3000)   | Error            | Use absolute WORKDIR.                                                                                                                               |
 | [DL3001](https://github.com/hadolint/hadolint/wiki/DL3001)   | Info             | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig. |
 | [DL3002](https://github.com/hadolint/hadolint/wiki/DL3002)   | Warning          | Last user should not be root.                                                                                                                       |
@@ -419,7 +421,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3032](https://github.com/hadolint/hadolint/wiki/DL3032)   | Warning          | `yum clean all` missing after yum command.                                                                                                          |
 | [DL3033](https://github.com/hadolint/hadolint/wiki/DL3033)   | Warning          | Specify version with `yum install -y <package>-<version>`                                                                                           |
 | [DL3034](https://github.com/hadolint/hadolint/wiki/DL3034)   | Warning          | Non-interactive switch missing from `zypper` command: `zypper install -y`                                                                           |
-| [DL3035](https://github.com/hadolint/hadolint/wiki/DL3035)   | Warning          | Do not use `zypper dist-upgrade`.                                                                                                                  	|
+| [DL3035](https://github.com/hadolint/hadolint/wiki/DL3035)   | Warning          | Do not use `zypper dist-upgrade`.                                                                                                                   |
 | [DL3036](https://github.com/hadolint/hadolint/wiki/DL3036)   | Warning          | `zypper clean` missing after zypper use.                                                                                                            |
 | [DL3037](https://github.com/hadolint/hadolint/wiki/DL3037)   | Warning          | Specify version with `zypper install -y <package>[=]<version>`.                                                                                     |
 | [DL3038](https://github.com/hadolint/hadolint/wiki/DL3038)   | Warning          | Use the `-y` switch to avoid manual input `dnf install -y <package>`                                                                                |
@@ -451,7 +453,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL4005](https://github.com/hadolint/hadolint/wiki/DL4005)   | Warning          | Use `SHELL` to change the default shell.                                                                                                            |
 | [DL4006](https://github.com/hadolint/hadolint/wiki/DL4006)   | Warning          | Set the `SHELL` option -o pipefail before `RUN` with a pipe in it                                                                                   |
 | [SC1000](https://github.com/koalaman/shellcheck/wiki/SC1000) |                  | `$` is not used specially and should therefore be escaped.                                                                                          |
-| [SC1001](https://github.com/koalaman/shellcheck/wiki/SC1001) |                  | This `\c` will be a regular `'c'`  in this context.                                                                                                 |
+| [SC1001](https://github.com/koalaman/shellcheck/wiki/SC1001) |                  | This `\c` will be a regular `'c'` in this context.                                                                                                  |
 | [SC1007](https://github.com/koalaman/shellcheck/wiki/SC1007) |                  | Remove space after `=` if trying to assign a value (or for empty string, use `var='' ...`).                                                         |
 | [SC1010](https://github.com/koalaman/shellcheck/wiki/SC1010) |                  | Use semicolon or linefeed before `done` (or quote to make it literal).                                                                              |
 | [SC1018](https://github.com/koalaman/shellcheck/wiki/SC1018) |                  | This is a unicode non-breaking space. Delete it and retype as space.                                                                                |
@@ -483,6 +485,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC2154](https://github.com/koalaman/shellcheck/wiki/SC2154) |                  | var is referenced but not assigned.                                                                                                                 |
 | [SC2155](https://github.com/koalaman/shellcheck/wiki/SC2155) |                  | Declare and assign separately to avoid masking return values.                                                                                       |
 | [SC2164](https://github.com/koalaman/shellcheck/wiki/SC2164) |                  | Use <code>cd ... &#124;&#124; exit</code> in case `cd` fails.                                                                                       |
+
 <!--lint enable maximum-line-length-->
 
 ## Develop
@@ -541,14 +544,15 @@ the AST definition.
 
 ## Alternatives
 
-- replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
-  the other linter used by the [super-linter](https://github.com/github/super-linter/blob/main/README.md#supported-linters)
+-   replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
+    the other linter used by the [super-linter](https://github.com/github/super-linter/blob/main/README.md#supported-linters)
 
-- RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
+-   RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
 
-- projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
+-   projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
 
 <!-- References -->
+
 [github-actions-img]: https://github.com/hadolint/hadolint/workflows/Haskell%20Tests/badge.svg?branch=master
 [github-actions]: https://travis-ci.org/hadolint/hadolint/actions
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
