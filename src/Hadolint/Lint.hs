@@ -9,6 +9,7 @@ where
 
 import Data.Default
 import Data.Text (Text)
+import Data.Text.Prettyprint.Doc (Pretty, pretty, Doc)
 import Hadolint.Rule (RuleCode, DLSeverity (..))
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
@@ -31,22 +32,27 @@ data LintOptions = LintOptions
     ignoreRules :: [RuleCode],
     rulesConfig :: Hadolint.Process.RulesConfig
   }
-  deriving (Eq)
+  deriving (Eq, Show)
 
-instance Show LintOptions where
-  show o =
+instance Pretty LintOptions where
+  pretty o =
     showRulelist "error" (errorRules o)
-      ++ showRulelist "warning" (warningRules o)
-      ++ showRulelist "info" (infoRules o)
-      ++ showRulelist "style" (styleRules o)
-      ++ showRulelist "ignore" (ignoreRules o)
-      ++ show (rulesConfig o)
+      <> showRulelist "warning" (warningRules o)
+      <> showRulelist "info" (infoRules o)
+      <> showRulelist "style" (styleRules o)
+      <> showRulelist "ignore" (ignoreRules o)
+      <> pretty (rulesConfig o)
 
-showRulelist :: String -> [RuleCode] -> String
+showRulelist :: String -> [RuleCode] -> Doc ann
 showRulelist _ [] = ""
 showRulelist name list =
-  Prelude.unlines $
-    ("override " ++ name ++ ": ") : fmap (\i -> " - " ++ show i) list
+  foldl
+    (<>)
+    ""
+    ( ("override " <> pretty name <> ":\n")
+        : fmap (\i -> " - " <> pretty i <> "\n") list
+    )
+
 
 instance Semigroup LintOptions where
   LintOptions a1 a2 a3 a4 a5 a6 <> LintOptions b1 b2 b3 b4 b5 b6 =

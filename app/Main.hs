@@ -3,12 +3,13 @@ module Main where
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe
+import Hadolint (OutputFormat (..), printResults, DLSeverity (..))
+import Hadolint.Config
+import Prettyprinter
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
-import Hadolint (OutputFormat (..), printResults)
 import qualified Hadolint
 import qualified Hadolint.Rule as Rule
-import Hadolint.Config
 import Options.Applicative
   ( execParser,
     fullDesc,
@@ -22,9 +23,9 @@ import System.Exit (exitFailure, exitSuccess)
 import System.IO (hPrint, stderr)
 
 
-noFailure :: Hadolint.Result s e -> Rule.DLSeverity -> Bool
+noFailure :: Hadolint.Result s e -> Maybe DLSeverity -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) _ = True
-noFailure (Hadolint.Result _ Seq.Empty fails) cutoff =
+noFailure (Hadolint.Result _ Seq.Empty fails) (Just cutoff) =
   Seq.null (Seq.filter (\f -> Rule.severity f <= cutoff) fails)
 noFailure _ _ = False
 
@@ -34,10 +35,10 @@ exitProgram ::
   f (Hadolint.Result s e) ->
   IO ()
 exitProgram conf res
-  | fromJust (noFail conf) = exitSuccess
-  | shallSkipErrorStatus (fromJust $ format conf) = exitSuccess
-  | all (`noFailure` fromJust (failThreshold conf)) res =
-      exitSuccess
+  | Just True == noFail conf = exitSuccess
+  | Just CodeclimateJson == format conf = exitSuccess
+  | Just Codacy == format conf = exitSuccess
+  | all (`noFailure` failThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
 runLint ::
@@ -48,14 +49,20 @@ runLint cmd conf = do
   let files = NonEmpty.fromList $ dockerfiles cmd
       filePathInReport = filePathInReportOption cmd
   res <- Hadolint.lintIO (lintingOptions conf) files
-  printResults (fromJust $ format conf) (fromJust $ noColor conf) filePathInReport res
+  printResults
+    (fromMaybe def $ format conf)  -- not pretty but works
+    (Just True == noColor conf)
+    filePathInReport
+    res
   exitProgram conf res
 
+execute :: CommandlineConfig -> Configuration -> IO ()
+execute CommandlineConfig {showVersion = True} _ =
+  putStrLn Hadolint.getVersion >> exitSuccess
+execute CommandlineConfig {dockerfiles = []} _ =
+  putStrLn "Please provide a Dockerfile" >> exitFailure
+execute cmd config = runLint cmd config
 
-shallSkipErrorStatus :: OutputFormat -> Bool
-shallSkipErrorStatus CodeclimateJson = True
-shallSkipErrorStatus Codacy = True
-shallSkipErrorStatus _ = False
 
 main :: IO ()
 main = do
@@ -64,28 +71,25 @@ main = do
   let fromCommandline = configuration invokedWith
   eitherFromConfigfile <- getConfigFromFile
     (configFile invokedWith) (Just True == verbose fromCommandline)
-  fromConfigfile <- foobar eitherFromConfigfile
+  fromConfigfile <- getConfigFromEither eitherFromConfigfile
 
   let runningConfig =
         def <> fromEnvironment <> fromConfigfile <> fromCommandline
 
-  when (Just True == verbose fromCommandline) (hPrint stderr runningConfig)
+  when (Just True == verbose fromCommandline)
+    (hPrint stderr (pretty runningConfig))
   execute invokedWith runningConfig
   where
-    execute CommandlineConfig {showVersion = True} _ =
-      putStrLn Hadolint.getVersion >> exitSuccess
-    execute CommandlineConfig {dockerfiles = []} _ =
-      putStrLn "Please provide a Dockerfile" >> exitFailure
-    execute cmd config = runLint cmd config
-
     opts =
       info
         ( helper <*> parseCommandline )
-        ( fullDesc <> progDesc "Lint Dockerfile for errors and best practices"
+        ( fullDesc
             <> header "hadolint - Dockerfile Linter written in Haskell"
+            <> progDesc "Lint Dockerfile for errors and best practices"
         )
 
-    foobar ei =
+    -- Either return the config or print the error message
+    getConfigFromEither ei =
       case ei of
         Left err -> do
           hPrint stderr err

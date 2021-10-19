@@ -1,11 +1,12 @@
 module Hadolint.Rule where
 
 import Control.DeepSeq (NFData)
+import Data.Default
 import Data.String (IsString (..))
 import Data.Text (Text, unpack)
 import GHC.Generics (Generic)
 import Language.Docker.Syntax
-import Text.Read (readEither)
+import Prettyprinter (Pretty, pretty)
 import qualified Control.Foldl as Foldl
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -23,46 +24,52 @@ data DLSeverity
   | DLInfoC
   | DLStyleC
   | DLIgnoreC
-  deriving (Eq, Ord, Generic, NFData)
-
-instance Show DLSeverity where
-  show DLErrorC = "error"
-  show DLWarningC = "warning"
-  show DLInfoC = "info"
-  show DLStyleC = "style"
-  show DLIgnoreC = "ignore"
-
-instance Read DLSeverity where
-  readsPrec _ "error" = [(DLErrorC, "")]
-  readsPrec _ "warning" = [(DLWarningC, "")]
-  readsPrec _ "info" = [(DLInfoC, "")]
-  readsPrec _ "style" = [(DLStyleC, "")]
-  readsPrec _ "ignore" = [(DLIgnoreC, "")]
-  readsPrec _ "none" = [(DLIgnoreC, "")]
-  readsPrec _ _ = []
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 instance Yaml.FromYAML DLSeverity where
   parseYAML = withSeverity pure
 
-withSeverity :: (DLSeverity -> Yaml.Parser a) -> Yaml.Node Yaml.Pos -> Yaml.Parser a
+withSeverity ::
+  (DLSeverity -> Yaml.Parser a) ->
+  Yaml.Node Yaml.Pos ->
+  Yaml.Parser a
 withSeverity f v@(Yaml.Scalar _ (Yaml.SStr b)) =
-  case Hadolint.Rule.readSeverity b of
+  case readEitherSeverity b of
     Right s -> f s
     Left _ -> Yaml.typeMismatch "severity" v
 withSeverity _ v = Yaml.typeMismatch "severity" v
 
-readSeverity :: Text -> Either Text DLSeverity
-readSeverity "error" = Right DLErrorC
-readSeverity "warning" = Right DLWarningC
-readSeverity "info" = Right DLInfoC
-readSeverity "style" = Right DLStyleC
-readSeverity "ignore" = Right DLIgnoreC
-readSeverity "none" = Right DLIgnoreC
-readSeverity t = Left ("Invalid severity: " <> t)
+readEitherSeverity :: Text -> Either String DLSeverity
+readEitherSeverity "error" = Right DLErrorC
+readEitherSeverity "warning" = Right DLWarningC
+readEitherSeverity "info" = Right DLInfoC
+readEitherSeverity "style" = Right DLStyleC
+readEitherSeverity "ignore" = Right DLIgnoreC
+readEitherSeverity "none" = Right DLIgnoreC
+readEitherSeverity t = Left ("Invalid severity: " ++ unpack t)
+
+readMaybeSeverity :: Text -> Maybe DLSeverity
+readMaybeSeverity "error" = Just DLErrorC
+readMaybeSeverity "warning" = Just DLWarningC
+readMaybeSeverity "info" = Just DLInfoC
+readMaybeSeverity "style" = Just DLStyleC
+readMaybeSeverity "ignore" = Just DLIgnoreC
+readMaybeSeverity "none" = Just DLIgnoreC
+readMaybeSeverity _ = Nothing
 
 instance Semigroup DLSeverity where _ <> s2 = s2
 
 instance Monoid DLSeverity where mempty = DLIgnoreC
+
+instance Default DLSeverity where
+  def = DLInfoC
+
+instance Pretty DLSeverity where
+  pretty DLErrorC = "error"
+  pretty DLWarningC = "warning"
+  pretty DLInfoC = "info"
+  pretty DLStyleC = "style"
+  pretty DLIgnoreC = "ignore"
 
 
 newtype RuleCode = RuleCode {unRuleCode :: Text}
@@ -73,6 +80,9 @@ instance Show RuleCode where
 
 instance IsString RuleCode where
   fromString = RuleCode . Text.pack
+
+instance Pretty RuleCode where
+  pretty rc = pretty $ show rc
 
 
 data CheckFailure = CheckFailure
@@ -100,44 +110,44 @@ data State a = State
 type LabelName = Text.Text
 
 data LabelType
-  = RawText
-  | Url
-  | Spdx
+  = Email
   | GitHash
+  | RawText
   | Rfc3339
   | SemVer
-  | Email
-  deriving (Eq)
+  | Spdx
+  | Url
+  deriving (Eq, Show)
 
-instance Show LabelType where
-  show RawText = "text"
-  show Url = "url"
-  show Spdx = "spdx"
-  show GitHash = "hash"
-  show Rfc3339 = "rfc3339"
-  show SemVer = "semver"
-  show Email = "email"
-
-instance Read LabelType where
-  readsPrec _ "email" = [(Email, "")]
-  readsPrec _ "hash" = [(GitHash, "")]
-  readsPrec _ "rfc3339" = [(Rfc3339, "")]
-  readsPrec _ "semver" = [(SemVer, "")]
-  readsPrec _ "spdx" = [(Spdx, "")]
-  readsPrec _ "text" = [(RawText, "")]
-  readsPrec _ "url" = [(Url, "")]
-  readsPrec _ "" = [(RawText, "")]
-  readsPrec _ _ = []
+readEitherLabelType :: Text -> Either Text LabelType
+readEitherLabelType "email" = Right Email
+readEitherLabelType "hash" = Right GitHash
+readEitherLabelType "text" = Right RawText
+readEitherLabelType "rfc3339" = Right Rfc3339
+readEitherLabelType "semver" = Right SemVer
+readEitherLabelType "spdx" = Right Spdx
+readEitherLabelType "url" = Right Url
+readEitherLabelType "" = Right RawText
+readEitherLabelType t = Left ("invalid label type: " <> t)
 
 instance Yaml.FromYAML LabelType where
   parseYAML = withLabelType pure
 
 withLabelType :: (LabelType -> Yaml.Parser a) -> Yaml.Node Yaml.Pos -> Yaml.Parser a
 withLabelType f v@(Yaml.Scalar _ (Yaml.SStr b)) =
-    case (readEither . unpack) b of
+    case readEitherLabelType b of
       Right lt -> f lt
       Left _ -> Yaml.typeMismatch "labeltype" v
 withLabelType _ v = Yaml.typeMismatch "labeltype" v
+
+instance Pretty LabelType where
+  pretty RawText = "text"
+  pretty Url = "url"
+  pretty Spdx = "spdx"
+  pretty GitHash = "hash"
+  pretty Rfc3339 = "rfc3339"
+  pretty SemVer = "semver"
+  pretty Email = "email"
 
 type LabelSchema = Map.Map LabelName LabelType
 

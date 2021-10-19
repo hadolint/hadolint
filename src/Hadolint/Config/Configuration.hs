@@ -3,6 +3,7 @@ module Hadolint.Config.Configuration
   )
 where
 
+import Control.Applicative ((<|>))
 import Data.Coerce (coerce)
 import Data.Default
 import Data.Text (Text)
@@ -10,10 +11,10 @@ import Data.YAML ((.:?), (.!=))
 import GHC.Generics (Generic)
 import Hadolint.Formatter.Format (OutputFormat (..))
 import Hadolint.Lint (LintOptions (..))
-import Hadolint.Meta ((<>>))
 import Hadolint.Process (RulesConfig (..))
 import Hadolint.Rule (RuleCode (..), DLSeverity (..))
 import Language.Docker
+import Prettyprinter
 import qualified Data.Set as Set
 import qualified Data.YAML as Yaml
 
@@ -27,27 +28,25 @@ data Configuration =
       lintingOptions :: LintOptions,
       failThreshold :: Maybe DLSeverity
     }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
-instance Show Configuration where
-  show c =
-    Prelude.unlines
-      [ "Configuration:",
-        "  no fail: " ++ maybe "unset" show (noFail c),
-        "  no color: " ++ maybe "unset" show (noColor c),
-        "  output format: " ++ maybe "unset" show (format c),
-        "  failure threshold: " ++ maybe "unset" show (failThreshold c)
-      ]
-      ++ Prelude.unlines
-          (fmap ("  " ++) (Prelude.lines $ show (lintingOptions c)))
+instance Pretty Configuration where
+  pretty c =
+    "Configuration:\n"
+      <> "  no fail: " <> maybe "unset" pretty (noFail c) <> "\n"
+      <> "  no color: " <> maybe "unset" pretty (noColor c) <> "\n"
+      <> "  output format: " <> maybe "unset" pretty (format c) <> "\n"
+      <> "  failure threshold: "
+      <> maybe "unset" pretty (failThreshold c) <> "\n"
+      <> indent 2 (pretty (lintingOptions c))
 
 instance Semigroup Configuration where
   Configuration a1 a2 a3 a4 a5 a6 <> Configuration b1 b2 b3 b4 b5 b6 =
     Configuration
-      (a1 <>> b1)
-      (a2 <>> b2)
-      (a3 <>> b3)
+      (b1 <|> a1)
+      (b2 <|> a2)
+      (b3 <|> a3)
       (a4 <> b4)
       (a5 <> b5)
       (a6 <> b6)
@@ -61,9 +60,9 @@ instance Default Configuration where
       (Just False)
       (Just False)
       (Just False)
-      (Just TTY)
+      (Just def)
       def
-      (Just DLInfoC)
+      (Just def)
 
 instance Yaml.FromYAML Configuration where
   parseYAML = Yaml.withMap "Configuration" $ \m -> do

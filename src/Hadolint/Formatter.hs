@@ -2,7 +2,7 @@ module Hadolint.Formatter
   ( OutputFormat (..),
     Result (..),
     printResults,
-    toMaybeOutputFormat,
+    readMaybeOutputFormat,
   )
 where
 

@@ -3,19 +3,18 @@ module Hadolint.Config.Environment
   )
 where
 
+import Data.Char (toLower)
 import Data.Coerce (coerce)
 import Data.Map (empty, fromList)
-import Data.Maybe
 import Data.Set (Set, empty, fromList)
 import Data.Text (Text, pack, unpack, drop, splitOn, breakOn)
-import Hadolint.Formatter.Format (OutputFormat (..), toMaybeOutputFormat)
+import Hadolint.Formatter.Format (OutputFormat (..), readMaybeOutputFormat)
 import Hadolint.Config.Configuration (Configuration (..))
 import Hadolint.Lint
 import Hadolint.Process (RulesConfig (..))
 import Hadolint.Rule
 import Language.Docker.Syntax
 import System.Environment
-import Text.Read (readEither)
 
 
 getConfigFromEnvironment :: IO Configuration
@@ -55,17 +54,12 @@ maybeTruthy name = do
     Nothing -> return Nothing
 
 truthy :: String -> Bool
-truthy s = s `elem` ["1", "Y", "y", "On", "on", "True", "true", "Yes", "yes"]
+truthy s = map toLower s `elem` ["1", "y", "on", "true", "yes"]
 
 getFormat :: IO (Maybe OutputFormat)
 getFormat = do
   fmt <- lookupEnv "HADOLINT_FORMAT"
-  if isJust fmt then
-    case (toMaybeOutputFormat . fromJust) fmt of
-      Just f -> return $ Just f
-      Nothing -> return Nothing
-  else
-    return Nothing
+  return $ (readMaybeOutputFormat . pack) =<< fmt
 
 getOverrideList :: String -> IO [RuleCode]
 getOverrideList env = do
@@ -109,16 +103,11 @@ convertToPairs txt = map (breakOn ":") (splitOn "," txt)
 
 convertToLabelSchema :: (Text, Text) -> Either String (LabelName, LabelType)
 convertToLabelSchema (tln, tlt) =
-  case (readEither . unpack . Data.Text.drop 1) tlt of
+  case (readEitherLabelType . Data.Text.drop 1) tlt of
     Right lt -> Right (coerce tln :: Text, lt)
-    Left e -> Left e
+    Left e -> Left (unpack e)
 
 getFailureThreshold :: IO (Maybe DLSeverity)
 getFailureThreshold = do
   ft <- lookupEnv "HADOLINT_FAILURE_THRESHOLD"
-  if isJust ft then
-    case (readSeverity . pack . fromJust) ft of
-      Right s -> return $ Just s
-      Left _ -> return Nothing
-  else
-    return Nothing
+  return $ (readMaybeSeverity . pack) =<< ft

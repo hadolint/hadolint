@@ -160,6 +160,7 @@ library
     , optparse-applicative >=0.14.0
     , parallel
     , parsec >=3.1.14
+    , prettyprinter >=1.7.0
     , semver
     , spdx
     , split >=0.2
@@ -196,6 +197,7 @@ executable hadolint
     , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
     , optparse-applicative >=0.14.0
+    , prettyprinter >=1.7.0
     , text
   if flag(static) && !(os(osx))
     ld-options: -static -pthread

@@ -50,6 +50,7 @@ library:
   generated-other-modules:
     - Paths_hadolint
   dependencies:
+    - &Prettyprint prettyprinter >= 1.7.0
     - &ShellCheck ShellCheck >=0.7.1
     - &bytestring bytestring >=0.10
     - &split split >=0.2
@@ -81,6 +82,7 @@ executables:
     main: Main.hs
     source-dirs: app
     dependencies:
+      - *Prettyprint
       - hadolint
     ghc-options: -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
     when:

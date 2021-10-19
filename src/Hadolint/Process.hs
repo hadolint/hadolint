@@ -1,11 +1,13 @@
 module Hadolint.Process (run, RulesConfig (..)) where
 
+import Control.Applicative ((<|>))
 import Data.Default
-import Hadolint.Meta ((<>>))
 import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
 import Language.Docker.Syntax
+import Prettyprinter hiding (line)
 import qualified Control.Foldl as Foldl
 import qualified Data.IntMap.Strict as SMap
+import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
@@ -86,28 +88,56 @@ data RulesConfig = RulesConfig
     labelSchema :: Rule.LabelSchema,
     strictLabels :: Maybe Bool
   }
-  deriving (Eq)
-
-instance Show RulesConfig where
-  show rc =
-    Prelude.unlines
-      [ "strict labels: " ++ maybe "unset" show (strictLabels rc),
-        "label schema: " ++ show (labelSchema rc),
-        "allowed registries: " ++ show (allowedRegistries rc)
-      ]
+  deriving (Eq, Show)
 
 instance Semigroup RulesConfig where
   RulesConfig a1 a2 a3 <> RulesConfig b1 b2 b3 =
     RulesConfig
       (a1 <> b1)
       (a2 <> b2)
-      (a3 <>> b3)
+      (b3 <|> a3)
 
 instance Monoid RulesConfig where
   mempty = RulesConfig mempty mempty Nothing
 
 instance Default RulesConfig where
   def = RulesConfig mempty mempty (Just False)
+
+instance Pretty RulesConfig where
+  pretty rc =
+    "strict labels: " <> maybe "unset" pretty (strictLabels rc) <> "\n"
+      <> prettyPrintLabelSchema (labelSchema rc) <> "\n"
+      <> prettyPrintRegistries (allowedRegistries rc)
+
+-- | This function needs to convert the set to a list because Doc ann is not
+-- ordered.
+prettyPrintRegistries :: Set.Set Registry -> Doc ann
+prettyPrintRegistries regs =
+  if Set.null regs
+  then ""
+  else "allowed registries:\n"
+          <> indent 2
+              ( prettyPrintList
+                  (\r -> " - " <> pretty (unRegistry r))
+                  (Set.toList regs)
+              )
+
+prettyPrintLabelSchema :: Rule.LabelSchema -> Doc ann
+prettyPrintLabelSchema ls =
+  if Map.null ls
+  then ""
+  else "label schema:\n"
+          <> indent 2
+              ( prettyPrintList
+                  (\(n, t) -> pretty n <> ": " <> pretty t)
+                  (Map.toList ls)
+              )
+
+-- | pretty print a list with a custom pretty printing function for each element
+prettyPrintList :: (a -> Doc ann) -> [a] -> Doc ann
+prettyPrintList prnt lst =
+  foldl (<>) "" (fmap (\i -> " - " <> prnt i <> "\n") lst)
+
 
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line

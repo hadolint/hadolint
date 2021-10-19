@@ -12,9 +12,14 @@ import Data.String (IsString (fromString))
 import Data.Text (Text, pack, unpack, breakOn, drop)
 import Hadolint.Lint (LintOptions (..))
 import Hadolint.Process (RulesConfig (..))
-import Hadolint.Formatter.Format (toMaybeOutputFormat)
+import Hadolint.Formatter.Format (readMaybeOutputFormat)
 import Hadolint.Config.Configuration (Configuration (..))
-import Hadolint.Rule (LabelName, LabelType)
+import Hadolint.Rule
+  ( LabelName,
+    LabelType,
+    readEitherLabelType,
+    readEitherSeverity
+  )
 import Options.Applicative
   ( Parser,
     ReadM,
@@ -33,7 +38,6 @@ import Options.Applicative
     strOption,
     switch,
   )
-import Text.Read (readEither, readMaybe)
 
 
 data CommandlineConfig =
@@ -122,7 +126,7 @@ parseCommandline =
     outputFormat =
       optional $
         option
-          ( maybeReader toMaybeOutputFormat )
+          ( maybeReader (readMaybeOutputFormat . pack) )
           ( long "format"
               <> short 'f' -- options for the output format
               <> help
@@ -238,7 +242,7 @@ parseCommandline =
     noFailCutoff =
       optional $
         option
-          ( maybeReader readMaybe )
+          ( eitherReader (readEitherSeverity . pack) )
           ( short 't'
               <> long "failure-threshold"
               <> help
@@ -264,6 +268,6 @@ readSingleLabelSchema = eitherReader $ \s -> labelParser (pack s)
 
 labelParser :: Text -> Either String (LabelName, LabelType)
 labelParser l =
-  case second (readEither . unpack . Data.Text.drop 1) $ breakOn ":" l of
+  case second (readEitherLabelType . Data.Text.drop 1) $ breakOn ":" l of
     (ln, Right lt) -> Right (ln, lt)
-    (_, Left e) -> Left e
+    (_, Left e) -> Left (unpack e)
