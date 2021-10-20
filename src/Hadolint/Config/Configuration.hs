@@ -39,56 +39,50 @@ data Configuration =
 
 instance Pretty Configuration where
   pretty c =
-    "Configuration:\n"
-      <> "  no fail: " <> maybe "unset" pretty (noFail c) <> "\n"
-      <> "  no color: " <> maybe "unset" pretty (noColor c) <> "\n"
-      <> "  output format: " <> maybe "unset" pretty (format c) <> "\n"
-      <> "  failure threshold: "
-      <> maybe "unset" pretty (failThreshold c) <> "\n"
-      <> indent 2
-          ( showRulelist "error" (errorRules c)
-              <> showRulelist "warning" (warningRules c)
-              <> showRulelist "info" (infoRules c)
-              <> showRulelist "style" (styleRules c)
-              <> showRulelist "ignore" (ignoreRules c)
-          )
-      <> "strict labels: " <> maybe "unset" pretty (strictLabels c) <> "\n"
-      <> prettyPrintLabelSchema (labelSchema c) <> "\n"
-      <> prettyPrintRegistries (allowedRegistries c)
+    nest 2
+      ( vsep
+          [ "Configuration:",
+            "no fail:" <+> maybe "unset" pretty (noFail c),
+            "no color:" <+> maybe "unset" pretty (noColor c),
+            "output format:" <+> maybe "unset" pretty (format c),
+            "failure threshold:" <+> maybe "unset" pretty (failThreshold c),
+            prettyPrintRulelist "error" (errorRules c),
+            prettyPrintRulelist "warning" (warningRules c),
+            prettyPrintRulelist "info" (infoRules c),
+            prettyPrintRulelist "style" (styleRules c),
+            prettyPrintRulelist "ignore" (ignoreRules c),
+            "strict labels:" <+> maybe "unset" pretty (strictLabels c),
+            prettyPrintLabelSchema (labelSchema c),
+            prettyPrintRegistries (allowedRegistries c)
+          ]
+      )
 
-showRulelist :: String -> [RuleCode] -> Doc ann
-showRulelist _ [] = ""
-showRulelist name lst =
-  ("override " <> pretty name <> ":\n") <> prettyPrintList pretty lst
+prettyPrintRulelist :: String -> [RuleCode] -> Doc ann
+prettyPrintRulelist name lst =
+  nest 2 (("override" <+> pretty name <> ":\n") <> prettyPrintList pretty lst)
 
 -- | This function needs to convert the set to a list because Doc ann is not
 -- ordered.
 prettyPrintRegistries :: Set.Set Registry -> Doc ann
 prettyPrintRegistries regs =
-  if Set.null regs
-  then ""
-  else "allowed registries:\n"
-          <> indent 2
-              ( prettyPrintList
-                  (\r -> " - " <> pretty (unRegistry r))
-                  (Set.toList regs)
-              )
+  nest 2 ( "allowed registries:\n"
+             <> prettyPrintList
+                 (\r -> "-" <+> pretty (unRegistry r))
+                 (Set.toList regs)
+         )
 
 prettyPrintLabelSchema :: LabelSchema -> Doc ann
 prettyPrintLabelSchema ls =
-  if Map.null ls
-  then ""
-  else "label schema:\n"
-          <> indent 2
-              ( prettyPrintList
-                  (\(n, t) -> pretty n <> ": " <> pretty t)
+  nest 2 ( "label schema:\n"
+             <> prettyPrintList
+                  (\(n, t) -> pretty n <> ":" <+> pretty t)
                   (Map.toList ls)
-              )
+         )
 
 -- | pretty print a list with a custom pretty printing function for each element
 prettyPrintList :: (a -> Doc ann) -> [a] -> Doc ann
-prettyPrintList prnt lst =
-  foldl (<>) "" (fmap (\i -> " - " <> prnt i <> "\n") lst)
+prettyPrintList _ [] = "none"
+prettyPrintList prnt lst = vsep (fmap (\i -> "-" <+> prnt i) lst)
 
 instance Semigroup Configuration where
   Configuration a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13
