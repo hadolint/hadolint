@@ -1,10 +1,11 @@
 module Hadolint.Rule.DL3019 (rule) where
 
-import qualified Data.Text as Text
 import Hadolint.Rule
 import Hadolint.Shell (ParsedShell)
-import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
+import qualified Data.Set as Set
+import qualified Data.Text as Text
+import qualified Hadolint.Shell as Shell
 
 rule :: Rule ParsedShell
 rule = simpleRule code severity message check
@@ -20,11 +21,16 @@ rule = simpleRule code severity message check
 {-# INLINEABLE rule #-}
 
 hasCacheMount :: RunFlags -> Bool
-hasCacheMount RunFlags
-  { mount =
-      Just (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = p}})
-  } = Text.dropWhileEnd (=='/') p == "/var/cache/apk"
-hasCacheMount RunFlags {} = False
+hasCacheMount RunFlags { mount } =
+  not (null $ Set.filter isCacheMount mount)
+
+isCacheMount :: RunMount -> Bool
+isCacheMount (CacheMount CacheOpts { cTarget = t })= isVarCacheApk t
+isCacheMount _ = False
+
+isVarCacheApk :: TargetPath -> Bool
+isVarCacheApk TargetPath { unTargetPath = p }
+  = Text.dropWhileEnd (=='/') p == "/var/cache/apk"
 
 forgotCacheOption :: Shell.Command -> Bool
 forgotCacheOption cmd = Shell.cmdHasArgs "apk" ["add"] cmd
