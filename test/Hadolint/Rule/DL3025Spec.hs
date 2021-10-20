@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3025 - Use arguments JSON notation for `CMD` and `ENTRYPOINT` arguments" $ do
     it "warn on ENTRYPOINT" $
       let dockerFile =

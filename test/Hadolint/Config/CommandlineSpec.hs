@@ -77,43 +77,32 @@ spec = do
                                 mempty
 
       it "parse --file-path-in-report foobar/Dockerfile" $ do
-        checkCommandline ["--file-path-in-report", "foobar/Dockerfile"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                (Just "foobar/Dockerfile")
-                                mempty
+        checkCommandline
+          ["--file-path-in-report", "foobar/Dockerfile"]
+          ( CommandlineConfig
+              False
+              Nothing
+              []
+              (Just "foobar/Dockerfile")
+              mempty
+          )
 
     describe "parse general configuration" $ do
       it "parse --no-fail" $ do
         checkCommandline ["--no-fail"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                ( Configuration
-                                    (Just True)
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    mempty
-                                    mempty
-                                )
+                                          False
+                                          Nothing
+                                          []
+                                          Nothing
+                                          mempty { noFail = Just True }
 
       it "parse --no-color" $ do
         checkCommandline ["--no-color"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                ( Configuration
-                                    Nothing
-                                    (Just True)
-                                    Nothing
-                                    mempty
-                                    mempty
-                                    mempty
-                                )
+                                            False
+                                            Nothing
+                                            []
+                                            Nothing
+                                            mempty { noColor = Just True }
 
       it "parse -V" $ do
         checkCommandline ["-V"] $ CommandlineConfig
@@ -121,14 +110,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    (Just True)
-                                    mempty
-                                    mempty
-                                    mempty
-                                )
+                                mempty { verbose = Just True }
 
       it "parse --verbose" $ do
         checkCommandline ["--verbose"] $ CommandlineConfig
@@ -136,14 +118,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    (Just True)
-                                    mempty
-                                    mempty
-                                    mempty
-                                )
+                                mempty { verbose = Just True }
 
       it "parse -f json" $ do
         checkCommandline ["-f", "json"] $ CommandlineConfig
@@ -151,14 +126,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    (Just Json)
-                                    mempty
-                                    mempty
-                                )
+                                mempty { format = Just Json }
 
       it "parse --format" $ do
         checkCommandline ["--format", "sarif"] $ CommandlineConfig
@@ -166,14 +134,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    (Just Sarif)
-                                    mempty
-                                    mempty
-                                )
+                                mempty { format = Just Sarif }
 
     describe "parse severity overrides" $ do
       it "parse --error=DL3010" $ do
@@ -182,21 +143,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    ( LintOptions
-                                        ["DL3010"]
-                                        mempty
-                                        mempty
-                                        mempty
-                                        mempty
-                                        mempty
-                                    )
-                                    mempty
-                                )
+                                mempty { errorRules = ["DL3010"] }
 
       it "parse --error=DL3010 --error=DL3020" $ do
         checkCommandline
@@ -206,21 +153,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      ["DL3010", "DL3020"]
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                  )
-                  mempty
-              )
+              mempty { errorRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --warning=DL3010" $ do
@@ -229,21 +162,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    ( LintOptions
-                                        mempty
-                                        ["DL3010"]
-                                        mempty
-                                        mempty
-                                        mempty
-                                        mempty
-                                    )
-                                    mempty
-                                )
+                                mempty { warningRules = ["DL3010"] }
 
       it "parse --warning=DL3010 --warning=DL3020" $ do
         checkCommandline
@@ -253,21 +172,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      ["DL3010", "DL3020"]
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                  )
-                  mempty
-              )
+              mempty { warningRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --info=DL3010" $ do
@@ -276,21 +181,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    ( LintOptions
-                                        mempty
-                                        mempty
-                                        ["DL3010"]
-                                        mempty
-                                        mempty
-                                        mempty
-                                    )
-                                    mempty
-                                )
+                                mempty { infoRules = ["DL3010"] }
 
       it "parse --info=DL3010 --info=DL3020" $ do
         checkCommandline
@@ -300,21 +191,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      ["DL3010", "DL3020"]
-                      mempty
-                      mempty
-                      mempty
-                  )
-                  mempty
-              )
+              mempty { infoRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --style=DL3010" $ do
@@ -323,21 +200,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    ( LintOptions
-                                        mempty
-                                        mempty
-                                        mempty
-                                        ["DL3010"]
-                                        mempty
-                                        mempty
-                                    )
-                                    mempty
-                                )
+                                mempty { styleRules = ["DL3010"] }
 
       it "parse --style=DL3010 --style=DL3020" $ do
         checkCommandline
@@ -347,21 +210,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      ["DL3010", "DL3020"]
-                      mempty
-                      mempty
-                  )
-                  mempty
-              )
+              mempty { styleRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --ignore=DL3010" $ do
@@ -370,21 +219,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    ( LintOptions
-                                        mempty
-                                        mempty
-                                        mempty
-                                        mempty
-                                        ["DL3010"]
-                                        mempty
-                                    )
-                                    mempty
-                                )
+                                mempty { ignoreRules = ["DL3010"] }
 
       it "parse --ignore=DL3010 --ignore=DL3020" $ do
         checkCommandline
@@ -394,21 +229,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ["DL3010", "DL3020"]
-                      mempty
-                  )
-                  mempty
-              )
+              mempty { ignoreRules = ["DL3010", "DL3020"] }
           )
 
     describe "parse trusted registries" $ do
@@ -420,25 +241,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ( RulesConfig
-                          (Set.fromList ["foobar.com"])
-                          mempty
-                          Nothing
-                      )
-                  )
-                  mempty
-              )
+              mempty { allowedRegistries = Set.fromList ["foobar.com"] }
           )
 
       it "parse --trusted-registry foobar.com --trusted-registry barfoo.io" $ do
@@ -453,25 +256,8 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ( RulesConfig
-                          (Set.fromList ["foobar.com", "barfoo.io"])
-                          mempty
-                          Nothing
-                      )
-                  )
-                  mempty
-              )
+              mempty
+                { allowedRegistries = Set.fromList ["foobar.com", "barfoo.io"] }
           )
 
     describe "parse required labels" $ do
@@ -483,25 +269,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ( RulesConfig
-                          mempty
-                          (Map.fromList [("foo", Email)])
-                          Nothing
-                      )
-                  )
-                  mempty
-              )
+              mempty { labelSchema = Map.fromList [("foo", Email)] }
           )
 
       it "parse --require-label foo:email --require-label bar:text" $ do
@@ -512,25 +280,10 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ( RulesConfig
-                          mempty
-                          (Map.fromList [("foo", Email), ("bar", RawText)])
-                          Nothing
-                      )
-                  )
-                  mempty
-              )
+              mempty
+                { labelSchema = Map.fromList
+                                  [("foo", Email), ("bar", RawText)]
+                }
           )
 
     describe "parse strict labels" $ do
@@ -542,25 +295,7 @@ spec = do
               Nothing
               []
               Nothing
-              ( Configuration
-                  Nothing
-                  Nothing
-                  Nothing
-                  mempty
-                  ( LintOptions
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      mempty
-                      ( RulesConfig
-                          mempty
-                          mempty
-                          (Just True)
-                      )
-                  )
-                  mempty
-              )
+              mempty { strictLabels = Just True }
           )
 
     describe "parse failure thresholds" $ do
@@ -570,14 +305,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    mempty
-                                    (Just DLWarningC)
-                                )
+                                mempty { failThreshold = Just DLWarningC }
 
       it "parse --failure-threshold style" $ do
         checkCommandline ["--failure-threshold", "style"] $ CommandlineConfig
@@ -585,14 +313,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                ( Configuration
-                                    Nothing
-                                    Nothing
-                                    Nothing
-                                    mempty
-                                    mempty
-                                    (Just DLStyleC)
-                                )
+                                mempty { failThreshold = Just DLStyleC }
 
     describe "fail parsing on garbage input" $ do
       it "fail parsing --blafoo" $ do

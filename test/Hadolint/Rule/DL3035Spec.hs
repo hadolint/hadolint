@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3035" $ do
     it "not ok: zypper dist-upgrade" $ do
       ruleCatches "DL3035" "RUN zypper dist-upgrade"

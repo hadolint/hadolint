@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3002 - Last user should not be root." $ do
     it "last user should not be root" $
       let dockerFile =

@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3047 - `wget` without flag `--progress` will result in excessively bloated build logs when downloading larger files." $ do
     it "warns when using wget without --progress option" $
       let dockerFile =

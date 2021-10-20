@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL4004" $ do
     it "no cmd" $ ruleCatchesNot "DL4004" "FROM busybox"
 

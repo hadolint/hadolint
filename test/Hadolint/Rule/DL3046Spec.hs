@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3046 - `useradd` without flag `-l` and high UID will result in excessively large Image." $ do
     it "ok with `useradd` alone" $ ruleCatchesNot "DL3046" "RUN useradd luser"
     it "ok with `useradd` short uid" $ ruleCatchesNot "DL3046" "RUN useradd -u 12345 luser"

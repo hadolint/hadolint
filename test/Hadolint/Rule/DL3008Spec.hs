@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3008 - Pin versions in apt-get install." $ do
     it "apt-get version pinning" $ do
       ruleCatches "DL3008" "RUN apt-get update && apt-get install python"

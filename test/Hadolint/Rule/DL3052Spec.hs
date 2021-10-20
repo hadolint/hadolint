@@ -1,18 +1,15 @@
 module Hadolint.Rule.DL3052Spec (spec) where
 
+import Hadolint (Configuration (..), LabelType (..))
 import qualified Data.Map as Map
-import qualified Hadolint.Process
-import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("urllabel", Rule.Url)])
-                      (Just False)
+  let ?config = mempty { labelSchema = Map.fromList [("urllabel", Url)] }
+
   describe "DL3052 - Label `<label>` is not a valid URL." $ do
     it "not ok with label not containing URL" $ do
       ruleCatches "DL3052" "LABEL urllabel=\"not-url\""

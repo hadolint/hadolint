@@ -8,7 +8,7 @@ import qualified Data.Text as Text
 spec :: SpecWith ()
 spec =
   describe "Rules can be ignored with inline comments" $ do
-    let ?rulesConfig = mempty
+    let ?config = mempty
     it "ignores single rule" $
       let dockerFile =
             [ "FROM ubuntu",

@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3042 - Avoid cache directory with `pip install --no-cache-dir <package>`." $ do
     it "pip2 --no-cache-dir not used" $ do
       ruleCatches "DL3042" "RUN pip2 install MySQL_python"

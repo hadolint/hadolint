@@ -4,6 +4,7 @@ import qualified Control.Foldl as Foldl
 import Control.Monad (unless, when)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as Text
+import Hadolint (Configuration (..))
 import Hadolint.Formatter.TTY (formatCheck)
 import qualified Hadolint.Process
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
@@ -14,17 +15,17 @@ import Test.Hspec
 
 
 assertChecks ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   Text.Text ->
   (Failures -> IO a) ->
   IO a
 assertChecks dockerfile makeAssertions =
   case parseText (dockerfile <> "\n") of
     Left err -> assertFailure $ show err
-    Right dockerFile -> makeAssertions $ Hadolint.Process.run ?rulesConfig dockerFile
+    Right dockerFile -> makeAssertions $ Hadolint.Process.run ?config dockerFile
 
 assertOnBuildChecks ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   Text.Text ->
   (Failures -> IO a) ->
   IO a
@@ -33,7 +34,7 @@ assertOnBuildChecks dockerfile makeAssertions =
     Left err -> assertFailure $ show err
     Right dockerFile -> checkOnBuild dockerFile
   where
-    checkOnBuild dockerFile = makeAssertions $ Hadolint.Process.run ?rulesConfig (fmap wrapInOnBuild dockerFile)
+    checkOnBuild dockerFile = makeAssertions $ Hadolint.Process.run ?config (fmap wrapInOnBuild dockerFile)
     wrapInOnBuild (InstructionPos (Run args) so li) = InstructionPos (OnBuild (Run args)) so li
     wrapInOnBuild i = i
 
@@ -44,7 +45,7 @@ hasInvalidLines =
 
 -- Assert a failed check exists for rule
 ruleCatches ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   RuleCode ->
   Text.Text ->
   Assertion
@@ -55,7 +56,7 @@ ruleCatches expectedCode dockerfile = assertChecks dockerfile f
       assertBool "Incorrect line number for result" $ not $ hasInvalidLines checks
 
 onBuildRuleCatches ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   RuleCode ->
   Text.Text ->
   Assertion
@@ -66,7 +67,7 @@ onBuildRuleCatches ruleCode dockerfile = assertOnBuildChecks dockerfile f
       assertBool "Incorrect line number for result" $ not $ hasInvalidLines checks
 
 ruleCatchesNot ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   RuleCode ->
   Text.Text ->
   Assertion
@@ -75,7 +76,7 @@ ruleCatchesNot ruleCode dockerfile = assertChecks dockerfile f
     f = failsWith 0 ruleCode
 
 onBuildRuleCatchesNot ::
-  (HasCallStack, ?rulesConfig :: Hadolint.Process.RulesConfig) =>
+  (HasCallStack, ?config :: Configuration) =>
   RuleCode ->
   Text.Text ->
   Assertion

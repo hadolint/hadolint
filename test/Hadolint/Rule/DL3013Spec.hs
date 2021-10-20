@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3013 - Pin versions in pip." $ do
     it "pip2 version not pinned" $ do
       ruleCatches "DL3013" "RUN pip2 install MySQL_python"

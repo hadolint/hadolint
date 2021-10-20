@@ -1,8 +1,8 @@
 module Hadolint.Rule.DL3049Spec (spec) where
 
+import Hadolint (Configuration (..))
 import Data.Text as Text
 import qualified Data.Map as Map
-import qualified Hadolint.Process
 import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
@@ -10,10 +10,9 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("foo", Rule.RawText)])
-                      (Just False)
+  let ?config =
+        mempty { labelSchema = Map.fromList [("foo", Rule.RawText)] }
+
   describe "DL3049 - Missing label rule spec" $ do
   -- single stage spec
     it "not ok: single stage, no label" $ do

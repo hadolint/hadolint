@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3057 - `HEALTHCHECK instruction missing" $ do
     it "warn with no HEALTHCHECK instructions" $
       ruleCatches "DL3057" "FROM scratch"

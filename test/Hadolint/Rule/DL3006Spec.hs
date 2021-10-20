@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3006 - Always tag the version of an image explicitly." $ do
     it "no untagged" $ ruleCatches "DL3006" "FROM debian"
     it "no untagged with name" $ ruleCatches "DL3006" "FROM debian AS builder"

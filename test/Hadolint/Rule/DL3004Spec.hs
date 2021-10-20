@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3004 - Do not use sudo as it leads to unpredictable behavior. Use a tool like gosu to enforce root." $ do
     it "sudo" $ do
       ruleCatches "DL3004" "RUN sudo apt-get update"

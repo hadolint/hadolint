@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL4005 - Use `SHELL` to change the default shell." $ do
     it "RUN ln" $ do
       ruleCatches "DL4005" "RUN ln -sfv /bin/bash /bin/sh"

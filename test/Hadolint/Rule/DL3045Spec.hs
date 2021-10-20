@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3045 - `COPY` without `WORKDIR` set" $ do
     it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
       ruleCatchesNot "DL3045" "COPY bla.sh /usr/local/bin/blubb.sh"

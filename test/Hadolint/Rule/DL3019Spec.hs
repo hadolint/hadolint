@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3019 - Use the --no-cache switch." $ do
     it "apk add with --no-cache" $ do
       ruleCatches "DL3019" "RUN apk add flex=2.6.4-r1"

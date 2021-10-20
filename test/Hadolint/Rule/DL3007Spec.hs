@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3007 - Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag." $ do
     it "explicit latest" $ ruleCatches "DL3007" "FROM debian:latest"
     it "explicit latest with name" $ ruleCatches "DL3007" "FROM debian:latest AS builder"

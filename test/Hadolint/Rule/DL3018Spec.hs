@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3018 - Pin versions in `apk add`." $ do
     it "apk add version pinning single" $ do
       ruleCatches "DL3018" "RUN apk add flex"

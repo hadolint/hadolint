@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty -- default implicit parameter running the checkers
+  let ?config = mempty -- default implicit parameter running the checkers
   describe "Regression Tests" $ do
     it "Comments with backslashes at the end are just comments" $
       let dockerFile =

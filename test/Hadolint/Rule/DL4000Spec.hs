@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL4000 - MAINTAINER is deprecated." $ do
     it "has deprecated maintainer" $
       ruleCatches "DL4000" "FROM busybox\nMAINTAINER hudu@mail.com"

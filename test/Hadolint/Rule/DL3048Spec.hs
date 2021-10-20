@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3048 - Invalid Label Key Rule" $ do
     it "not ok with reserved namespace" $ do
       ruleCatches "DL3048" "LABEL com.docker.label=\"foo\""

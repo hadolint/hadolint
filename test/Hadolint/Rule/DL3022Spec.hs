@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3022 - `COPY --from` should reference a previously defined `FROM` alias" $ do
     it "warn on missing alias" $ ruleCatches "DL3022" "COPY --from=foo bar ."
     it "warn on alias defined after" $

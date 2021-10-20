@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3027 - Do not use `apt` as it is meant to be a end-user tool, use `apt-get` or `apt-cache` instead" $ do
     it "apt" $
       let dockerFile =

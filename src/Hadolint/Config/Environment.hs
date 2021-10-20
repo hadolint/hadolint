@@ -10,8 +10,6 @@ import Data.Set (Set, empty, fromList)
 import Data.Text (Text, pack, unpack, drop, splitOn, breakOn)
 import Hadolint.Formatter.Format (OutputFormat (..), readMaybeOutputFormat)
 import Hadolint.Config.Configuration (Configuration (..))
-import Hadolint.Lint
-import Hadolint.Process (RulesConfig (..))
 import Hadolint.Rule
 import Language.Docker.Syntax
 import System.Environment
@@ -24,23 +22,15 @@ getConfigFromEnvironment =
     <*> maybeTruthy "NO_COLOR"
     <*> maybeTruthy "HADOLINT_VERBOSE"
     <*> getFormat
-    <*> lintOptions
+    <*> getOverrideList "HADOLINT_OVERRIDE_ERROR"
+    <*> getOverrideList "HADOLINT_OVERRIDE_WARNING"
+    <*> getOverrideList "HADOLINT_OVERRIDE_INFO"
+    <*> getOverrideList "HADOLINT_OVERRIDE_STYLE"
+    <*> getOverrideList "HADOLINT_IGNORE"
+    <*> getAllowedSet "HADOLINT_ALLOWED_REGISTRIES"
+    <*> getLabelSchema "HADOLINT_REQUIRE_LABELS"
+    <*> maybeTruthy "HADOLINT_STRICT_LABELS"
     <*> getFailureThreshold
-  where
-    lintOptions =
-      LintOptions
-        <$> getOverrideList "HADOLINT_OVERRIDE_ERROR"
-        <*> getOverrideList "HADOLINT_OVERRIDE_WARNING"
-        <*> getOverrideList "HADOLINT_OVERRIDE_INFO"
-        <*> getOverrideList "HADOLINT_OVERRIDE_STYLE"
-        <*> getOverrideList "HADOLINT_IGNORE"
-        <*> rulesConfig
-
-    rulesConfig =
-      RulesConfig
-        <$> getAllowedSet "HADOLINT_ALLOWED_REGISTRIES"
-        <*> getLabelSchema "HADOLINT_REQUIRE_LABELS"
-        <*> maybeTruthy "HADOLINT_STRICT_LABELS"
 
 
 maybeTruthy :: String -> IO (Maybe Bool)

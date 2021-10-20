@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL4006 - Set the `SHELL` option `-o pipefail` before RUN with a pipe in it" $ do
     it "warn on missing pipefail" $
       let dockerFile =

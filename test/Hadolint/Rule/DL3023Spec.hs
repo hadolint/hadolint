@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3023 - `COPY --from` cannot reference its own `FROM` alias" $ do
     it "warn on copying from your the same FROM" $
       let dockerFile =

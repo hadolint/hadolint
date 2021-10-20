@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL4001 - Either use Wget or Curl but not both." $ do
     it "warns when using both wget and curl" $
       let dockerFile =

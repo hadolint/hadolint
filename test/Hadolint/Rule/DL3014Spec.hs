@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3014 - Use the -y switch." $ do
     it "apt-get auto yes" $ do
       ruleCatches "DL3014" "RUN apt-get install python"

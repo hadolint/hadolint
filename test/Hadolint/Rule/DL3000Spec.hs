@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3000 - Use absolute WORKDIR." $ do
     it "workdir relative" $ ruleCatches "DL3000" "WORKDIR relative/dir"
     it "workdir absolute" $ ruleCatchesNot "DL3000" "WORKDIR /usr/local"

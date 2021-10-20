@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3015 - Avoid additional packages by specifying `--no-install-recommends`." $ do
     it "apt-get install recommends" $ do
       ruleCatchesNot

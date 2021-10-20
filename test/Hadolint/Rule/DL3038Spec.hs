@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3038 - Use the `-y` switch to avoid manual input `dnf install -y <package>`" $ do
     it "not ok without dnf non-interactive flag" $ do
       ruleCatches "DL3038" "RUN dnf install httpd-2.4.24 && dnf clean all"

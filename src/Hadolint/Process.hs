@@ -1,18 +1,14 @@
-module Hadolint.Process (run, RulesConfig (..)) where
+module Hadolint.Process (run) where
 
-import Control.Applicative ((<|>))
-import Data.Default
+import Hadolint.Config.Configuration (Configuration (..))
 import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
 import Language.Docker.Syntax
-import Prettyprinter hiding (line)
 import qualified Control.Foldl as Foldl
 import qualified Data.IntMap.Strict as SMap
-import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Pragma
-import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Rule.DL3000
 import qualified Hadolint.Rule.DL3001
 import qualified Hadolint.Rule.DL3002
@@ -81,64 +77,6 @@ import qualified Hadolint.Rule.Shellcheck
 import qualified Hadolint.Shell as Shell
 
 
--- | Contains the required parameters for optional rules
-data RulesConfig = RulesConfig
-  { -- | The docker registries that are allowed in FROM
-    allowedRegistries :: Set.Set Registry,
-    labelSchema :: Rule.LabelSchema,
-    strictLabels :: Maybe Bool
-  }
-  deriving (Eq, Show)
-
-instance Semigroup RulesConfig where
-  RulesConfig a1 a2 a3 <> RulesConfig b1 b2 b3 =
-    RulesConfig
-      (a1 <> b1)
-      (a2 <> b2)
-      (b3 <|> a3)
-
-instance Monoid RulesConfig where
-  mempty = RulesConfig mempty mempty Nothing
-
-instance Default RulesConfig where
-  def = RulesConfig mempty mempty (Just False)
-
-instance Pretty RulesConfig where
-  pretty rc =
-    "strict labels: " <> maybe "unset" pretty (strictLabels rc) <> "\n"
-      <> prettyPrintLabelSchema (labelSchema rc) <> "\n"
-      <> prettyPrintRegistries (allowedRegistries rc)
-
--- | This function needs to convert the set to a list because Doc ann is not
--- ordered.
-prettyPrintRegistries :: Set.Set Registry -> Doc ann
-prettyPrintRegistries regs =
-  if Set.null regs
-  then ""
-  else "allowed registries:\n"
-          <> indent 2
-              ( prettyPrintList
-                  (\r -> " - " <> pretty (unRegistry r))
-                  (Set.toList regs)
-              )
-
-prettyPrintLabelSchema :: Rule.LabelSchema -> Doc ann
-prettyPrintLabelSchema ls =
-  if Map.null ls
-  then ""
-  else "label schema:\n"
-          <> indent 2
-              ( prettyPrintList
-                  (\(n, t) -> pretty n <> ": " <> pretty t)
-                  (Map.toList ls)
-              )
-
--- | pretty print a list with a custom pretty printing function for each element
-prettyPrintList :: (a -> Doc ann) -> [a] -> Doc ann
-prettyPrintList prnt lst =
-  foldl (<>) "" (fmap (\i -> " - " <> prnt i <> "\n") lst)
-
-
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
     ignored :: SMap.IntMap (Set.Set RuleCode),
@@ -146,7 +84,7 @@ data AnalisisResult = AnalisisResult
     failed :: Failures
   }
 
-run :: RulesConfig -> [InstructionPos Text.Text] -> Failures
+run :: Configuration -> [InstructionPos Text.Text] -> Failures
 run config dockerfile = Seq.filter shouldKeep failed
   where
     AnalisisResult {..} = Foldl.fold (analyze config) dockerfile
@@ -156,7 +94,9 @@ run config dockerfile = Seq.filter shouldKeep failed
         ignoreList <- SMap.lookup line ignored
         return $ code `Set.member` ignoreList
 
-analyze :: RulesConfig -> Foldl.Fold (InstructionPos Text.Text) AnalisisResult
+analyze ::
+  Configuration ->
+  Foldl.Fold (InstructionPos Text.Text) AnalisisResult
 analyze config =
   AnalisisResult
     <$> Hadolint.Pragma.ignored
@@ -165,7 +105,7 @@ analyze config =
 parseShell :: InstructionPos Text.Text -> InstructionPos Shell.ParsedShell
 parseShell = fmap Shell.parseShell
 
-onBuildFailures :: RulesConfig -> Rule Shell.ParsedShell
+onBuildFailures :: Configuration -> Rule Shell.ParsedShell
 onBuildFailures config =
   Foldl.prefilter
     isOnBuild
@@ -177,8 +117,8 @@ onBuildFailures config =
     unwrapOnbuild inst@InstructionPos {instruction = OnBuild i} = inst {instruction = i}
     unwrapOnbuild inst = inst
 
-failures :: RulesConfig -> Rule Shell.ParsedShell
-failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
+failures :: Configuration -> Rule Shell.ParsedShell
+failures Configuration {allowedRegistries, labelSchema, strictLabels} =
   Hadolint.Rule.DL3000.rule
     <> Hadolint.Rule.DL3001.rule
     <> Hadolint.Rule.DL3002.rule

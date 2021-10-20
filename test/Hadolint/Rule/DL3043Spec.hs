@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3043 - `ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction." $ do
     it "error when using `ONBUILD` within `ONBUILD`" $
       let dockerFile =

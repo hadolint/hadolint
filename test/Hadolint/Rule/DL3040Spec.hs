@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3040 - `dnf clean all` missing after dnf command." $ do
     it "no ok without dnf clean all" $ do
       ruleCatches "DL3040" "RUN dnf install -y mariadb-10.4"

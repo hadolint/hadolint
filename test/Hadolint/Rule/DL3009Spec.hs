@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3009 - Delete the apt-get lists after installing something." $ do
     it "apt-get no cleanup" $
       let dockerFile =

@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3060 - `yarn cache clean` missing after `yarn install`" $ do
     it "ok with non-yarn commands" $ do
       ruleCatchesNot "DL3060" "RUN foo"

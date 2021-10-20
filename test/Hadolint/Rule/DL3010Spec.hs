@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3010 - Use `ADD` for extracting archives into an image" $ do
     it "catch: copy archive then extract 1" $
       let dockerFile =

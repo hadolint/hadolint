@@ -1,7 +1,7 @@
 module Hadolint.Rule.DL3050Spec (spec) where
 
+import Hadolint (Configuration (..))
 import qualified Data.Map as Map
-import qualified Hadolint.Process
 import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
@@ -9,10 +9,12 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("required", Rule.RawText)])
-                      (Just True)
+  let ?config =
+        mempty
+          { labelSchema = Map.fromList [("required", Rule.RawText)],
+            strictLabels = Just True
+          }
+
   describe "DL3050 - Superfluous label(s) present." $ do
     it "ok with no label" $ do
       ruleCatchesNot "DL3050" ""

@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3028 - Pin versions in gem install." $
     describe "version pinning" $ do
       describe "i" $ do

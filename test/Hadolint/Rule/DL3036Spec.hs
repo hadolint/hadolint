@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3036 - `zypper clean` missing after zypper use." $ do
     it "not ok without zypper clean" $ do
       ruleCatches "DL3036" "RUN zypper install -y mariadb=10.4"

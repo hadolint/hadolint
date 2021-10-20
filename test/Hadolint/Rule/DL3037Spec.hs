@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3037 - Specify version with `zypper install -y <package>[=]<version>`." $ do
     -- NOTE: In Haskell strings, '\' has to be escaped. And in shell commands, '>'
     -- and '<' have to be escaped. Hence the double escaping.

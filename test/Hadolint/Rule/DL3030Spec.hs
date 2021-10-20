@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3030 - Use the `-y` switch to avoid manual input `yum install -y <package>`" $ do
     it "not ok when not using `-y` switch" $ do
       ruleCatches "DL3030" "RUN yum install httpd-2.4.24 && yum clean all"

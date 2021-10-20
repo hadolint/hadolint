@@ -48,7 +48,7 @@ runLint ::
 runLint cmd conf = do
   let files = NonEmpty.fromList $ dockerfiles cmd
       filePathInReport = filePathInReportOption cmd
-  res <- Hadolint.lintIO (lintingOptions conf) files
+  res <- Hadolint.lintIO conf files
   printResults
     (fromMaybe def $ format conf)  -- not pretty but works
     (Just True == noColor conf)

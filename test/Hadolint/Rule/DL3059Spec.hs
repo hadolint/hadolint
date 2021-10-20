@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3059 - Multiple consecutive `RUN` instructions" $ do
     it "ok with no `RUN` at all" $ do
       ruleCatchesNot "DL3059" "FROM debian:10"

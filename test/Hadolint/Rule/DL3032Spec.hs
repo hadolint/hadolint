@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3032 - `yum clean all` missing after yum command." $ do
     it "not ok with no clean all" $ do
       ruleCatches "DL3032" "RUN yum install -y mariadb-10.4"

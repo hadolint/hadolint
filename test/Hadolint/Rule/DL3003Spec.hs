@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3003 - Use WORKDIR to switch to a directory." $ do
     it "ok using WORKDIR" $ ruleCatchesNot "DL3003" "WORKDIR /opt"
     it "not ok using cd" $ ruleCatches "DL3003" "RUN cd /opt"

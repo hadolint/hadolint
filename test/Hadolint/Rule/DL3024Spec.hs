@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3024 - Duplicate aliases" $ do
     it "warn on duplicate aliases" $
       let dockerFile =

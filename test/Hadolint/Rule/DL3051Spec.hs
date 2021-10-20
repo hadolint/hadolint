@@ -1,7 +1,7 @@
 module Hadolint.Rule.DL3051Spec (spec) where
 
+import Hadolint (Configuration (..))
 import qualified Data.Map as Map
-import qualified Hadolint.Process
 import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
@@ -9,10 +9,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("emptylabel", Rule.RawText)])
-                      (Just False)
+  let ?config =
+        mempty { labelSchema = Map.fromList [("emptylabel", Rule.RawText)] }
   describe "DL3051 - Label `<label>` is empty." $ do
     it "not ok with label empty" $ do
       ruleCatches "DL3051" "LABEL emptylabel=\"\""

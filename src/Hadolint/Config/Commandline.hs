@@ -10,8 +10,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String (IsString (fromString))
 import Data.Text (Text, pack, unpack, breakOn, drop)
-import Hadolint.Lint (LintOptions (..))
-import Hadolint.Process (RulesConfig (..))
 import Hadolint.Formatter.Format (readMaybeOutputFormat)
 import Hadolint.Config.Configuration (Configuration (..))
 import Hadolint.Rule
@@ -53,15 +51,15 @@ data CommandlineConfig =
 parseCommandline :: Parser CommandlineConfig
 parseCommandline =
   CommandlineConfig
-    <$> version
-    <*> configFile
-    <*> files
-    <*> filePathInReportOption
-    <*> configuration
+    <$> parseVersion
+    <*> parseConfigFile
+    <*> parseFiles
+    <*> parseFilePathInReportOption
+    <*> parseConfiguration
   where
-    version = switch (long "version" <> short 'v' <> help "Show version")
+    parseVersion = switch (long "version" <> short 'v' <> help "Show version")
 
-    configFile =
+    parseConfigFile =
       optional
         ( strOption
             ( long "config" <> short 'c' <> metavar "FILENAME"
@@ -69,9 +67,9 @@ parseCommandline =
             )
         )
 
-    files = many (argument str (metavar "DOCKERFILE..." <> action "file"))
+    parseFiles = many (argument str (metavar "DOCKERFILE..." <> action "file"))
 
-    filePathInReportOption =
+    parseFilePathInReportOption =
       optional
         ( strOption
             ( long "file-path-in-report"
@@ -83,21 +81,28 @@ parseCommandline =
             )
         )
 
-    configuration =
+    parseConfiguration =
       Configuration
-        <$> noFail
-        <*> nocolor
-        <*> isVerbose
-        <*> outputFormat
-        <*> lintOptions
-        <*> noFailCutoff
+        <$> parseNoFail
+        <*> parseNoColor
+        <*> parseVerbose
+        <*> parseOutputFormat
+        <*> parseErrorList
+        <*> parseWarningList
+        <*> parseInfoList
+        <*> parseStyleList
+        <*> parseIgnoreList
+        <*> parseAllowedRegistries
+        <*> parseLabelSchema
+        <*> parseStrictlabels
+        <*> parseFailureThreshold
 
     -- All optional flags with boolean value must not have a default value. The
     -- optional parser then converts it to Nothing.
     -- This is to ensure if they are not set, this is correctly mirrored in the
     -- parsed Configuration and then their behaviour with respect to
     -- configurations from environment variables or config files is correct.
-    noFail =
+    parseNoFail =
       optional
         ( flag' True
             ( long "no-fail"
@@ -106,7 +111,7 @@ parseCommandline =
             )
         )
 
-    nocolor =
+    parseNoColor =
       optional
         ( flag' True
             ( long "no-color"
@@ -114,7 +119,7 @@ parseCommandline =
             )
         )
 
-    isVerbose =
+    parseVerbose =
       optional
         ( flag' True
             ( long "verbose"
@@ -123,7 +128,7 @@ parseCommandline =
             )
         )
 
-    outputFormat =
+    parseOutputFormat =
       optional $
         option
           ( maybeReader (readMaybeOutputFormat . pack) )
@@ -145,16 +150,7 @@ parseCommandline =
                   ]
           )
 
-    lintOptions =
-      LintOptions
-        <$> errorList
-        <*> warningList
-        <*> infoList
-        <*> styleList
-        <*> ignoreList
-        <*> parseRulesConfig
-
-    errorList =
+    parseErrorList =
       many
         ( strOption
             ( long "error"
@@ -163,7 +159,7 @@ parseCommandline =
             )
         )
 
-    warningList =
+    parseWarningList =
       many
         ( strOption
             ( long "warning"
@@ -172,7 +168,7 @@ parseCommandline =
             )
         )
 
-    infoList =
+    parseInfoList =
       many
         ( strOption
             ( long "info"
@@ -181,7 +177,7 @@ parseCommandline =
             )
         )
 
-    styleList =
+    parseStyleList =
       many
         ( strOption
             ( long "style"
@@ -190,7 +186,7 @@ parseCommandline =
             )
         )
 
-    ignoreList =
+    parseIgnoreList =
       many
         ( strOption
             ( long "ignore"
@@ -199,12 +195,6 @@ parseCommandline =
                         \ config file is ignored"
             )
         )
-
-    parseRulesConfig =
-      RulesConfig
-        <$> parseAllowedRegistries
-        <*> labels
-        <*> strictlabels
 
     parseAllowedRegistries =
       Set.fromList . fmap fromString
@@ -217,7 +207,7 @@ parseCommandline =
               )
           )
 
-    labels =
+    parseLabelSchema =
       Map.fromList
         <$> many
           ( option
@@ -230,7 +220,7 @@ parseCommandline =
               )
           )
 
-    strictlabels =
+    parseStrictlabels =
       optional
         ( flag' True
             ( long "strict-labels"
@@ -239,7 +229,7 @@ parseCommandline =
             )
         )
 
-    noFailCutoff =
+    parseFailureThreshold =
       optional $
         option
           ( eitherReader (readEitherSeverity . pack) )

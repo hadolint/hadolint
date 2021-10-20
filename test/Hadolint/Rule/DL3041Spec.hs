@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3041 - Specify version with `dnf install -y <package>-<version>`" $ do
     it "not ok without dnf version pinning" $ do
       ruleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"

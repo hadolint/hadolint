@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3020 - Use `COPY` instead of `ADD` for files and folders." $ do
     it "add for tar" $ ruleCatchesNot "DL3020" "ADD file.tar /usr/src/app/"
     it "add for gzip" $ ruleCatchesNot "DL3020" "ADD file.gz /usr/src/app/"

@@ -7,7 +7,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "Shellcheck" $ do
     it "runs shellchek on RUN instructions" $ do
       assertChecks "RUN echo $MISSING_QUOTES" failsShellcheck

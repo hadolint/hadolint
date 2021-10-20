@@ -1,7 +1,7 @@
 module Hadolint.Rule.DL3054Spec (spec) where
 
+import Hadolint (Configuration (..))
 import qualified Data.Map as Map
-import qualified Hadolint.Process
 import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
@@ -9,10 +9,9 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("spdxlabel", Rule.Spdx)])
-                      (Just False)
+  let ?config =
+        mempty { labelSchema = Map.fromList [("spdxlabel", Rule.Spdx)] }
+
   describe "DL3054 - Label `<label>` is not a valid SPDX license identifier." $ do
     it "not ok with label not containing SPDX identifier" $ do
       ruleCatches "DL3054" "LABEL spdxlabel=\"not-spdx\""

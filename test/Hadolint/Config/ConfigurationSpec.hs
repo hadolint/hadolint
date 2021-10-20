@@ -16,18 +16,14 @@ spec = do
                         (Just False)
                         (Just False)
                         (Just TTY)
-                        ( LintOptions
-                            mempty
-                            mempty
-                            mempty
-                            mempty
-                            mempty
-                            ( RulesConfig
-                                Set.empty
-                                Map.empty
-                                (Just False)
-                            )
-                        )
+                        mempty
+                        mempty
+                        mempty
+                        mempty
+                        mempty
+                        mempty
+                        mempty
+                        (Just False)
                         (Just DLInfoC)
 
     it "override default with specific configuration: no-fail" $ do
@@ -38,12 +34,26 @@ spec = do
                      mempty
                      mempty
                      mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     Nothing
+                     mempty
       (def <> config) `shouldBe` Configuration
                                     (Just True)
                                     (Just False)
                                     (Just False)
                                     (Just TTY)
-                                    def
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    (Just False)
                                     (Just DLInfoC)
 
     it "override default with specific configuration: no-color" $ do
@@ -54,12 +64,26 @@ spec = do
                      mempty
                      mempty
                      mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     Nothing
+                     mempty
       (def <> config) `shouldBe` Configuration
                                     (Just False)
                                     (Just True)
                                     (Just False)
                                     (Just TTY)
-                                    def
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    (Just False)
                                     (Just DLInfoC)
 
     it "empty should not override: no-color" $ do
@@ -70,6 +94,13 @@ spec = do
                      mempty
                      mempty
                      mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     Nothing
+                     mempty
           config2 = Configuration
                       Nothing
                       Nothing
@@ -77,12 +108,26 @@ spec = do
                       mempty
                       mempty
                       mempty
+                      mempty
+                      mempty
+                      mempty
+                      mempty
+                      mempty
+                      Nothing
+                      mempty
       (def <> config <> config2) `shouldBe` Configuration
                                               (Just False)
                                               (Just True)
                                               (Just False)
                                               (Just TTY)
-                                              def
+                                              mempty
+                                              mempty
+                                              mempty
+                                              mempty
+                                              mempty
+                                              mempty
+                                              mempty
+                                              (Just False)
                                               (Just DLInfoC)
 
     it "override default with specific configuration: verbose" $ do
@@ -93,12 +138,26 @@ spec = do
                      mempty
                      mempty
                      mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     Nothing
+                     mempty
       (def <> config) `shouldBe` Configuration
                                     (Just False)
                                     (Just False)
                                     (Just True)
                                     (Just TTY)
-                                    def
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    (Just False)
                                     (Just DLInfoC)
 
     it "override default with specific configuration: output-format json" $ do
@@ -109,10 +168,24 @@ spec = do
                      (Just Json)
                      mempty
                      mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     mempty
+                     Nothing
+                     mempty
       (def <> config) `shouldBe` Configuration
                                     (Just False)
                                     (Just False)
                                     (Just False)
                                     (Just Json)
-                                    def
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    mempty
+                                    (Just False)
                                     (Just DLInfoC)

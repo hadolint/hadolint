@@ -6,7 +6,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = mempty
+  let ?config = mempty
   describe "DL3033 - Specify version with `yum install -y <package>-<version>`" $ do
     it "not ok wihout yum version pinning" $ do
       ruleCatches "DL3033" "RUN yum install -y tomcat && yum clean all"

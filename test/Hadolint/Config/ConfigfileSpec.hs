@@ -19,106 +19,42 @@ spec =
     it "parse `no-fail: true`" $ do
       let yaml = ["no-fail: true"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            (Just True)
-                            Nothing
-                            Nothing
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { noFail = Just True }
 
     it "parse `no-fail: false`" $ do
       let yaml = ["no-fail: false"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            (Just False)
-                            Nothing
-                            Nothing
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { noFail = Just False }
 
     it "parse `no-color: true`" $ do
       let yaml = ["no-color: true"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            (Just True)
-                            Nothing
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { noColor = Just True }
 
     it "parse `no-color: false`" $ do
       let yaml = ["no-color: false"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            (Just False)
-                            Nothing
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { noColor = Just False }
 
     it "parse `verbose: true`" $ do
       let yaml = ["verbose: true"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            (Just True)
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { verbose = Just True }
 
     it "parse `verbose: false`" $ do
       let yaml = ["verbose: false"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            (Just False)
-                            mempty
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { verbose = Just False }
 
     it "parse `output-format: json`" $ do
       let yaml = ["output-format: json"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            (Just Json)
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { format = Just Json }
 
     it "parse `output-format: sarif`" $ do
       let yaml = ["output-format: sarif"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            (Just Sarif)
-                            mempty
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { format = Just Sarif }
 
     it "parse override error rules" $ do
       let yaml = [ "override:",
@@ -129,21 +65,7 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                ["DL3020", "DL3040", "SC1020"]
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                            )
-                            mempty
-                        )
+                        mempty { errorRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse override warning rules" $ do
       let yaml = [ "override:",
@@ -154,21 +76,7 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                ["DL3020", "DL3040", "SC1020"]
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                            )
-                            mempty
-                        )
+                        mempty { warningRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse override info rules" $ do
       let yaml = [ "override:",
@@ -179,21 +87,7 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                ["DL3020", "DL3040", "SC1020"]
-                                mempty
-                                mempty
-                                mempty
-                            )
-                            mempty
-                        )
+                        mempty { infoRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse override style rules" $ do
       let yaml = [ "override:",
@@ -204,21 +98,7 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                ["DL3020", "DL3040", "SC1020"]
-                                mempty
-                                mempty
-                            )
-                            mempty
-                        )
+                        mempty { styleRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse ignored rules" $ do
       let yaml = [ "ignored:",
@@ -228,21 +108,7 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                ["DL3020", "DL3040", "SC1020"]
-                                mempty
-                            )
-                            mempty
-                        )
+                        mempty { ignoreRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse trusted registries" $ do
       let yaml = [ "trusted-registries:",
@@ -251,25 +117,10 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                ( RulesConfig
-                                    (Set.fromList ["foobar.com", "barfoo.com"])
-                                    mempty
-                                    Nothing
-                                )
-                            )
-                            mempty
-                        )
+                        mempty
+                          { allowedRegistries = Set.fromList
+                                                  ["foobar.com", "barfoo.com"]
+                          }
 
     it "parse label schema" $ do
       let yaml = [ "label-schema:",
@@ -278,99 +129,30 @@ spec =
                  ]
           conf = parseYaml yaml
       conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                ( RulesConfig
-                                    mempty
-                                    (Map.fromList [("foo", Email), ("bar", RawText)])
-                                    Nothing
-                                )
-                            )
-                            mempty
-                        )
+                        mempty
+                          { labelSchema = Map.fromList
+                                            [("foo", Email), ("bar", RawText)]
+                          }
 
     it "parse strict-labels: true" $ do
       let yaml = [ "strict-labels: true" ]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                ( RulesConfig
-                                    mempty
-                                    mempty
-                                    (Just True)
-                                )
-                            )
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { strictLabels = Just True }
 
     it "parse strict-labels: false" $ do
       let yaml = [ "strict-labels: false" ]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            ( LintOptions
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                mempty
-                                ( RulesConfig
-                                    mempty
-                                    mempty
-                                    (Just False)
-                                )
-                            )
-                            mempty
-                        )
+      conf `shouldBe` Right mempty { strictLabels = Just False }
 
     it "parse `failure-threshold: warning`" $ do
       let yaml = ["failure-threshold: warning"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            mempty
-                            (Just DLWarningC)
-                        )
+      conf `shouldBe` Right mempty { failThreshold = Just DLWarningC }
 
     it "parse `failure-threshold: style`" $ do
       let yaml = ["failure-threshold: style"]
           conf = parseYaml yaml
-      conf `shouldBe` Right
-                        ( Configuration
-                            Nothing
-                            Nothing
-                            Nothing
-                            mempty
-                            mempty
-                            (Just DLStyleC)
-                        )
+      conf `shouldBe` Right mempty { failThreshold = Just DLStyleC }
 
 -- Helper functions for parsing config files
 

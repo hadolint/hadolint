@@ -1,7 +1,7 @@
 module Hadolint.Rule.DL3055Spec (spec) where
 
+import Hadolint (Configuration (..))
 import qualified Data.Map as Map
-import qualified Hadolint.Process
 import qualified Hadolint.Rule as Rule
 import Helpers
 import Test.Hspec
@@ -9,10 +9,9 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?rulesConfig = Hadolint.Process.RulesConfig
-                      []
-                      (Map.fromList [("githash", Rule.GitHash)])
-                      (Just False)
+  let ?config =
+        mempty { labelSchema = Map.fromList [("githash", Rule.GitHash)] }
+
   describe "DL3055 - Label `<label>` is not a valid git hash." $ do
     it "not ok with label not containing git hash" $ do
       ruleCatches "DL3055" "LABEL githash=\"not-git-hash\""
