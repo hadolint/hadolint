@@ -213,6 +213,7 @@ test-suite hadolint-unit-tests
       Hadolint.Config.EnvironmentSpec
       Hadolint.Config.SpecHook
       Hadolint.Formatter.ParseErrorSpec
+      Hadolint.Formatter.SarifSpec
       Hadolint.Formatter.TTYSpec
       Hadolint.PragmaSpec
       Hadolint.Rule.DL3000Spec

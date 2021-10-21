@@ -1,17 +1,20 @@
 module Helpers where
 
-import qualified Control.Foldl as Foldl
 import Control.Monad (unless, when)
-import qualified Data.Sequence as Seq
-import qualified Data.Text as Text
-import Hadolint (Configuration (..))
+import Hadolint (Configuration (..), OutputFormat (..), printResults)
+import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Formatter.TTY (formatCheck)
-import qualified Hadolint.Process
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
 import Language.Docker.Parser
 import Language.Docker.Syntax
+import System.IO.Silently
 import Test.HUnit hiding (Label)
 import Test.Hspec
+import qualified Control.Foldl as Foldl
+import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Sequence as Seq
+import qualified Data.Text as Text
+import qualified Hadolint.Process
 
 
 assertChecks ::
@@ -119,3 +122,17 @@ passesShellcheck checks =
         <> (Text.unpack . formatChecksNoColor $ matched)
   where
     matched = Seq.filter (\CheckFailure {code = RuleCode rc} -> "SC" `Text.isPrefixOf` rc) checks
+
+
+assertFormatter ::
+  (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  [CheckFailure] ->
+  String ->
+  Assertion
+assertFormatter formatter failures expectation = do
+  let results =
+        NonEmpty.fromList [Result "<string>" mempty (Seq.fromList failures)]
+  (cap, _) <- capture
+                (printResults formatter ?noColor (Just "<string>") results)
+  cap `shouldBe` expectation

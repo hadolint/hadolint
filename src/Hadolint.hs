@@ -6,6 +6,7 @@ module Hadolint
     module Hadolint.Meta,
     module Hadolint.Process,
 
+    CheckFailure (..),
     DLSeverity (..),
     LabelSchema,
     LabelName,
@@ -18,4 +19,10 @@ import Hadolint.Formatter
 import Hadolint.Lint
 import Hadolint.Meta
 import Hadolint.Process
-import Hadolint.Rule (DLSeverity (..), LabelSchema, LabelName, LabelType (..))
+import Hadolint.Rule
+  ( CheckFailure (..),
+    DLSeverity (..),
+    LabelName,
+    LabelSchema,
+    LabelType (..),
+  )
