@@ -1,6 +1,7 @@
 module Hadolint.Config
-  ( CommandlineConfig (..),
-    Configuration (..),
+  ( module Hadolint.Config.Configuration,
+
+    CommandlineConfig (..),
     getConfigFromEnvironment,
     getConfigFromFile,
     parseCommandline

@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3056Spec (spec) where
 
+import Data.Default
 import Hadolint (Configuration (..))
 import qualified Data.Map as Map
 import qualified Hadolint.Rule as Rule
@@ -9,8 +10,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config =
-        mempty { labelSchema = Map.fromList [("semver", Rule.SemVer)] }
+  let ?config = def { labelSchema = Map.fromList [("semver", Rule.SemVer)] }
 
   describe "DL3056 - Label `<label>` does not conform to semantic versioning." $ do
     it "not ok with label not containing semantic version" $ do

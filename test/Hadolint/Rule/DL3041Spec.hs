@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3041Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3041 - Specify version with `dnf install -y <package>-<version>`" $ do
     it "not ok without dnf version pinning" $ do
       ruleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"

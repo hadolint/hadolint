@@ -2,7 +2,6 @@ module Main where
 
 import Control.Monad (when)
 import Data.Default
-import Data.Maybe
 import Hadolint (OutputFormat (..), printResults, DLSeverity (..))
 import Hadolint.Config
 import Prettyprinter
@@ -23,9 +22,9 @@ import System.Exit (exitFailure, exitSuccess)
 import System.IO (hPrint, stderr)
 
 
-noFailure :: Hadolint.Result s e -> Maybe DLSeverity -> Bool
+noFailure :: Hadolint.Result s e -> DLSeverity -> Bool
 noFailure (Hadolint.Result _ Seq.Empty Seq.Empty) _ = True
-noFailure (Hadolint.Result _ Seq.Empty fails) (Just cutoff) =
+noFailure (Hadolint.Result _ Seq.Empty fails) cutoff =
   Seq.null (Seq.filter (\f -> Rule.severity f <= cutoff) fails)
 noFailure _ _ = False
 
@@ -35,10 +34,10 @@ exitProgram ::
   f (Hadolint.Result s e) ->
   IO ()
 exitProgram conf res
-  | Just True == noFail conf = exitSuccess
-  | Just CodeclimateJson == format conf = exitSuccess
-  | Just Codacy == format conf = exitSuccess
-  | all (`noFailure` failThreshold conf) res = exitSuccess
+  | noFail conf = exitSuccess
+  | CodeclimateJson == format conf = exitSuccess
+  | Codacy == format conf = exitSuccess
+  | all (`noFailure` failureThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
 runLint ::
@@ -49,11 +48,7 @@ runLint cmd conf = do
   let files = NonEmpty.fromList $ dockerfiles cmd
       filePathInReport = filePathInReportOption cmd
   res <- Hadolint.lintIO conf files
-  printResults
-    (fromMaybe def $ format conf)  -- not pretty but works
-    (Just True == noColor conf)
-    filePathInReport
-    res
+  printResults (format conf) (noColor conf) filePathInReport res
   exitProgram conf res
 
 execute :: CommandlineConfig -> Configuration -> IO ()
@@ -70,14 +65,15 @@ main = do
   fromEnvironment <- getConfigFromEnvironment
   let fromCommandline = configuration invokedWith
   eitherFromConfigfile <- getConfigFromFile
-    (configFile invokedWith) (Just True == verbose fromCommandline)
+    (configFile invokedWith) (Just True == partialVerbose fromCommandline)
   fromConfigfile <- getConfigFromEither eitherFromConfigfile
 
   let runningConfig =
-        def <> fromEnvironment <> fromConfigfile <> fromCommandline
+        applyPartialConfiguration
+          def
+          ( fromEnvironment <> fromConfigfile <> fromCommandline )
 
-  when (Just True == verbose fromCommandline)
-    (hPrint stderr (pretty runningConfig))
+  when (verbose runningConfig) (hPrint stderr (pretty runningConfig))
   execute invokedWith runningConfig
   where
     opts =

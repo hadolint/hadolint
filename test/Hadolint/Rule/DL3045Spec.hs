@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3045Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3045 - `COPY` without `WORKDIR` set" $ do
     it "ok: `COPY` with absolute destination and no `WORKDIR` set" $ do
       ruleCatchesNot "DL3045" "COPY bla.sh /usr/local/bin/blubb.sh"

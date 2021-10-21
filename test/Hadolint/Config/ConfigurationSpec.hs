@@ -12,10 +12,10 @@ spec = do
   describe "Configuration" $ do
     it "default configuration" $ do
       def `shouldBe` Configuration
-                        (Just False)
-                        (Just False)
-                        (Just False)
-                        (Just TTY)
+                        False
+                        False
+                        False
+                        TTY
                         mempty
                         mempty
                         mempty
@@ -23,11 +23,28 @@ spec = do
                         mempty
                         mempty
                         mempty
-                        (Just False)
-                        (Just DLInfoC)
+                        False
+                        DLInfoC
+
+    it "override default configuration with empty config" $ do
+      applyPartialConfiguration def mempty `shouldBe`
+        Configuration
+          False
+          False
+          False
+          TTY
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC
 
     it "override default with specific configuration: no-fail" $ do
-      let config = Configuration
+      let config = PartialConfiguration
                      (Just True)
                      Nothing
                      Nothing
@@ -41,23 +58,24 @@ spec = do
                      mempty
                      Nothing
                      mempty
-      (def <> config) `shouldBe` Configuration
-                                    (Just True)
-                                    (Just False)
-                                    (Just False)
-                                    (Just TTY)
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    (Just False)
-                                    (Just DLInfoC)
+      applyPartialConfiguration def config `shouldBe`
+        Configuration
+          True
+          False
+          False
+          TTY
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC
 
     it "override default with specific configuration: no-color" $ do
-      let config = Configuration
+      let config = PartialConfiguration
                      Nothing
                      (Just True)
                      Nothing
@@ -71,23 +89,24 @@ spec = do
                      mempty
                      Nothing
                      mempty
-      (def <> config) `shouldBe` Configuration
-                                    (Just False)
-                                    (Just True)
-                                    (Just False)
-                                    (Just TTY)
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    (Just False)
-                                    (Just DLInfoC)
+      applyPartialConfiguration def config `shouldBe`
+        Configuration
+          False
+          True
+          False
+          TTY
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC
 
     it "empty should not override: no-color" $ do
-      let config = Configuration
+      let config = PartialConfiguration
                      Nothing
                      (Just True)
                      Nothing
@@ -101,7 +120,7 @@ spec = do
                      mempty
                      Nothing
                      mempty
-          config2 = Configuration
+          config2 = PartialConfiguration
                       Nothing
                       Nothing
                       Nothing
@@ -115,23 +134,24 @@ spec = do
                       mempty
                       Nothing
                       mempty
-      (def <> config <> config2) `shouldBe` Configuration
-                                              (Just False)
-                                              (Just True)
-                                              (Just False)
-                                              (Just TTY)
-                                              mempty
-                                              mempty
-                                              mempty
-                                              mempty
-                                              mempty
-                                              mempty
-                                              mempty
-                                              (Just False)
-                                              (Just DLInfoC)
+      applyPartialConfiguration def (config <> config2) `shouldBe`
+        Configuration
+          False
+          True
+          False
+          TTY
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC
 
     it "override default with specific configuration: verbose" $ do
-      let config = Configuration
+      let config = PartialConfiguration
                      Nothing
                      Nothing
                      (Just True)
@@ -145,23 +165,24 @@ spec = do
                      mempty
                      Nothing
                      mempty
-      (def <> config) `shouldBe` Configuration
-                                    (Just False)
-                                    (Just False)
-                                    (Just True)
-                                    (Just TTY)
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    (Just False)
-                                    (Just DLInfoC)
+      applyPartialConfiguration def config `shouldBe`
+        Configuration
+          False
+          False
+          True
+          TTY
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC
 
     it "override default with specific configuration: output-format json" $ do
-      let config = Configuration
+      let config = PartialConfiguration
                      Nothing
                      Nothing
                      Nothing
@@ -175,17 +196,18 @@ spec = do
                      mempty
                      Nothing
                      mempty
-      (def <> config) `shouldBe` Configuration
-                                    (Just False)
-                                    (Just False)
-                                    (Just False)
-                                    (Just Json)
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    mempty
-                                    (Just False)
-                                    (Just DLInfoC)
+      applyPartialConfiguration def config `shouldBe`
+        Configuration
+          False
+          False
+          False
+          Json
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          mempty
+          False
+          DLInfoC

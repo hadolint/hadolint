@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3012Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3012 - Multiple `HEALTHCHECK` instructions" $ do
     it "ok with no HEALTHCHECK instruction" $
       ruleCatchesNot "DL3012" "FROM scratch"

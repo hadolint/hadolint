@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3048Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3048 - Invalid Label Key Rule" $ do
     it "not ok with reserved namespace" $ do
       ruleCatches "DL3048" "LABEL com.docker.label=\"foo\""

@@ -1,5 +1,6 @@
 module RegressionSpec (spec) where
 
+import Data.Default
 import qualified Data.Text as Text
 import Helpers
 import Test.HUnit hiding (Label)
@@ -7,7 +8,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty -- default implicit parameter running the checkers
+  let ?config = def  -- default implicit parameter running the checkers
   describe "Regression Tests" $ do
     it "Comments with backslashes at the end are just comments" $
       let dockerFile =

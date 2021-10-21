@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3047Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3047 - `wget` without flag `--progress` will result in excessively bloated build logs when downloading larger files." $ do
     it "warns when using wget without --progress option" $
       let dockerFile =

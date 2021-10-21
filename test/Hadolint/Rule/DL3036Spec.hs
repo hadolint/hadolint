@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3036Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3036 - `zypper clean` missing after zypper use." $ do
     it "not ok without zypper clean" $ do
       ruleCatches "DL3036" "RUN zypper install -y mariadb=10.4"

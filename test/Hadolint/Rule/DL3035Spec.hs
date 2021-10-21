@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3035Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3035" $ do
     it "not ok: zypper dist-upgrade" $ do
       ruleCatches "DL3035" "RUN zypper dist-upgrade"

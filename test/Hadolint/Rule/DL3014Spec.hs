@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3014Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3014 - Use the -y switch." $ do
     it "apt-get auto yes" $ do
       ruleCatches "DL3014" "RUN apt-get install python"

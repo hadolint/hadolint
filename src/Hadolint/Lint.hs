@@ -6,9 +6,10 @@ module Hadolint.Lint
   )
 where
 
+import Data.Sequence (Seq)
 import Data.Text (Text)
 import Hadolint.Config.Configuration (Configuration (..))
-import Hadolint.Rule (RuleCode, DLSeverity (..))
+import Hadolint.Rule (RuleCode, DLSeverity (..), CheckFailure (..))
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 import qualified Control.Parallel.Strategies as Parallel
@@ -17,7 +18,6 @@ import qualified Data.Sequence as Seq
 import qualified Data.Text as Text
 import qualified Hadolint.Formatter.Format as Format
 import qualified Hadolint.Process
-import qualified Hadolint.Rule
 import qualified Language.Docker as Docker
 
 
@@ -57,7 +57,7 @@ lint config parsedFiles = gather results `Parallel.using` parallelRun
       ]
     parallelRun = Parallel.parList Parallel.rseq
 
-analyze :: Configuration -> Dockerfile -> Seq.Seq Hadolint.Rule.CheckFailure
+analyze :: Configuration -> Dockerfile -> Seq Hadolint.Rule.CheckFailure
 analyze config dockerfile = fixer process
   where
     fixer = fixSeverity config
@@ -65,24 +65,24 @@ analyze config dockerfile = fixer process
 
 fixSeverity ::
   Configuration ->
-  Seq.Seq Hadolint.Rule.CheckFailure ->
-  Seq.Seq Hadolint.Rule.CheckFailure
+  Seq CheckFailure ->
+  Seq CheckFailure
 fixSeverity Configuration {..} =
   Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
   where
     correctSeverity =
-      makeSeverity Hadolint.Rule.DLErrorC errorRules
-        . makeSeverity Hadolint.Rule.DLWarningC warningRules
-        . makeSeverity Hadolint.Rule.DLInfoC infoRules
-        . makeSeverity Hadolint.Rule.DLStyleC styleRules
+      makeSeverity DLErrorC errorRules
+        . makeSeverity DLWarningC warningRules
+        . makeSeverity DLInfoC infoRules
+        . makeSeverity DLStyleC styleRules
 
     ignoredRules = ignoreFilter ignoreRules
 
-    makeSeverity s rules rule@Hadolint.Rule.CheckFailure {code} =
+    makeSeverity s rules rule@CheckFailure {code} =
       if code `elem` rules
-        then rule {Hadolint.Rule.severity = s}
+        then rule {severity = s}
         else rule
 
-    ignoreFilter :: [RuleCode] -> Hadolint.Rule.CheckFailure -> Bool
-    ignoreFilter ignored Hadolint.Rule.CheckFailure {code, severity} =
-      code `notElem` ignored && severity /= Hadolint.Rule.DLIgnoreC
+    ignoreFilter :: [RuleCode] -> CheckFailure -> Bool
+    ignoreFilter ignored CheckFailure {code, severity} =
+      code `notElem` ignored && severity /= DLIgnoreC

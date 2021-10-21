@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3059Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3059 - Multiple consecutive `RUN` instructions" $ do
     it "ok with no `RUN` at all" $ do
       ruleCatchesNot "DL3059" "FROM debian:10"

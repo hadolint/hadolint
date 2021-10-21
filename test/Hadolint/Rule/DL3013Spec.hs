@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3013Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3013 - Pin versions in pip." $ do
     it "pip2 version not pinned" $ do
       ruleCatches "DL3013" "RUN pip2 install MySQL_python"

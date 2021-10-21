@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3023Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3023 - `COPY --from` cannot reference its own `FROM` alias" $ do
     it "warn on copying from your the same FROM" $
       let dockerFile =

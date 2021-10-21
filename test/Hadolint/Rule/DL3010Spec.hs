@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3010Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3010 - Use `ADD` for extracting archives into an image" $ do
     it "catch: copy archive then extract 1" $
       let dockerFile =

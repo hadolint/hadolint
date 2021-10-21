@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3060Spec (spec) where
 
+import Data.Default
 import qualified Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3060 - `yarn cache clean` missing after `yarn install`" $ do
     it "ok with non-yarn commands" $ do
       ruleCatchesNot "DL3060" "RUN foo"

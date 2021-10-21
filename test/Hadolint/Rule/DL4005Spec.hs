@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL4005Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL4005 - Use `SHELL` to change the default shell." $ do
     it "RUN ln" $ do
       ruleCatches "DL4005" "RUN ln -sfv /bin/bash /bin/sh"

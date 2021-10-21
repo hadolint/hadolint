@@ -1,14 +1,16 @@
 module Hadolint.PragmaSpec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 import qualified Data.Text as Text
 
 
 spec :: SpecWith ()
-spec =
+spec = do
+  let ?config = def
+
   describe "Rules can be ignored with inline comments" $ do
-    let ?config = mempty
     it "ignores single rule" $
       let dockerFile =
             [ "FROM ubuntu",

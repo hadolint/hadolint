@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL4006Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL4006 - Set the `SHELL` option `-o pipefail` before RUN with a pipe in it" $ do
     it "warn on missing pipefail" $
       let dockerFile =

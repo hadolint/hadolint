@@ -1,12 +1,13 @@
 module Hadolint.Rule.DL3016Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
   describe "DL3016 - Pin versions in npm." $ do
     it "version pinned in package.json" $ do
       ruleCatchesNot "DL3016" "RUN npm install"

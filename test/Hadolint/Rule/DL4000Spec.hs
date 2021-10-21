@@ -1,12 +1,13 @@
 module Hadolint.Rule.DL4000Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
   describe "DL4000 - MAINTAINER is deprecated." $ do
     it "has deprecated maintainer" $
       ruleCatches "DL4000" "FROM busybox\nMAINTAINER hudu@mail.com"

@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3027Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3027 - Do not use `apt` as it is meant to be a end-user tool, use `apt-get` or `apt-cache` instead" $ do
     it "apt" $
       let dockerFile =

@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3032Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3032 - `yum clean all` missing after yum command." $ do
     it "not ok with no clean all" $ do
       ruleCatches "DL3032" "RUN yum install -y mariadb-10.4"

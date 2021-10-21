@@ -1,9 +1,13 @@
 module Hadolint.Config.Configuration
-  ( Configuration (..)
+  ( Configuration (..),
+    PartialConfiguration (..),
+
+    applyPartialConfiguration,
   )
 where
 
-import Control.Applicative ((<|>))
+import Data.Maybe (fromMaybe)
+import Control.Applicative
 import Data.Coerce (coerce)
 import Data.Default
 import Data.Text (Text)
@@ -20,10 +24,10 @@ import qualified Data.YAML as Yaml
 
 data Configuration =
   Configuration
-    { noFail :: Maybe Bool,
-      noColor :: Maybe Bool,
-      verbose :: Maybe Bool,
-      format :: Maybe OutputFormat,
+    { noFail :: Bool,
+      noColor :: Bool,
+      verbose :: Bool,
+      format :: OutputFormat,
       errorRules :: [RuleCode],
       warningRules :: [RuleCode],
       infoRules :: [RuleCode],
@@ -31,27 +35,61 @@ data Configuration =
       ignoreRules :: [RuleCode],
       allowedRegistries :: Set.Set Registry,
       labelSchema :: LabelSchema,
-      strictLabels :: Maybe Bool,
-      failThreshold :: Maybe DLSeverity
+      strictLabels :: Bool,
+      failureThreshold :: DLSeverity
     }
   deriving (Eq, Show)
 
+instance Default Configuration where
+  def =
+    Configuration
+      False
+      False
+      False
+      def
+      mempty
+      mempty
+      mempty
+      mempty
+      mempty
+      mempty
+      mempty
+      False
+      def
+
+applyPartialConfiguration ::
+  Configuration -> PartialConfiguration -> Configuration
+applyPartialConfiguration config partial =
+  Configuration
+    (fromMaybe (noFail config) (partialNoFail partial))
+    (fromMaybe (noColor config) (partialNoColor partial))
+    (fromMaybe (verbose config) (partialVerbose partial))
+    (fromMaybe (format config) (partialFormat partial))
+    (errorRules config <> partialErrorRules partial)
+    (warningRules config <> partialWarningRules partial)
+    (infoRules config <> partialInfoRules partial)
+    (styleRules config <> partialStyleRules partial)
+    (ignoreRules config <> partialIgnoreRules partial)
+    (allowedRegistries config <> partialAllowedRegistries partial)
+    (labelSchema config <> partialLabelSchema partial)
+    (fromMaybe (strictLabels config) (partialStrictLabels partial))
+    (fromMaybe (failureThreshold config) (partialFailureThreshold partial))
 
 instance Pretty Configuration where
   pretty c =
     nest 2
       ( vsep
           [ "Configuration:",
-            "no fail:" <+> maybe "unset" pretty (noFail c),
-            "no color:" <+> maybe "unset" pretty (noColor c),
-            "output format:" <+> maybe "unset" pretty (format c),
-            "failure threshold:" <+> maybe "unset" pretty (failThreshold c),
+            "no fail:" <+> pretty (noFail c),
+            "no color:" <+> pretty (noColor c),
+            "output format:" <+> pretty (format c),
+            "failure threshold:" <+> pretty (failureThreshold c),
             prettyPrintRulelist "error" (errorRules c),
             prettyPrintRulelist "warning" (warningRules c),
             prettyPrintRulelist "info" (infoRules c),
             prettyPrintRulelist "style" (styleRules c),
             prettyPrintRulelist "ignore" (ignoreRules c),
-            "strict labels:" <+> maybe "unset" pretty (strictLabels c),
+            "strict labels:" <+> pretty (strictLabels c),
             prettyPrintLabelSchema (labelSchema c),
             prettyPrintRegistries (allowedRegistries c)
           ]
@@ -84,10 +122,30 @@ prettyPrintList :: (a -> Doc ann) -> [a] -> Doc ann
 prettyPrintList _ [] = "none"
 prettyPrintList prnt lst = vsep (fmap (\i -> "-" <+> prnt i) lst)
 
-instance Semigroup Configuration where
-  Configuration a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13
-    <> Configuration b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 =
-      Configuration
+
+data PartialConfiguration =
+  PartialConfiguration
+    { partialNoFail :: Maybe Bool,
+      partialNoColor :: Maybe Bool,
+      partialVerbose :: Maybe Bool,
+      partialFormat :: Maybe OutputFormat,
+      partialErrorRules :: [RuleCode],
+      partialWarningRules :: [RuleCode],
+      partialInfoRules :: [RuleCode],
+      partialStyleRules :: [RuleCode],
+      partialIgnoreRules :: [RuleCode],
+      partialAllowedRegistries :: Set.Set Registry,
+      partialLabelSchema :: LabelSchema,
+      partialStrictLabels :: Maybe Bool,
+      partialFailureThreshold :: Maybe DLSeverity
+    }
+  deriving (Eq, Show)
+
+
+instance Semigroup PartialConfiguration where
+  PartialConfiguration a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13
+    <> PartialConfiguration b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 =
+      PartialConfiguration
         (b1 <|> a1)
         (b2 <|> a2)
         (b3 <|> a3)
@@ -102,9 +160,9 @@ instance Semigroup Configuration where
         (b12 <|> a12)
         (a13 <> b13)
 
-instance Monoid Configuration where
+instance Monoid PartialConfiguration where
   mempty =
-    Configuration
+    PartialConfiguration
       Nothing
       Nothing
       Nothing
@@ -119,42 +177,28 @@ instance Monoid Configuration where
       Nothing
       mempty
 
-instance Default Configuration where
-  def =
-    Configuration
-      (Just False)
-      (Just False)
-      (Just False)
-      (Just def)
-      mempty
-      mempty
-      mempty
-      mempty
-      mempty
-      mempty
-      mempty
-      (Just False)
-      (Just def)
+instance Default PartialConfiguration where
+  def = mempty
 
-instance Yaml.FromYAML Configuration where
+instance Yaml.FromYAML PartialConfiguration where
   parseYAML = Yaml.withMap "Configuration" $ \m -> do
-    noFail <- m .:? "no-fail" .!= Nothing
-    noColor <- m .:? "no-color" .!= Nothing
-    verbose <- m .:? "verbose" .!= Nothing
-    format <- m .:? "output-format"
+    partialNoFail <- m .:? "no-fail" .!= Nothing
+    partialNoColor <- m .:? "no-color" .!= Nothing
+    partialVerbose <- m .:? "verbose" .!= Nothing
+    partialFormat <- m .:? "output-format"
     override <- m .:? "override" .!= mempty
     ignored <- m .:? "ignored" .!= mempty
     trusted <- m .:? "trusted-registries" .!= mempty
-    labelSchema <- m .:? "label-schema" .!= mempty
-    strictLabels <- m .:? "strict-labels" .!= Nothing
-    let ignoreRules = coerce (ignored :: [Text])
-        errorRules = overrideErrorRules override
-        warningRules = overrideWarningRules override
-        infoRules = overrideInfoRules override
-        styleRules = overrideStyleRules override
-        allowedRegistries = Set.fromList (coerce (trusted :: [Text]))
-    failThreshold <- m .:? "failure-threshold"
-    return Configuration {..}
+    partialLabelSchema <- m .:? "label-schema" .!= mempty
+    partialStrictLabels <- m .:? "strict-labels" .!= Nothing
+    let partialIgnoreRules = coerce (ignored :: [Text])
+        partialErrorRules = overrideErrorRules override
+        partialWarningRules = overrideWarningRules override
+        partialInfoRules = overrideInfoRules override
+        partialStyleRules = overrideStyleRules override
+        partialAllowedRegistries = Set.fromList (coerce (trusted :: [Text]))
+    partialFailureThreshold <- m .:? "failure-threshold"
+    return PartialConfiguration {..}
 
 
 data OverrideConfig = OverrideConfig

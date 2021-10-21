@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3015Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3015 - Avoid additional packages by specifying `--no-install-recommends`." $ do
     it "apt-get install recommends" $ do
       ruleCatchesNot

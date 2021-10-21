@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3008Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3008 - Pin versions in apt-get install." $ do
     it "apt-get version pinning" $ do
       ruleCatches "DL3008" "RUN apt-get update && apt-get install python"

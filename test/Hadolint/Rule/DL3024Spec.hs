@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3024Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3024 - Duplicate aliases" $ do
     it "warn on duplicate aliases" $
       let dockerFile =

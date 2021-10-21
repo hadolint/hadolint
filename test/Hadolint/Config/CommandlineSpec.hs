@@ -94,7 +94,7 @@ spec = do
                                           Nothing
                                           []
                                           Nothing
-                                          mempty { noFail = Just True }
+                                          mempty { partialNoFail = Just True }
 
       it "parse --no-color" $ do
         checkCommandline ["--no-color"] $ CommandlineConfig
@@ -102,7 +102,7 @@ spec = do
                                             Nothing
                                             []
                                             Nothing
-                                            mempty { noColor = Just True }
+                                            mempty { partialNoColor = Just True }
 
       it "parse -V" $ do
         checkCommandline ["-V"] $ CommandlineConfig
@@ -110,7 +110,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { verbose = Just True }
+                                mempty { partialVerbose = Just True }
 
       it "parse --verbose" $ do
         checkCommandline ["--verbose"] $ CommandlineConfig
@@ -118,7 +118,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { verbose = Just True }
+                                mempty { partialVerbose = Just True }
 
       it "parse -f json" $ do
         checkCommandline ["-f", "json"] $ CommandlineConfig
@@ -126,7 +126,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { format = Just Json }
+                                mempty { partialFormat = Just Json }
 
       it "parse --format" $ do
         checkCommandline ["--format", "sarif"] $ CommandlineConfig
@@ -134,7 +134,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { format = Just Sarif }
+                                mempty { partialFormat = Just Sarif }
 
     describe "parse severity overrides" $ do
       it "parse --error=DL3010" $ do
@@ -143,7 +143,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { errorRules = ["DL3010"] }
+                                mempty { partialErrorRules = ["DL3010"] }
 
       it "parse --error=DL3010 --error=DL3020" $ do
         checkCommandline
@@ -153,7 +153,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { errorRules = ["DL3010", "DL3020"] }
+              mempty { partialErrorRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --warning=DL3010" $ do
@@ -162,7 +162,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { warningRules = ["DL3010"] }
+                                mempty { partialWarningRules = ["DL3010"] }
 
       it "parse --warning=DL3010 --warning=DL3020" $ do
         checkCommandline
@@ -172,7 +172,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { warningRules = ["DL3010", "DL3020"] }
+              mempty { partialWarningRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --info=DL3010" $ do
@@ -181,7 +181,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { infoRules = ["DL3010"] }
+                                mempty { partialInfoRules = ["DL3010"] }
 
       it "parse --info=DL3010 --info=DL3020" $ do
         checkCommandline
@@ -191,7 +191,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { infoRules = ["DL3010", "DL3020"] }
+              mempty { partialInfoRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --style=DL3010" $ do
@@ -200,7 +200,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { styleRules = ["DL3010"] }
+                                mempty { partialStyleRules = ["DL3010"] }
 
       it "parse --style=DL3010 --style=DL3020" $ do
         checkCommandline
@@ -210,7 +210,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { styleRules = ["DL3010", "DL3020"] }
+              mempty { partialStyleRules = ["DL3010", "DL3020"] }
           )
 
       it "parse --ignore=DL3010" $ do
@@ -219,7 +219,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { ignoreRules = ["DL3010"] }
+                                mempty { partialIgnoreRules = ["DL3010"] }
 
       it "parse --ignore=DL3010 --ignore=DL3020" $ do
         checkCommandline
@@ -229,7 +229,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { ignoreRules = ["DL3010", "DL3020"] }
+              mempty { partialIgnoreRules = ["DL3010", "DL3020"] }
           )
 
     describe "parse trusted registries" $ do
@@ -241,7 +241,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { allowedRegistries = Set.fromList ["foobar.com"] }
+              mempty { partialAllowedRegistries = Set.fromList ["foobar.com"] }
           )
 
       it "parse --trusted-registry foobar.com --trusted-registry barfoo.io" $ do
@@ -257,7 +257,9 @@ spec = do
               []
               Nothing
               mempty
-                { allowedRegistries = Set.fromList ["foobar.com", "barfoo.io"] }
+                { partialAllowedRegistries =
+                    Set.fromList ["foobar.com", "barfoo.io"]
+                }
           )
 
     describe "parse required labels" $ do
@@ -269,7 +271,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { labelSchema = Map.fromList [("foo", Email)] }
+              mempty { partialLabelSchema = Map.fromList [("foo", Email)] }
           )
 
       it "parse --require-label foo:email --require-label bar:text" $ do
@@ -281,8 +283,8 @@ spec = do
               []
               Nothing
               mempty
-                { labelSchema = Map.fromList
-                                  [("foo", Email), ("bar", RawText)]
+                { partialLabelSchema =
+                    Map.fromList [("foo", Email), ("bar", RawText)]
                 }
           )
 
@@ -295,7 +297,7 @@ spec = do
               Nothing
               []
               Nothing
-              mempty { strictLabels = Just True }
+              mempty { partialStrictLabels = Just True }
           )
 
     describe "parse failure thresholds" $ do
@@ -305,7 +307,8 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { failThreshold = Just DLWarningC }
+                                mempty
+                                  { partialFailureThreshold = Just DLWarningC }
 
       it "parse --failure-threshold style" $ do
         checkCommandline ["--failure-threshold", "style"] $ CommandlineConfig
@@ -313,30 +316,17 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
-                                mempty { failThreshold = Just DLStyleC }
+                                mempty
+                                  { partialFailureThreshold = Just DLStyleC }
 
     describe "fail parsing on garbage input" $ do
       it "fail parsing --blafoo" $ do
         checkCommandlineFail
           ["--blafoo"]
-          ( CommandlineConfig
-            False
-            Nothing
-            []
-            Nothing
-            mempty
-          )
 
       it "fail parsing --require-label foo:bar" $ do
         checkCommandlineFail
           ["--require-label", "foo:bar"]
-          ( CommandlineConfig
-            False
-            Nothing
-            []
-            Nothing
-            mempty
-          )
 
 
 checkCommandline :: [String] -> CommandlineConfig -> Assertion
@@ -347,10 +337,10 @@ checkCommandline args config = do
     Success cfg -> cfg `shouldBe` config
     _ -> assertFailure "should have parsed commandline arguments"
 
-checkCommandlineFail :: [String] -> CommandlineConfig -> Assertion
-checkCommandlineFail args config = do
+checkCommandlineFail :: [String] -> Assertion
+checkCommandlineFail args = do
   let inf = info parseCommandline fullDesc
       res = execParserPure defaultPrefs inf args
   case res of
-    Failure _ -> assertEqual "" 0 0
+    Failure _ -> assertEqual "" (0 :: Int) (0 :: Int)  -- inverse asserFailure
     _ -> assertFailure "should have failed parsing commandline arguments"

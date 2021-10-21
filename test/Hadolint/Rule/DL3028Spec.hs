@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3028Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3028 - Pin versions in gem install." $
     describe "version pinning" $ do
       describe "i" $ do

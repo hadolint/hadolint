@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3018Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3018 - Pin versions in `apk add`." $ do
     it "apk add version pinning single" $ do
       ruleCatches "DL3018" "RUN apk add flex"

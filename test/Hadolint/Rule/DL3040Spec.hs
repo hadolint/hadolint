@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3040Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3040 - `dnf clean all` missing after dnf command." $ do
     it "no ok without dnf clean all" $ do
       ruleCatches "DL3040" "RUN dnf install -y mariadb-10.4"

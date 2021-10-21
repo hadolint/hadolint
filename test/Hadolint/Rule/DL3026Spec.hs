@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3026Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Hadolint (Configuration (..))
 import Helpers
@@ -8,7 +9,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL2036 - Use only an allowed registry in the FROM image" $ do
     it "does not warn on empty allowed registries" $ do
       let dockerFile =
@@ -20,7 +22,7 @@ spec = do
       let dockerFile =
             [ "FROM random.com/debian"
             ]
-      let ?config = mempty { allowedRegistries = ["docker.io"] }
+      let ?config = def { allowedRegistries = ["docker.io"] }
 
       ruleCatches "DL3026" $ Text.unlines dockerFile
 
@@ -28,7 +30,7 @@ spec = do
       let dockerFile =
             [ "FROM random.com/debian"
             ]
-      let ?config = mempty { allowedRegistries = ["x.com", "random.com"] }
+      let ?config = def { allowedRegistries = ["x.com", "random.com"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
@@ -36,7 +38,7 @@ spec = do
       let dockerFile =
             [ "FROM scratch"
             ]
-      let ?config = mempty { allowedRegistries = ["x.com", "random.com"] }
+      let ?config = def { allowedRegistries = ["x.com", "random.com"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
@@ -46,7 +48,7 @@ spec = do
               "FROM zemanlx/ubuntu:18.04 AS builder2",
               "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
             ]
-      let ?config = mempty { allowedRegistries = ["docker.io"] }
+      let ?config = def { allowedRegistries = ["docker.io"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
@@ -55,6 +57,6 @@ spec = do
             [ "FROM random.com/foo AS builder1",
               "FROM builder1 AS builder2"
             ]
-      let ?config = mempty { allowedRegistries = ["random.com"] }
+      let ?config = def { allowedRegistries = ["random.com"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile

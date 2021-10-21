@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL4004Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL4004" $ do
     it "no cmd" $ ruleCatchesNot "DL4004" "FROM busybox"
 

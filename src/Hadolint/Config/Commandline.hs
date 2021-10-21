@@ -11,7 +11,7 @@ import qualified Data.Set as Set
 import Data.String (IsString (fromString))
 import Data.Text (Text, pack, unpack, breakOn, drop)
 import Hadolint.Formatter.Format (readMaybeOutputFormat)
-import Hadolint.Config.Configuration (Configuration (..))
+import Hadolint.Config.Configuration
 import Hadolint.Rule
   ( LabelName,
     LabelType,
@@ -44,7 +44,7 @@ data CommandlineConfig =
       configFile :: Maybe FilePath,
       dockerfiles :: [String],
       filePathInReportOption :: Maybe FilePath,
-      configuration :: Configuration
+      configuration :: PartialConfiguration
     }
   deriving (Eq, Show)
 
@@ -82,7 +82,7 @@ parseCommandline =
         )
 
     parseConfiguration =
-      Configuration
+      PartialConfiguration
         <$> parseNoFail
         <*> parseNoColor
         <*> parseVerbose

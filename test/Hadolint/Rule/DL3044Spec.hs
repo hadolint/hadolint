@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3044Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3044 - Do not refer to an environment variable within the same `ENV` statement where it is defined." $ do
     it "ok with normal ENV" $
       ruleCatchesNot "DL3044" "ENV BLA=\"blubb\"\nENV BLUBB=\"${BLA}/blubb\""

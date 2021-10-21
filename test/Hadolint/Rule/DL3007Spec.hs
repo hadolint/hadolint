@@ -1,15 +1,19 @@
 module Hadolint.Rule.DL3007Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
-  describe "DL3007 - Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag." $ do
+  let ?config = def
+
+  describe "DL3007 - Using latest is prone to errors if the image will ever up\
+           \date. Pin the version explicitly to a release tag." $ do
     it "explicit latest" $ ruleCatches "DL3007" "FROM debian:latest"
-    it "explicit latest with name" $ ruleCatches "DL3007" "FROM debian:latest AS builder"
+    it "explicit latest with name" $
+      ruleCatches "DL3007" "FROM debian:latest AS builder"
     it "explicit tagged" $ ruleCatchesNot "DL3007" "FROM debian:jessie"
     it "explicit SHA" $
       ruleCatchesNot

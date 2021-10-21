@@ -9,15 +9,15 @@ import Data.Map (empty, fromList)
 import Data.Set (Set, empty, fromList)
 import Data.Text (Text, pack, unpack, drop, splitOn, breakOn)
 import Hadolint.Formatter.Format (OutputFormat (..), readMaybeOutputFormat)
-import Hadolint.Config.Configuration (Configuration (..))
+import Hadolint.Config.Configuration
 import Hadolint.Rule
 import Language.Docker.Syntax
 import System.Environment
 
 
-getConfigFromEnvironment :: IO Configuration
+getConfigFromEnvironment :: IO PartialConfiguration
 getConfigFromEnvironment =
-  Configuration
+  PartialConfiguration
     <$> maybeTruthy "HADOLINT_NOFAIL"
     <*> maybeTruthy "NO_COLOR"
     <*> maybeTruthy "HADOLINT_VERBOSE"

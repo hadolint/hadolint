@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3006Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3006 - Always tag the version of an image explicitly." $ do
     it "no untagged" $ ruleCatches "DL3006" "FROM debian"
     it "no untagged with name" $ ruleCatches "DL3006" "FROM debian AS builder"

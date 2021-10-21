@@ -7,7 +7,7 @@ import Control.Monad (when, filterM)
 import Data.Maybe (listToMaybe)
 import Data.YAML as Yaml
 import qualified Data.ByteString as Bytes
-import Hadolint.Config.Configuration (Configuration (..))
+import Hadolint.Config.Configuration (PartialConfiguration (..))
 import System.Directory
   ( XdgDirectory (..),
     doesFileExist,
@@ -20,7 +20,8 @@ import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 
 
-getConfigFromFile :: Maybe FilePath -> Bool -> IO (Either String Configuration)
+getConfigFromFile ::
+  Maybe FilePath -> Bool -> IO (Either String PartialConfiguration)
 getConfigFromFile maybeExplicitPath verbose = do
   maybePath <- getConfig maybeExplicitPath
   when verbose $ hPrint stderr $ getFilePathDescription maybePath
@@ -28,7 +29,7 @@ getConfigFromFile maybeExplicitPath verbose = do
     Nothing -> return $ Right mempty
     Just path -> readConfig path
 
-readConfig :: FilePath -> IO (Either String Configuration)
+readConfig :: FilePath -> IO (Either String PartialConfiguration)
 readConfig path = do
   contents <- Bytes.readFile path
   return $ case Yaml.decode1Strict contents of

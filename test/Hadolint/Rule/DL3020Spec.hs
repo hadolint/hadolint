@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3020Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3020 - Use `COPY` instead of `ADD` for files and folders." $ do
     it "add for tar" $ ruleCatchesNot "DL3020" "ADD file.tar /usr/src/app/"
     it "add for gzip" $ ruleCatchesNot "DL3020" "ADD file.gz /usr/src/app/"

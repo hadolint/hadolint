@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3053Spec (spec) where
 
+import Data.Default
 import Hadolint (Configuration (..))
 import qualified Data.Map as Map
 import qualified Hadolint.Rule as Rule
@@ -9,8 +10,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config =
-        mempty { labelSchema = Map.fromList [("datelabel", Rule.Rfc3339)] }
+  let ?config = def { labelSchema = Map.fromList [("datelabel", Rule.Rfc3339)] }
 
   describe "DL3053 - Label `<label>` is not a valid time format - must be conform to RFC3339." $ do
     it "not ok with label not containing RFC3339 date" $ do

@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3043Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3043 - `ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction." $ do
     it "error when using `ONBUILD` within `ONBUILD`" $
       let dockerFile =

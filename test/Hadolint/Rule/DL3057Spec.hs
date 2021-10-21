@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3057Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3057 - `HEALTHCHECK instruction missing" $ do
     it "warn with no HEALTHCHECK instructions" $
       ruleCatches "DL3057" "FROM scratch"

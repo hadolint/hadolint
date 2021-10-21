@@ -1,12 +1,14 @@
 module Hadolint.Rule.DL3001Spec (spec) where
 
+import Data.Default
 import Helpers
 import Test.Hspec
 
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3001 - invalid CMD rules" $ do
     it "invalid cmd" $ do
       ruleCatches "DL3001" "RUN top"

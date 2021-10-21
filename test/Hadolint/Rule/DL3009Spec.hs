@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3009Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3009 - Delete the apt-get lists after installing something." $ do
     it "apt-get no cleanup" $
       let dockerFile =

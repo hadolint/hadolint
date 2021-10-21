@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3058Spec (spec) where
 
+import Data.Default
 import Hadolint (Configuration (..))
 import qualified Data.Map as Map
 import qualified Hadolint.Rule as Rule
@@ -9,8 +10,7 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config =
-        mempty { labelSchema = Map.fromList [("maintainer", Rule.Email)] }
+  let ?config = def { labelSchema = Map.fromList [("maintainer", Rule.Email)] }
 
   describe "DL3058 - Label `<label>` is not a valid email format - must be conform to RFC5322." $ do
     it "not ok with label not containing valid email" $ do

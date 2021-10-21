@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3022Spec (spec) where
 
+import Data.Default
 import Data.Text as Text
 import Helpers
 import Test.Hspec
@@ -7,7 +8,8 @@ import Test.Hspec
 
 spec :: SpecWith ()
 spec = do
-  let ?config = mempty
+  let ?config = def
+
   describe "DL3022 - `COPY --from` should reference a previously defined `FROM` alias" $ do
     it "warn on missing alias" $ ruleCatches "DL3022" "COPY --from=foo bar ."
     it "warn on alias defined after" $

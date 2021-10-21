@@ -166,7 +166,7 @@ failures Configuration {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3047.rule
     <> Hadolint.Rule.DL3048.rule
     <> Hadolint.Rule.DL3049.rule labelSchema
-    <> Hadolint.Rule.DL3050.rule labelSchema (Just True == strictLabels)
+    <> Hadolint.Rule.DL3050.rule labelSchema strictLabels
     <> Hadolint.Rule.DL3051.rule labelSchema
     <> Hadolint.Rule.DL3052.rule labelSchema
     <> Hadolint.Rule.DL3053.rule labelSchema
