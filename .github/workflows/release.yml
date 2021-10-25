@@ -66,7 +66,9 @@ jobs:
 
     - name: Setup Haskell
       id: setup-haskell-cabal
-      uses: actions/setup-haskell@v1.1.4
+      uses: haskell/actions/setup@v1.2.6
+      with:
+        ghc-version: 8.10.5
 
     - name: Freeze
       run: cabal freeze
