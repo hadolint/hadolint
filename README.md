@@ -69,6 +69,10 @@ install `hadolint`.
 scoop install hadolint
 ```
 
+On distributions that have `nix` installed, you can use the `hadolint`
+package to run ad-hoc shells or permanently install `hadolint` into
+your environment.
+
 As mentioned earlier, `hadolint` is available as a container image:
 
 ```bash
