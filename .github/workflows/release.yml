@@ -88,23 +88,23 @@ jobs:
 
     - if: matrix.os == 'windows-latest'
       name: Set extension to .exe on Windows
-      uses: allenevans/set-env@v2.0.1
+      uses: allenevans/set-env@v2.1.0
       with:
         EXT: '.exe'
 
     - name: Set binary OS name
-      uses: allenevans/set-env@v2.0.1
+      uses: allenevans/set-env@v2.1.0
       with:
         BINARY_OS: ${{ runner.os }}
 
     - if: matrix.os == 'macos-latest'
       name: Set binary OS name on Macos
-      uses: allenevans/set-env@v2.0.1
+      uses: allenevans/set-env@v2.1.0
       with:
         BINARY_OS: 'Darwin'
 
     - name: Set binary path name
-      uses: allenevans/set-env@v2.0.1
+      uses: allenevans/set-env@v2.1.0
       with:
         BINARY_PATH: ./dist/hadolint${{ env.EXT }}
 
