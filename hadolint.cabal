@@ -146,7 +146,7 @@ library
     , foldl
     , gitrev >=1.3.1
     , ilist
-    , language-docker >=10.1.2 && <11
+    , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
     , mtl
     , network-uri
@@ -183,7 +183,7 @@ executable hadolint
       base >=4.8 && <5
     , containers
     , hadolint
-    , language-docker >=10.1.2 && <11
+    , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
     , optparse-applicative >=0.14.0
     , text
@@ -291,7 +291,7 @@ test-suite hadolint-unit-tests
     , foldl
     , hadolint
     , hspec
-    , language-docker >=10.1.2 && <11
+    , language-docker >=10.3.0 && <11
     , megaparsec >=9.0.0
     , split >=0.2
     , text
