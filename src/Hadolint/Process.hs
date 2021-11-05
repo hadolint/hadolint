@@ -1,13 +1,14 @@
-module Hadolint.Process (run, RulesConfig (..)) where
+module Hadolint.Process (run) where
 
+import Hadolint.Config.Configuration (Configuration (..))
+import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
+import Language.Docker.Syntax
 import qualified Control.Foldl as Foldl
 import qualified Data.IntMap.Strict as SMap
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Pragma
-import Hadolint.Rule (CheckFailure (..), Failures, Rule, RuleCode)
-import qualified Hadolint.Rule as Rule
 import qualified Hadolint.Rule.DL3000
 import qualified Hadolint.Rule.DL3001
 import qualified Hadolint.Rule.DL3002
@@ -74,27 +75,7 @@ import qualified Hadolint.Rule.DL4005
 import qualified Hadolint.Rule.DL4006
 import qualified Hadolint.Rule.Shellcheck
 import qualified Hadolint.Shell as Shell
-import Language.Docker.Syntax
 
-
--- | Contains the required parameters for optional rules
-data RulesConfig = RulesConfig
-  { -- | The docker registries that are allowed in FROM
-    allowedRegistries :: Set.Set Registry,
-    labelSchema :: Rule.LabelSchema,
-    strictLabels :: Bool
-  }
-  deriving (Show, Eq)
-
-instance Semigroup RulesConfig where
-  RulesConfig a1 a2 a3 <> RulesConfig b1 b2 b3 =
-    RulesConfig
-      (a1 <> b1)
-      (a2 <> b2)
-      (a3 || b3)
-
-instance Monoid RulesConfig where
-  mempty = RulesConfig mempty mempty False
 
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
@@ -103,7 +84,7 @@ data AnalisisResult = AnalisisResult
     failed :: Failures
   }
 
-run :: RulesConfig -> [InstructionPos Text.Text] -> Failures
+run :: Configuration -> [InstructionPos Text.Text] -> Failures
 run config dockerfile = Seq.filter shouldKeep failed
   where
     AnalisisResult {..} = Foldl.fold (analyze config) dockerfile
@@ -113,7 +94,9 @@ run config dockerfile = Seq.filter shouldKeep failed
         ignoreList <- SMap.lookup line ignored
         return $ code `Set.member` ignoreList
 
-analyze :: RulesConfig -> Foldl.Fold (InstructionPos Text.Text) AnalisisResult
+analyze ::
+  Configuration ->
+  Foldl.Fold (InstructionPos Text.Text) AnalisisResult
 analyze config =
   AnalisisResult
     <$> Hadolint.Pragma.ignored
@@ -122,7 +105,7 @@ analyze config =
 parseShell :: InstructionPos Text.Text -> InstructionPos Shell.ParsedShell
 parseShell = fmap Shell.parseShell
 
-onBuildFailures :: RulesConfig -> Rule Shell.ParsedShell
+onBuildFailures :: Configuration -> Rule Shell.ParsedShell
 onBuildFailures config =
   Foldl.prefilter
     isOnBuild
@@ -134,8 +117,8 @@ onBuildFailures config =
     unwrapOnbuild inst@InstructionPos {instruction = OnBuild i} = inst {instruction = i}
     unwrapOnbuild inst = inst
 
-failures :: RulesConfig -> Rule Shell.ParsedShell
-failures RulesConfig {allowedRegistries, labelSchema, strictLabels} =
+failures :: Configuration -> Rule Shell.ParsedShell
+failures Configuration {allowedRegistries, labelSchema, strictLabels} =
   Hadolint.Rule.DL3000.rule
     <> Hadolint.Rule.DL3001.rule
     <> Hadolint.Rule.DL3002.rule

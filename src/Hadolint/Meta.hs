@@ -1,9 +1,8 @@
 module Hadolint.Meta
   ( getVersion,
-    getShortVersion
+    getShortVersion,
   )
 where
-
 
 import qualified Development.GitRev
 

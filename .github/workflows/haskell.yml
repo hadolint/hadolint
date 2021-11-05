@@ -41,6 +41,11 @@ jobs:
       uses: haskell/actions/setup@v1
       with:
           ghc-version: '8.10'
+          enable-stack: true
+
+
+    - name: Update Cabal Index
+      run: cabal update
 
     - name: Freeze
       run: cabal freeze
@@ -56,4 +61,4 @@ jobs:
     #actions
 
     - name: Test
-      run: cabal test --enable-tests --test-show-details=direct
+      run: stack test

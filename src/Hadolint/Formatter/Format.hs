@@ -1,25 +1,86 @@
 module Hadolint.Formatter.Format
-  ( severityText,
-    stripNewlines,
+  ( OutputFormat (..),
+    Result (..),
+    Text.Megaparsec.Error.errorBundlePretty,
     errorMessage,
     errorMessageLine,
     errorPosition,
     errorPositionPretty,
-    Text.Megaparsec.Error.errorBundlePretty,
-    Result (..),
+    severityText,
+    stripNewlines,
+    readMaybeOutputFormat,
     toResult,
   )
 where
 
-import qualified Data.List.NonEmpty as NE
+import Data.Default
 import Data.Sequence (Seq)
-import qualified Data.Sequence as Seq
-import qualified Data.Text as Text
-import qualified Hadolint.Rule
+import Data.Text (Text)
+import Data.Text.Prettyprint.Doc (Pretty, pretty)
+import Data.YAML
 import Text.Megaparsec (TraversableStream (..), pstateSourcePos)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
 import Text.Megaparsec.Stream (VisualStream)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Sequence as Seq
+import qualified Data.Text as Text
+import qualified Hadolint.Rule
+
+data OutputFormat
+  = Json
+  | SonarQube
+  | TTY
+  | CodeclimateJson
+  | GitlabCodeclimateJson
+  | Checkstyle
+  | Codacy
+  | Sarif
+  deriving (Eq, Show)
+
+instance Pretty OutputFormat where
+  pretty Json = "json"
+  pretty SonarQube = "sonarqube"
+  pretty TTY = "tty"
+  pretty CodeclimateJson = "codeclimate"
+  pretty GitlabCodeclimateJson = "gitlab_codeclimate"
+  pretty Checkstyle = "checkstyle"
+  pretty Codacy = "codacy"
+  pretty Sarif = "sarif"
+
+instance Semigroup OutputFormat where
+  _ <> f = f
+
+instance Monoid OutputFormat where
+  mempty = TTY
+
+instance FromYAML OutputFormat where
+  parseYAML = withOutputFormat pure
+
+withOutputFormat ::
+  (OutputFormat -> Parser a) ->
+  Node Pos ->
+  Parser a
+withOutputFormat f v@(Scalar _ (SStr b)) =
+  case readMaybeOutputFormat b of
+    Just out -> f out
+    Nothing -> typeMismatch "output format" v
+withOutputFormat _ v = typeMismatch "output format" v
+
+instance Default OutputFormat where
+  def = TTY
+
+readMaybeOutputFormat :: Text -> Maybe OutputFormat
+readMaybeOutputFormat "json" = Just Json
+readMaybeOutputFormat "sonarqube" = Just SonarQube
+readMaybeOutputFormat "tty" = Just TTY
+readMaybeOutputFormat "codeclimate" = Just CodeclimateJson
+readMaybeOutputFormat "gitlab_codeclimate" = Just GitlabCodeclimateJson
+readMaybeOutputFormat "checkstyle" = Just Checkstyle
+readMaybeOutputFormat "codacy" = Just Codacy
+readMaybeOutputFormat "sarif" = Just Sarif
+readMaybeOutputFormat _ = Nothing
+
 
 data Result s e = Result
   { fileName :: Text.Text,
