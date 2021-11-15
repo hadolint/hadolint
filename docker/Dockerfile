@@ -9,6 +9,7 @@ RUN apt-get update \
     build-essential=12.9 \
     libffi-dev=3.3* \
     libgmp-dev=2:6.2.* \
+    libnuma1=2.* \
     libtinfo-dev=6.2* \
     libtinfo5=6.2* \
     libtinfo6=6.2* \
