@@ -15,5 +15,5 @@ if [[ $url =~ "git@" ]]; then
   url=https://github.com/$(cut -f 2 -d ":" <<< "$url")
 fi
 
-git fetch --tags "$url"
+git fetch --tags --force "$url"
 git fetch --depth=100 "$url"
