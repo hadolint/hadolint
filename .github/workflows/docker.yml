@@ -23,6 +23,10 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          config-inline: |
+            [worker.containerd]
+              platforms = [ "linux/amd64", "linux/arm64" ]
 
       - name: Set target and tag
         id: build-opts
