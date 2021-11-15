@@ -9,9 +9,12 @@ RUN apt-get update \
     build-essential=12.9 \
     libffi-dev=3.3* \
     libgmp-dev=2:6.2.* \
+    libnuma-dev=2.0.12* \
+    libnuma1=2.* \
     libtinfo-dev=6.2* \
     libtinfo5=6.2* \
     libtinfo6=6.2* \
+    llvm-9=1:9.0.1* \
     zlib1g-dev=1:1.2.* \
     curl=7.74.* \
     ca-certificates=* \
