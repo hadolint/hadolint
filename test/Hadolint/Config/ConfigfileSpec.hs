@@ -117,7 +117,7 @@ spec =
                           { partialIgnoreRules = ["DL3020", "DL3040", "SC1020"] }
 
     it "parse trusted registries" $ do
-      let yaml = [ "trusted-registries:",
+      let yaml = [ "trustedRegistries:",
                    "  - foobar.com",
                    "  - barfoo.com"
                  ]

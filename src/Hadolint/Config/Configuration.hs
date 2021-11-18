@@ -188,7 +188,7 @@ instance Yaml.FromYAML PartialConfiguration where
     partialFormat <- m .:? "output-format"
     override <- m .:? "override" .!= mempty
     ignored <- m .:? "ignored" .!= mempty
-    trusted <- m .:? "trusted-registries" .!= mempty
+    trusted <- m .:? "trustedRegistries" .!= mempty
     partialLabelSchema <- m .:? "label-schema" .!= mempty
     partialStrictLabels <- m .:? "strict-labels" .!= Nothing
     let partialIgnoreRules = coerce (ignored :: [Text])
