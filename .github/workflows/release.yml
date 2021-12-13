@@ -116,7 +116,7 @@ jobs:
         file: ${{ env.BINARY_PATH }}
 
     - name: Load Release URL File from release job
-      uses: actions/download-artifact@v2.0.10
+      uses: actions/download-artifact@v2.1.0
       with:
         name: release_url.txt
 
