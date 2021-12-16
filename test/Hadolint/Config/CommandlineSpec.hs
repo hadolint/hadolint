@@ -300,6 +300,18 @@ spec = do
               mempty { partialStrictLabels = Just True }
           )
 
+    describe "parse disable ignore pragma" $ do
+      it "parse --disable-ignore-pragma" $ do
+        checkCommandline
+          ["--disable-ignore-pragma"]
+          ( CommandlineConfig
+              False
+              Nothing
+              []
+              Nothing
+              mempty { partialDisableIgnorePragma = Just True }
+          )
+
     describe "parse failure thresholds" $ do
       it "parse -t warning" $ do
         checkCommandline ["-t", "warning"] $ CommandlineConfig

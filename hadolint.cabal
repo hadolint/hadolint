@@ -50,6 +50,7 @@ library
       Hadolint.Pragma
       Hadolint.Process
       Hadolint.Rule
+      Hadolint.Rule.DL1001
       Hadolint.Rule.DL3000
       Hadolint.Rule.DL3001
       Hadolint.Rule.DL3002
@@ -216,6 +217,7 @@ test-suite hadolint-unit-tests
       Hadolint.Formatter.SarifSpec
       Hadolint.Formatter.TTYSpec
       Hadolint.PragmaSpec
+      Hadolint.Rule.DL1001Spec
       Hadolint.Rule.DL3000Spec
       Hadolint.Rule.DL3001Spec
       Hadolint.Rule.DL3002Spec

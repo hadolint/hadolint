@@ -9,6 +9,7 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Pragma
+import qualified Hadolint.Rule.DL1001
 import qualified Hadolint.Rule.DL3000
 import qualified Hadolint.Rule.DL3001
 import qualified Hadolint.Rule.DL3002
@@ -89,10 +90,11 @@ run config dockerfile = Seq.filter shouldKeep failed
   where
     AnalisisResult {..} = Foldl.fold (analyze config) dockerfile
 
-    shouldKeep CheckFailure {line, code} =
-      Just True /= do
-        ignoreList <- SMap.lookup line ignored
-        return $ code `Set.member` ignoreList
+    shouldKeep CheckFailure {line, code}
+      | disableIgnorePragma config = True
+      | otherwise = Just True /= do
+          ignoreList <- SMap.lookup line ignored
+          return $ code `Set.member` ignoreList
 
 analyze ::
   Configuration ->
@@ -119,7 +121,8 @@ onBuildFailures config =
 
 failures :: Configuration -> Rule Shell.ParsedShell
 failures Configuration {allowedRegistries, labelSchema, strictLabels} =
-  Hadolint.Rule.DL3000.rule
+  Hadolint.Rule.DL1001.rule
+    <> Hadolint.Rule.DL3000.rule
     <> Hadolint.Rule.DL3001.rule
     <> Hadolint.Rule.DL3002.rule
     <> Hadolint.Rule.DL3003.rule

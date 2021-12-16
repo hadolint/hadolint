@@ -30,6 +30,7 @@ getConfigFromEnvironment =
     <*> getAllowedSet "HADOLINT_ALLOWED_REGISTRIES"
     <*> getLabelSchema "HADOLINT_REQUIRE_LABELS"
     <*> maybeTruthy "HADOLINT_STRICT_LABELS"
+    <*> maybeTruthy "HADOLINT_DISABLE_IGNORE_PRAGMA"
     <*> getFailureThreshold
 
 
