@@ -15,6 +15,8 @@ rule = simpleRule code severity message check
       | length sources > 1 = endsWithSlash t
       | otherwise = True
     check _ = True
-
-    endsWithSlash (TargetPath t) = not (Text.null t) && Text.last t == '/'
 {-# INLINEABLE rule #-}
+
+endsWithSlash :: TargetPath -> Bool
+endsWithSlash (TargetPath t) =
+  not (Text.null t) && (Text.last . dropQuotes) t == '/'
