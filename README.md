@@ -160,6 +160,8 @@ Available options:
                            format requirement `format`
   --strict-labels          Do not permit labels other than specified in
                            `label-schema`
+  --disable-ignore-pragma  Disable the inline ignore pragma `# hadolint
+                           ignore=DLxxxx` and report rules anyways.
   -t,--failure-threshold THRESHOLD
                            Exit with failure code only when rules with a
                            severity above THRESHOLD are violated. Accepted
@@ -203,6 +205,7 @@ override:
   info: [string]                        # list of rules
   style: [string]                       # list of rules
 strict-labels: boolean                  # true | false
+disable-ignore-pragma: boolean          # true | false
 trustedRegistries: string | [string]    # registry or list of registries
 ```
 
@@ -288,6 +291,7 @@ HADOLINT_OVERRIDE_INFO=DL3010,DL3020     # comma separated list of rule codes
 HADOLINT_OVERRIDE_STYLE=DL3010,DL3020    # comma separated list of rule codes
 HADOLINT_IGNORE=DL3010,DL3020            # comma separated list of rule codes
 HADOLINT_STRICT_LABELS=1                 # Truthy value e.g. 1, true or yes
+HADOLINT_DISABLE_IGNORE_PRAGMA=1         # Truthy value e.g. 1, true or yes
 HADOLINT_TRUSTED_REGISTRIES              # comma separated list of registry urls
 ```
 
@@ -417,6 +421,7 @@ Please [create an issue][] if you have an idea for a good rule.
 
 | Rule                                                         | Default Severity | Description                                                                                                                                         |
 | :----------------------------------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [DL1001](https://github.com/hadolint/hadolint/wiki/DL1001)   | Ignore           | Please refrain from using inline ignore pragmas `# hadolint ignore=DLxxxx`.                                                                         |
 | [DL3000](https://github.com/hadolint/hadolint/wiki/DL3000)   | Error            | Use absolute WORKDIR.                                                                                                                               |
 | [DL3001](https://github.com/hadolint/hadolint/wiki/DL3001)   | Info             | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig. |
 | [DL3002](https://github.com/hadolint/hadolint/wiki/DL3002)   | Warning          | Last user should not be root.                                                                                                                       |
@@ -471,7 +476,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3054](https://github.com/hadolint/hadolint/wiki/DL3054)   | Warning          | Label `<label>` is not a valid SPDX license identifier.                                                                                             |
 | [DL3055](https://github.com/hadolint/hadolint/wiki/DL3055)   | Warning          | Label `<label>` is not a valid git hash.                                                                                                            |
 | [DL3056](https://github.com/hadolint/hadolint/wiki/DL3056)   | Warning          | Label `<label>` does not conform to semantic versioning.                                                                                            |
-| [DL3057](https://github.com/hadolint/hadolint/wiki/DL3057)   | IgnoreC          | `HEALTHCHECK` instruction missing.                                                                                                                  |
+| [DL3057](https://github.com/hadolint/hadolint/wiki/DL3057)   | Ignore           | `HEALTHCHECK` instruction missing.                                                                                                                  |
 | [DL3058](https://github.com/hadolint/hadolint/wiki/DL3058)   | Warning          | Label `<label>` is not a valid email format - must be conform to RFC5322.                                                                           |
 | [DL3059](https://github.com/hadolint/hadolint/wiki/DL3059)   | Info             | Multiple consecutive `RUN` instructions. Consider consolidation.                                                                                    |
 | [DL3060](https://github.com/hadolint/hadolint/wiki/DL3060)   | Info             | `yarn cache clean` missing after `yarn install` was run.                                                                                            |

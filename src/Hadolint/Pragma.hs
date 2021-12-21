@@ -1,5 +1,6 @@
 module Hadolint.Pragma
   ( ignored,
+    parseIgnorePragma,
     parseShell
   )
   where
@@ -20,13 +21,13 @@ ignored :: Foldl.Fold (InstructionPos Text) (Map.IntMap (Set.Set RuleCode))
 ignored = Foldl.Fold parse mempty id
   where
     parse acc InstructionPos {instruction = Comment comment, lineNumber = line} =
-      case parseComment comment of
+      case parseIgnorePragma comment of
         Just ignores@(_ : _) -> Map.insert (line + 1) (Set.fromList . fmap RuleCode $ ignores) acc
         _ -> acc
     parse acc _ = acc
 
-parseComment :: Text -> Maybe [Text]
-parseComment =
+parseIgnorePragma :: Text -> Maybe [Text]
+parseIgnorePragma =
   Megaparsec.parseMaybe commentParser
 
 commentParser :: Megaparsec.Parsec Void Text [Text]

@@ -36,6 +36,7 @@ data Configuration =
       allowedRegistries :: Set.Set Registry,
       labelSchema :: LabelSchema,
       strictLabels :: Bool,
+      disableIgnorePragma :: Bool,
       failureThreshold :: DLSeverity
     }
   deriving (Eq, Show)
@@ -55,6 +56,7 @@ instance Default Configuration where
       mempty
       mempty
       False
+      False
       def
 
 applyPartialConfiguration ::
@@ -73,6 +75,7 @@ applyPartialConfiguration config partial =
     (allowedRegistries config <> partialAllowedRegistries partial)
     (labelSchema config <> partialLabelSchema partial)
     (fromMaybe (strictLabels config) (partialStrictLabels partial))
+    (fromMaybe (disableIgnorePragma config) (partialDisableIgnorePragma partial))
     (fromMaybe (failureThreshold config) (partialFailureThreshold partial))
 
 instance Pretty Configuration where
@@ -91,6 +94,7 @@ instance Pretty Configuration where
             prettyPrintRulelist "ignore" (ignoreRules c),
             "strict labels:" <+> pretty (strictLabels c),
             prettyPrintLabelSchema (labelSchema c),
+            "disable ignore pragma:" <+> pretty (disableIgnorePragma c),
             prettyPrintRegistries (allowedRegistries c)
           ]
       )
@@ -137,14 +141,15 @@ data PartialConfiguration =
       partialAllowedRegistries :: Set.Set Registry,
       partialLabelSchema :: LabelSchema,
       partialStrictLabels :: Maybe Bool,
+      partialDisableIgnorePragma :: Maybe Bool,
       partialFailureThreshold :: Maybe DLSeverity
     }
   deriving (Eq, Show)
 
 
 instance Semigroup PartialConfiguration where
-  PartialConfiguration a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13
-    <> PartialConfiguration b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 =
+  PartialConfiguration a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14
+    <> PartialConfiguration b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 =
       PartialConfiguration
         (b1 <|> a1)
         (b2 <|> a2)
@@ -158,7 +163,8 @@ instance Semigroup PartialConfiguration where
         (a10 <> b10)
         (a11 <> b11)
         (b12 <|> a12)
-        (a13 <> b13)
+        (b13 <|> a13)
+        (a14 <> b14)
 
 instance Monoid PartialConfiguration where
   mempty =
@@ -174,6 +180,7 @@ instance Monoid PartialConfiguration where
       mempty
       mempty
       mempty
+      Nothing
       Nothing
       mempty
 
@@ -191,6 +198,7 @@ instance Yaml.FromYAML PartialConfiguration where
     trusted <- m .:? "trustedRegistries" .!= mempty
     partialLabelSchema <- m .:? "label-schema" .!= mempty
     partialStrictLabels <- m .:? "strict-labels" .!= Nothing
+    partialDisableIgnorePragma <- m .:? "disable-ignore-pragma" .!= Nothing
     let partialIgnoreRules = coerce (ignored :: [Text])
         partialErrorRules = overrideErrorRules override
         partialWarningRules = overrideWarningRules override

@@ -95,6 +95,7 @@ parseCommandline =
         <*> parseAllowedRegistries
         <*> parseLabelSchema
         <*> parseStrictlabels
+        <*> parseDisableIgnorePragma
         <*> parseFailureThreshold
 
     -- All optional flags with boolean value must not have a default value. The
@@ -226,6 +227,15 @@ parseCommandline =
             ( long "strict-labels"
                 <> help "Do not permit labels other than specified in\
                         \ `label-schema`"
+            )
+        )
+
+    parseDisableIgnorePragma =
+      optional
+        ( flag' True
+            ( long "disable-ignore-pragma"
+                <> help "Disable inline ignore pragmas \
+                        \ `# hadolint ignore=DLxxxx`"
             )
         )
 

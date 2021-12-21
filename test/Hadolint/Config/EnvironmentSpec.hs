@@ -145,6 +145,16 @@ spec = do
         conf <- getConfigFromEnvironment
         conf `shouldBe` mempty { partialStrictLabels = Just False }
 
+    withJustEnv "HADOLINT_DISABLE_IGNORE_PRAGMA" "yes" $ do
+      it "parse HADOLINT_DISABLE_IGNORE_PRAGMA=yes" $ do
+        conf <- getConfigFromEnvironment
+        conf `shouldBe` mempty { partialDisableIgnorePragma = Just True }
+
+    withJustEnv "HADOLINT_DISABLE_IGNORE_PRAGMA" "false" $ do
+      it "parse HADOLINT_DISABLE_IGNORE_PRAGMA=false" $ do
+        conf <- getConfigFromEnvironment
+        conf `shouldBe` mempty { partialDisableIgnorePragma = Just False }
+
     withJustEnv "HADOLINT_FAILURE_THRESHOLD" "error" $ do
       it "parse HADOLINT_FAILURE_THRESHOLD=error" $ do
         conf <- getConfigFromEnvironment
