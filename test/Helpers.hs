@@ -1,6 +1,8 @@
 module Helpers where
 
 import Control.Monad (unless, when)
+import qualified Data.ByteString.Lazy.Char8 as BSC
+import Data.Aeson hiding (Result)
 import Hadolint (Configuration (..), OutputFormat (..), printResults)
 import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Formatter.TTY (formatCheck)
@@ -136,3 +138,16 @@ assertFormatter formatter failures expectation = do
   (cap, _) <- capture
                 (printResults formatter ?noColor (Just "<string>") results)
   cap `shouldBe` expectation
+
+assertFormatterJson
+  :: (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  [CheckFailure] ->
+  Value ->
+  Assertion
+assertFormatterJson formatter failures expectation = do
+  let results =
+        NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
+  (cap, _) <- capture
+                (printResults formatter ?noColor (Just "<string>") results)
+  decode (BSC.pack cap) `shouldBe` Just expectation
