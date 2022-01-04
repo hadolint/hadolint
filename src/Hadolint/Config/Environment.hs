@@ -27,7 +27,7 @@ getConfigFromEnvironment =
     <*> getOverrideList "HADOLINT_OVERRIDE_INFO"
     <*> getOverrideList "HADOLINT_OVERRIDE_STYLE"
     <*> getOverrideList "HADOLINT_IGNORE"
-    <*> getAllowedSet "HADOLINT_ALLOWED_REGISTRIES"
+    <*> getAllowedSet "HADOLINT_TRUSTED_REGISTRIES"
     <*> getLabelSchema "HADOLINT_REQUIRE_LABELS"
     <*> maybeTruthy "HADOLINT_STRICT_LABELS"
     <*> maybeTruthy "HADOLINT_DISABLE_IGNORE_PRAGMA"

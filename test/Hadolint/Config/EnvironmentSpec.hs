@@ -105,16 +105,16 @@ spec = do
         conf <- getConfigFromEnvironment
         conf `shouldBe` mempty { partialIgnoreRules = ["DL3010", "DL3011"] }
 
-    withJustEnv "HADOLINT_ALLOWED_REGISTRIES" "foobar.com" $ do
-      it "parse HADOLINT_ALLOWED_REGISTRIES=foobar.com" $ do
+    withJustEnv "HADOLINT_TRUSTED_REGISTRIES" "foobar.com" $ do
+      it "parse HADOLINT_TRUSTED_REGISTRIES=foobar.com" $ do
         conf <- getConfigFromEnvironment
         conf `shouldBe` mempty
                           { partialAllowedRegistries =
                               Set.fromList ["foobar.com"]
                           }
 
-    withJustEnv "HADOLINT_ALLOWED_REGISTRIES" "foobar.com,barfoo.com" $ do
-      it "parse HADOLINT_ALLOWED_REGISTIRES=foobar.com,barfoo.com" $ do
+    withJustEnv "HADOLINT_TRUSTED_REGISTRIES" "foobar.com,barfoo.com" $ do
+      it "parse HADOLINT_TRUSTED_REGISTRIES=foobar.com,barfoo.com" $ do
         conf <- getConfigFromEnvironment
         conf `shouldBe` mempty
                           { partialAllowedRegistries =
@@ -190,7 +190,7 @@ unsetAll = do
   unsetEnv "HADOLINT_OVERRIDE_INFO"
   unsetEnv "HADOLINT_OVERRIDE_STYLE"
   unsetEnv "HADOLINT_IGNORE"
-  unsetEnv "HADOLINT_ALLOWED_REGISTRIES"
+  unsetEnv "HADOLINT_TRUSTED_REGISTRIES"
   unsetEnv "HADOLINT_REQUIRE_LABELS"
   unsetEnv "HADOLINT_STRICT_LABELS"
   unsetEnv "HADOLINT_FAILURE_THRESHOLD"
