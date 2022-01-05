@@ -43,6 +43,15 @@ spec = do
        in assertChecks
             (Text.unlines dockerFile)
             (failsWith 2 "DL3049")
+    it "warn once: two stages, label present in first only" $
+      let dockerFile =
+            [ "FROM baseimage",
+              "LABEL foo=\"bar\"",
+              "FROM newimage"
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 1 "DL3049")
     it "warn once: two stages, label present in second only" $
       let dockerFile =
             [ "FROM baseimage",
@@ -62,10 +71,37 @@ spec = do
        in assertChecks
             (Text.unlines dockerFile)
             (failsWith 1 "DL3049")
-    it "warn once: two stages, inheritance, label only defined in second stage" $
+    it "warn twice: two stages, inheritance, no labels" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM base"
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 2 "DL3049")
+    it "don't warn: two stages, inheritance, label defined in second stage" $
       let dockerFile =
             [ "FROM baseimage as base",
               "FROM base",
+              "LABEL foo=\"bar\""
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 0 "DL3049")
+    it "don't warn: two stages, no inheritance, label in last stage, with copy" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM anotherimage",
+              "LABEL foo=\"bar\"",
+              "COPY --from=base /bar /baz"
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 0 "DL3049")
+    it "warn once: two stages, no inheritance, label in last stage, no connection" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM anotherimage",
               "LABEL foo=\"bar\""
             ]
        in assertChecks
@@ -80,3 +116,38 @@ spec = do
        in assertChecks
             (Text.unlines dockerFile)
             (failsWith 0 "DL3049")
+    it "warn once: multiple results, no inheritance, label in one result" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM newimage",
+              "LABEL foo=\"bar\"",
+              "COPY --from=base /bar /baz",
+              "",
+              "FROM newimage",
+              "COPY --from=base /bar /baz"
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 1 "DL3049")
+    it "warn once: multiple results, inheritance, label in one result" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM base",
+              "LABEL foo=\"bar\"",
+              "",
+              "FROM base"
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 1 "DL3049")
+    it "warn once: multiple results, inheritance, label in one result" $
+      let dockerFile =
+            [ "FROM baseimage as base",
+              "FROM base",
+              "",
+              "FROM base",
+              "LABEL foo=\"bar\""
+            ]
+       in assertChecks
+            (Text.unlines dockerFile)
+            (failsWith 1 "DL3049")
