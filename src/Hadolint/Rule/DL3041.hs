@@ -18,11 +18,14 @@ rule = simpleRule code severity message check
     check _ = True
 {-# INLINEABLE rule #-}
 
+dnfCmds :: [Text.Text]
+dnfCmds = ["dnf", "microdnf"]
+
 dnfPackages :: Shell.ParsedShell -> [Text.Text]
 dnfPackages args =
     [ arg
       | cmd <- Shell.presentCommands args,
-        not (Shell.cmdHasArgs "dnf" ["module"] cmd),
+        not (Shell.cmdsHaveArgs dnfCmds ["module"] cmd),
         arg <- installFilter cmd
     ]
 
@@ -34,7 +37,7 @@ dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =
   [ arg
     | cmd <- Shell.presentCommands args,
-      Shell.cmdHasArgs "dnf" ["module"] cmd,
+      Shell.cmdsHaveArgs dnfCmds ["module"] cmd,
       arg <- installFilter cmd
   ]
 
@@ -44,7 +47,7 @@ moduleVersionFixed = Text.isInfixOf ":"
 installFilter :: Shell.Command -> [Text.Text]
 installFilter cmd =
   [ arg
-    | Shell.cmdHasArgs "dnf" ["install"] cmd,
+    | Shell.cmdsHaveArgs dnfCmds ["install"] cmd,
       arg <- Shell.getArgsNoFlags cmd,
       arg /= "install",
       arg /= "module"
