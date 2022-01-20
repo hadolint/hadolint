@@ -76,6 +76,12 @@ spec = do
       onBuildRuleCatchesNot
         "DL3013"
         "RUN pip install git+https://github.com/rtfd/r-ext.git@0.6-alpha#egg=r-ext"
+      ruleCatchesNot
+        "DL3013"
+        "RUN pip install git+ssh://github.com/rtfd/r-ext.git@0.6-alpha#egg=r-ext"
+      onBuildRuleCatchesNot
+        "DL3013"
+        "RUN pip install git+ssh://github.com/rtfd/r-ext.git@0.6-alpha#egg=r-ext"
     it "pip install unversioned git" $ do
       ruleCatches
         "DL3013"
@@ -83,6 +89,26 @@ spec = do
       onBuildRuleCatches
         "DL3013"
         "RUN pip install git+https://github.com/rtfd/read-ext.git#egg=read-ext"
+      ruleCatches
+        "DL3013"
+        "RUN pip install git+ssh://github.com/rtfd/read-ext.git#egg=read-ext"
+      onBuildRuleCatches
+        "DL3013"
+        "RUN pip install git+ssh://github.com/rtfd/read-ext.git#egg=read-ext"
+    it "pip install local dir" $ do
+      ruleCatchesNot
+        "DL3013"
+        "RUN pip install foo/bar"
+      onBuildRuleCatchesNot
+        "DL3013"
+        "RUN pip install foo/bar"
+    it "pip install url dir" $ do
+      ruleCatchesNot
+        "DL3013"
+        "RUN pip install https://foo.bar/baz.zip"
+      onBuildRuleCatchesNot
+        "DL3013"
+        "RUN pip install https://foo.bar/baz.zip"
     it "pip install upper bound" $ do
       ruleCatchesNot "DL3013" "RUN pip install 'alabaster>=0.7'"
       onBuildRuleCatchesNot "DL3013" "RUN pip install 'alabaster>=0.7'"
