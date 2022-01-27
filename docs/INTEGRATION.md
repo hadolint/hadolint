@@ -38,7 +38,8 @@ https://nvuillam.github.io/mega-linter/descriptors/dockerfile_hadolint/) out of 
 
 ### Super-Linter
 
-[Super-Linter](https://github.com/github/super-linter) combines multiple linters, including hadolint out of the box.
+[Super-Linter](https://github.com/github/super-linter) combines multiple linters, including
+hadolint out of the box.
 
 ## Continuous Integration
 
