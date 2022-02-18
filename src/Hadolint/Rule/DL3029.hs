@@ -10,6 +10,6 @@ rule = simpleRule code severity message check
     severity = DLWarningC
     message = "Do not use --platform flag with FROM"
 
-    check (From BaseImage {platform = Just p}) = p == ""
+    check (From BaseImage {platform = Just p}) = p == "$BUILDPLATFORM"
     check _ = True
 {-# INLINEABLE rule #-}
