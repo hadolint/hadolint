@@ -36,6 +36,11 @@ Then add the CI step on codeship-steps.yml with the path of the dockerfile
 [Mega-Linter](https://nvuillam.github.io/mega-linter/) aggregates 70 linters, including [hadolint](
 https://nvuillam.github.io/mega-linter/descriptors/dockerfile_hadolint/) out of the box.
 
+### Super-Linter
+
+[Super-Linter](https://github.com/github/super-linter) combines multiple linters, including
+hadolint out of the box.
+
 ## Continuous Integration
 
 ### Travis CI
