@@ -15,6 +15,7 @@ rule = simpleRule code severity message check
     check _ = True
 
     forgotDnfYesOption cmd = isDnfInstall cmd && not (hasYesOption cmd)
-    isDnfInstall = Shell.cmdHasArgs "dnf" ["install", "groupinstall", "localinstall"]
+    isDnfInstall = Shell.cmdsHaveArgs dnfCmds ["install", "groupinstall", "localinstall"]
     hasYesOption = Shell.hasAnyFlag ["y", "assumeyes"]
+    dnfCmds = ["dnf", "microdnf"]
 {-# INLINEABLE rule #-}

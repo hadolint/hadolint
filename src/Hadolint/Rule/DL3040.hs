@@ -11,13 +11,16 @@ rule = simpleRule code severity message check
     severity = DLWarningC
     message = "`dnf clean all` missing after dnf command."
 
-    check (Run (RunArgs args _)) =
-      foldArguments (Shell.noCommands dnfInstall) args
-        || ( foldArguments (Shell.anyCommands dnfInstall) args
-               && foldArguments (Shell.anyCommands dnfClean) args
-           )
+    check (Run (RunArgs args _)) = all (checkMissingClean args) dnfCmds
     check _ = True
 
-    dnfInstall = Shell.cmdHasArgs "dnf" ["install"]
-    dnfClean = Shell.cmdHasArgs "dnf" ["clean", "all"]
+    checkMissingClean args cmdName =
+      foldArguments (Shell.noCommands $ dnfInstall cmdName) args
+        || ( foldArguments (Shell.anyCommands $ dnfInstall cmdName) args
+               && foldArguments (Shell.anyCommands $ dnfClean cmdName) args
+           )
+
+    dnfInstall cmdName = Shell.cmdHasArgs cmdName ["install"]
+    dnfClean cmdName = Shell.cmdHasArgs cmdName ["clean", "all"]
+    dnfCmds = ["dnf", "microdnf"]
 {-# INLINEABLE rule #-}
