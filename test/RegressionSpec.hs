@@ -6,9 +6,11 @@ import Helpers
 import Test.HUnit hiding (Label)
 import Test.Hspec
 
+
 spec :: SpecWith ()
 spec = do
   let ?config = def  -- default implicit parameter running the checkers
+
   describe "Regression Tests" $ do
     it "Comments with backslashes at the end are just comments" $
       let dockerFile =
@@ -21,12 +23,16 @@ spec = do
               "RUN echo \"kaka\" | sed 's/a/o/g' >> /root/afile"
             ]
        in ruleCatches "DL4006" $ Text.unlines dockerFile
+
     it "`ARG` can correctly unset variables" $
       let dockerFile =
-            [ "ARG A_WITHOUT_EQ",
-              "ARG A_WITH_EQ=",
-              "RUN echo bla"
-            ]
+            Text.unlines
+              [ "FROM alpine:3",  -- to satisfy DL3061
+                "ARG A_WITHOUT_EQ",
+                "ARG A_WITH_EQ=",
+                "HEALTHCHECK NONE",  -- to satisfy DL3057, even though it is ignored by default
+                "RUN echo bla"
+              ]
        in assertChecks
-            (Text.unlines dockerFile)
-            (assertBool "No Warnings or Errors should be triggered" . null)
+            dockerFile
+            (assertBool "No Warnings or Errors should be triggered," . null)
