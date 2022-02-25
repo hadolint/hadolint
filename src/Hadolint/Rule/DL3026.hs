@@ -1,6 +1,7 @@
 module Hadolint.Rule.DL3026 (rule) where
 
 import qualified Data.Set as Set
+import Data.Text (Text, pack, drop, dropEnd, isSuffixOf, isPrefixOf)
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -21,9 +22,20 @@ rule allowed = customRule check (emptyState Set.empty)
     doCheck st img = Set.member (toImageAlias img) st || Set.null allowed || isAllowed img
 
     toImageAlias = Just . ImageAlias . imageName
-    isAllowed Image {registryName = Just registry} = Set.member registry allowed
+    isAllowed Image {registryName = Just registry} = isRegistryAllowed (unRegistry registry)
     isAllowed Image {registryName = Nothing, imageName} =
       imageName == "scratch"
-        || Set.member "docker.io" allowed
-        || Set.member "hub.docker.com" allowed
+        || isRegistryAllowed "docker.io"
+        || isRegistryAllowed "hub.docker.com"
+
+    isRegistryAllowed registry = any (\p -> matchRegistry (unRegistry p) registry) allowed
+
+    matchRegistry :: Text -> Text -> Bool
+    matchRegistry allow registry | allow == star = True
+                                 | isPrefixOf star allow = isSuffixOf (Data.Text.drop 1 allow) registry
+                                 | isSuffixOf star allow = isPrefixOf (Data.Text.dropEnd 1 allow) registry
+                                 | otherwise = registry == allow
+                                  where
+                                      star = pack "*"
+
 {-# INLINEABLE rule #-}

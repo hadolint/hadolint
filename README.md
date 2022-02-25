@@ -231,6 +231,7 @@ ignored:
 trustedRegistries:
   - docker.io
   - my-company.com:5000
+  - "*.gcr.io"
 ```
 
 If you want to override the severity of specific rules, you can do that too:
