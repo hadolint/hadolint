@@ -135,7 +135,6 @@ library
       StrictData
       TemplateHaskell
       TupleSections
-      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
   build-depends:
       Cabal
@@ -189,7 +188,6 @@ executable hadolint
       StrictData
       TemplateHaskell
       TupleSections
-      PatternSynonyms
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
   build-depends:
       base >=4.8 && <5
@@ -302,7 +300,6 @@ test-suite hadolint-unit-tests
       StrictData
       TemplateHaskell
       TupleSections
-      PatternSynonyms
       ImplicitParams
       OverloadedLists
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal

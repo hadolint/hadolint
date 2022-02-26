@@ -43,7 +43,6 @@ default-extensions:
   - StrictData
   - TemplateHaskell
   - TupleSections
-  - PatternSynonyms
 
 library:
   source-dirs: src
