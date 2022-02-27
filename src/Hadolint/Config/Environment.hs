@@ -19,7 +19,7 @@ getConfigFromEnvironment :: IO PartialConfiguration
 getConfigFromEnvironment =
   PartialConfiguration
     <$> maybeTruthy "HADOLINT_NOFAIL"
-    <*> maybeTruthy "NO_COLOR"
+    <*> isSet "NO_COLOR"
     <*> maybeTruthy "HADOLINT_VERBOSE"
     <*> getFormat
     <*> getOverrideList "HADOLINT_OVERRIDE_ERROR"
@@ -33,6 +33,13 @@ getConfigFromEnvironment =
     <*> maybeTruthy "HADOLINT_DISABLE_IGNORE_PRAGMA"
     <*> getFailureThreshold
 
+
+isSet :: String -> IO (Maybe Bool)
+isSet name = do
+  e <- lookupEnv name
+  case e of
+    Just _ -> return $ Just True
+    Nothing -> return Nothing
 
 maybeTruthy :: String -> IO (Maybe Bool)
 maybeTruthy name = do
