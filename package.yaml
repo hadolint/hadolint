@@ -28,7 +28,7 @@ dependencies:
   - base >=4.8 && <5
   - containers
   - data-default
-  - language-docker >=10.3.0 && <11
+  - language-docker >=10.4.1 && <11
   - megaparsec >= 9.0.0
   - optparse-applicative >= 0.14.0
   - text
@@ -50,7 +50,7 @@ library:
     - Paths_hadolint
   dependencies:
     - &Prettyprint prettyprinter >= 1.7.0
-    - &ShellCheck ShellCheck >=0.7.1
+    - &ShellCheck ShellCheck >=0.8.0
     - &bytestring bytestring >=0.10
     - &split split >=0.2
     - Cabal
