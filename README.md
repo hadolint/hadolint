@@ -281,7 +281,7 @@ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io
 In addition to config files, Hadolint can be configured with environment
 variables.
 ```bash
-NO_COLOR=1                               # Truthy value e.g. 1, true or yes
+NO_COLOR=1                               # Set or unset. See https://no-color.org
 HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
 HADOLINT_VERBOSE=1                       # Truthy value e.g. 1, true or yes
 HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy | sarif )
