@@ -15,7 +15,7 @@ jobs:
     steps:
 
     - name: Check out
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Create Release
       id: create_release
@@ -55,7 +55,7 @@ jobs:
     # setup:
 
     - name: Check out
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set tag name
       uses: little-core-labs/get-git-tag@v3.0.2
