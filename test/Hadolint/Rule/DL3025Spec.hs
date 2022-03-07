@@ -36,3 +36,13 @@ spec = do
               "CMD [ \"foo\", \"bar\" ]"
             ]
        in ruleCatchesNot "DL3025" $ Text.unlines dockerFile
+
+    -- regression: deal with broken long strings in exec format
+    it "don't warn on CMD JSON notation with broken long strings" $
+      let dockerFile =
+            [ "CMD [ \"/bin/sh\", \"-c\", \\",
+              "      \"echo foo && \\",
+              "       echo bar\" \\",
+              "    ]"
+            ]
+       in ruleCatchesNot "DL3025" $ Text.unlines dockerFile
