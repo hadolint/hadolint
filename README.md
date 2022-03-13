@@ -124,27 +124,34 @@ hadolint --help
 ```text
 hadolint - Dockerfile Linter written in Haskell
 
-Usage: hadolint [-v|--version] [--no-fail] [--no-color] [-c|--config FILENAME]
-                [-V|--verbose] [-f|--format ARG] [DOCKERFILE...]
-                [--error RULECODE] [--warning RULECODE] [--info RULECODE]
-                [--style RULECODE] [--ignore RULECODE]
+Usage: hadolint [-v|--version] [-c|--config FILENAME] [DOCKERFILE...]
+                [--file-path-in-report FILEPATHINREPORT] [--no-fail]
+                [--no-color] [-V|--verbose] [-f|--format ARG] [--error RULECODE]
+                [--warning RULECODE] [--info RULECODE] [--style RULECODE]
+                [--ignore RULECODE]
                 [--trusted-registry REGISTRY (e.g. docker.io)]
                 [--require-label LABELSCHEMA (e.g. maintainer:text)]
-                [--strict-labels] [-t|--failure-threshold THRESHOLD]
+                [--strict-labels] [--disable-ignore-pragma]
+                [-t|--failure-threshold THRESHOLD]
   Lint Dockerfile for errors and best practices
 
 Available options:
   -h,--help                Show this help text
   -v,--version             Show version
+  -c,--config FILENAME     Path to the configuration file
+  --file-path-in-report FILEPATHINREPORT
+                           The file path referenced in the generated report.
+                           This only applies for the 'checkstyle' format and is
+                           useful when running Hadolint with Docker to set the
+                           correct file path.
   --no-fail                Don't exit with a failure status code when any rule
                            is violated
   --no-color               Don't colorize output
-  -c,--config FILENAME     Path to the configuration file
   -V,--verbose             Enables verbose logging of hadolint's output to
                            stderr
   -f,--format ARG          The output format for the results [tty | json |
                            checkstyle | codeclimate | gitlab_codeclimate |
-                           codacy] (default: tty)
+                           codacy | sonarqube | sarif] (default: tty)
   --error RULECODE         Make the rule `RULECODE` have the level `error`
   --warning RULECODE       Make the rule `RULECODE` have the level `warning`
   --info RULECODE          Make the rule `RULECODE` have the level `info`
@@ -160,13 +167,13 @@ Available options:
                            format requirement `format`
   --strict-labels          Do not permit labels other than specified in
                            `label-schema`
-  --disable-ignore-pragma  Disable the inline ignore pragma `# hadolint
-                           ignore=DLxxxx` and report rules anyways.
+  --disable-ignore-pragma  Disable inline ignore pragmas `# hadolint
+                           ignore=DLxxxx`
   -t,--failure-threshold THRESHOLD
                            Exit with failure code only when rules with a
-                           severity above THRESHOLD are violated. Accepted
-                           values: [error | warning | info | style | ignore |
-                           none] (default: info)
+                           severity equal to or above THRESHOLD are violated.
+                           Accepted values: [error | warning | info | style |
+                           ignore | none] (default: info)
 ```
 
 ## Configure
@@ -577,6 +584,39 @@ Run integration tests:
 Dockerfile syntax is fully described in the [Dockerfile reference][].
 Just take a look at [Syntax.hs][] in the `language-docker` project to see
 the AST definition.
+
+### Building against custom libraries
+
+Hadolint uses many libraries to do the dirty work. In particular,
+language-docker is used to parse Dockerfiles and produce an AST which then can
+be analyzed. To build Hadolint against a custom version of such libraries, do
+the following. This example uses language-docker, but it would work with any
+other libaray as well.
+
+ 1) In the same directory (e.g. `/home/user/repos`) clone Hadolint and
+    language-docker git repositories
+```bash
+cd /home/user/repos
+git clone https://github.com/hadolint/hadolint.git
+git clone https://github.com/hadolint/language-docker.git
+```
+
+ 2) Make your modifications to language-docker
+
+ 3) In the Hadolint repo, edit the `stack.yaml` file, such that the `extra-deps`
+    property points to the other repo
+```yaml
+[...]
+extra-deps:
+  - ../language-docker
+[...]
+```
+
+ 4) Recompile Hadolint and run the tests
+```bash
+cd /home/user/repos/hadolint
+stack test
+```
 
 ## Alternatives
 
