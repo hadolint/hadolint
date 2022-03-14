@@ -2,15 +2,14 @@ flags: {}
 extra-package-dbs: []
 packages:
   - .
-resolver: lts-17.5
+resolver: lts-18.28
 extra-deps:
   - ShellCheck-0.8.0@sha256:353c9322847b661e4c6f7c83c2acf8e5c08b682fbe516c7d46c29605937543df,3297
-  - colourista-0.1.0.0
-  - hspec-2.8.3@sha256:43a42e23994a6c61a7adead7e8a412016680234f5a14a157f68c020871e59534,1709
-  - hspec-core-2.8.3@sha256:e4c1e08e16842804c470c2b4722e417ed2a556a47a74107401ad42195522f7a7,4992
-  - hspec-discover-2.8.3@sha256:b94758b375b5a810ea4c4c187381211c3acc77007f6f795c4e79f206ed6da56a,2025
-  - language-docker-10.4.2
-  - megaparsec-9.0.0@sha256:920d1e469056c746b532333a078c2a9a195fab5e860e0c9734ee92a28c2bfb65,3117
+  - colourista-0.1.0.1@sha256:98353ee0e2f5d97d2148513f084c1cd37dfda03e48aa9dd7a017c9d9c0ba710e,3307
+  - language-docker-10.4.2@sha256:8fcfff0d479fa4a0507db4eb65a0014950b96af853f80a0cd7dfc9235a7aa458,3655
   - spdx-1.0.0.2@sha256:7dfac9b454ff2da0abb7560f0ffbe00ae442dd5cb76e8be469f77e6988a70fed,2008
+  - hspec-2.9.4@sha256:658a6a74d5a70c040edd6df2a12228c6d9e63082adaad1ed4d0438ad082a0ef3,1709
+  - hspec-core-2.9.4@sha256:a126e9087409fef8dcafcd2f8656456527ac7bb163ed4d9cb3a57589042a5fe8,6498
+  - hspec-discover-2.9.4@sha256:fbcf49ecfc3d4da53e797fd0275264cba776ffa324ee223e2a3f4ec2d2c9c4a6,2165
 ghc-options:
   "$everything": -haddock
