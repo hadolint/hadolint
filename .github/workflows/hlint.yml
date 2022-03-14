@@ -21,7 +21,7 @@ jobs:
       HLINT_ACTION_LOG_LEVEL: debug
     steps:
       - name: Check out
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up HLint
         uses: rwe/actions-hlint-setup@v1
