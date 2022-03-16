@@ -7,6 +7,7 @@ RUN apt-get update \
     build-essential=12.3 \
     libffi-dev=3.2.* \
     libgmp-dev=2:6.1.* \
+    libtinfo-dev=6.* \
     zlib1g-dev=1:1.2.* \
     curl=7.52.* \
     ca-certificates=* \
