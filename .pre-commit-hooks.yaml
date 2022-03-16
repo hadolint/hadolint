@@ -4,7 +4,7 @@
   description: Runs hadolint Docker image to lint Dockerfiles
   language: docker_image
   types: ["dockerfile"]
-  entry: ghcr.io/hadolint/hadolint:v2.8.0 hadolint
+  entry: ghcr.io/hadolint/hadolint:v2.9.1 hadolint
 - id: hadolint
   name: Lint Dockerfiles
   description: Runs hadolint to lint Dockerfiles
