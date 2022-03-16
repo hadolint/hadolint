@@ -38,7 +38,8 @@ jobs:
         run: |
           echo ::set-output name=target::''
           echo ::set-output name=latest::latest
-          echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+          # echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+          echo ::set-output name=tag::"2.9.0"
 
       - name: Build and push
         uses: docker/build-push-action@v2
