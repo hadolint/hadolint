@@ -3,22 +3,19 @@ name: Docker Release
 on:
   # Trigger the workflow on the new 'v*' tag created
   push:
+    branches:
+      - docker-arm-builds
     tags:
       - "v*"
 
 jobs:
   docker:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        distro: ["scratch", "alpine", "debian"]
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-        with:
-          platforms: linux/amd64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -39,28 +36,31 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-          if [ "${{ matrix.distro }}" = 'scratch' ]; then
-            echo ::set-output name=target::''
-            echo ::set-output name=latest::latest
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
-          else
-            echo ::set-output name=target::"${{ matrix.distro }}-distro"
-            echo ::set-output name=latest::"latest-${{ matrix.distro }}"
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}"
-          fi
+          echo ::set-output name=target::''
+          echo ::set-output name=latest::latest
+          echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           file: docker/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           target: ${{ steps.build-opts.outputs.target }}
           tags: |
             hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
             hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
             hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
+
+            hadolint/hadolint:${{ steps.build-opts.outputs.latest }}-debian
+            hadolint/hadolint:${{ steps.build-opts.outputs.tag }}-debian
+            hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian
+
             ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
             ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
             ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
+
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}-debian
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}-debian
+            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian
