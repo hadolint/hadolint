@@ -14,6 +14,7 @@ rule = customRule check (emptyState False)
 
     check _ st (From _) = st |> replaceWith True
     check _ st (Comment _) = st
+    check _ st (Pragma _) = st
     check _ st (Arg _ _) = st
     check line st _
       | state st = st
