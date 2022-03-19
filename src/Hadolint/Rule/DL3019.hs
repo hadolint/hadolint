@@ -7,8 +7,13 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Shell as Shell
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3019 <> onbuild dl3019
+{-# INLINEABLE rule #-}
+
+dl3019 :: Rule ParsedShell
+dl3019 = simpleRule code severity message check
   where
     code = "DL3019"
     severity = DLInfoC
@@ -18,7 +23,7 @@ rule = simpleRule code severity message check
     check (Run (RunArgs args flags)) = hasCacheMount flags
       || foldArguments (Shell.noCommands forgotCacheOption) args
     check _ = True
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3019 #-}
 
 hasCacheMount :: RunFlags -> Bool
 hasCacheMount RunFlags { mount } =

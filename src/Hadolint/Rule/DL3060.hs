@@ -16,8 +16,13 @@ data Acc
   | Empty
   deriving (Show)
 
+
 rule :: Rule Shell.ParsedShell
-rule = veryCustomRule check (emptyState Empty) markFailures
+rule = dl3060 <> onbuild dl3060
+{-# INLINEABLE rule #-}
+
+dl3060 :: Rule Shell.ParsedShell
+dl3060 = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3060"
     severity = DLInfoC
@@ -42,7 +47,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
           | BaseImage {alias = Just (ImageAlias als)} <- from,
             Just _ <- Map.lookup als active = pure CheckFailure {..}
           | otherwise = mempty
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3060 #-}
 
 rememberStage :: Linenumber -> BaseImage -> Acc -> Acc
 rememberStage line stage@BaseImage {image = Image _ als} Empty =

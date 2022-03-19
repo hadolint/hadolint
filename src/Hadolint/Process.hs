@@ -103,22 +103,10 @@ analyze ::
 analyze config =
   AnalisisResult
     <$> Hadolint.Pragma.ignored
-    <*> Foldl.premap parseShell (failures config <> onBuildFailures config)
+    <*> Foldl.premap parseShell (failures config)
 
 parseShell :: InstructionPos Text.Text -> InstructionPos Shell.ParsedShell
 parseShell = fmap Shell.parseShell
-
-onBuildFailures :: Configuration -> Rule Shell.ParsedShell
-onBuildFailures config =
-  Foldl.prefilter
-    isOnBuild
-    (Foldl.premap unwrapOnbuild (failures config))
-  where
-    isOnBuild InstructionPos {instruction = OnBuild {}} = True
-    isOnBuild _ = False
-
-    unwrapOnbuild inst@InstructionPos {instruction = OnBuild i} = inst {instruction = i}
-    unwrapOnbuild inst = inst
 
 failures :: Configuration -> Rule Shell.ParsedShell
 failures Configuration {allowedRegistries, labelSchema, strictLabels} =

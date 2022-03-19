@@ -5,8 +5,13 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule Shell.ParsedShell
-rule = simpleRule code severity message check
+rule = dl3041 <> onbuild dl3041
+{-# INLINEABLE rule #-}
+
+dl3041 :: Rule Shell.ParsedShell
+dl3041 = simpleRule code severity message check
   where
     code = "DL3041"
     severity = DLWarningC
@@ -16,7 +21,7 @@ rule = simpleRule code severity message check
       foldArguments (all packageVersionFixed . dnfPackages) args
         && foldArguments (all moduleVersionFixed . dnfModules) args
     check _ = True
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3041 #-}
 
 dnfCmds :: [Text.Text]
 dnfCmds = ["dnf", "microdnf"]

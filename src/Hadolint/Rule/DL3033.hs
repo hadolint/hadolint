@@ -5,8 +5,13 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule Shell.ParsedShell
-rule = simpleRule code severity message check
+rule = dl3033 <> onbuild dl3033
+{-# INLINEABLE rule #-}
+
+dl3033 :: Rule Shell.ParsedShell
+dl3033 = simpleRule code severity message check
   where
     code = "DL3033"
     severity = DLWarningC
@@ -16,7 +21,7 @@ rule = simpleRule code severity message check
       foldArguments (all packageVersionFixed . yumPackages) args
         && foldArguments (all moduleVersionFixed . yumModules) args
     check _ = True
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3033 #-}
 
 yumPackages :: Shell.ParsedShell -> [Text.Text]
 yumPackages args =

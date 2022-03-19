@@ -5,8 +5,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3014 <> onbuild dl3014
+{-# INLINEABLE rule #-}
+
+dl3014 :: Rule ParsedShell
+dl3014 = simpleRule code severity message check
   where
     code = "DL3014"
     severity = DLWarningC
@@ -18,4 +23,4 @@ rule = simpleRule code severity message check
     forgotAptYesOption cmd = isAptGetInstall cmd && not (hasYesOption cmd)
     isAptGetInstall = Shell.cmdHasArgs "apt-get" ["install"]
     hasYesOption = Shell.hasAnyFlag ["y", "yes", "q", "assume-yes"]
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3014 #-}

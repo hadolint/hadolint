@@ -19,7 +19,11 @@ data Acc
 
 
 rule :: Rule Shell.ParsedShell
-rule = customRule check (emptyState Empty)
+rule = scrule <> onbuild scrule
+{-# INLINEABLE rule #-}
+
+scrule :: Rule Shell.ParsedShell
+scrule = customRule check (emptyState Empty)
   where
     check _ st (From _) = st |> modify newStage
     check _ st (Arg name _) = st |> modify (addVars [name])
@@ -40,7 +44,7 @@ rule = customRule check (emptyState Empty)
               | c <- Shell.shellcheck options script
             ]
     check _ st _ = st
-{-# INLINEABLE rule #-}
+{-# INLINEABLE scrule #-}
 
 newStage :: Acc -> Acc
 newStage Empty =

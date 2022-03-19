@@ -9,7 +9,7 @@ rule = customRule check (emptyState Set.empty)
   where
     code = "DL3022"
     severity = DLWarningC
-    message = "COPY --from should reference a previously defined FROM alias"
+    message = "`COPY --from` should reference a previously defined `FROM` alias"
 
     check _ st (From BaseImage {alias = Just (ImageAlias als)}) = st |> modify (Set.insert als)
     check line st (Copy (CopyArgs _ _ _ _ (CopySource s)))

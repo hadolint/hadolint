@@ -4,8 +4,13 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule Shell.ParsedShell
-rule = simpleRule code severity message check
+rule = dl3034 <> onbuild dl3034
+{-# INLINEABLE rule #-}
+
+dl3034 :: Rule Shell.ParsedShell
+dl3034 = simpleRule code severity message check
   where
     code = "DL3034"
     severity = DLWarningC
@@ -27,4 +32,4 @@ rule = simpleRule code severity message check
           "patch"
         ]
     hasYesOption = Shell.hasAnyFlag ["non-interactive", "n", "no-confirm", "y"]
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3034 #-}

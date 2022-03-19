@@ -6,8 +6,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3008 <> onbuild dl3008
+{-# INLINEABLE rule #-}
+
+dl3008 :: Rule ParsedShell
+dl3008 = simpleRule code severity message check
   where
     code = "DL3008"
     severity = DLWarningC
@@ -17,7 +22,7 @@ rule = simpleRule code severity message check
     check (Run (RunArgs args _)) = foldArguments (all versionFixed . aptGetPackages) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package || ("/" `Text.isInfixOf` package || ".deb" `Text.isSuffixOf` package)
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3008 #-}
 
 aptGetPackages :: ParsedShell -> [Text.Text]
 aptGetPackages args =

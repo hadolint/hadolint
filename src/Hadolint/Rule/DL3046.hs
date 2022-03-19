@@ -6,8 +6,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax (Instruction (..), RunArgs (..))
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3046 <> onbuild dl3046
+{-# INLINEABLE rule #-}
+
+dl3046 :: Rule ParsedShell
+dl3046 = simpleRule code severity message check
   where
     code = "DL3046"
     severity = DLWarningC
@@ -21,4 +26,4 @@ rule = simpleRule code severity message check
     hasLFlag = Shell.hasAnyFlag ["l", "no-log-init"]
     hasUFlag = Shell.hasAnyFlag ["u", "uid"]
     hasLongUID cmd = any ((> 5) . Text.length) (Shell.getFlagArg "u" cmd)
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3046 #-}
