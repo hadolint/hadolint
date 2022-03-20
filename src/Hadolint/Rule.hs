@@ -272,7 +272,7 @@ dropQuotes = Text.dropAround quotes
 --
 onbuild :: Rule args -> Rule args
 onbuild rule =
-  Foldl.prefilter isOnbuild (Foldl.premap unwrapOnbuild (rule))
+  Foldl.prefilter isOnbuild (Foldl.premap unwrapOnbuild rule)
   where
     isOnbuild InstructionPos {instruction = OnBuild {}} = True
     isOnbuild _ = False

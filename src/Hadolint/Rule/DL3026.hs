@@ -32,8 +32,8 @@ rule allowed = customRule check (emptyState Set.empty)
 
     matchRegistry :: Text -> Text -> Bool
     matchRegistry allow registry | allow == star = True
-                                 | isPrefixOf star allow = isSuffixOf (Data.Text.drop 1 allow) registry
-                                 | isSuffixOf star allow = isPrefixOf (Data.Text.dropEnd 1 allow) registry
+                                 | star `isPrefixOf` allow = Data.Text.drop 1 allow `isSuffixOf` registry
+                                 | star `isSuffixOf` allow = Data.Text.dropEnd 1 allow `isPrefixOf` registry
                                  | otherwise = registry == allow
                                   where
                                       star = pack "*"
