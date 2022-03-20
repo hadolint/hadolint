@@ -7,8 +7,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3013 <> onbuild dl3013
+{-# INLINEABLE rule #-}
+
+dl3013 :: Rule ParsedShell
+dl3013 = simpleRule code severity message check
   where
     code = "DL3013"
     severity = DLWarningC
@@ -45,7 +50,7 @@ rule = simpleRule code severity message check
     hasVersionSymbol package = or [s `Text.isInfixOf` package | s <- versionSymbols]
     localPackageFileExtensions = [".whl", ".tar.gz"]
     isLocalPackage package = or [s `Text.isSuffixOf` package | s <- localPackageFileExtensions]
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3013 #-}
 
 packages :: Shell.Command -> [Text.Text]
 packages cmd =

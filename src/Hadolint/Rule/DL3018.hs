@@ -6,8 +6,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3018 <> onbuild dl3018
+{-# INLINEABLE rule #-}
+
+dl3018 :: Rule ParsedShell
+dl3018 = simpleRule code severity message check
   where
     code = "DL3018"
     severity = DLWarningC
@@ -26,7 +31,7 @@ rule = simpleRule code severity message check
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package
     packageFile package = ".apk" `Text.isSuffixOf` package
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3018 #-}
 
 apkAddPackages :: ParsedShell -> [Text.Text]
 apkAddPackages args =

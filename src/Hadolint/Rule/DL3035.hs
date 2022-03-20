@@ -4,8 +4,13 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule Shell.ParsedShell
-rule = simpleRule code severity message check
+rule = dl3035 <> onbuild dl3035
+{-# INLINEABLE rule #-}
+
+dl3035 :: Rule Shell.ParsedShell
+dl3035 = simpleRule code severity message check
   where
     code = "DL3035"
     severity = DLWarningC
@@ -23,4 +28,4 @@ rule = simpleRule code severity message check
         )
         args
     check _ = True
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3035 #-}

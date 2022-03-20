@@ -26,7 +26,11 @@ data Acc
 
 
 rule :: Rule Shell.ParsedShell
-rule = customRule check (emptyState Empty)
+rule = dl3042 <> onbuild dl3042
+{-# INLINEABLE rule #-}
+
+dl3042 :: Rule Shell.ParsedShell
+dl3042 = customRule check (emptyState Empty)
   where
     code = "DL3042"
     severity = DLWarningC
@@ -40,7 +44,7 @@ rule = customRule check (emptyState Empty)
       | foldArguments (Shell.noCommands forgotNoCacheDir) args = st
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3042 #-}
 
 forgotNoCacheDir :: Shell.Command -> Bool
 forgotNoCacheDir cmd =  Shell.isPipInstall cmd

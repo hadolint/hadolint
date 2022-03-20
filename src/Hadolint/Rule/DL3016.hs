@@ -7,6 +7,11 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax (Instruction (..), RunArgs (..))
 
+
+rule :: Rule ParsedShell
+rule = dl3016 <> onbuild dl3016
+{-# INLINEABLE rule #-}
+
 -- | Rule for pinning NPM packages to version, tag, or commit
 --  supported formats by Hadolint
 --    npm install (with no args, in package dir)
@@ -15,8 +20,8 @@ import Language.Docker.Syntax (Instruction (..), RunArgs (..))
 --    npm install [<@scope>/]<name>@<version>
 --    npm install git[+http|+https]://<git-host>/<git-user>/<repo-name>[#<commit>|#semver:<semver>]
 --    npm install git+ssh://<git-host>:<git-user>/<repo-name>[#<commit>|#semver:<semver>]
-rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+dl3016 :: Rule ParsedShell
+dl3016 = simpleRule code severity message check
   where
     code = "DL3016"
     severity = DLWarningC
@@ -26,7 +31,7 @@ rule = simpleRule code severity message check
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotToPinVersion) args
     check _ = True
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3016 #-}
 
 
 forgotToPinVersion :: Shell.Command -> Bool

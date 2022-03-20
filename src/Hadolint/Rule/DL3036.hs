@@ -4,8 +4,13 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule Shell.ParsedShell
-rule = simpleRule code severity message check
+rule = dl3036 <> onbuild dl3036
+{-# INLINEABLE rule #-}
+
+dl3036 :: Rule Shell.ParsedShell
+dl3036 = simpleRule code severity message check
   where
     code = "DL3036"
     severity = DLWarningC
@@ -20,4 +25,4 @@ rule = simpleRule code severity message check
 
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
     zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3036 #-}

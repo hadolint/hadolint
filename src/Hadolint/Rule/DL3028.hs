@@ -6,8 +6,13 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax (Instruction (..), RunArgs (..))
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl3028 <> onbuild dl3028
+{-# INLINEABLE rule #-}
+
+dl3028 :: Rule ParsedShell
+dl3028 = simpleRule code severity message check
   where
     code = "DL3028"
     severity = DLWarningC
@@ -19,7 +24,7 @@ rule = simpleRule code severity message check
     check _ = True
 
     versionFixed package = ":" `Text.isInfixOf` package
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3028 #-}
 
 gems :: Shell.ParsedShell -> [Text.Text]
 gems shell =

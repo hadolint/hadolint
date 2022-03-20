@@ -5,8 +5,12 @@ import Hadolint.Shell (ParsedShell)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
-rule = simpleRule code severity message check
+rule = dl4005 <> onbuild dl4005
+
+dl4005 :: Rule ParsedShell
+dl4005 = simpleRule code severity message check
   where
     code = "DL4005"
     severity = DLWarningC

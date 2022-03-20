@@ -5,6 +5,7 @@ import Hadolint.Rule
 import Hadolint.Shell (ParsedShell)
 import Language.Docker.Syntax
 
+
 rule :: Rule ParsedShell
 rule = simpleRule code severity message check
   where
@@ -17,3 +18,4 @@ rule = simpleRule code severity message check
         Just _ -> False
         _ -> True
     check _ = True
+{-# INLINEABLE rule #-}

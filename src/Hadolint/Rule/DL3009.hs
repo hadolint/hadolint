@@ -20,7 +20,11 @@ data Acc
 
 
 rule :: Rule Shell.ParsedShell
-rule = veryCustomRule check (emptyState Empty) markFailures
+rule = dl3009 <> onbuild dl3009
+{-# INLINEABLE rule #-}
+
+dl3009 :: Rule Shell.ParsedShell
+dl3009 = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3009"
     severity = DLInfoC
@@ -49,7 +53,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
             -- If the same alias is used in another stage, fail
             pure CheckFailure {..}
           | otherwise = mempty
-{-# INLINEABLE rule #-}
+{-# INLINEABLE dl3009 #-}
 
 rememberStage :: Linenumber -> BaseImage -> Acc -> Acc
 rememberStage line from@BaseImage {image = Image _ als} (Acc _ _ stages o) = Acc from True (Map.insert als line stages) o
