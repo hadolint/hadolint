@@ -147,7 +147,7 @@ library
     , containers
     , cryptonite
     , data-default
-    , deepseq ==1.4.4.*
+    , deepseq >=1.4.4 && <1.5
     , directory >=1.3.0
     , email-validate
     , filepath
