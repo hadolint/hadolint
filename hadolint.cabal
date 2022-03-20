@@ -41,6 +41,7 @@ library
       Hadolint.Formatter.Codacy
       Hadolint.Formatter.Codeclimate
       Hadolint.Formatter.Format
+      Hadolint.Formatter.Gnu
       Hadolint.Formatter.Json
       Hadolint.Formatter.Sarif
       Hadolint.Formatter.SonarQube
@@ -212,6 +213,7 @@ test-suite hadolint-unit-tests
       Hadolint.Config.ConfigurationSpec
       Hadolint.Config.EnvironmentSpec
       Hadolint.Config.SpecHook
+      Hadolint.Formatter.GnuSpec
       Hadolint.Formatter.ParseErrorSpec
       Hadolint.Formatter.SarifSpec
       Hadolint.Formatter.TTYSpec

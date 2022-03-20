@@ -150,7 +150,7 @@ Available options:
   -V,--verbose             Enables verbose logging of hadolint's output to
                            stderr
   -f,--format ARG          The output format for the results [tty | json |
-                           checkstyle | codeclimate | gitlab_codeclimate |
+                           checkstyle | codeclimate | gitlab_codeclimate | gnu |
                            codacy | sonarqube | sarif] (default: tty)
   --error RULECODE         Make the rule `RULECODE` have the level `error`
   --warning RULECODE       Make the rule `RULECODE` have the level `warning`
@@ -194,7 +194,7 @@ In windows, the `%LOCALAPPDATA%` environment variable is used instead of
 
 ```yaml
 failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)
-format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy)
+format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy)
 ignored: [string]                       # list of rules
 label-schema:                           # See Linting Labels below for specific label-schema details
   author: string                        # Your name
@@ -291,7 +291,7 @@ variables.
 NO_COLOR=1                               # Set or unset. See https://no-color.org
 HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
 HADOLINT_VERBOSE=1                       # Truthy value e.g. 1, true or yes
-HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | codacy | sarif )
+HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sarif )
 HADOLINT_FAILURE_THRESHOLD=info          # threshold level (error | warning | info | style | ignore | none)
 HADOLINT_OVERRIDE_ERROR=DL3010,DL3020    # comma separated list of rule codes
 HADOLINT_OVERRIDE_WARNING=DL3010,DL3020  # comma separated list of rule codes

@@ -33,6 +33,7 @@ data OutputFormat
   | TTY
   | CodeclimateJson
   | GitlabCodeclimateJson
+  | Gnu
   | Checkstyle
   | Codacy
   | Sarif
@@ -44,6 +45,7 @@ instance Pretty OutputFormat where
   pretty TTY = "tty"
   pretty CodeclimateJson = "codeclimate"
   pretty GitlabCodeclimateJson = "gitlab_codeclimate"
+  pretty Gnu = "gnu"
   pretty Checkstyle = "checkstyle"
   pretty Codacy = "codacy"
   pretty Sarif = "sarif"
@@ -76,6 +78,7 @@ readMaybeOutputFormat "sonarqube" = Just SonarQube
 readMaybeOutputFormat "tty" = Just TTY
 readMaybeOutputFormat "codeclimate" = Just CodeclimateJson
 readMaybeOutputFormat "gitlab_codeclimate" = Just GitlabCodeclimateJson
+readMaybeOutputFormat "gnu" = Just Gnu
 readMaybeOutputFormat "checkstyle" = Just Checkstyle
 readMaybeOutputFormat "codacy" = Just Codacy
 readMaybeOutputFormat "sarif" = Just Sarif

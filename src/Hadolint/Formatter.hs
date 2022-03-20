@@ -12,6 +12,7 @@ import Language.Docker.Parser (DockerfileError)
 import qualified Hadolint.Formatter.Checkstyle as FormatCheckstyle
 import qualified Hadolint.Formatter.Codacy as FormatCodacy
 import qualified Hadolint.Formatter.Codeclimate as FormatCodeclimate
+import qualified Hadolint.Formatter.Gnu as FormatGnu
 import qualified Hadolint.Formatter.Json as FormatJson
 import qualified Hadolint.Formatter.Sarif as FormatSarif
 import qualified Hadolint.Formatter.SonarQube as FormatSonarQube
@@ -31,6 +32,7 @@ printResults format nocolor filePathInReport allResults =
     Codacy -> FormatCodacy.printResults allResults
     CodeclimateJson -> FormatCodeclimate.printResults allResults
     GitlabCodeclimateJson -> FormatCodeclimate.printGitlabResults allResults
+    Gnu -> FormatGnu.printResults allResults
     Json -> FormatJson.printResults allResults
     Sarif -> FormatSarif.printResults allResults
     SonarQube -> FormatSonarQube.printResults allResults
