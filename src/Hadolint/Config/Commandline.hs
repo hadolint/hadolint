@@ -137,7 +137,7 @@ parseCommandline =
               <> short 'f' -- options for the output format
               <> help
                 "The output format for the results [tty | json | checkstyle |\
-                \ codeclimate | gitlab_codeclimate | codacy | sonarqube |\
+                \ codeclimate | gitlab_codeclimate | gnu | codacy | sonarqube |\
                 \ sarif] (default: tty)"
               <> completeWith
                   [ "tty",
