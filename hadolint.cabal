@@ -5,7 +5,7 @@ cabal-version: 2.0
 -- see: https://github.com/sol/hpack
 
 name:           hadolint
-version:        2.9.2
+version:        2.9.3
 synopsis:       Dockerfile Linter JavaScript API
 description:    A smarter Dockerfile linter that helps you build best practice Docker images.
 category:       Development
@@ -155,7 +155,7 @@ library
     , foldl
     , gitrev >=1.3.1
     , ilist
-    , language-docker >=10.4.2 && <11
+    , language-docker >=10.4.3 && <11
     , megaparsec >=9.0.0
     , mtl
     , network-uri
@@ -195,7 +195,7 @@ executable hadolint
     , containers
     , data-default
     , hadolint
-    , language-docker >=10.4.2 && <11
+    , language-docker >=10.4.3 && <11
     , megaparsec >=9.0.0
     , optparse-applicative >=0.14.0
     , prettyprinter >=1.7.0
@@ -317,7 +317,7 @@ test-suite hadolint-unit-tests
     , foldl
     , hadolint
     , hspec >=2.8.3
-    , language-docker >=10.4.2 && <11
+    , language-docker >=10.4.3 && <11
     , megaparsec >=9.0.0
     , optparse-applicative >=0.14.0
     , silently

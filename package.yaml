@@ -1,5 +1,5 @@
 name: hadolint
-version: "2.9.2"
+version: "2.9.3"
 synopsis: Dockerfile Linter JavaScript API
 description:
   A smarter Dockerfile linter that helps you build best practice Docker images.
@@ -28,7 +28,7 @@ dependencies:
   - base >=4.8 && <5
   - containers
   - data-default
-  - language-docker >=10.4.2 && <11
+  - language-docker >=10.4.3 && <11
   - megaparsec >= 9.0.0
   - optparse-applicative >= 0.14.0
   - text
