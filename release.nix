@@ -18,6 +18,8 @@ let
           components = hNix.hadolint.components // {
             exes = hNix.hadolint.components.exes // {
               hadolint = hNix.hadolint.components.exes.hadolint // {
+                dontStrip = false;
+                dontPatchElf = false;
                 configureFlags = configureFlags;
               };
             };
