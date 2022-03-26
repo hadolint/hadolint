@@ -35,6 +35,10 @@ let
 
   appNative = hsApp {};
 
+  appNativeStatic = hsApp {
+    configureFlags = staticFlags pkgsNative;
+  };
+
   appx86_64-static = hsApp {
     pkgs = pkgsx86_64-static;
     configureFlags = staticFlags pkgsx86_64-static;
@@ -48,7 +52,8 @@ let
   appAarch64-darwin = hsApp { pkgs = pkgsAarch64-darwin; };
 in {
   native = appNative.hadolint.components.exes.hadolint;
-  linux-static = appx86_64-static.hadolint.components.exes.hadolint;
-  linux-arm-static = appAarch64-static.hadolint.components.exes.hadolint;
-  darwin-arm = appAarch64-static.hadolint.components.exes.hadolint;
+  native-static = appNativeStatic.hadolint.components.exes.hadolint;
+  cross-linux-static = appx86_64-static.hadolint.components.exes.hadolint;
+  cross-linux-arm-static = appAarch64-static.hadolint.components.exes.hadolint;
+  cross-darwin-arm = appAarch64-static.hadolint.components.exes.hadolint;
 }

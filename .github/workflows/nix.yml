@@ -20,5 +20,5 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Build Linux Static
-      run: nix-build release.nix -A linux-static
+      run: nix-build release.nix -A native
 
