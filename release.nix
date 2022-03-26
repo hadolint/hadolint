@@ -10,18 +10,20 @@ let
     pkgs ? pkgsNative
   , configureFlags ? []
   }:
-    import ./default.nix {
-      pkgs = pkgs;
-      hadolint = pkgs.hadolint // {
-        components = pkgs.hadolint.components // {
-          exes = pkgs.hadolint.components.exes // {
-            hadolint = pkgs.hadolint.components.exes.hadolint // {
-              configureFlags = configureFlags;
+    let
+      hNix = import ./default.nix { pkgs = pkgs; };
+    in
+      hNix // {
+        hadolint = hNix.hadolint // {
+          components = hNix.hadolint.components // {
+            exes = hNix.hadolint.components.exes // {
+              hadolint = hNix.hadolint.components.exes.hadolint // {
+                configureFlags = configureFlags;
+              };
             };
           };
         };
       };
-    };
 
   staticFlags = {pkgs}: [
     "--disable-executable-dynamic"
