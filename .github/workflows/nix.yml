@@ -32,5 +32,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: hadolint-Linux-${{env.ARCH}}
-        path: /result/bin/hadolint
+        path: result/bin/hadolint
         retention-days: 3
