@@ -25,16 +25,18 @@ jobs:
         pushFilter: '(-source$|hadolint-exe-hadolint-x86_64-unknown-linux-musl-*|hadolint-exe-hadolint-aarch64-unknown-linux-musl-*)'
 
     - name: Build
-      run: nix-build release.nix -A "${{matrix.target}}" -j3
+      run: |
+        nix-build release.nix -A "${{matrix.target}}" -j3
+        cp result/bin/hadolint .
 
     - name: Compress binary
       uses: svenstaro/upx-action@2.0.1
       with:
-        file: result/bin/hadolint
+        file: hadolint
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: hadolint-Linux-${{env.ARCH}}
-        path: result/bin/hadolint
+        path: hadolint
         retention-days: 3
