@@ -3,12 +3,13 @@ on:
   pull_request:
 
 jobs:
-  linux-static:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ["linux-static", "linux-arm-static"]
     steps:
     - uses: actions/checkout@v2
-      with:
-        submodules: true
 
     - uses: cachix/install-nix-action@v16
       with:
@@ -22,8 +23,5 @@ jobs:
         name: hadolint
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-    - name: Build Linux Static
-      run: nix-build release.nix -A linux-static -j3
-
-    - name: Verify static
-      run: ldd result/bin/hadolint
+    - name: Build
+      run: nix-build release.nix -A "${{matrix.target}}" -j3
