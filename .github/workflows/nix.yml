@@ -22,6 +22,19 @@ jobs:
       with:
         name: hadolint
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+        pushFilter: '(-source$|hadolint-exe-hadolint-x86_64-unknown-linux-musl-*|hadolint-exe-hadolint-aarch64-unknown-linux-musl-*)'
 
     - name: Build
       run: nix-build release.nix -A "${{matrix.target}}" -j3
+
+    - name: Compress binary
+      uses: svenstaro/upx-action@2.0.1
+      with:
+        file: result/bin/hadolint
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: hadolint-Linux-${{env.ARCH}}
+        path: result/bin/hadolint
+        retention-days: 3
