@@ -27,16 +27,10 @@ jobs:
     - name: Build
       run: |
         nix-build release.nix -A "${{matrix.target}}" -j3
-        cp result/bin/hadolint .
-
-    - name: Compress binary
-      uses: svenstaro/upx-action@2.0.1
-      with:
-        file: hadolint
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: hadolint-Linux-${{env.ARCH}}
-        path: hadolint
+        path: /result/bin/hadolint
         retention-days: 3
