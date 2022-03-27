@@ -22,7 +22,7 @@ jobs:
       with:
         name: hadolint
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-        pushFilter: '(-source$|hadolint-exe-hadolint-x86_64-unknown-linux-musl-*|hadolint-exe-hadolint-aarch64-unknown-linux-musl-*)'
+        pushFilter: '(-source$|-config$|-hadolint-root$|hadolint-gitFiles|git-ls-files|hadolint-exe-hadolint-x86_64-unknown-linux-musl-*|hadolint-exe-hadolint-aarch64-unknown-linux-musl-*|hadolint-lib-hadolint-x86_64-unknown-linux-musl-*)'
 
     - name: Build
       run: |
