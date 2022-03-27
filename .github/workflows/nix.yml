@@ -25,3 +25,5 @@ jobs:
     - name: Build Linux Static
       run: nix-build release.nix -A linux-static -j3
 
+    - name: Verify static
+      run: ldd result/bin/hadolint
