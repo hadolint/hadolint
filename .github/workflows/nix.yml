@@ -61,7 +61,9 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-          echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+          # echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+          echo ::set-output name=tag::nix-experiment
+
 
       - name: Push Docker Image
         uses: docker/build-push-action@v2
