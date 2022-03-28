@@ -110,4 +110,4 @@ jobs:
             ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 \
             ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
 
-          docker push ghcr.io/hadolint/hadolint:${{github.sha}}
+          docker manifest push ghcr.io/hadolint/hadolint:${{github.sha}}
