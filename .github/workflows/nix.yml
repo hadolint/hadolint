@@ -28,21 +28,19 @@ jobs:
       run: |
         nix-build release.nix -A "${{matrix.target}}" -j3
 
-    - name: Set binary ARCH name
-      uses: allenevans/set-env@v2.2.0
-      with:
-        BINARY_OS: amd64
-
-    - if: matrix.target == 'linux-arm-static'
-      name: Set binary ARCH name for ARM
-      uses: allenevans/set-env@v2.2.0
-      with:
-        ARCH: arm64
+    - name: Set binary ARCH
+      id: build-opts
+      run: |
+        if [ "${{ matrix.target }}" = 'linux-static' ]; then
+          echo ::set-output name=arch::amd64
+        else
+          echo ::set-output name=arch::arm64
+        fi
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: hadolint-Linux-${{env.ARCH}}
+        name: hadolint-Linux-${{steps.build-opts.outputs.arch}}
         path: result/bin/hadolint
         retention-days: 3
 
@@ -59,11 +57,6 @@ jobs:
         with:
           name: hadolint-Linux-${{matrix.target}}
           path: ${{matrix.target}}
-
-      - name: Compress
-        uses: svenstaro/upx-action@2.0.1
-        with:
-          file: ${{matrix.target}}/hadolint
 
       - name: Set target and tag
         id: build-opts
