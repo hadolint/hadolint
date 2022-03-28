@@ -28,9 +28,55 @@ jobs:
       run: |
         nix-build release.nix -A "${{matrix.target}}" -j3
 
+    - name: Set binary ARCH name
+      uses: allenevans/set-env@v2.2.0
+      with:
+        BINARY_OS: amd64
+
+    - if: matrix.target == 'linux-arm-static'
+      name: Set binary ARCH name for ARM
+      uses: allenevans/set-env@v2.2.0
+      with:
+        ARCH: arm64
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: hadolint-Linux-${{env.ARCH}}
         path: result/bin/hadolint
         retention-days: 3
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ["amd64", "arm64"]
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: hadolint-Linux-${{matrix.target}}
+          path: ${{matrix.target}}
+
+      - name: Compress
+        uses: svenstaro/upx-action@2.0.1
+        with:
+          file: ${{matrix.target}}/hadolint
+
+      - name: Set target and tag
+        id: build-opts
+        run: |
+          echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+
+      - name: Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{matrix.target}}
+          file: docker/Dockerfile
+          platforms: linux/${{matrix.target}}
+          push: true
+          tags: |
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-${{matrix.target}}
