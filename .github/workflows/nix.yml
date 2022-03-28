@@ -78,7 +78,7 @@ jobs:
           platforms: linux/${{matrix.target}}
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${GITHUB_SHA}-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
 
   docker-release:
     needs: docker
@@ -108,12 +108,12 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${GITHUB_SHA}-amd64
-          docker pull ghcr.io/hadolint/hadolint:${GITHUB_SHA}-arm64
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-amd64
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
 
           docker manifest create \
-            ghcr.io/hadolint/hadolint:${GITHUB_SHA} \
-            ghcr.io/hadolint/hadolint:${GITHUB_SHA}-amd64 \
-            ghcr.io/hadolint/hadolint:${GITHUB_SHA}-arm64
+            ghcr.io/hadolint/hadolint:${{github.sha}} \
+            ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 \
+            ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
 
-          docker push ghcr.io/hadolint/hadolint:${GITHUB_SHA}
+          docker push ghcr.io/hadolint/hadolint:${{github.sha}}
