@@ -307,7 +307,7 @@ jobs:
         mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
 
         mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
-        mv artifacts/hadolint-Windows-x86_64.exe/hadolint hadolint-Windows-x86_64.exe
+        mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
           
     - name: Release
       uses: softprops/action-gh-release@v1
