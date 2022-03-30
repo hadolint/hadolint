@@ -42,8 +42,8 @@ jobs:
 
     - name: Move binary
       run: |
-        mv result/bin/hadolint hadolint
-        chmod a+rwx hadolint
+        sudo cp result/bin/hadolint hadolint
+        sudo chmod 777 hadolint
 
     - name: Compress binary
       uses: svenstaro/upx-action@2.0.1
