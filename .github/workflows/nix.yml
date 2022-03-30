@@ -281,36 +281,33 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: hadolint-Linux-amd64
-        path: hadolint-Linux-x86_64
+        path: artifacts/hadolint-Linux-x86_64
 
     - name: Download Linux arm64
       uses: actions/download-artifact@v3
       with:
         name: hadolint-Linux-arm64
-        path: hadolint-Linux-arm64
+        path: artifacts/hadolint-Linux-arm64
 
     - name: Download Macos x86
       uses: actions/download-artifact@v3
       with:
         name: hadolint-Darwin-x86_64
-        path: hadolint-Darwin-x86_64
+        path: artifacts/hadolint-Darwin-x86_64
 
     - name: Download Windows x86
       uses: actions/download-artifact@v3
       with:
         name: hadolint-Windows-x86_64.exe
-        path: hadolint-Windows-x86_64.exe
+        path: artifacts/hadolint-Windows-x86_64.exe
           
-    - name: Permissions
-      run: chmod a+rx hadolint-*
-
+    - name: Debug
+      run: ls -la artifacts/*
+          
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         generate_release_notes: true
-        files: |
-          hadolint-Linux-x86_64
-          hadolint-Linux-arm64
-          hadolint-Darwin-x86_64
-          hadolint-Windows-x86_64.exe
+        fail_on_unmatched_files: true
+        files: artifacts/*
