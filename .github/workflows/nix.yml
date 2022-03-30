@@ -301,8 +301,13 @@ jobs:
         name: hadolint-Windows-x86_64.exe
         path: artifacts/hadolint-Windows-x86_64.exe
           
-    - name: Debug
-      run: ls -la artifacts/*
+    - name: Rename
+      run: |
+        mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
+        mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
+
+        mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
+        mv artifacts/hadolint-Windows-x86_64.exe/hadolint hadolint-Windows-x86_64.exe
           
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -310,4 +315,8 @@ jobs:
       with:
         generate_release_notes: true
         fail_on_unmatched_files: true
-        files: artifacts/*
+        files: |
+          hadolint-Linux-x86_64
+          hadolint-Linux-arm64
+          hadolint-Darwin-x86_64
+          hadolint-Windows-x86_64.exe
