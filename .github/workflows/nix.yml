@@ -301,15 +301,14 @@ jobs:
         name: hadolint-Windows-x86_64.exe
         path: hadolint-Windows-x86_64.exe
           
-    - name: Debug
-      run: ls
+    - name: Permissions
+      run: chmod a+rx hadolint-*
 
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         generate_release_notes: true
-        fail_on_unmatched_files: true
         files: |
           hadolint-Linux-x86_64
           hadolint-Linux-arm64
