@@ -73,19 +73,48 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_IO_REGISTRY_TOKEN }}
 
-      - name: Push Docker Image
+      - name: Push Docker Image Scratch
         uses: docker/build-push-action@v2
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
           platforms: linux/${{matrix.target}}
+          target: base
           push: true
           tags: |
             ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
+            hadolint/hadolint:${{github.sha}}-${{matrix.target}}
+
+      - name: Push Docker Image Debian
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{matrix.target}}
+          file: docker/Dockerfile
+          platforms: linux/${{matrix.target}}
+          target: debian
+          push: true
+          tags: |
+            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
+            hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
+
+      - name: Push Docker Image Alpine
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{matrix.target}}
+          file: docker/Dockerfile
+          platforms: linux/${{matrix.target}}
+          target: alpine
+          push: true
+          tags: |
+            ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
+            hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
     needs: docker
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: ["scratch", "alpine", "debian"]
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -103,17 +132,58 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_IO_REGISTRY_TOKEN }}
 
-      - name: Push Docker Image
+      - name: Set target and tag
+        id: build-opts
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-amd64
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
+          if [ "${{ matrix.distro }}" = 'scratch' ]; then
+            echo ::set-output name=target::${{github.sha}}
+            echo ::set-output name=latest::latest
+            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+          else
+            echo ::set-output name=target::${{github.sha}}-${{matrix.distro}}
+            echo ::set-output name=latest::"latest-${{ matrix.distro }}"
+            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}"
+          fi
+
+      - name: Push Docker Images
+        run: |
+          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
+          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
+          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
 
           docker manifest create \
-            ghcr.io/hadolint/hadolint:${{github.sha}} \
-            ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 \
-            ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
+          docker manifest create \
+            hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
 
-          docker manifest push ghcr.io/hadolint/hadolint:${{github.sha}}
+          docker manifest create \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+          docker manifest create \
+            hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+
+          docker manifest create \
+            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
+          docker manifest create \
+            hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker manifest push hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
 
   os-binaries:
     name: ${{ matrix.os }} / ${{ github.ref }}
