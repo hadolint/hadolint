@@ -40,11 +40,21 @@ jobs:
           echo ::set-output name=arch::arm64
         fi
 
+    - name: Move binary
+      run: |
+        mv result/bin/hadolint hadolint
+        chmod a+rwx hadolint
+
+    - name: Compress binary
+      uses: svenstaro/upx-action@2.0.1
+      with:
+        file: hadolint
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: hadolint-Linux-${{steps.build-opts.outputs.arch}}
-        path: result/bin/hadolint
+        path: hadolint
         retention-days: 3
 
   docker:
@@ -300,7 +310,7 @@ jobs:
       with:
         name: hadolint-Windows-x86_64.exe
         path: artifacts/hadolint-Windows-x86_64.exe
-          
+
     - name: Rename
       run: |
         mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
@@ -308,7 +318,7 @@ jobs:
 
         mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
         mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
-          
+
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
