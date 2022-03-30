@@ -296,13 +296,13 @@ jobs:
         path: hadolint-Windows-x86_64.exe
 
     - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-          files: |
-            hadolint-Linux-x86_64
-            hadolint-Linux-arm64
-            hadolint-Darwin-x86_64
-            hadolint-Windows-x86_64.exe
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: |
+          hadolint-Linux-x86_64
+          hadolint-Linux-arm64
+          hadolint-Darwin-x86_64
+          hadolint-Windows-x86_64.exe
