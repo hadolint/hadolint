@@ -158,16 +158,16 @@ jobs:
           docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
           docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
-          docker manifest create \
-            hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
+          # docker manifest create \
+          #   ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
+          #   ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+          #   ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          # docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
+          # docker manifest create \
+          #   hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
+          #   hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
+          #   hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          # docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
 
           docker manifest create \
             ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
