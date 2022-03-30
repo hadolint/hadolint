@@ -1,6 +1,9 @@
-name: Build With Nix
+name: Release With Nix
 on:
-  pull_request:
+  # Trigger the workflow on the new 'v*' tag created
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
@@ -9,7 +12,7 @@ jobs:
       matrix:
         target: ["linux-static", "linux-arm-static"]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - uses: cachix/install-nix-action@v16
       with:
@@ -111,3 +114,125 @@ jobs:
             ghcr.io/hadolint/hadolint:${{github.sha}}-arm64
 
           docker manifest push ghcr.io/hadolint/hadolint:${{github.sha}}
+
+  os-binaries:
+    name: ${{ matrix.os }} / ${{ github.ref }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: macos-latest
+        - os: windows-latest
+
+    steps:
+
+    - name: Check out
+      uses: actions/checkout@v3
+
+    - name: Set tag name
+      uses: little-core-labs/get-git-tag@v3.0.2
+      id: tag
+      with:
+        tagRegex: "v(.*)"
+        tagRegexGroup: 1
+
+    - name: Setup Haskell
+      id: setup-haskell-cabal
+      uses: haskell/actions/setup@v1.2.6
+      with:
+        ghc-version: 8.10.7
+
+    - name: Freeze
+      run: cabal freeze
+
+    - name: Cache store
+      uses: actions/cache@v2.1.7
+      with:
+        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+    - name: Build binary
+      run: |
+        mkdir dist
+        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options=-fPIC
+
+    - if: matrix.os == 'windows-latest'
+      name: Set extension to .exe on Windows
+      uses: allenevans/set-env@v2.2.0
+      with:
+        EXT: '.exe'
+
+    - name: Set binary OS name
+      uses: allenevans/set-env@v2.2.0
+      with:
+        BINARY_OS: ${{ runner.os }}
+
+    - if: matrix.os == 'macos-latest'
+      name: Set binary OS name on Macos
+      uses: allenevans/set-env@v2.2.0
+      with:
+        BINARY_OS: 'Darwin'
+
+    - name: Set binary path name
+      uses: allenevans/set-env@v2.2.0
+      with:
+        BINARY_PATH: ./dist/hadolint${{ env.EXT }}
+
+    - name: Compress binary
+      uses: svenstaro/upx-action@2.0.1
+      with:
+        file: ${{ env.BINARY_PATH }}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: hadolint-${{ env.BINARY_OS }}-x86_64${{ env.EXT }}
+        path: ${{ env.BINARY_PATH }}
+        retention-days: 3
+
+  release:
+    needs: [docker-release, os-binaries]
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out
+      uses: actions/checkout@v3
+
+    - name: Download Linux x86
+      uses: actions/download-artifact@v3
+      with:
+        name: hadolint-Linux-amd64
+        path: hadolint-Linux-x86_64
+
+    - name: Download Linux arm64
+      uses: actions/download-artifact@v3
+      with:
+        name: hadolint-Linux-arm64
+        path: hadolint-Linux-arm64
+
+    - name: Download Macos x86
+      uses: actions/download-artifact@v3
+      with:
+        name: hadolint-Darwin-x86_64
+        path: hadolint-Darwin-x86_64
+
+    - name: Download Windows x86
+      uses: actions/download-artifact@v3
+      with:
+        name: hadolint-Windows-x86_64.exe
+        path: hadolint-Windows-x86_64.exe
+
+    - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            hadolint-Linux-x86_64
+            hadolint-Linux-arm64
+            hadolint-Darwin-x86_64
+            hadolint-Windows-x86_64.exe
