@@ -300,6 +300,9 @@ jobs:
       with:
         name: hadolint-Windows-x86_64.exe
         path: hadolint-Windows-x86_64.exe
+          
+    - name: Debug
+      run: ls
 
     - name: Release
       uses: softprops/action-gh-release@v1
