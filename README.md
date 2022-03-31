@@ -300,7 +300,8 @@ HADOLINT_OVERRIDE_STYLE=DL3010,DL3020    # comma separated list of rule codes
 HADOLINT_IGNORE=DL3010,DL3020            # comma separated list of rule codes
 HADOLINT_STRICT_LABELS=1                 # Truthy value e.g. 1, true or yes
 HADOLINT_DISABLE_IGNORE_PRAGMA=1         # Truthy value e.g. 1, true or yes
-HADOLINT_TRUSTED_REGISTRIES              # comma separated list of registry urls
+HADOLINT_TRUSTED_REGISTRIES=docker.io    # comma separated list of registry urls
+HADOLINT_REQUIRE_LABELS=maintainer:text  # comma separated list of label schema items
 ```
 
 ## Non-Posix Shells
