@@ -210,6 +210,7 @@ unsetAll = do
   unsetEnv "HADOLINT_REQUIRE_LABELS"
   unsetEnv "HADOLINT_STRICT_LABELS"
   unsetEnv "HADOLINT_FAILURE_THRESHOLD"
+  unsetEnv "HADOLINT_DISABLE_IGNORE_PRAGMA"
 
 -- On Windows setting an environment variable to the empty string is the same as
 -- unsetting it. On POSIX, an environment variable can be set and contain the
