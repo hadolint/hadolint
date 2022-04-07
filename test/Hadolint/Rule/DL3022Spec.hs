@@ -29,3 +29,4 @@ spec = do
               "RUN baz"
             ]
        in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+    it "don't warn on external images" $ ruleCatchesNot "DL3022" "COPY --from=haskell:latest bar ."
