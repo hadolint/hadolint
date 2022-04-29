@@ -192,7 +192,7 @@ instance Yaml.FromYAML PartialConfiguration where
     partialNoFail <- m .:? "no-fail" .!= Nothing
     partialNoColor <- m .:? "no-color" .!= Nothing
     partialVerbose <- m .:? "verbose" .!= Nothing
-    partialFormat <- m .:? "output-format"
+    partialFormat <- m .:? "format"
     override <- m .:? "override" .!= mempty
     ignored <- m .:? "ignored" .!= mempty
     trusted <- m .:? "trustedRegistries" .!= mempty

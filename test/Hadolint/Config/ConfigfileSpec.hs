@@ -46,13 +46,13 @@ spec =
           conf = parseYaml yaml
       conf `shouldBe` Right mempty { partialVerbose = Just False }
 
-    it "parse `output-format: json`" $ do
-      let yaml = ["output-format: json"]
+    it "parse `format: json`" $ do
+      let yaml = ["format: json"]
           conf = parseYaml yaml
       conf `shouldBe` Right mempty { partialFormat = Just Json }
 
-    it "parse `output-format: sarif`" $ do
-      let yaml = ["output-format: sarif"]
+    it "parse `format: sarif`" $ do
+      let yaml = ["format: sarif"]
           conf = parseYaml yaml
       conf `shouldBe` Right mempty { partialFormat = Just Sarif }
 
