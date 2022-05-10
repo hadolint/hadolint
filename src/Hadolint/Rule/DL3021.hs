@@ -11,7 +11,7 @@ rule = simpleRule code severity message check
     severity = DLErrorC
     message = "COPY with more than 2 arguments requires the last argument to end with /"
 
-    check (Copy (CopyArgs sources t _ _ _))
+    check (Copy (CopyArgs sources t) _)
       | length sources > 1 = endsWithSlash t
       | otherwise = True
     check _ = True

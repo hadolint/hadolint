@@ -32,7 +32,7 @@ rule = customRule check (emptyState Empty)
 
     check _ st (From from) = st |> modify (rememberStage from)
     check _ st (Workdir _) = st |> modify rememberWorkdir
-    check line st (Copy (CopyArgs _ (TargetPath dest) _ _ _))
+    check line st (Copy (CopyArgs _ (TargetPath dest)) _)
       | Acc s m <- state st, Just True <- Map.lookup s m = st -- workdir has been set
       | "/" `Text.isPrefixOf` Text.dropAround quotePredicate dest = st -- absolute dest. normal
       | isWindowsAbsolute (Text.dropAround quotePredicate dest) = st -- absolute dest. windows
