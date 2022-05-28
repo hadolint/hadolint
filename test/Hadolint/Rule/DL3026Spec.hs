@@ -11,7 +11,7 @@ spec :: SpecWith ()
 spec = do
   let ?config = def
 
-  describe "DL2036 - Use only an allowed registry in the FROM image" $ do
+  describe "DL3026 - Use only an allowed registry in the FROM image" $ do
     it "does not warn on empty allowed registries" $ do
       let dockerFile =
             [ "FROM random.com/debian"
