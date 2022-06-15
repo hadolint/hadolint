@@ -102,7 +102,7 @@ spec = do
       onBuildRuleCatchesNot
         "DL3013"
         "RUN pip install foo/bar"
-    it "pip install url dir" $ do
+    it "pip install https url package" $ do
       ruleCatchesNot
         "DL3013"
         "RUN pip install https://foo.bar/baz.zip"
