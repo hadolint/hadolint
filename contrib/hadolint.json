@@ -568,6 +568,11 @@
             "const": "SC2164",
             "description": "Use `cd ... || exit` in case `cd` fails.",
             "$comment": "https://github.com/koalaman/shellcheck/wiki/SC2164"
+          },
+          {
+            "const": "SC3046",
+            "description": "In POSIX sh, 'source' in place of '.' is undefined.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC3046"
           }
         ]
       }
