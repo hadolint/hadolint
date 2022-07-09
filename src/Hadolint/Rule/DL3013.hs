@@ -44,12 +44,18 @@ dl3013 = simpleRule code severity message check
         || ["."] `isInfixOf` Shell.getArgs cmd
 
     hasBuildConstraint cmd = Shell.hasFlag "constraint" cmd || Shell.hasFlag "c" cmd
-    versionFixed package = hasVersionSymbol package || isVersionedGit package || isLocalPackage package
-    isVersionedGit package = "git+http" `Text.isInfixOf` package && "@" `Text.isInfixOf` package
+    versionFixed package = hasVersionSymbol package
+      || isVersionedVcs package
+      || isLocalPackage package
+      || isNoVcsPathSource package
+    isVersionedVcs package = isVcs package
+      && "@" `Text.isInfixOf` package
     versionSymbols = ["==", ">=", "<=", ">", "<", "!=", "~=", "==="]
     hasVersionSymbol package = or [s `Text.isInfixOf` package | s <- versionSymbols]
     localPackageFileExtensions = [".whl", ".tar.gz"]
     isLocalPackage package = or [s `Text.isSuffixOf` package | s <- localPackageFileExtensions]
+    isNoVcsPathSource package = not (isVcs package) && "/" `Text.isInfixOf` package
+    isVcs package = any (`Text.isPrefixOf` package) vcsSchemes
 {-# INLINEABLE dl3013 #-}
 
 packages :: Shell.Command -> [Text.Text]
@@ -83,6 +89,35 @@ packages cmd =
           "upgrade-strategy"
         ]
         cmd
+
+-- Supported schemes vcs[+protocol] are found here:
+-- https://pip.pypa.io/en/stable/topics/vcs-support/
+vcsSchemes :: [Text.Text]
+vcsSchemes =
+  [
+    "git+file",
+    "git+https",
+    "git+ssh",
+    "git+http",
+    "git+git",
+    "git",
+    "hg+file",
+    "hg+http",
+    "hg+https",
+    "hg+ssh",
+    "hg+static-http",
+    "svn",
+    "svn+svn",
+    "svn+http",
+    "svn+https",
+    "svn+ssh",
+    "bzr+http",
+    "bzr+https",
+    "bzr+ssh",
+    "bzr+sftp",
+    "bzr+ftp",
+    "bzr+lp"
+  ]
 
 stripInstallPrefix :: [Text.Text] -> [Text.Text]
 stripInstallPrefix cmd = dropWhile (== "install") (dropWhile (/= "install") cmd)
