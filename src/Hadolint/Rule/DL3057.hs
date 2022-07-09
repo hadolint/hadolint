@@ -8,7 +8,8 @@ import Language.Docker.Syntax
 
 
 data StageID = StageID
-  { name :: Text.Text,
+  { src :: Text.Text,
+    name :: Text.Text,
     line :: Linenumber
   } deriving (Show, Eq, Ord)
 
@@ -25,16 +26,24 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     message = "`HEALTHCHECK` instruction missing."
 
     check line state (From BaseImage {image, alias = Just als}) =
-      state |> modify (currentStage (imageName image) (StageID (unImageAlias als) line))
+      state |> modify
+                  ( currentStage
+                      (imageName image)
+                      (StageID (imageName image) (unImageAlias als) line)
+                  )
     check line state (From BaseImage {image, alias = Nothing}) =
-      state |> modify (currentStage (imageName image) (StageID (imageName image) line))
+      state |> modify
+                  ( currentStage
+                      (imageName image)
+                      (StageID (imageName image) (imageName image) line)
+                  )
     check _ state (Healthcheck _) = state |> modify goodStage
     check _ state _ = state
 
     markFailures :: State Acc -> Failures
     markFailures (State fails (Acc _ _ b)) = Set.foldl' (Seq.|>) fails (Set.map makeFail b)
     markFailures st = failures st
-    makeFail (StageID _ line) = CheckFailure {..}
+    makeFail (StageID _ _ line) = CheckFailure {..}
 {-# INLINEABLE rule #-}
 
 currentStage :: Text.Text -> StageID -> Acc -> Acc
@@ -46,5 +55,29 @@ currentStage src stageid (Acc _ g b)
 currentStage _ stageid Empty = Acc stageid Set.empty (Set.singleton stageid)
 
 goodStage :: Acc -> Acc
-goodStage (Acc stageid g b) = Acc stageid (g |> Set.insert stageid) (b |> Set.delete stageid)
+goodStage (Acc stageid g b) = do
+  let nowGood = recurseGood b stageid
+  let good =
+        g
+          |> Set.union nowGood
+          |> Set.insert stageid
+      bad =
+        b
+          |> flip Set.difference nowGood
+          |> Set.delete stageid
+   in Acc
+        stageid
+        good
+        bad
+  where
+    predicate StageID { src = s1 } StageID { name = n1 } = n1 == s1
+
+    recurseGood :: Set.Set StageID -> StageID -> Set.Set StageID
+    recurseGood bad sid = do
+      let g1 = Set.filter (predicate sid) bad  -- bad stages to be marked good
+          b1 = Set.difference bad g1  -- bad stages not to be marked good
+       in if Set.null g1
+            then g1
+            else Set.union g1 $ Set.unions $ Set.map (recurseGood b1) g1
+
 goodStage Empty = Empty
