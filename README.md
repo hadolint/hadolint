@@ -640,7 +640,7 @@ stack test
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
-[haskell]: https://www.haskell.org/platform/
+[haskell]: https://www.haskell.org/downloads/
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [integration]: docs/INTEGRATION.md
 [code review platform integrations]: docs/INTEGRATION.md#code-review
