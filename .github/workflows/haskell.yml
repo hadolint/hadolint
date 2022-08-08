@@ -53,7 +53,7 @@ jobs:
     # cache
 
     - name: Cache store
-      uses: actions/cache@v3.0.4
+      uses: actions/cache@v3.0.6
       with:
         path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
