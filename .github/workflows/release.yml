@@ -312,13 +312,17 @@ jobs:
         name: hadolint-Windows-x86_64.exe
         path: artifacts/hadolint-Windows-x86_64.exe
 
-    - name: Rename
+    - name: Rename and Checksum
       run: |
         mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
         mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
-
         mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
         mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
+
+        sha256sum -b hadolint-Linux-x86_64 > hadolint-Linux-x86_64.sha256
+        sha256sum -b hadolint-Linux-arm64 > hadolint-Linux-arm64.sha256
+        sha256sum -b hadolint-Darwin-x86_64 > hadolint-Darwin-x86_64.sha256
+        sha256sum -b hadolint-Windows-x86_64.exe > hadolint-Windows-x86_64.exe.sha256
 
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -328,6 +332,10 @@ jobs:
         fail_on_unmatched_files: true
         files: |
           hadolint-Linux-x86_64
+          hadolint-Linux-x86_64.sha256
           hadolint-Linux-arm64
+          hadolint-Linux-arm64.sha256
           hadolint-Darwin-x86_64
+          hadolint-Darwin-x86_64.sha256
           hadolint-Windows-x86_64.exe
+          hadolint-Windows-x86_64.exe.sha256
