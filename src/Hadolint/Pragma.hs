@@ -1,5 +1,6 @@
 module Hadolint.Pragma
   ( ignored,
+    globalIgnored,
     parseIgnorePragma,
     parseShell
   )
@@ -26,19 +27,32 @@ ignored = Foldl.Fold parse mempty id
         _ -> acc
     parse acc _ = acc
 
-parseIgnorePragma :: Text -> Maybe [Text]
-parseIgnorePragma =
-  Megaparsec.parseMaybe commentParser
+globalIgnored :: Foldl.Fold (InstructionPos Text) (Set.Set RuleCode)
+globalIgnored = Foldl.Fold parse mempty id
+  where
+    parse acc InstructionPos { instruction = Comment comment } =
+      case parseGlobalIgnorePragma comment of
+        Just ignores@(_ : _) -> Set.union ( Set.fromList . fmap RuleCode $ ignores ) acc
+        _ -> acc
+    parse acc _ = acc
 
-commentParser :: Megaparsec.Parsec Void Text [Text]
-commentParser =
-  do
-    spaces
-    >> string "hadolint"
-    >> spaces1
-    >> string "ignore="
-    >> spaces
-    >> Megaparsec.sepBy1 ruleName (spaces >> string "," >> spaces)
+parseIgnorePragma :: Text -> Maybe [Text]
+parseIgnorePragma = Megaparsec.parseMaybe ignoreParser
+
+parseGlobalIgnorePragma :: Text -> Maybe [Text]
+parseGlobalIgnorePragma = Megaparsec.parseMaybe globalIgnoreParser
+
+ignoreParser :: Megaparsec.Parsec Void Text [Text]
+ignoreParser = hadolintPragma >> ignore
+
+globalIgnoreParser :: Megaparsec.Parsec Void Text [Text]
+globalIgnoreParser = hadolintPragma >> string "global" >> spaces1 >> ignore
+
+ignore :: Megaparsec.Parsec Void Text [Text]
+ignore = string "ignore" >> spaces >> string "=" >> spaces >> ruleList
+
+ruleList :: Megaparsec.Parsec Void Text [Text]
+ruleList = Megaparsec.sepBy1 ruleName ( spaces >> string "," >> spaces )
 
 ruleName :: Megaparsec.ParsecT Void Text Identity (Megaparsec.Tokens Text)
 ruleName = Megaparsec.takeWhile1P Nothing (\c -> c `elem` Set.fromList "DLSC0123456789")
@@ -48,19 +62,14 @@ parseShell :: Text -> Maybe Text
 parseShell = Megaparsec.parseMaybe shellParser
 
 shellParser :: Megaparsec.Parsec Void Text Text
-shellParser =
-  do
-    spaces
-    >> string "hadolint"
-    >> spaces1
-    >> string "shell"
-    >> spaces
-    >> string "="
-    >> spaces
-    >> shellName
+shellParser = hadolintPragma >> string "shell" >> spaces >> string "=" >> spaces >> shellName
 
 shellName :: Megaparsec.ParsecT Void Text Identity (Megaparsec.Tokens Text)
 shellName = Megaparsec.takeWhile1P Nothing (/= '\n')
+
+
+hadolintPragma :: Megaparsec.Parsec Void Text Text
+hadolintPragma = spaces >> string "hadolint" >> spaces1
 
 
 string :: Megaparsec.Tokens Text

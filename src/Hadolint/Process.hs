@@ -82,6 +82,8 @@ import qualified Hadolint.Shell as Shell
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
     ignored :: SMap.IntMap (Set.Set RuleCode),
+    -- | The set of globally ignored rules
+    globalIgnored :: Set.Set RuleCode,
     -- | A set of failures collected for reach rule
     failed :: Failures
   }
@@ -93,6 +95,7 @@ run config dockerfile = Seq.filter shouldKeep failed
 
     shouldKeep CheckFailure {line, code}
       | disableIgnorePragma config = True
+      | code `Set.member` globalIgnored = False
       | otherwise = Just True /= do
           ignoreList <- SMap.lookup line ignored
           return $ code `Set.member` ignoreList
@@ -103,6 +106,7 @@ analyze ::
 analyze config =
   AnalisisResult
     <$> Hadolint.Pragma.ignored
+    <*> Hadolint.Pragma.globalIgnored
     <*> Foldl.premap parseShell (failures config)
 
 parseShell :: InstructionPos Text.Text -> InstructionPos Shell.ParsedShell
