@@ -16,7 +16,7 @@ dl3047 = simpleRule code severity message check
     code = "DL3047"
     severity = DLInfoC
     message =
-      "Avoid use of wget without progress bar. Use `wget --progress=dot:giga <url>`.\
+      "Avoid use of wget without progress bar. Use `wget --progress=dot:giga <url>`. \
       \Or consider using `-q` or `-nv` (shorthands for `--quiet` or `--no-verbose`)."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotProgress) args
