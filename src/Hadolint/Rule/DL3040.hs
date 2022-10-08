@@ -26,6 +26,7 @@ dl3040 = simpleRule code severity message check
            )
 
     dnfInstall cmdName = Shell.cmdHasArgs cmdName ["install"]
-    dnfClean cmdName = Shell.cmdHasArgs cmdName ["clean", "all"]
+    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args 
+      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/yum/*"] args
     dnfCmds = ["dnf", "microdnf"]
 {-# INLINEABLE dl3040 #-}
