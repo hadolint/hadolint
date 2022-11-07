@@ -333,6 +333,19 @@ RUN cd /tmp && echo "hello!"
 
 The comment "inline ignores" applies only to the statement following it.
 
+## Global ignores
+
+Rules can also be ignored on a per-file basis using the global ignore pragma.
+It works just like inline ignores, excep that it applies to the whole file
+instead of just the next line.
+
+```dockerfile
+# hadolint global ignore=DL3003,DL3006,SC1035
+FROM ubuntu
+
+RUN cd /tmp && echo "foo"
+```
+
 ## Linting Labels
 
 Hadolint is able to check if specific labels are present and conform
