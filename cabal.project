@@ -1,0 +1,8 @@
+packages:
+  .
+
+optional-packages:
+  vendored/**/*.cabal
+
+active-repositories: none
+
