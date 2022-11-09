@@ -110,3 +110,5 @@ tests:
       - hadolint
       - hspec >= 2.8.3
       - silently
+    build-tools:
+      - hspec-discover == 2.*
