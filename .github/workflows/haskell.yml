@@ -10,7 +10,7 @@ on:
     branches: [ master ]
     paths:
       - '.github/workflows/haskell.yml'
-      - 'stack*.yaml'
+      - 'cabal.project'
       - 'hadolint.cabal'
       - 'app/**'
       - 'src/**'
@@ -40,8 +40,7 @@ jobs:
       id: setup-haskell-cabal
       uses: haskell/actions/setup@v2
       with:
-          ghc-version: '8.10'
-          enable-stack: true
+          ghc-version: '9.2.5'
 
 
     - name: Update Cabal Index
@@ -61,4 +60,4 @@ jobs:
     #actions
 
     - name: Test
-      run: stack test
+      run: cabal test
