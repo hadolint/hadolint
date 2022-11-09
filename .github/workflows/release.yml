@@ -225,11 +225,22 @@ jobs:
         tagRegex: "v(.*)"
         tagRegexGroup: 1
 
+    - name: Set GHC_VERSION
+      uses: allenevans/set-env@v2.2.0
+      with:
+        GHC_VERSION: '9.2.5'
+
+    - if: matrix.os == 'windows-latest'
+      name: Set GHC_VERSION on windows
+      uses: allenevans/set-env@v2.2.0
+      with:
+        GHC_VERSION: '9.2.4'
+
     - name: Setup Haskell
       id: setup-haskell-cabal
       uses: haskell/actions/setup@v2
       with:
-        ghc-version: 8.10.7
+        ghc-version: ${{ env.GHC_VERSION }}
 
     - name: Freeze
       run: cabal freeze
