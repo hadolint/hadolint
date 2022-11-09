@@ -72,3 +72,6 @@ jobs:
 
     - name: Build
       run: cabal build
+
+    - name: Test
+      run: cabal run hadolint-unit-tests
