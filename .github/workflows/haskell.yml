@@ -74,4 +74,6 @@ jobs:
       run: cabal build
 
     - name: Test
-      run: cabal run hadolint-unit-tests
+      run: |
+       cabal install --package-env=. --lib hspec hspec-contrib
+       cabal run hadolint-unit-tests
