@@ -71,9 +71,12 @@ jobs:
     #actions
 
     - name: Build
-      run: cabal build
+      run: |
+        cabal configure --enable-tests
+        cabal build
 
     - name: Test
       run: |
-       cabal install --package-env=. --lib hspec hspec-contrib
-       cabal run hadolint-unit-tests
+        cabal test all --test-show-details=direct
+      env:
+        HSPEC_OPTIONS: --color
