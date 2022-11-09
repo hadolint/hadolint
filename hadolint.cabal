@@ -1,6 +1,6 @@
 cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.34.6.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -309,6 +309,8 @@ test-suite hadolint-unit-tests
       ImplicitParams
       OverloadedLists
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
+  build-tool-depends:
+      hspec-discover:hspec-discover ==2.*
   build-depends:
       HUnit >=1.2
     , HsYAML

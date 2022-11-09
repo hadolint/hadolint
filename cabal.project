@@ -1,0 +1,11 @@
+packages:
+  .
+
+optional-packages:
+  vendored/**/*.cabal
+
+source-repository-package
+    type: git
+    location: https://github.com/lorenzo/shellcheck
+    tag: 07095b233a60b819df6710b7741a59bac62179e1
+    --sha256: 114yfgp40klrm32al93j7fh7lzzg7scqqnf8cc953h2m22k0c48q

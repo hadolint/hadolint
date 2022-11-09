@@ -10,7 +10,7 @@ on:
     branches: [ master ]
     paths:
       - '.github/workflows/haskell.yml'
-      - 'stack*.yaml'
+      - 'cabal.project'
       - 'hadolint.cabal'
       - 'app/**'
       - 'src/**'
@@ -32,6 +32,17 @@ jobs:
 
     # setup:
 
+    - name: Set GHC_VERSION
+      uses: allenevans/set-env@v2.2.0
+      with:
+        GHC_VERSION: '9.2.5'
+
+    - if: matrix.os == 'windows-latest'
+      name: Set GHC_VERSION on windows
+      uses: allenevans/set-env@v2.2.0
+      with:
+        GHC_VERSION: '9.2.4'
+
     - name: Check out
       uses: actions/checkout@v3
 
@@ -40,8 +51,7 @@ jobs:
       id: setup-haskell-cabal
       uses: haskell/actions/setup@v2
       with:
-          ghc-version: '8.10'
-          enable-stack: true
+          ghc-version: ${{ env.GHC_VERSION }}
 
 
     - name: Update Cabal Index
@@ -60,5 +70,13 @@ jobs:
 
     #actions
 
+    - name: Build
+      run: |
+        cabal configure --enable-tests
+        cabal build
+
     - name: Test
-      run: stack test
+      run: |
+        cabal test all --test-show-details=direct
+      env:
+        HSPEC_OPTIONS: --color
