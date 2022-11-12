@@ -2,6 +2,8 @@ module Hadolint.Rule.DL3022 (rule) where
 
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import qualified Data.Text.Read as Read
+
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -16,6 +18,8 @@ rule = customRule check (emptyState Set.empty)
     check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource s)))
       | ":" `Text.isInfixOf` dropQuotes s = st
       | Set.member s (state st) = st
-      | otherwise = st |> addFail CheckFailure {..}
+      | otherwise = case Read.decimal s of
+                      Right (v, _) | v < length (state st) -> st
+                      _ -> st |> addFail CheckFailure {..}
     check _ st _ = st
 {-# INLINEABLE rule #-}
