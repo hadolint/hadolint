@@ -3,7 +3,6 @@ module Hadolint.Rule.DL3022 (rule) where
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Data.Text.Read as Read
-
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -15,6 +14,7 @@ rule = customRule check (emptyState Set.empty)
     message = "`COPY --from` should reference a previously defined `FROM` alias"
 
     check _ st (From BaseImage {alias = Just (ImageAlias als)}) = st |> modify (Set.insert als)
+    check _ st (From BaseImage {}) = st |> modify (Set.insert $ Text.pack $ show $ length (state st))
     check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource s)))
       | ":" `Text.isInfixOf` dropQuotes s = st
       | Set.member s (state st) = st
