@@ -262,7 +262,8 @@ severity above THRESHOLD are violated (Available in v2.6.0+)
 
 ```yaml
 failure-threshold: info
-warning:
+override:
+  warning:
     - DL3042
     - DL3033
   info:
