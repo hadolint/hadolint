@@ -39,3 +39,11 @@ spec = do
               "COPY --from=0 foo ."
             ]
       in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+    it "don't warn on valid stage count as --from=<count>" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN foo",
+              "FROM node",
+              "COPY --from=0 foo ."
+            ]
+      in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
