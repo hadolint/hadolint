@@ -278,11 +278,6 @@ jobs:
       with:
         BINARY_PATH: ./dist/hadolint${{ env.EXT }}
 
-    - name: Compress binary
-      uses: svenstaro/upx-action@2.0.1
-      with:
-        file: ${{ env.BINARY_PATH }}
-
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
