@@ -94,13 +94,15 @@ docker pull ghcr.io/hadolint/hadolint:latest-debian
 docker pull ghcr.io/hadolint/hadolint:latest-alpine
 ```
 
-You can also build `hadolint` locally. You need [Haskell][] and the [stack][]
+You can also build `hadolint` locally. You need [Haskell][] and the [cabal][]
 build tool to build the binary.
 
 ```bash
 git clone https://github.com/hadolint/hadolint \
-&& cd hadolint \
-&& stack install
+  && cd hadolint \
+  && cabal configure \
+  && cabal build \
+  && cabal install
 ```
 
 If you want the
@@ -550,6 +552,8 @@ Please [create an issue][] if you have an idea for a good rule.
 If you are an experienced Haskeller, we would be very grateful if you would
 tear our code apart in a review.
 
+To compile, you will need a recent Haskell environment and `cabal-install`.
+
 ### Setup
 
 1.  Clone repository
@@ -558,10 +562,17 @@ tear our code apart in a review.
     git clone --recursive git@github.com:hadolint/hadolint.git
     ```
 
-1.  Install the dependencies
+1.  Install dependencies and compile source
 
     ```bash
-    stack install
+    cabal configure
+    cabal build
+    ```
+
+1.  (Optional) Install Hadolint on your system
+
+    ```bash
+    cabal install
     ```
 
 ### REPL
@@ -570,7 +581,7 @@ The easiest way to try out the parser is using the REPL.
 
 ```bash
 # start the repl
-stack repl
+cabal repl
 # overload strings to be able to use Text
 :set -XOverloadedStrings
 # import parser library
@@ -581,10 +592,12 @@ parseText "FROM debian:jessie"
 
 ### Tests
 
-Run unit tests:
+Compile with unit tests and run them:
 
 ```bash
-stack test
+cabal configure --enable-tests
+cabal build --enable-tests
+cabal test
 ```
 
 Run integration tests:
@@ -609,6 +622,7 @@ other libaray as well.
 
  1) In the same directory (e.g. `/home/user/repos`) clone Hadolint and
     language-docker git repositories
+
 ```bash
 cd /home/user/repos
 git clone https://github.com/hadolint/hadolint.git
@@ -617,19 +631,23 @@ git clone https://github.com/hadolint/language-docker.git
 
  2) Make your modifications to language-docker
 
- 3) In the Hadolint repo, edit the `stack.yaml` file, such that the `extra-deps`
-    property points to the other repo
+ 3) In the Hadolint repo, edit the `cabal.project` file, such that the
+    `packages` property points to the other repo too
+
 ```yaml
 [...]
-extra-deps:
-  - ../language-docker
+packages:
+  .
+  ../language-docker
 [...]
 ```
 
  4) Recompile Hadolint and run the tests
 ```bash
 cd /home/user/repos/hadolint
-stack test
+cabal configure --enable-tests
+cabal build --enable-tests
+cabal test
 ```
 
 ## Alternatives
@@ -654,7 +672,7 @@ stack test
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
 [haskell]: https://www.haskell.org/downloads/
-[stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[cabal]: https://www.haskell.org/cabal/
 [integration]: docs/INTEGRATION.md
 [code review platform integrations]: docs/INTEGRATION.md#code-review
 [continuous integrations]: docs/INTEGRATION.md#continuous-integration
@@ -662,7 +680,7 @@ stack test
 [version control integrations]: docs/INTEGRATION.md#version-control
 [create an issue]: https://github.com/hadolint/hadolint/issues/new
 [dockerfile reference]: http://docs.docker.com/engine/reference/builder/
-[syntax.hs]: https://www.stackage.org/haddock/nightly-2018-01-07/language-docker-2.0.1/Language-Docker-Syntax.html
+[syntax.hs]: https://www.stackage.org/haddock/nightly-2022-11-15/language-docker-12.0.0/Language-Docker-Syntax.html
 [rfc3339]: https://www.ietf.org/rfc/rfc3339.txt
 [semver]: https://semver.org/
 [rfc3986]: https://www.ietf.org/rfc/rfc3986.txt
