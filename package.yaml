@@ -28,7 +28,7 @@ dependencies:
   - base >=4.8 && <5
   - containers
   - data-default
-  - language-docker >=11.0.0 && <12
+  - language-docker >=12.0.0 && <13
   - megaparsec >= 9.0.0
   - optparse-applicative >= 0.14.0
   - text

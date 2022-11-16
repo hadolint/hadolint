@@ -11,3 +11,5 @@ dist-newstyle
 
 # travis wait is generating log in PWD
 travis_wait_*.log
+
+cabal.project.local*
