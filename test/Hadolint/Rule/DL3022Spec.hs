@@ -30,3 +30,20 @@ spec = do
             ]
        in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
     it "don't warn on external images" $ ruleCatchesNot "DL3022" "COPY --from=haskell:latest bar ."
+    it "warn on invalid stage count as --from=<count>" $ ruleCatches "DL3022" "COPY --from=0 bar ."
+    it "don't warn on valid stage count as --from=<count>" $
+      let dockerFile =
+            [ "FROM scratch as build",
+              "RUN foo",
+              "FROM node",
+              "COPY --from=0 foo ."
+            ]
+      in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+    it "don't warn on valid stage count as --from=<count>" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN foo",
+              "FROM node",
+              "COPY --from=0 foo ."
+            ]
+      in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
