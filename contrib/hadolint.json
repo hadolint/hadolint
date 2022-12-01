@@ -5,6 +5,10 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "disable-ignore-pragma": {
+      "type": "boolean",
+      "description": "Disable inline ignore pragmas `# hadolint ignore=DLxxxx`"
+    },
     "failure-threshold": {
       "type": "string",
       "description": "A threshold controlling how severe a rule violation must be before the return code indicates failure.",
@@ -35,6 +39,11 @@
         }
       ]
     },
+    "format": {
+      "type": "string",
+      "enum": ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "gnu", "codacy"],
+      "description": "Output format"
+    },
     "strict-labels": {
       "type": "boolean",
       "description": "Strictly adhere to label-schem, don't allow additional labels."
@@ -43,6 +52,14 @@
       "type": "object",
       "description": "A label-schema. See https://github.com/hadolint/hadolint#linting-labels for reference.",
       "additionalProperties": true
+    },
+    "no-color": {
+      "type": "boolean",
+      "description": "Don't colorize output."
+    },
+    "no-fail": {
+      "type": "boolean",
+      "description": "Don't exit with a failure status code when any rule is violated."
     },
     "override": {
       "type": "object",
