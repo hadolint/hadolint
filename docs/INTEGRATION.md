@@ -328,7 +328,7 @@ your repository:
 ---
 repos:
   - repo: https://github.com/hadolint/hadolint
-    rev: master
+    rev: v2.12.0
     hooks:
       - id: hadolint
 ```
@@ -337,7 +337,7 @@ or alternatively use this to run Hadolint with Docker:
 ---
 repos:
   - repo: https://github.com/hadolint/hadolint
-    rev: master
+    rev: v2.12.0
     hooks:
       - id: hadolint-docker
 ```
