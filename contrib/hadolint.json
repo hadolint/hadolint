@@ -353,7 +353,7 @@
           },
           {
             "const": "DL3053",
-            "description": "Label `<label>` is not a valid time format - must be conform to RFC3339.",
+            "description": "Label `<label>` is not a valid time format - must conform to RFC3339.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3053"
           },
           {
@@ -378,7 +378,7 @@
           },
           {
             "const": "DL3058",
-            "description": "Label `<label>` is not a valid email format - must be conform to RFC5322.",
+            "description": "Label `<label>` is not a valid email format - must conform to RFC5322.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3058"
           },
           {

@@ -18,7 +18,7 @@ labelIsNotEmailRule label = simpleRule code severity message check
   where
     code = "DL3058"
     severity = DLWarningC
-    message = "Label `" <> label <> "` is not a valid email format - must be conform to RFC5322."
+    message = "Label `" <> label <> "` is not a valid email format - must conform to RFC5322."
     check (Label ls) = null $ getBadEmailformatLabels label ls
     check _ = True
 

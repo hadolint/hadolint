@@ -11,7 +11,7 @@ rule = simpleRule code severity message check
   where
     code = "DL1001"
     severity = DLIgnoreC
-    message = "Please refrain from using inline igore pragmas \
+    message = "Please refrain from using inline ignore pragmas \
               \ `# hadolint ignore=DLxxxx`."
     check (Comment com) =
       case parseIgnorePragma com of

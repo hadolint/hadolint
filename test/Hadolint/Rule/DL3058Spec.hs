@@ -12,7 +12,7 @@ spec :: SpecWith ()
 spec = do
   let ?config = def { labelSchema = Map.fromList [("maintainer", Rule.Email)] }
 
-  describe "DL3058 - Label `<label>` is not a valid email format - must be conform to RFC5322." $ do
+  describe "DL3058 - Label `<label>` is not a valid email format - must conform to RFC5322." $ do
     it "not ok with label not containing valid email" $ do
       ruleCatches "DL3058" "LABEL maintainer=\"not-email\""
       onBuildRuleCatches "DL3058" "LABEL maintainer=\"not-email\""
