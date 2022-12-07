@@ -14,7 +14,7 @@ dl3038 = simpleRule code severity message check
   where
     code = "DL3038"
     severity = DLWarningC
-    message = "Use the -y switch to avoid manual input `dnf install -y <package`"
+    message = "Use the -y switch to avoid manual input `dnf install -y <package>`"
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotDnfYesOption) args
     check _ = True

@@ -10,7 +10,7 @@ spec :: SpecWith ()
 spec = do
   let ?config = def
 
-  describe "DL3027 - Do not use `apt` as it is meant to be a end-user tool, use `apt-get` or `apt-cache` instead" $ do
+  describe "DL3027 - Do not use `apt` as it is meant to be an end-user tool, use `apt-get` or `apt-cache` instead" $ do
     it "apt" $
       let dockerFile =
             [ "FROM ubuntu",

@@ -18,7 +18,7 @@ labelIsNotRFC3339Rule label = simpleRule code severity message check
   where
     code = "DL3053"
     severity = DLWarningC
-    message = "Label `" <> label <> "` is not a valid time format - must be conform to RFC3339."
+    message = "Label `" <> label <> "` is not a valid time format - must conform to RFC3339."
     check (Label ls) = null $ getBadTimeformatLabels label ls
     check _ = True
 

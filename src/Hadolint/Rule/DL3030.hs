@@ -14,7 +14,7 @@ dl3030 = simpleRule code severity message check
   where
     code = "DL3030"
     severity = DLWarningC
-    message = "Use the -y switch to avoid manual input `yum install -y <package`"
+    message = "Use the -y switch to avoid manual input `yum install -y <package>`"
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotYumYesOption) args
     check _ = True
