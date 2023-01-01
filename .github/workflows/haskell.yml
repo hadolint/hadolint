@@ -1,82 +1,23 @@
-# Runs on pull requests against master, and on master branch
-
-name: Haskell Tests
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches: [ master ]
-    paths:
-      - '.github/workflows/haskell.yml'
-      - 'cabal.project'
-      - 'hadolint.cabal'
-      - 'app/**'
-      - 'src/**'
-      - 'test/**'
-
+on: [push]
+name: build
 jobs:
-  hadolint:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - os: macos-latest
-        - os: ubuntu-latest
-        - os: windows-latest
-
+  cabalbuild:
+    name: Cabal Build
+    runs-on: ubuntu-latest
     steps:
-
-    # setup:
-
-    - name: Set GHC_VERSION
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.5'
-
-    - if: matrix.os == 'windows-latest'
-      name: Set GHC_VERSION on windows
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.4'
-
-    - name: Check out
-      uses: actions/checkout@v3
-
-
-    - name: Setup Haskell
-      id: setup-haskell-cabal
-      uses: haskell/actions/setup@v2
-      with:
-          ghc-version: ${{ env.GHC_VERSION }}
-
-
-    - name: Update Cabal Index
-      run: cabal update
-
-    - name: Freeze
-      run: cabal freeze
-
-    # cache
-
-    - name: Cache store
-      uses: actions/cache@v3.0.11
-      with:
-        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
-
-    #actions
-
-    - name: Build
-      run: |
-        cabal configure --enable-tests
-        cabal build
-
-    - name: Test
-      run: |
-        cabal test all --test-show-details=direct
-      env:
-        HSPEC_OPTIONS: --color
+      - uses: actions/checkout@v3
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '8.8' # Resolves to the latest point release of GHC 8.8
+          cabal-version: '3.0.0.0' # Exact version of Cabal
+      - run: cabal build
+  test:
+    name: Cabal Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: '8.8' # Resolves to the latest point release of GHC 8.8
+          cabal-version: '3.0.0.0' # Exact version of Cabal
+      - run: cabal test
