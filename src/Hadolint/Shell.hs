@@ -205,6 +205,9 @@ getArgsNoFlags args = map arg $ filter (notAFlagId . partId) (arguments args)
 hasFlag :: Text.Text -> Command -> Bool
 hasFlag flag Command {flags} = not $ null [f | CmdPart f _ <- flags, f == flag]
 
+countFlag :: Text.Text -> Command -> Int
+countFlag flag Command {flags} = length [ f | CmdPart f _ <- flags, f == flag ]
+
 hasAnyFlag :: [Text.Text] -> Command -> Bool
 hasAnyFlag fs Command {flags} = not $ null [f | CmdPart f _ <- flags, f `elem` fs]
 
@@ -217,9 +220,9 @@ dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdA
     idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
     filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
--- | given a flag and a command, return list of arguments for that particulat
+-- | given a flag and a command, return list of arguments for that particular
 -- flag. E.g., if the command is `useradd -u 12345 luser` and this function is
--- called for the command `u`, it returns ["12345"].
+-- called for the flag `u`, it returns ["12345"].
 getFlagArg :: Text.Text -> Command -> [Text.Text]
 getFlagArg flag Command {arguments, flags} = extractArgs
   where
