@@ -339,7 +339,7 @@ The comment "inline ignores" applies only to the statement following it.
 ## Global ignores
 
 Rules can also be ignored on a per-file basis using the global ignore pragma.
-It works just like inline ignores, excep that it applies to the whole file
+It works just like inline ignores, except that it applies to the whole file
 instead of just the next line.
 
 ```dockerfile
