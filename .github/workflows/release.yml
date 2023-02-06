@@ -91,7 +91,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Docker Image Scratch
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -103,7 +103,7 @@ jobs:
             hadolint/hadolint:${{github.sha}}-${{matrix.target}}
 
       - name: Push Docker Image Debian
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -115,7 +115,7 @@ jobs:
             hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
 
       - name: Push Docker Image Alpine
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
