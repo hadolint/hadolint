@@ -619,7 +619,7 @@ Hadolint uses many libraries to do the dirty work. In particular,
 language-docker is used to parse Dockerfiles and produce an AST which then can
 be analyzed. To build Hadolint against a custom version of such libraries, do
 the following. This example uses language-docker, but it would work with any
-other libaray as well.
+other library as well.
 
  1) In the same directory (e.g. `/home/user/repos`) clone Hadolint and
     language-docker git repositories
