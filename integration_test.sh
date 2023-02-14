@@ -19,7 +19,7 @@ function git_named_clone() {
 
 function clone_repos() {
     rm -rf "$TESTS_DIR" && mkdir -p "$TESTS_DIR" && cd "$TESTS_DIR"
-    # offical docker images
+    # official docker images
     git_clone https://github.com/docker-library/ruby.git &
     git_clone https://github.com/docker-library/mariadb.git &
     git_clone https://github.com/docker-library/ghost.git &
