@@ -13,7 +13,7 @@ data Acc
 -- | This Rule catches multiple consecutive `RUN` instructions.
 -- It ignores the case where multiple commands are chained together (e.g. with
 -- `&&`) because in that case the programmer most likely has deliberately
--- chosen to use multiuple `RUN` instructions. Cases where --mount=xxx flags
+-- chosen to use multiple `RUN` instructions. Cases where --mount=xxx flags
 -- differ are excluded as well.
 rule :: Rule Shell.ParsedShell
 rule = customRule check (emptyState Empty)
