@@ -287,7 +287,7 @@ jobs:
 
   release:
     needs: [docker-release, os-binaries]
-    name: Create Github Release
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
 
