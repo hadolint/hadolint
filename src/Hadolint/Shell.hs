@@ -69,7 +69,7 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
     si = mockedSystemInterface [("", "")]
     spec =
       emptyCheckSpec
-        { csFilename = "", -- filename can be ommited because we only want the parse results back
+        { csFilename = "", -- filename can be omitted because we only want the parse results back
           csScript = script,
           csCheckSourced = False,
           csExcludedWarnings = exclusions,
