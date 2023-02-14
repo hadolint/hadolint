@@ -88,7 +88,7 @@ spec = do
               ]
        in do
             assertChecks dockerFile passesShellcheck
-            -- This is debatable, as it should actaully pass, but detecting it correctly
+            -- This is debatable, as it should actually pass, but detecting it correctly
             -- is quite difficult
             assertOnBuildChecks dockerFile failsShellcheck
     it "Resets the SHELL to sh after a FROM" $
