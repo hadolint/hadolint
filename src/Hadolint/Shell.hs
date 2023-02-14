@@ -215,10 +215,10 @@ hasArg :: Text.Text -> Command -> Bool
 hasArg arg Command {arguments} = not $ null [a | CmdPart a _ <- arguments, a == arg]
 
 dropFlagArg :: [Text.Text] -> Command -> Command
-dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filterdArgs flags
+dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filteredArgs flags
   where
     idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
-    filterdArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
+    filteredArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
 -- | given a flag and a command, return list of arguments for that particular
 -- flag. E.g., if the command is `useradd -u 12345 luser` and this function is
