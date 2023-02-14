@@ -11,7 +11,7 @@ spec = do
   let ?config = def
 
   describe "Shellcheck" $ do
-    it "runs shellchek on RUN instructions" $ do
+    it "runs shellcheck on RUN instructions" $ do
       assertChecks "RUN echo $MISSING_QUOTES" failsShellcheck
       assertOnBuildChecks "RUN echo $MISSING_QUOTES" failsShellcheck
     it "not warns on valid scripts" $ do
