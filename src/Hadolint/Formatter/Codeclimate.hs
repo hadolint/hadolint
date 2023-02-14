@@ -1,8 +1,8 @@
 module Hadolint.Formatter.Codeclimate
   ( printResults,
-    printGitlabResults,
+    printGitLabResults,
     formatResult,
-    formatGitlabResult,
+    formatGitLabResult,
   )
 where
 
@@ -120,8 +120,8 @@ issueToFingerprintIssue i =
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
 formatResult (Result filename errors checks) = (errorToIssue <$> errors) <> (checkToIssue filename <$> checks)
 
-formatGitlabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq FingerprintIssue
-formatGitlabResult result = issueToFingerprintIssue <$> formatResult result
+formatGitLabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq FingerprintIssue
+formatGitLabResult result = issueToFingerprintIssue <$> formatResult result
 
 printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
 printResult result = mapM_ output (formatResult result)
@@ -133,7 +133,7 @@ printResult result = mapM_ output (formatResult result)
 printResults :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) => f (Result s e) -> IO ()
 printResults = mapM_ printResult
 
-printGitlabResults :: (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) => f (Result s e) -> IO ()
-printGitlabResults results = B.putStr . encode $ flattened
+printGitLabResults :: (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) => f (Result s e) -> IO ()
+printGitLabResults results = B.putStr . encode $ flattened
   where
-    flattened = Foldl.fold (Foldl.premap formatGitlabResult Foldl.mconcat) results
+    flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results

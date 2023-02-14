@@ -89,7 +89,7 @@ jobs:
 
 ```
 
-### Gitlab CI
+### GitLab CI
 
 For GitLab CI you need a basic shell in your docker image so you have to use
 the debian based images of hadolint.
