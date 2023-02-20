@@ -31,7 +31,7 @@ printResults format nocolor filePathInReport allResults =
     Checkstyle -> FormatCheckstyle.printResults allResults filePathInReport
     Codacy -> FormatCodacy.printResults allResults
     CodeclimateJson -> FormatCodeclimate.printResults allResults
-    GitlabCodeclimateJson -> FormatCodeclimate.printGitlabResults allResults
+    GitLabCodeclimateJson -> FormatCodeclimate.printGitLabResults allResults
     Gnu -> FormatGnu.printResults allResults
     Json -> FormatJson.printResults allResults
     Sarif -> FormatSarif.printResults allResults

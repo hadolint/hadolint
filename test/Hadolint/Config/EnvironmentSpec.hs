@@ -38,7 +38,7 @@ spec = do
         conf `shouldBe` mempty { partialNoColor = Just True }
 
     -- The expected value in this test changes based on the OS, but in order to
-    -- repect the spec of https://no-color.org, an environment variable set to
+    -- respect the spec of https://no-color.org, an environment variable set to
     -- the empty string must still count as set, at least on platforms that
     -- support setting an environment variable to the empty string (POSIX).
     withJustEnv "NO_COLOR" "" $ do

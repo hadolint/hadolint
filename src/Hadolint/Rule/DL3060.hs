@@ -66,7 +66,7 @@ yarnCacheClean :: Shell.Command -> Bool
 yarnCacheClean = Shell.cmdHasArgs "yarn" ["cache", "clean"]
 
 -- | This is needed as placeholder when no FROM statement has yet been
--- envountered.
+-- encountered.
 scratch :: BaseImage
 scratch =
   ( BaseImage
