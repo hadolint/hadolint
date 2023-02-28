@@ -241,6 +241,7 @@ isPipInstall cmd@(Command name _ _) = isStdPipInstall || isPythonPipInstall
   where
     isStdPipInstall =
       "pip" `Text.isPrefixOf` name
+        && not ("pipenv" `Text.isPrefixOf` name)
         && ["install"] `isInfixOf` getArgs cmd
     isPythonPipInstall =
       "python" `Text.isPrefixOf` name

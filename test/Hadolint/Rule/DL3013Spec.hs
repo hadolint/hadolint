@@ -165,3 +165,6 @@ spec = do
       onBuildRuleCatchesNot
         "DL3013"
         "RUN pip install --index-url https://user:pass@eg.com/foo --extra-index-url https://user:pass@ex-eg.io/foo foobar==1.0.0"
+    it "pipenv is not pip" $ do
+      ruleCatchesNot "DL3013" "RUN pipenv install black"
+      onBuildRuleCatchesNot "DL3013" "RUN pipenv install black"
