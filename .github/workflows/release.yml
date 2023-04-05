@@ -47,7 +47,7 @@ jobs:
 
     - if: matrix.target == 'linux-static'
       name: Compress binary
-      uses: svenstaro/upx-action@2.0.1
+      uses: svenstaro/upx-action@2.2.0
       with:
         file: hadolint
 
