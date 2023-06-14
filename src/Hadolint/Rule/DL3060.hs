@@ -2,6 +2,7 @@ module Hadolint.Rule.DL3060 (rule) where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
+import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
@@ -31,9 +32,10 @@ dl3060 = veryCustomRule check (emptyState Empty) markFailures
     check line st (From from) =
       st |> modify (rememberStage line from)
     check line st (Run (RunArgs args _))
-      | foldArguments (Shell.anyCommands yarnInstall) args
-          && foldArguments (Shell.noCommands yarnCacheClean) args =
-        st |> modify (rememberLine line)
+      | fromMaybe False (
+           (<) <$> foldArguments (Shell.findCommandIndex yarnInstall) args
+               <*> foldArguments (Shell.findCommandIndex yarnCacheClean) args) =
+          st |> modify (rememberLine line)
       | otherwise = st
     check _ st _ = st
 
