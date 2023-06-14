@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3032 (rule) where
 
+import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
@@ -18,9 +19,9 @@ dl3032 = simpleRule code severity message check
 
     check (Run (RunArgs args _)) =
       foldArguments (Shell.noCommands yumInstall) args
-        || ( foldArguments (Shell.anyCommands yumInstall) args
-               && foldArguments (Shell.anyCommands yumClean) args
-           )
+        || fromMaybe False (
+             (<) <$> foldArguments (Shell.findCommandIndex yumInstall) args
+                 <*> foldArguments (Shell.findCommandIndex yumClean) args)
     check _ = True
 
     yumInstall = Shell.cmdHasArgs "yum" ["install"]
