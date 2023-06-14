@@ -1,6 +1,7 @@
 module Hadolint.Rule.DL3040 (rule) where
 
 import Hadolint.Rule
+import Data.Maybe (fromMaybe)
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
@@ -21,12 +22,12 @@ dl3040 = simpleRule code severity message check
 
     checkMissingClean args cmdName =
       foldArguments (Shell.noCommands $ dnfInstall cmdName) args
-        || ( foldArguments (Shell.anyCommands $ dnfInstall cmdName) args
-               && foldArguments (Shell.anyCommands $ dnfClean cmdName) args
-           )
+        || fromMaybe False (
+             (<) <$> foldArguments (Shell.findCommandIndex $ dnfInstall cmdName) args
+                 <*> foldArguments (Shell.findCommandIndex $ dnfClean cmdName) args)
 
     dnfInstall cmdName = Shell.cmdHasArgs cmdName ["install"]
-    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args 
+    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args
       || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/yum/*"] args
     dnfCmds = ["dnf", "microdnf"]
 {-# INLINEABLE dl3040 #-}
