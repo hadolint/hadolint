@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3036 (rule) where
 
+import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
@@ -18,9 +19,9 @@ dl3036 = simpleRule code severity message check
 
     check (Run (RunArgs args _)) =
       foldArguments (Shell.noCommands zypperInstall) args
-        || ( foldArguments (Shell.anyCommands zypperInstall) args
-               && foldArguments (Shell.anyCommands zypperClean) args
-           )
+        || fromMaybe False (
+             (<) <$> foldArguments (Shell.findCommandIndex zypperInstall) args
+                 <*> foldArguments (Shell.findCommandIndex zypperClean) args)
     check _ = True
 
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
