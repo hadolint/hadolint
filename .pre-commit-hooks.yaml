@@ -1,13 +1,20 @@
 ---
+- id: hadolint
+  name: Lint Dockerfiles
+  description: Runs hadolint to lint Dockerfiles
+  language: golang
+  types: ["dockerfile"]
+  entry: hadolint
+  minimum_pre_commit_version: 3.0.0
 - id: hadolint-docker
   name: Lint Dockerfiles
   description: Runs hadolint Docker image to lint Dockerfiles
   language: docker_image
   types: ["dockerfile"]
   entry: ghcr.io/hadolint/hadolint hadolint
-- id: hadolint
+- id: hadolint-system
   name: Lint Dockerfiles
-  description: Runs hadolint to lint Dockerfiles
+  description: Runs system-installed hadolint to lint Dockerfiles
   language: system
   types: ["dockerfile"]
   entry: hadolint
