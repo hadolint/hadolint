@@ -127,11 +127,6 @@
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3004"
           },
           {
-            "const": "DL3005",
-            "description": "Do not use apt-get upgrade or dist-upgrade.",
-            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3005"
-          },
-          {
             "const": "DL3006",
             "description": "Always tag the version of an image explicitly.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3006"
