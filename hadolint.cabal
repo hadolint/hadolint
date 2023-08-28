@@ -57,7 +57,6 @@ library
       Hadolint.Rule.DL3002
       Hadolint.Rule.DL3003
       Hadolint.Rule.DL3004
-      Hadolint.Rule.DL3005
       Hadolint.Rule.DL3006
       Hadolint.Rule.DL3007
       Hadolint.Rule.DL3008
@@ -226,7 +225,6 @@ test-suite hadolint-unit-tests
       Hadolint.Rule.DL3002Spec
       Hadolint.Rule.DL3003Spec
       Hadolint.Rule.DL3004Spec
-      Hadolint.Rule.DL3005Spec
       Hadolint.Rule.DL3006Spec
       Hadolint.Rule.DL3007Spec
       Hadolint.Rule.DL3008Spec
