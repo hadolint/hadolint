@@ -1,6 +1,7 @@
 module Hadolint.Rule.DL3006 (rule) where
 
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import Data.Text (Text)
 import Hadolint.Rule
 import Language.Docker.Syntax
@@ -21,7 +22,7 @@ rule = customRule check (emptyState Set.empty)
               -- When the image being used is a previously defined FROM alias,
               -- then we can safely ignore that the image is not tagged. Otherwise
               -- we marked it as a failure
-              if Set.member i (state st)
+              if Text.isPrefixOf "$" i || Set.member i (state st)
                 then newState
                 else newState |> addFail (CheckFailure {..})
             _ -> newState

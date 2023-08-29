@@ -17,6 +17,8 @@ spec = do
       ruleCatchesNot "DL3006" "FROM ruby@sha256:f1dbca0f5dbc9"
     it "untagged digest is not an error" $
       ruleCatchesNot "DL3006" "FROM ruby:2"
+    it "using args is not an error" $
+      ruleCatchesNot "DL3006" "FROM ${VALUE}"
     it "local aliases are OK to be untagged" $
       let dockerFile =
             [ "FROM golang:1.9.3-alpine3.7 AS build",
