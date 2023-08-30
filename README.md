@@ -286,6 +286,14 @@ a container, use the following command:
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
 # OR
 docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+# OR on an alpine based image
+docker run --rm -i -v /your/path/to/hadolint.yaml:/root/.config/hadolint.yaml ghcr.io/hadolint/hadolint:2.12.0-alpine < Dockerfile
+```
+
+To check if the configuration file has been loaded correctly you may use the -V flag:
+
+```bash
+docker run --rm -i -v /path/to/hadolint.yaml:/root/.config/hadolint.yaml ghcr.io/hadolint/hadolint:2.12.0-alpine hadolint -V
 ```
 
 In addition to config files, Hadolint can be configured with environment
