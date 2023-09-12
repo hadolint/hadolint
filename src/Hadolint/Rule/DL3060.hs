@@ -32,7 +32,7 @@ dl3060 = veryCustomRule check (emptyState Empty) markFailures
     check line st (From from) =
       st |> modify (rememberStage line from)
     check line st (Run (RunArgs args _))
-      | fromMaybe False (
+      | Just True == (
            (<) <$> foldArguments (Shell.findCommandIndex yarnInstall) args
                <*> foldArguments (Shell.findCommandIndex yarnCacheClean) args) =
           st |> modify (rememberLine line)

@@ -19,7 +19,7 @@ dl3036 = simpleRule code severity message check
 
     check (Run (RunArgs args _)) =
       foldArguments (Shell.noCommands zypperInstall) args
-        || fromMaybe False (
+        || Just True == (
              (<) <$> foldArguments (Shell.findCommandIndex zypperInstall) args
                  <*> foldArguments (Shell.findCommandIndex zypperClean) args)
     check _ = True
