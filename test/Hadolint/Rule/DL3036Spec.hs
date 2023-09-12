@@ -18,3 +18,5 @@ spec = do
       ruleCatchesNot "DL3036" "RUN zypper install -y mariadb=10.4 && zypper cc"
       onBuildRuleCatchesNot "DL3036" "RUN zypper install -y mariadb=10.4 && zypper clean"
       onBuildRuleCatchesNot "DL3036" "RUN zypper install -y mariadb=10.4 && zypper cc"
+    it "not ok with clean before install" $ do
+      ruleCatches "DL3036" "RUN zypper clean && zypper install -y mariadb=10.4"
