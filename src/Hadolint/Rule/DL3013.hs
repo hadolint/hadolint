@@ -19,7 +19,7 @@ dl3013 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Pin versions in pip. Instead of `pip install <package>` use `pip install \
-      \<package>==<version>` or `pip install --requirement <requirements file>`"
+      \<package>==<version>` or `pip install --requirement <requirements file>`."
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotToPinVersion) args
     check _ = True
 

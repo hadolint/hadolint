@@ -28,7 +28,7 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3009"
     severity = DLInfoC
-    message = "Delete the apt-get lists after installing something"
+    message = "Delete the apt-get lists after installing something."
 
     check line st (From from) = st |> modify (rememberStage line from)
     check line st (Run (RunArgs args flags))

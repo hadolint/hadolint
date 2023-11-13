@@ -9,7 +9,7 @@ rule = customRule check (emptyState Set.empty)
   where
     code = "DL3024"
     severity = DLErrorC
-    message = "FROM aliases (stage names) must be unique"
+    message = "FROM aliases (stage names) must be unique."
 
     check line st (From BaseImage {alias = Just (ImageAlias als)}) =
       let newState = st |> modify (Set.insert als)

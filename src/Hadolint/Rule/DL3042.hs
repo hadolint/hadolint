@@ -35,7 +35,7 @@ dl3042 = customRule check (emptyState Empty)
     code = "DL3042"
     severity = DLWarningC
     message = "Avoid use of cache directory with pip.\
-              \ Use `pip install --no-cache-dir <package>`"
+              \ Use `pip install --no-cache-dir <package>`."
     check _ st (From from) = st |> modify (rememberStage from)
     check _ st (Env pairs) = st |> modify (registerEnv pairs)
     check line st (Run (RunArgs args _))

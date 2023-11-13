@@ -10,7 +10,7 @@ rule = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Using latest is prone to errors if the image will ever update. Pin the version explicitly \
-      \to a release tag"
+      \to a release tag."
     check (From BaseImage {tag = Just _, digest = Just _}) = True
     check (From BaseImage {tag = Just t}) = t /= "latest"
     check _ = True

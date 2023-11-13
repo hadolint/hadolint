@@ -8,7 +8,7 @@ rule = simpleRule code severity message check
   where
     code = "DL3011"
     severity = DLErrorC
-    message = "Valid UNIX ports range from 0 to 65535"
+    message = "Valid UNIX ports range from 0 to 65535."
     check (Expose (Ports ports)) =
       and [p <= 65535 | PortSpec (Port p _) <- ports]
         && and [l <= 65535 && m <= 65535 | PortRangeSpec (PortRange (Port l _) (Port m _)) <- ports]

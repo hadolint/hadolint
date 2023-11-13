@@ -20,7 +20,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3002"
     severity = DLWarningC
-    message = "Last USER should not be root"
+    message = "Last USER should not be root."
 
     check line st (From _) = st |> modify (rememberStage line)
     check line st (User user)
