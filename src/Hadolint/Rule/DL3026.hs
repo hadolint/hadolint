@@ -10,7 +10,7 @@ rule allowed = customRule check (emptyState Set.empty)
   where
     code = "DL3026"
     severity = DLErrorC
-    message = "Use only an allowed registry in the FROM image"
+    message = "Use only an allowed registry in the FROM image."
 
     check line st (From BaseImage {image, alias}) =
       let newState = st |> modify (Set.insert alias)

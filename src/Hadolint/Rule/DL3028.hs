@@ -18,7 +18,7 @@ dl3028 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Pin versions in gem install. Instead of `gem install <gem>` use `gem \
-      \install <gem>:<version>`"
+      \install <gem>:<version>`."
 
     check (Run (RunArgs args _)) = foldArguments (all versionFixed . gems) args
     check _ = True

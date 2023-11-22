@@ -12,7 +12,7 @@ rule = customRule check (emptyState NoEntry)
     severity = DLErrorC
     message =
       "Multiple `ENTRYPOINT` instructions found. If you list more than one `ENTRYPOINT` then \
-      \only the last `ENTRYPOINT` will take effect"
+      \only the last `ENTRYPOINT` will take effect."
 
     -- Reset the state each time we find a FROM
     check _ st From {} = st |> replaceWith NoEntry

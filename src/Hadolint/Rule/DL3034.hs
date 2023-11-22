@@ -14,7 +14,7 @@ dl3034 = simpleRule code severity message check
   where
     code = "DL3034"
     severity = DLWarningC
-    message = "Non-interactive switch missing from `zypper` command: `zypper install -y`"
+    message = "Non-interactive switch missing from `zypper` command: `zypper install -y`."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotZypperYesOption) args
     check _ = True
