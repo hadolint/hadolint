@@ -5,7 +5,7 @@ import qualified Data.Text as Text
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
-
+import Data.Set
 
 data Acc
   = Acc
@@ -16,6 +16,21 @@ data Acc
   | Empty
   deriving (Show)
 
+-- check if a RunMount is a CacheMount
+isCacheMount :: RunMount -> Bool
+isCacheMount (CacheMount _) = True
+isCacheMount _ = False
+
+-- Set of RunMounts must contain at least one CacheMount
+containsOneCacheMount :: Set RunMount -> Bool
+containsOneCacheMount xs = Data.Set.foldl foldable False xs
+  where 
+    foldable a b = a || (isCacheMount b)
+
+-- do not flag this as a problem if using a cacheMount
+cacheMount :: RunFlags -> Bool
+cacheMount (RunFlags {mount}) = (containsOneCacheMount mount)
+cacheMount _ = False
 
 rule :: Rule Shell.ParsedShell
 rule = dl3060 <> onbuild dl3060
@@ -30,9 +45,10 @@ dl3060 = veryCustomRule check (emptyState Empty) markFailures
 
     check line st (From from) =
       st |> modify (rememberStage line from)
-    check line st (Run (RunArgs args _))
+    check line st (Run (RunArgs args flags))
       | foldArguments (Shell.anyCommands yarnInstall) args
-          && foldArguments (Shell.noCommands yarnCacheClean) args =
+          && foldArguments (Shell.noCommands yarnCacheClean) args
+          && not (cacheMount flags) =
         st |> modify (rememberLine line)
       | otherwise = st
     check _ st _ = st
