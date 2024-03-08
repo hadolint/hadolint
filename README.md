@@ -319,7 +319,9 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 RUN Get-Process notepad | Stop-Process
 ```
 
-## Inline ignores
+## Ignoring rules
+
+### Inline ignores
 
 It is also possible to ignore rules by adding a special comment directly
 above the Dockerfile statement for which you want to make an exception for.
@@ -336,7 +338,7 @@ RUN cd /tmp && echo "hello!"
 
 The comment "inline ignores" applies only to the statement following it.
 
-## Global ignores
+### Global ignores
 
 Rules can also be ignored on a per-file basis using the global ignore pragma.
 It works just like inline ignores, except that it applies to the whole file
