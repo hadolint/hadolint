@@ -249,6 +249,7 @@ jobs:
       name: Set extension to .exe on Windows
       uses: allenevans/set-env@v3.0.0
       with:
+        ARCH: 'x86_64'
         EXT: '.exe'
 
     - name: Set binary OS name
@@ -265,6 +266,14 @@ jobs:
       name: Set binary OS name on Macos
       uses: allenevans/set-env@v3.0.0
       with:
+        ARCH: 'x86_64'
+        BINARY_OS: 'Darwin'
+
+    - if: matrix.os == 'macos-14'
+      name: Set binary OS name on Macos
+      uses: allenevans/set-env@v2.2.0
+      with:
+        ARCH: 'arm64'
         BINARY_OS: 'Darwin'
 
     - if: matrix.os == 'macos-14'
