@@ -25,6 +25,7 @@ jobs:
       matrix:
         include:
         - os: macos-latest
+        - os: macos-14  # M1
         - os: ubuntu-latest
         - os: windows-latest
 
@@ -33,23 +34,17 @@ jobs:
     # setup:
 
     - name: Set GHC_VERSION
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
-        GHC_VERSION: '9.2.5'
-
-    - if: matrix.os == 'windows-latest'
-      name: Set GHC_VERSION on windows
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.4'
+        GHC_VERSION: '9.8.2'
 
     - name: Check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4.1.3
 
 
     - name: Setup Haskell
       id: setup-haskell-cabal
-      uses: haskell/actions/setup@v2
+      uses: haskell-actions/setup@v2.7.1
       with:
           ghc-version: ${{ env.GHC_VERSION }}
 
@@ -63,7 +58,7 @@ jobs:
     # cache
 
     - name: Cache store
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v4.0.2
       with:
         path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
