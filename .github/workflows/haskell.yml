@@ -36,13 +36,7 @@ jobs:
     - name: Set GHC_VERSION
       uses: allenevans/set-env@v2.2.0
       with:
-        GHC_VERSION: '9.2.5'
-
-    - if: matrix.os == 'windows-latest'
-      name: Set GHC_VERSION on windows
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.4'
+        GHC_VERSION: '9.8.2'
 
     - name: Check out
       uses: actions/checkout@v3
