@@ -34,7 +34,7 @@ jobs:
     # setup:
 
     - name: Set GHC_VERSION
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         GHC_VERSION: '9.8.2'
 

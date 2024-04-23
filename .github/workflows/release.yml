@@ -227,7 +227,7 @@ jobs:
         tagRegexGroup: 1
 
     - name: Set GHC_VERSION
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         GHC_VERSION: '9.8.2'
 
@@ -253,32 +253,32 @@ jobs:
 
     - if: matrix.os == 'windows-latest'
       name: Set extension to .exe on Windows
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         ARCH: 'x86_64'
         EXT: '.exe'
 
     - name: Set binary OS name
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         BINARY_OS: ${{ runner.os }}
 
     - if: matrix.os == 'macos-latest'
       name: Set binary OS name on Macos
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         ARCH: 'x86_64'
         BINARY_OS: 'Darwin'
 
     - if: matrix.os == 'macos-14'
       name: Set binary OS name on Macos
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         ARCH: 'arm64'
         BINARY_OS: 'Darwin'
 
     - name: Set binary path name
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         BINARY_PATH: ./dist/hadolint${{ env.EXT }}
 
