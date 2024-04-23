@@ -39,7 +39,7 @@ jobs:
         GHC_VERSION: '9.8.2'
 
     - name: Check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4.1.3
 
 
     - name: Setup Haskell
