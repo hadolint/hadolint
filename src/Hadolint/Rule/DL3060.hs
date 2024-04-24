@@ -22,15 +22,15 @@ isCacheMount (CacheMount _) = True
 isCacheMount _ = False
 
 -- Set of RunMounts must contain at least one CacheMount
+
 containsOneCacheMount :: Set RunMount -> Bool
-containsOneCacheMount xs = Data.Set.foldl foldable False xs
+containsOneCacheMount = Data.Set.foldl foldable False
   where 
-    foldable a b = a || (isCacheMount b)
+    foldable a b = a || isCacheMount b
 
 -- do not flag this as a problem if using a cacheMount
 cacheMount :: RunFlags -> Bool
-cacheMount (RunFlags {mount}) = (containsOneCacheMount mount)
-cacheMount _ = False
+cacheMount RunFlags {mount} = containsOneCacheMount mount
 
 rule :: Rule Shell.ParsedShell
 rule = dl3060 <> onbuild dl3060
