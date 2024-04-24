@@ -11,6 +11,18 @@
         "url": "https://github.com/input-output-hk/haskell.nix/archive/660bbe79fda00daa50df653cff99c962cbf1a05c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "language-docker": {
+        "branch": "master",
+        "description": "Haskell Dockerfile parser, pretty-printer and EDSL",
+        "homepage": null,
+        "owner": "hadolint",
+        "repo": "language-docker",
+        "rev": "dba56a780a50beb44c727a717db644b3da27320b",
+        "sha256": "0as5q2lvd7akb3bcn9qhbnq890pi47l511cz359hdzypj0vqzv4c",
+        "type": "tarball",
+        "url": "https://github.com/hadolint/language-docker/archive/dba56a780a50beb44c727a717db644b3da27320b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "release-21.05",
         "description": "Nix Packages collection",

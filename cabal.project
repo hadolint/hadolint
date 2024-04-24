@@ -15,3 +15,9 @@ source-repository-package
     location: https://github.com/phadej/spdx
     tag: 61a9af383682ed09e6360525cfb10c72f6c16a35
     --sha256: 1mdrr4xndgs45vsik93ar9ys1gr9yrpfi5i2aq0mbw84l9i69374
+
+source-repository-package
+    type: git
+    location: https://github.com/hadolint/language-docker
+    tag: dba56a780a50beb44c727a717db644b3da27320b
+    --sha256: 0as5q2lvd7akb3bcn9qhbnq890pi47l511cz359hdzypj0vqzv4c
