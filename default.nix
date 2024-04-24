@@ -11,5 +11,5 @@ in
       src = ./.;
     };
     # Specify the GHC version to use.
-    compiler-nix-name = "ghc9.8.2";
+    compiler-nix-name = "ghc982";
   }
