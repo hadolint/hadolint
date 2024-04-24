@@ -4,7 +4,6 @@ let
   pkgsNative = pkgsNix.native;
   pkgsx86_64-static = pkgsNix.x86_64-static;
   pkgsAarch64-static = pkgsNix.aarch64-static;
-  pkgsAarch64-darwin = pkgsNix.aarch64-darwin;
 
   hsApp = {
     pkgs ? pkgsNative
@@ -48,10 +47,8 @@ let
     configureFlags = staticFlags pkgsAarch64-static;
   };
 
-  appAarch64-darwin = hsApp { pkgs = pkgsAarch64-darwin; };
 in {
   native = appNative.hadolint.components.exes.hadolint;
   linux-static = appx86_64-static.hadolint.components.exes.hadolint;
   linux-arm-static = appAarch64-static.hadolint.components.exes.hadolint;
-  darwin-arm = appAarch64-static.hadolint.components.exes.hadolint;
 }

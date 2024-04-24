@@ -51,7 +51,7 @@ jobs:
         file: hadolint
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: hadolint-Linux-${{steps.build-opts.outputs.arch}}
         path: hadolint
@@ -71,7 +71,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: hadolint-Linux-${{matrix.target}}
           path: ${{matrix.target}}
@@ -209,7 +209,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: macos-latest
+        - os: macos-13
+        - os: macos-14
         - os: windows-latest
 
     steps:
@@ -226,7 +227,7 @@ jobs:
 
     - name: Setup Haskell
       id: setup-haskell-cabal
-      uses: haskell/actions/setup@v2
+      uses: haskell-actions/setup@v2
       with:
         ghc-version: 9.8
 
@@ -234,7 +235,7 @@ jobs:
       run: cabal freeze
 
     - name: Cache store
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v4
       with:
         path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
         key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
@@ -246,30 +247,41 @@ jobs:
 
     - if: matrix.os == 'windows-latest'
       name: Set extension to .exe on Windows
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         EXT: '.exe'
 
     - name: Set binary OS name
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         BINARY_OS: ${{ runner.os }}
 
-    - if: matrix.os == 'macos-latest'
+    - name: Set binary Arch name
+      uses: allenevans/set-env@v3.0.0
+      with:
+        ARCH: 'x86_64'
+
+    - if: (matrix.os == 'macos-13') || (matrix.os == 'macos-14')
       name: Set binary OS name on Macos
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         BINARY_OS: 'Darwin'
 
+    - if: matrix.os == 'macos-14'
+      name: Set binary ARCH name for apple silicon
+      uses: allenevans/set-env@v3.0.0
+      with:
+        ARCH: 'arm64'
+
     - name: Set binary path name
-      uses: allenevans/set-env@v2.2.0
+      uses: allenevans/set-env@v3.0.0
       with:
         BINARY_PATH: ./dist/hadolint${{ env.EXT }}
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: hadolint-${{ env.BINARY_OS }}-x86_64${{ env.EXT }}
+        name: hadolint-${{ env.BINARY_OS }}-${{env.ARCH}}${{ env.EXT }}
         path: ${{ env.BINARY_PATH }}
         retention-days: 3
 
@@ -280,28 +292,34 @@ jobs:
     steps:
 
     - name: Check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Download Linux x86
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: hadolint-Linux-amd64
         path: artifacts/hadolint-Linux-x86_64
 
     - name: Download Linux arm64
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: hadolint-Linux-arm64
         path: artifacts/hadolint-Linux-arm64
 
     - name: Download Macos x86
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: hadolint-Darwin-x86_64
         path: artifacts/hadolint-Darwin-x86_64
 
+    - name: Download Macos arm
+      uses: actions/download-artifact@v4
+      with:
+        name: hadolint-Darwin-arm64
+        path: artifacts/hadolint-Darwin-arm64
+
     - name: Download Windows x86
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: hadolint-Windows-x86_64.exe
         path: artifacts/hadolint-Windows-x86_64.exe
@@ -311,15 +329,17 @@ jobs:
         mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
         mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
         mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
+        mv artifacts/hadolint-Darwin-arm64/hadolint hadolint-Darwin-arm64
         mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
 
         sha256sum -b hadolint-Linux-x86_64 > hadolint-Linux-x86_64.sha256
         sha256sum -b hadolint-Linux-arm64 > hadolint-Linux-arm64.sha256
         sha256sum -b hadolint-Darwin-x86_64 > hadolint-Darwin-x86_64.sha256
+        sha256sum -b hadolint-Darwin-arm64 > hadolint-Darwin-arm64.sha256
         sha256sum -b hadolint-Windows-x86_64.exe > hadolint-Windows-x86_64.exe.sha256
 
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         generate_release_notes: true
@@ -331,5 +351,7 @@ jobs:
           hadolint-Linux-arm64.sha256
           hadolint-Darwin-x86_64
           hadolint-Darwin-x86_64.sha256
+          hadolint-Darwin-arm64
+          hadolint-Darwin-arm64.sha256
           hadolint-Windows-x86_64.exe
           hadolint-Windows-x86_64.exe.sha256
