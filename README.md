@@ -19,39 +19,22 @@ hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
 ## Table of Contents
 
 - [How to use](#how-to-use)
-
 - [Install](#install)
-
 - [CLI](#cli)
-
 - [Configure](#configure)
-
 - [Non-Posix Shells](#non-posix-shells)
-
 - [Inline ignores](#inline-ignores)
-
 - [Global ignores](#global-ignores)
-
 - [Linting Labels](#linting-labels)
-
   - [Note on dealing with variables in labels](#note-on-dealing-with-variables-in-labels)
-
 - [Integrations](#integrations)
-
 - [Rules](#rules)
-
 - [Develop](#develop)
-
   - [Setup](#setup)
-
   - [REPL](#repl)
-
   - [Tests](#tests)
-
   - [AST](#ast)
-
   - [Building against custom libraries](#building-against-custom-libraries)
-
 - [Alternatives](#alternatives)
 
 ## How to use
