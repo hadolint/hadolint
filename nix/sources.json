@@ -5,10 +5,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "6c86f5254b33b4d2cb055309336351b1c536505b",
-        "sha256": "05kfccy0pl69rrc5vwgqrfl1a6y0hnfxr3i85dk3hn2pcn9gj5aq",
+        "rev": "660bbe79fda00daa50df653cff99c962cbf1a05c",
+        "sha256": "1i3ifpk3mm6x5j3sch0ryzcn7pjlrvwscvaj6izlaglb7f4mxyz0",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/6c86f5254b33b4d2cb055309336351b1c536505b.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/660bbe79fda00daa50df653cff99c962cbf1a05c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -29,10 +29,22 @@
         "homepage": "https://www.shellcheck.net",
         "owner": "lorenzo",
         "repo": "shellcheck",
-        "rev": "07095b233a60b819df6710b7741a59bac62179e1",
-        "sha256": "114yfgp40klrm32al93j7fh7lzzg7scqqnf8cc953h2m22k0c48q",
+        "rev": "248273935cd95afeaf835c688980ac5bccca8d14",
+        "sha256": "1xm38l1fcq2agiwhh2jqikzinv5ldgnfazgir83xyv8r2v6x1ray",
         "type": "tarball",
-        "url": "https://github.com/lorenzo/shellcheck/archive/07095b233a60b819df6710b7741a59bac62179e1.tar.gz",
+        "url": "https://github.com/lorenzo/shellcheck/archive/248273935cd95afeaf835c688980ac5bccca8d14.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "spdx": {
+        "branch": "master",
+        "description": "SPDX license expression language - Haskell implementation",
+        "homepage": null,
+        "owner": "phadej",
+        "repo": "spdx",
+        "rev": "61a9af383682ed09e6360525cfb10c72f6c16a35",
+        "sha256": "1mdrr4xndgs45vsik93ar9ys1gr9yrpfi5i2aq0mbw84l9i69374",
+        "type": "tarball",
+        "url": "https://github.com/phadej/spdx/archive/61a9af383682ed09e6360525cfb10c72f6c16a35.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
