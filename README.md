@@ -23,8 +23,9 @@ hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
 - [CLI](#cli)
 - [Configure](#configure)
 - [Non-Posix Shells](#non-posix-shells)
-- [Inline ignores](#inline-ignores)
-- [Global ignores](#global-ignores)
+- [Ignoring Rules](#ignoring-rules)
+  - [Inline ignores](#inline-ignores)
+  - [Global ignores](#global-ignores)
 - [Linting Labels](#linting-labels)
   - [Note on dealing with variables in labels](#note-on-dealing-with-variables-in-labels)
 - [Integrations](#integrations)
@@ -340,7 +341,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 RUN Get-Process notepad | Stop-Process
 ```
 
-## Ignoring rules
+## Ignoring Rules
 
 ### Inline ignores
 
