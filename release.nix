@@ -29,6 +29,7 @@ let
   staticFlags = {pkgs}: [
     "--disable-executable-dynamic"
     "--disable-shared"
+    "--disable-library-for-ghci"
     "--ghc-option=-optl=-pthread"
     "--ghc-option=-optl=-static"
     "--ghc-option=-optl=-L${pkgs.gmp6.override { withStatic = true; }}/lib"
