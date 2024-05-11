@@ -10,7 +10,7 @@ rule = simpleRule code severity message check
   where
     code = "DL3000"
     severity = DLErrorC
-    message = "Use absolute WORKDIR"
+    message = "Use absolute WORKDIR."
     check (Workdir loc)
       | "$" `Text.isPrefixOf` dropQuotes loc = True
       | "/" `Text.isPrefixOf` dropQuotes loc = True

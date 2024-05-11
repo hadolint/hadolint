@@ -9,7 +9,7 @@ rule = simpleRule code severity message check
   where
     code = "DL3029"
     severity = DLWarningC
-    message = "Do not use --platform flag with FROM"
+    message = "Do not use --platform flag with FROM."
 
     check (From BaseImage {platform = Just p}) = "BUILDPLATFORM" `Text.isInfixOf` p || "TARGETPLATFORM" `Text.isInfixOf` p
     check _ = True

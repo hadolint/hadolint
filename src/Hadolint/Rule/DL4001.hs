@@ -14,7 +14,7 @@ dl4001 = customRule check (emptyState Set.empty)
   where
     code = "DL4001"
     severity = DLWarningC
-    message = "Either use Wget or Curl but not both"
+    message = "Either use Wget or Curl but not both."
 
     check line st (Run (RunArgs args _)) =
       let newArgs = foldArguments extractCommands args

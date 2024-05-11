@@ -15,7 +15,7 @@ dl3027 = simpleRule code severity message check
     code = "DL3027"
     severity = DLWarningC
     message = "Do not use apt as it is meant to be an end-user tool, use apt-get\
-              \ or apt-cache instead"
+              \ or apt-cache instead."
 
     check (Run (RunArgs args _)) = foldArguments (not . usingProgram "apt") args
     check _ = True

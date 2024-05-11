@@ -17,7 +17,7 @@ dl3001 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "For some bash commands it makes no sense running them in a Docker container like `ssh`, \
-      \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`"
+      \`vim`, `shutdown`, `service`, `ps`, `free`, `top`, `kill`, `mount`, `ifconfig`."
 
     check (Run (RunArgs args _)) = foldArguments hasInvalid args
     check _ = True
