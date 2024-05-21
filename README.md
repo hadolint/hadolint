@@ -53,9 +53,36 @@ platforms.
 Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
-docker run --rm -i hadolint/hadolint < Dockerfile
+# docker run --rm -i -v <local Dockerfile relative path>:<container Dockerfile destination path> hadolint/hadolint hadolint <container Dockerfile destination path>
+docker run --rm -i -v ~/lab/docker/nginx/Dockerfile:/mnt/Dockerfile hadolint/hadolint hadolint /mnt/Dockerfile
 # OR
-docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+# docker run --rm -i -v <local Dockerfile relative path>:<container Dockerfile destination path> ghcr.io/hadolint/hadolint hadolint <container Dockerfile destination path>
+docker run --rm -i -v ~/lab/docker/nginx/Dockerfile:/mnt/Dockerfile ghcr.io/hadolint/hadolint hadolint /mnt/Dockerfile
+```
+
+Alternatively, you can add the following to your `.bashrc` or `.zshrc` file:
+
+```bash
+hadolint() {
+  if [ ! -f "$1" ]; then
+    printf "\nThe specified file '%s' was not found.\n\n" "$1"
+    return 1
+  fi
+
+  dockerFile=$(realpath "$1"); shift
+  dockerImage="hadolint/hadolint" # or "ghcr.io/hadolint/hadolint"
+
+  docker run --rm -v "$dockerFile":/mnt/Dockerfile "$dockerImage" hadolint "$@" /mnt/Dockerfile \
+    && printf "\nNice! No problems were found!\n\n" && return 0
+
+  return 1
+}
+```
+
+And then simply run:
+
+```bash
+hadolint path/to/Dockerfile
 ```
 
 or using [Podman](https://podman.io/):
