@@ -48,8 +48,10 @@ hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 hadolint --trusted-registry my-company.com:500 <Dockerfile> # Warn when using untrusted FROM images
 ```
 
-Docker comes to the rescue, providing an easy way how to run `hadolint` on most
-platforms.
+### Docker
+
+Docker comes to the rescue, providing an easy way how to run `hadolint` on most platforms.
+
 Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
@@ -85,7 +87,15 @@ And then simply run:
 hadolint path/to/Dockerfile
 ```
 
-or using [Podman](https://podman.io/):
+or, additionally add parameters at the end of the command line, as follows:
+
+```bash
+hadolint ~/lab/docker/nginx/Dockerfile --ignore DL3003
+```
+
+### Podman
+
+Using [Podman](https://podman.io/):
 
 ```bash
 podman run --rm -i docker.io/hadolint/hadolint < Dockerfile
