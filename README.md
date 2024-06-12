@@ -95,6 +95,20 @@ On distributions that have `nix` installed, you can use the `hadolint`
 package to run ad-hoc shells or permanently install `hadolint` into
 your environment.
 
+```bash
+# Permanent install
+nix-env --file '<nixpkgs>' --install --attr hadolint
+# Ad-hoc shell
+nix-shell '<nixpkgs>' --attr hadolint
+```
+
+On distributions that have `flox` installed, you can use the `hadolint`
+package inside of your Flox environments.
+
+```bash
+flox install hadolint
+```
+
 As mentioned earlier, `hadolint` is available as a container image:
 
 ```bash
