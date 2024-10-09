@@ -79,7 +79,8 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
     script = Text.unpack $ "#!" <> extractShell sh <> "\n" <> printVars <> txt
     exclusions =
       [ 2187, -- exclude the warning about the ash shell not being supported
-        1090 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
+        1090, -- requires a directive (shell comment) that can't be expressed in a Dockerfile
+        1091 -- requires a directive (shell comment) that can't be expressed in a Dockerfile
       ]
 
     extractShell s = fromMaybe "" (listToMaybe . Text.words $ s)
