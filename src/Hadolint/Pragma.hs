@@ -46,7 +46,13 @@ ignoreParser :: Megaparsec.Parsec Void Text [Text]
 ignoreParser = hadolintPragma >> ignore
 
 globalIgnoreParser :: Megaparsec.Parsec Void Text [Text]
-globalIgnoreParser = hadolintPragma >> string "global" >> spaces1 >> ignore
+globalIgnoreParser = hadolintPragma >> global >> ignore
+
+hadolintPragma :: Megaparsec.Parsec Void Text Text
+hadolintPragma = spaces >> string "hadolint" >> spaces1
+
+global :: Megaparsec.Parsec Void Text Text
+global = string "global" >> spaces1
 
 ignore :: Megaparsec.Parsec Void Text [Text]
 ignore = string "ignore" >> spaces >> string "=" >> spaces >> ruleList
@@ -55,8 +61,9 @@ ruleList :: Megaparsec.Parsec Void Text [Text]
 ruleList = Megaparsec.sepBy1 ruleName ( spaces >> string "," >> spaces )
 
 ruleName :: Megaparsec.ParsecT Void Text Identity (Megaparsec.Tokens Text)
-ruleName = Megaparsec.takeWhile1P Nothing (\c -> c `elem` Set.fromList "DLSC0123456789")
-
+ruleName =
+  Megaparsec.takeWhile1P Nothing (\c -> c `elem` Set.fromList "DLSC0123456789")
+  <* inlineComment
 
 parseShell :: Text -> Maybe Text
 parseShell = Megaparsec.parseMaybe shellParser
@@ -65,12 +72,13 @@ shellParser :: Megaparsec.Parsec Void Text Text
 shellParser = hadolintPragma >> string "shell" >> spaces >> string "=" >> spaces >> shellName
 
 shellName :: Megaparsec.ParsecT Void Text Identity (Megaparsec.Tokens Text)
-shellName = Megaparsec.takeWhile1P Nothing (/= '\n')
+shellName =
+  Megaparsec.takeWhile1P Nothing (\c -> c `notElem` Set.fromList "\n\t ")
+  <* inlineComment
 
-
-hadolintPragma :: Megaparsec.Parsec Void Text Text
-hadolintPragma = spaces >> string "hadolint" >> spaces1
-
+inlineComment :: Megaparsec.Parsec Void Text (Maybe Text)
+inlineComment =
+  spaces >> Megaparsec.optional ( string "#" >> Megaparsec.takeWhileP Nothing (/= '\n') )
 
 string :: Megaparsec.Tokens Text
   -> Megaparsec.ParsecT Void Text Identity (Megaparsec.Tokens Text)

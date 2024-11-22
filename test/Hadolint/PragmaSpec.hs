@@ -82,3 +82,28 @@ spec = do
        in do
             ruleCatchesNot "DL3023" $ Text.unlines dockerFile
             ruleCatchesNot "DL3021" $ Text.unlines dockerFile
+
+  describe "A comment can follow in the same line as a pragma" $ do
+
+    it "pragma followed just by space" $
+      let dockerFile =
+            [ "FROM ubuntu",
+              "# hadolint ignore=DL3002 ",
+              "USER root"
+            ]
+       in ruleCatchesNot "DL3002" $ Text.unlines dockerFile
+
+    it "ingore pragma with comment" $
+      let dockerFile =
+            [ "FROM ubuntu",
+              "# hadolint ignore=DL3002 # foobar",
+              "USER root"
+            ]
+       in ruleCatchesNot "DL3002" $ Text.unlines dockerFile
+
+    it "shell pragma with comment" $
+      let dockerFile =
+            [ "# hadolint shell=powershell # foobar",
+              "FROM ubuntu"
+            ]
+       in ruleCatchesNot "DL1001" $ Text.unlines dockerFile
