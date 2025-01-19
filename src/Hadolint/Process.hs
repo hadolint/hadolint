@@ -74,6 +74,7 @@ import qualified Hadolint.Rule.DL3064
 import qualified Hadolint.Rule.DL3065
 import qualified Hadolint.Rule.DL3066
 import qualified Hadolint.Rule.DL3067
+import qualified Hadolint.Rule.DL3068
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
 import qualified Hadolint.Rule.DL4003
@@ -201,6 +202,7 @@ failures Configuration {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3065.rule
     <> Hadolint.Rule.DL3066.rule
     <> Hadolint.Rule.DL3067.rule
+    <> Hadolint.Rule.DL3068.rule
     <> Hadolint.Rule.DL4000.rule
     <> Hadolint.Rule.DL4001.rule
     <> Hadolint.Rule.DL4003.rule
