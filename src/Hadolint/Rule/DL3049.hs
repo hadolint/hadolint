@@ -1,28 +1,26 @@
 module Hadolint.Rule.DL3049 (rule) where
 
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-import qualified Data.Sequence as Seq
-import qualified Data.Text as Text
+import Data.Map qualified as Map
+import Data.Sequence qualified as Seq
+import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Hadolint.Rule
 import Language.Docker.Syntax
-
 
 rule :: LabelSchema -> Rule args
 rule labelschema = mconcat $ fmap missingLabelRule (Map.keys labelschema)
 {-# INLINEABLE rule #-}
 
-
 data StageID = StageID
   { name :: BaseImage,
     line :: Linenumber
-  } deriving (Eq, Ord, Show)
+  }
+  deriving (Eq, Ord, Show)
 
 data Acc
   = Acc StageID (Set.Set StageID) (Set.Set StageID) (Set.Set StageID)
   | Empty
   deriving (Show)
-
 
 -- missingLabelRule
 --
@@ -36,7 +34,7 @@ missingLabelRule label = veryCustomRule check (emptyState Empty) markFailure
     message = "Label `" <> label <> "` is missing."
     check line state (From img) =
       state |> modify (currentStage (StageID img line))
-    check _ state (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource src))) =
+    check _ state (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource src) _)) =
       state |> modify (markSilentByAlias src)
     check _ state (Label pairs)
       | label `elem` fmap fst pairs =
@@ -51,7 +49,6 @@ missingLabelRule label = veryCustomRule check (emptyState Empty) markFailure
     markFailure st = failures st
 
     markFail (StageID _ line) = CheckFailure {..}
-
 
 currentStage :: StageID -> Acc -> Acc
 currentStage stageid Empty = Acc stageid Set.empty Set.empty (Set.singleton stageid)

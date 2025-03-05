@@ -9,9 +9,3 @@ source-repository-package
     location: https://github.com/lorenzo/shellcheck
     tag: 248273935cd95afeaf835c688980ac5bccca8d14
     --sha256: 1xm38l1fcq2agiwhh2jqikzinv5ldgnfazgir83xyv8r2v6x1ray
-
-source-repository-package
-    type: git
-    location: https://github.com/hadolint/language-docker
-    tag: dba56a780a50beb44c727a717db644b3da27320b
-    --sha256: 0as5q2lvd7akb3bcn9qhbnq890pi47l511cz359hdzypj0vqzv4c

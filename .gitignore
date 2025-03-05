@@ -13,3 +13,16 @@ dist-newstyle
 travis_wait_*.log
 
 cabal.project.local*
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+.DS_Store
+.vim

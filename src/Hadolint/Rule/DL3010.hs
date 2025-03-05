@@ -3,13 +3,12 @@ module Hadolint.Rule.DL3010 (rule) where
 import Data.Foldable (toList)
 import Data.Function ((&))
 import Data.List.NonEmpty (NonEmpty)
-import qualified Data.Set as Set
-import qualified Data.Sequence as Seq
-import qualified Data.Text as Text
+import Data.Sequence qualified as Seq
+import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Hadolint.Rule
-import qualified Hadolint.Shell as Shell
+import Hadolint.Shell qualified as Shell
 import Language.Docker.Syntax
-
 
 data Acc
   = Acc
@@ -26,7 +25,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     message = "Use `ADD` for extracting archives into an image"
 
     check _ _ (From _) = emptyState Empty
-    check line st (Copy (CopyArgs srcs tgt) (CopyFlags _ _ _ NoSource)) =
+    check line st (Copy (CopyArgs srcs tgt) (CopyFlags _ _ _ NoSource _)) =
       st |> modify (rememberArchives line srcs tgt)
     check _ st (Run (RunArgs args _))
       | Acc archives _ <- state st,
@@ -43,7 +42,6 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     makeFail :: (Linenumber, Text.Text) -> CheckFailure
     makeFail (line, _) = CheckFailure {..}
 {-# INLINEABLE rule #-}
-
 
 extractsThisArchive :: (Linenumber, Text.Text) -> Shell.Command -> Bool
 extractsThisArchive (_, archive) cmd =
@@ -72,22 +70,22 @@ isTarExtractCommand cmd@(Shell.Command name _ _) =
 
 isUnzipCommand :: Shell.Command -> Bool
 isUnzipCommand (Shell.Command name _ _) =
-  name `elem`
-    [ "unzip",
-      "gunzip",
-      "bunzip2",
-      "unlzma",
-      "unxz",
-      "zgz",
-      "uncompress",
-      "zcat",
-      "gzcat"
-    ]
+  name
+    `elem` [ "unzip",
+             "gunzip",
+             "bunzip2",
+             "unlzma",
+             "unxz",
+             "zgz",
+             "uncompress",
+             "zcat",
+             "gzcat"
+           ]
 
 markExtracted :: Set.Set (Linenumber, Text.Text) -> Acc -> Acc
 markExtracted _ Empty = Empty
 markExtracted exarcv Acc {archives, extracted} =
-  Acc { archives, extracted = Set.union exarcv extracted }
+  Acc {archives, extracted = Set.union exarcv extracted}
 
 rememberArchives ::
   Linenumber ->
@@ -97,38 +95,42 @@ rememberArchives ::
   Acc
 rememberArchives line paths target Empty =
   if isArchive $ unTargetPath target
-    then Acc
-          { archives = Set.singleton (line, basename $ unTargetPath target),
-            extracted = Set.empty
-          }
-    else Acc
-          { archives =
-              paths
-                & toList
-                & map (basename . unSourcePath)
-                & Set.fromList
-                & Set.filter isArchive
-                & Set.map (line,),
-            extracted = Set.empty
-          }
+    then
+      Acc
+        { archives = Set.singleton (line, basename $ unTargetPath target),
+          extracted = Set.empty
+        }
+    else
+      Acc
+        { archives =
+            paths
+              & toList
+              & map (basename . unSourcePath)
+              & Set.fromList
+              & Set.filter isArchive
+              & Set.map (line,),
+          extracted = Set.empty
+        }
 rememberArchives line paths target Acc {archives, extracted} =
   if isArchive $ unTargetPath target
-    then Acc
-          { archives =
-              Set.insert (line, basename $ unTargetPath target) archives,
-            extracted
-          }
-    else Acc
-          { archives =
-              paths
-                & toList
-                & map (basename . unSourcePath)
-                & Set.fromList
-                & Set.filter isArchive
-                & Set.map (line,)
-                & Set.union archives,
-            extracted
-          }
+    then
+      Acc
+        { archives =
+            Set.insert (line, basename $ unTargetPath target) archives,
+          extracted
+        }
+    else
+      Acc
+        { archives =
+            paths
+              & toList
+              & map (basename . unSourcePath)
+              & Set.fromList
+              & Set.filter isArchive
+              & Set.map (line,)
+              & Set.union archives,
+          extracted
+        }
 
 basename :: Text.Text -> Text.Text
 basename = Text.takeWhileEnd (\c -> c /= '/' && c /= '\\') . dropQuotes

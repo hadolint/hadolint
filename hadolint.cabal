@@ -1,326 +1,339 @@
-cabal-version: 2.0
+cabal-version:      2.0
+name:               hadolint
+version:            2.13.0
+synopsis:           Dockerfile Linter JavaScript API
+description:
+  A smarter Dockerfile linter that helps you build best practice Docker images.
 
-name:           hadolint
-version:        2.13.0
-synopsis:       Dockerfile Linter JavaScript API
-description:    A smarter Dockerfile linter that helps you build best practice Docker images.
-category:       Development
-homepage:       https://github.com/hadolint/hadolint
-author:         Lukas Martinelli
-maintainer:     me@lukasmartinelli.ch
-copyright:      Lukas Martinelli
-license:        GPL-3
-license-file:   LICENSE
-build-type:     Simple
-extra-source-files:
-    README.md
+category:           Development
+homepage:           https://github.com/hadolint/hadolint
+author:             Lukas Martinelli
+maintainer:         me@lukasmartinelli.ch
+copyright:          Lukas Martinelli
+license:            GPL-3
+license-file:       LICENSE
+build-type:         Simple
+extra-source-files: README.md
 
 source-repository head
-  type: git
+  type:     git
   location: git@github.com:hadolint/hadolint.git
 
 flag static
   description: Use static linking for the hadolint executable
-  manual: True
-  default: True
+  manual:      True
+  default:     True
 
 library
   exposed-modules:
-      Hadolint
-      Hadolint.Config
-      Hadolint.Config.Commandline
-      Hadolint.Config.Configfile
-      Hadolint.Config.Configuration
-      Hadolint.Config.Environment
-      Hadolint.Formatter
-      Hadolint.Formatter.Checkstyle
-      Hadolint.Formatter.Codacy
-      Hadolint.Formatter.Codeclimate
-      Hadolint.Formatter.Format
-      Hadolint.Formatter.Gnu
-      Hadolint.Formatter.Json
-      Hadolint.Formatter.Sarif
-      Hadolint.Formatter.SonarQube
-      Hadolint.Formatter.TTY
-      Hadolint.Lint
-      Hadolint.Meta
-      Hadolint.Pragma
-      Hadolint.Process
-      Hadolint.Rule
-      Hadolint.Rule.DL1001
-      Hadolint.Rule.DL3000
-      Hadolint.Rule.DL3001
-      Hadolint.Rule.DL3002
-      Hadolint.Rule.DL3003
-      Hadolint.Rule.DL3004
-      Hadolint.Rule.DL3006
-      Hadolint.Rule.DL3007
-      Hadolint.Rule.DL3008
-      Hadolint.Rule.DL3009
-      Hadolint.Rule.DL3010
-      Hadolint.Rule.DL3011
-      Hadolint.Rule.DL3012
-      Hadolint.Rule.DL3013
-      Hadolint.Rule.DL3014
-      Hadolint.Rule.DL3015
-      Hadolint.Rule.DL3016
-      Hadolint.Rule.DL3018
-      Hadolint.Rule.DL3019
-      Hadolint.Rule.DL3020
-      Hadolint.Rule.DL3021
-      Hadolint.Rule.DL3022
-      Hadolint.Rule.DL3023
-      Hadolint.Rule.DL3024
-      Hadolint.Rule.DL3025
-      Hadolint.Rule.DL3026
-      Hadolint.Rule.DL3027
-      Hadolint.Rule.DL3028
-      Hadolint.Rule.DL3029
-      Hadolint.Rule.DL3030
-      Hadolint.Rule.DL3032
-      Hadolint.Rule.DL3033
-      Hadolint.Rule.DL3034
-      Hadolint.Rule.DL3035
-      Hadolint.Rule.DL3036
-      Hadolint.Rule.DL3037
-      Hadolint.Rule.DL3038
-      Hadolint.Rule.DL3040
-      Hadolint.Rule.DL3041
-      Hadolint.Rule.DL3042
-      Hadolint.Rule.DL3043
-      Hadolint.Rule.DL3044
-      Hadolint.Rule.DL3045
-      Hadolint.Rule.DL3046
-      Hadolint.Rule.DL3047
-      Hadolint.Rule.DL3048
-      Hadolint.Rule.DL3049
-      Hadolint.Rule.DL3050
-      Hadolint.Rule.DL3051
-      Hadolint.Rule.DL3052
-      Hadolint.Rule.DL3053
-      Hadolint.Rule.DL3054
-      Hadolint.Rule.DL3055
-      Hadolint.Rule.DL3056
-      Hadolint.Rule.DL3057
-      Hadolint.Rule.DL3058
-      Hadolint.Rule.DL3059
-      Hadolint.Rule.DL3060
-      Hadolint.Rule.DL3061
-      Hadolint.Rule.DL4000
-      Hadolint.Rule.DL4001
-      Hadolint.Rule.DL4003
-      Hadolint.Rule.DL4004
-      Hadolint.Rule.DL4005
-      Hadolint.Rule.DL4006
-      Hadolint.Rule.Shellcheck
-      Hadolint.Shell
-  other-modules:
-      Paths_hadolint
-  autogen-modules:
-      Paths_hadolint
-  hs-source-dirs:
-      src
+    Hadolint
+    Hadolint.Config
+    Hadolint.Config.Commandline
+    Hadolint.Config.Configfile
+    Hadolint.Config.Configuration
+    Hadolint.Config.Environment
+    Hadolint.Formatter
+    Hadolint.Formatter.Checkstyle
+    Hadolint.Formatter.Codacy
+    Hadolint.Formatter.Codeclimate
+    Hadolint.Formatter.Format
+    Hadolint.Formatter.Gnu
+    Hadolint.Formatter.Json
+    Hadolint.Formatter.Sarif
+    Hadolint.Formatter.SonarQube
+    Hadolint.Formatter.TTY
+    Hadolint.Lint
+    Hadolint.Meta
+    Hadolint.Pragma
+    Hadolint.Process
+    Hadolint.Rule
+    Hadolint.Rule.DL1001
+    Hadolint.Rule.DL3000
+    Hadolint.Rule.DL3001
+    Hadolint.Rule.DL3002
+    Hadolint.Rule.DL3003
+    Hadolint.Rule.DL3004
+    Hadolint.Rule.DL3006
+    Hadolint.Rule.DL3007
+    Hadolint.Rule.DL3008
+    Hadolint.Rule.DL3009
+    Hadolint.Rule.DL3010
+    Hadolint.Rule.DL3011
+    Hadolint.Rule.DL3012
+    Hadolint.Rule.DL3013
+    Hadolint.Rule.DL3014
+    Hadolint.Rule.DL3015
+    Hadolint.Rule.DL3016
+    Hadolint.Rule.DL3018
+    Hadolint.Rule.DL3019
+    Hadolint.Rule.DL3020
+    Hadolint.Rule.DL3021
+    Hadolint.Rule.DL3022
+    Hadolint.Rule.DL3023
+    Hadolint.Rule.DL3024
+    Hadolint.Rule.DL3025
+    Hadolint.Rule.DL3026
+    Hadolint.Rule.DL3027
+    Hadolint.Rule.DL3028
+    Hadolint.Rule.DL3029
+    Hadolint.Rule.DL3030
+    Hadolint.Rule.DL3032
+    Hadolint.Rule.DL3033
+    Hadolint.Rule.DL3034
+    Hadolint.Rule.DL3035
+    Hadolint.Rule.DL3036
+    Hadolint.Rule.DL3037
+    Hadolint.Rule.DL3038
+    Hadolint.Rule.DL3040
+    Hadolint.Rule.DL3041
+    Hadolint.Rule.DL3042
+    Hadolint.Rule.DL3043
+    Hadolint.Rule.DL3044
+    Hadolint.Rule.DL3045
+    Hadolint.Rule.DL3046
+    Hadolint.Rule.DL3047
+    Hadolint.Rule.DL3048
+    Hadolint.Rule.DL3049
+    Hadolint.Rule.DL3050
+    Hadolint.Rule.DL3051
+    Hadolint.Rule.DL3052
+    Hadolint.Rule.DL3053
+    Hadolint.Rule.DL3054
+    Hadolint.Rule.DL3055
+    Hadolint.Rule.DL3056
+    Hadolint.Rule.DL3057
+    Hadolint.Rule.DL3058
+    Hadolint.Rule.DL3059
+    Hadolint.Rule.DL3060
+    Hadolint.Rule.DL3061
+    Hadolint.Rule.DL4000
+    Hadolint.Rule.DL4001
+    Hadolint.Rule.DL4003
+    Hadolint.Rule.DL4004
+    Hadolint.Rule.DL4005
+    Hadolint.Rule.DL4006
+    Hadolint.Rule.Shellcheck
+    Hadolint.Shell
+
+  other-modules:      Paths_hadolint
+  autogen-modules:    Paths_hadolint
+  hs-source-dirs:     src
   default-extensions:
-      DeriveAnyClass
-      DeriveGeneric
-      NamedFieldPuns
-      OverloadedStrings
-      PatternSynonyms
-      RecordWildCards
-      ScopedTypeVariables
-      StrictData
-      TemplateHaskell
-      TupleSections
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
+    DeriveAnyClass
+    DeriveGeneric
+    NamedFieldPuns
+    OverloadedStrings
+    PatternSynonyms
+    RecordWildCards
+    ScopedTypeVariables
+    StrictData
+    TemplateHaskell
+    TupleSections
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+    -optP-Wno-nonportable-include-path -flate-dmd-anal
+
   build-depends:
-      Cabal
-    , HsYAML
-    , ShellCheck >=0.8.0
-    , aeson
-    , base >=4.8 && <5
+      aeson
+    , base                  >=4.8    && <5
     , bytestring
+    , Cabal
     , colourista
     , containers
     , cryptonite
     , data-default
-    , deepseq >=1.4.4
-    , directory >=1.3.0
+    , deepseq               >=1.4.4
+    , directory             >=1.3.0
     , email-validate
     , filepath
     , foldl
-    , gitrev >=1.3.1
+    , gitrev                >=1.3.1
+    , HsYAML
     , ilist
-    , language-docker >=13.0.0 && <14
-    , megaparsec >=9.0.0
+    , language-docker       >=14.0.1 && <15
+    , megaparsec            >=9.0.0
     , mtl
     , network-uri
-    , optparse-applicative >=0.14.0
+    , optparse-applicative  >=0.14.0
     , parallel
-    , parsec >=3.1.14
-    , prettyprinter >=1.7.0
+    , parsec                >=3.1.14
+    , prettyprinter         >=1.7.0
     , semver
+    , ShellCheck            >=0.8.0
     , spdx
-    , split >=0.2
+    , split                 >=0.2
     , text
     , time
-    , timerep >=2.0
+    , timerep               >=2.0
     , void
-  default-language: GHC2021
+
+  default-language:   GHC2021
 
 executable hadolint
-  main-is: Main.hs
-  other-modules:
-      Paths_hadolint
-  autogen-modules:
-      Paths_hadolint
-  hs-source-dirs:
-      app
+  main-is:            Main.hs
+  other-modules:      Paths_hadolint
+  autogen-modules:    Paths_hadolint
+  hs-source-dirs:     app
   default-extensions:
-      DeriveAnyClass
-      DeriveGeneric
-      NamedFieldPuns
-      OverloadedStrings
-      PatternSynonyms
-      RecordWildCards
-      ScopedTypeVariables
-      StrictData
-      TemplateHaskell
-      TupleSections
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded -rtsopts "-with-rtsopts=-N5 -A4m"
+    DeriveAnyClass
+    DeriveGeneric
+    NamedFieldPuns
+    OverloadedStrings
+    PatternSynonyms
+    RecordWildCards
+    ScopedTypeVariables
+    StrictData
+    TemplateHaskell
+    TupleSections
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+    -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded
+    -rtsopts "-with-rtsopts=-N5 -A4m"
+
   build-depends:
-      base >=4.8 && <5
+      base                  >=4.8    && <5
     , containers
     , data-default
     , hadolint
-    , language-docker >=13.0.0 && <14
-    , megaparsec >=9.0.0
-    , optparse-applicative >=0.14.0
-    , prettyprinter >=1.7.0
+    , language-docker       >=14.0.1 && <15
+    , megaparsec            >=9.0.0
+    , optparse-applicative  >=0.14.0
+    , prettyprinter         >=1.7.0
     , text
-  if flag(static) && !(os(osx))
+
+  if (flag(static) && !os(osx))
     ld-options: -static -pthread
-  default-language: GHC2021
+
+  default-language:   GHC2021
 
 test-suite hadolint-unit-tests
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
   other-modules:
-      Hadolint.Config.CommandlineSpec
-      Hadolint.Config.ConfigfileSpec
-      Hadolint.Config.ConfigurationSpec
-      Hadolint.Config.EnvironmentSpec
-      Hadolint.Config.SpecHook
-      Hadolint.Formatter.GnuSpec
-      Hadolint.Formatter.ParseErrorSpec
-      Hadolint.Formatter.SarifSpec
-      Hadolint.Formatter.TTYSpec
-      Hadolint.PragmaSpec
-      Hadolint.Rule.DL1001Spec
-      Hadolint.Rule.DL3000Spec
-      Hadolint.Rule.DL3001Spec
-      Hadolint.Rule.DL3002Spec
-      Hadolint.Rule.DL3003Spec
-      Hadolint.Rule.DL3004Spec
-      Hadolint.Rule.DL3006Spec
-      Hadolint.Rule.DL3007Spec
-      Hadolint.Rule.DL3008Spec
-      Hadolint.Rule.DL3009Spec
-      Hadolint.Rule.DL3010Spec
-      Hadolint.Rule.DL3011Spec
-      Hadolint.Rule.DL3012Spec
-      Hadolint.Rule.DL3013Spec
-      Hadolint.Rule.DL3014Spec
-      Hadolint.Rule.DL3015Spec
-      Hadolint.Rule.DL3016Spec
-      Hadolint.Rule.DL3018Spec
-      Hadolint.Rule.DL3019Spec
-      Hadolint.Rule.DL3020Spec
-      Hadolint.Rule.DL3021Spec
-      Hadolint.Rule.DL3022Spec
-      Hadolint.Rule.DL3023Spec
-      Hadolint.Rule.DL3024Spec
-      Hadolint.Rule.DL3025Spec
-      Hadolint.Rule.DL3026Spec
-      Hadolint.Rule.DL3027Spec
-      Hadolint.Rule.DL3028Spec
-      Hadolint.Rule.DL3029Spec
-      Hadolint.Rule.DL3030Spec
-      Hadolint.Rule.DL3032Spec
-      Hadolint.Rule.DL3033Spec
-      Hadolint.Rule.DL3034Spec
-      Hadolint.Rule.DL3035Spec
-      Hadolint.Rule.DL3036Spec
-      Hadolint.Rule.DL3037Spec
-      Hadolint.Rule.DL3038Spec
-      Hadolint.Rule.DL3040Spec
-      Hadolint.Rule.DL3041Spec
-      Hadolint.Rule.DL3042Spec
-      Hadolint.Rule.DL3043Spec
-      Hadolint.Rule.DL3044Spec
-      Hadolint.Rule.DL3045Spec
-      Hadolint.Rule.DL3046Spec
-      Hadolint.Rule.DL3047Spec
-      Hadolint.Rule.DL3048Spec
-      Hadolint.Rule.DL3049Spec
-      Hadolint.Rule.DL3050Spec
-      Hadolint.Rule.DL3051Spec
-      Hadolint.Rule.DL3052Spec
-      Hadolint.Rule.DL3053Spec
-      Hadolint.Rule.DL3054Spec
-      Hadolint.Rule.DL3055Spec
-      Hadolint.Rule.DL3056Spec
-      Hadolint.Rule.DL3057Spec
-      Hadolint.Rule.DL3058Spec
-      Hadolint.Rule.DL3059Spec
-      Hadolint.Rule.DL3060Spec
-      Hadolint.Rule.DL3061Spec
-      Hadolint.Rule.DL4000Spec
-      Hadolint.Rule.DL4001Spec
-      Hadolint.Rule.DL4003Spec
-      Hadolint.Rule.DL4004Spec
-      Hadolint.Rule.DL4005Spec
-      Hadolint.Rule.DL4006Spec
-      Hadolint.Rule.ShellcheckSpec
-      Hadolint.ShellSpec
-      Helpers
-      RegressionSpec
-      Paths_hadolint
-  autogen-modules:
-      Paths_hadolint
-  hs-source-dirs:
-      test
+    Hadolint.Config.CommandlineSpec
+    Hadolint.Config.ConfigfileSpec
+    Hadolint.Config.ConfigurationSpec
+    Hadolint.Config.EnvironmentSpec
+    Hadolint.Config.SpecHook
+    Hadolint.Formatter.GnuSpec
+    Hadolint.Formatter.ParseErrorSpec
+    Hadolint.Formatter.SarifSpec
+    Hadolint.Formatter.TTYSpec
+    Hadolint.PragmaSpec
+    Hadolint.Rule.DL1001Spec
+    Hadolint.Rule.DL3000Spec
+    Hadolint.Rule.DL3001Spec
+    Hadolint.Rule.DL3002Spec
+    Hadolint.Rule.DL3003Spec
+    Hadolint.Rule.DL3004Spec
+    Hadolint.Rule.DL3006Spec
+    Hadolint.Rule.DL3007Spec
+    Hadolint.Rule.DL3008Spec
+    Hadolint.Rule.DL3009Spec
+    Hadolint.Rule.DL3010Spec
+    Hadolint.Rule.DL3011Spec
+    Hadolint.Rule.DL3012Spec
+    Hadolint.Rule.DL3013Spec
+    Hadolint.Rule.DL3014Spec
+    Hadolint.Rule.DL3015Spec
+    Hadolint.Rule.DL3016Spec
+    Hadolint.Rule.DL3018Spec
+    Hadolint.Rule.DL3019Spec
+    Hadolint.Rule.DL3020Spec
+    Hadolint.Rule.DL3021Spec
+    Hadolint.Rule.DL3022Spec
+    Hadolint.Rule.DL3023Spec
+    Hadolint.Rule.DL3024Spec
+    Hadolint.Rule.DL3025Spec
+    Hadolint.Rule.DL3026Spec
+    Hadolint.Rule.DL3027Spec
+    Hadolint.Rule.DL3028Spec
+    Hadolint.Rule.DL3029Spec
+    Hadolint.Rule.DL3030Spec
+    Hadolint.Rule.DL3032Spec
+    Hadolint.Rule.DL3033Spec
+    Hadolint.Rule.DL3034Spec
+    Hadolint.Rule.DL3035Spec
+    Hadolint.Rule.DL3036Spec
+    Hadolint.Rule.DL3037Spec
+    Hadolint.Rule.DL3038Spec
+    Hadolint.Rule.DL3040Spec
+    Hadolint.Rule.DL3041Spec
+    Hadolint.Rule.DL3042Spec
+    Hadolint.Rule.DL3043Spec
+    Hadolint.Rule.DL3044Spec
+    Hadolint.Rule.DL3045Spec
+    Hadolint.Rule.DL3046Spec
+    Hadolint.Rule.DL3047Spec
+    Hadolint.Rule.DL3048Spec
+    Hadolint.Rule.DL3049Spec
+    Hadolint.Rule.DL3050Spec
+    Hadolint.Rule.DL3051Spec
+    Hadolint.Rule.DL3052Spec
+    Hadolint.Rule.DL3053Spec
+    Hadolint.Rule.DL3054Spec
+    Hadolint.Rule.DL3055Spec
+    Hadolint.Rule.DL3056Spec
+    Hadolint.Rule.DL3057Spec
+    Hadolint.Rule.DL3058Spec
+    Hadolint.Rule.DL3059Spec
+    Hadolint.Rule.DL3060Spec
+    Hadolint.Rule.DL3061Spec
+    Hadolint.Rule.DL4000Spec
+    Hadolint.Rule.DL4001Spec
+    Hadolint.Rule.DL4003Spec
+    Hadolint.Rule.DL4004Spec
+    Hadolint.Rule.DL4005Spec
+    Hadolint.Rule.DL4006Spec
+    Hadolint.Rule.ShellcheckSpec
+    Hadolint.ShellSpec
+    Helpers
+    Paths_hadolint
+    RegressionSpec
+
+  autogen-modules:    Paths_hadolint
+  hs-source-dirs:     test
   default-extensions:
-      DeriveAnyClass
-      DeriveGeneric
-      NamedFieldPuns
-      OverloadedStrings
-      PatternSynonyms
-      RecordWildCards
-      ScopedTypeVariables
-      StrictData
-      TemplateHaskell
-      TupleSections
-      ImplicitParams
-      OverloadedLists
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -optP-Wno-nonportable-include-path -flate-dmd-anal
-  build-tool-depends:
-      hspec-discover:hspec-discover ==2.*
+    DeriveAnyClass
+    DeriveGeneric
+    ImplicitParams
+    NamedFieldPuns
+    OverloadedLists
+    OverloadedStrings
+    PatternSynonyms
+    RecordWildCards
+    ScopedTypeVariables
+    StrictData
+    TemplateHaskell
+    TupleSections
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+    -optP-Wno-nonportable-include-path -flate-dmd-anal
+
+  build-tool-depends: hspec-discover:hspec-discover >=2 && <3
   build-depends:
-      HUnit >=1.2
-    , HsYAML
-    , ShellCheck >=0.8.0
-    , aeson
-    , base >=4.8 && <5
-    , bytestring >=0.10
+      aeson
+    , base                  >=4.8    && <5
+    , bytestring            >=0.10
     , containers
     , data-default
     , foldl
     , hadolint
-    , hspec >=2.8.3
-    , language-docker >=13.0.0 && <14
-    , megaparsec >=9.0.0
-    , optparse-applicative >=0.14.0
+    , hspec                 >=2.8.3
+    , HsYAML
+    , HUnit                 >=1.2
+    , language-docker       >=14.0.1 && <15
+    , megaparsec            >=9.0.0
+    , optparse-applicative  >=0.14.0
+    , ShellCheck            >=0.8.0
     , silently
-    , split >=0.2
+    , split                 >=0.2
     , text
-  default-language: GHC2021
+
+  default-language:   GHC2021
