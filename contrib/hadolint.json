@@ -387,6 +387,11 @@
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3060"
           },
           {
+            "const": "DL3062",
+            "description": "Pin versions in `pecl`.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3062"
+          },
+          {
             "const": "DL4000",
             "description": "MAINTAINER is deprecated.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL4000"
