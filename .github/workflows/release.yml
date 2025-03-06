@@ -5,57 +5,89 @@ on:
     tags:
       - "v*"
 
+  # also on manual trigger
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'The version number for the release'
+        required: true
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        target: ["linux-static", "linux-arm-static"]
+        include:
+        - os: ubuntu-latest
+          target: linux-amd64
+        - os: ubuntu-24.04-arm
+          target: linux-arm64
+        - os: macos-13
+          target: macos-x86_64
+        - os: macos-14
+          target: macos-arm64
+        - os: windows-latest
+          target: windows-x86_64
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: cachix/install-nix-action@v30
-      with:
-        extra_nix_config: |
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk=
-          substituters = https://cache.nixos.org/ https://cache.iog.io https://cache.zw3rk.com
+      - id: setup-haskell
+        name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.8'
 
-    - uses: cachix/cachix-action@v15
-      with:
-        name: hadolint
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-        pushFilter: '(-source$|-config$|-hadolint-root$|hadolint-gitFiles|git-ls-files|hadolint-exe-hadolint-x86_64-unknown-linux-musl-|hadolint-exe-hadolint-aarch64-unknown-linux-musl-|hadolint-lib-hadolint-x86_64-unknown-linux-musl-|hadolint-lib-hadolint-aarch64-unknown-linux-musl-)'
+      - name: Freeze
+        run: cabal freeze
 
-    - name: Build
-      run: |
-        nix-build release.nix -A "${{matrix.target}}" -j3
+      - name: Cache store
+        uses: actions/cache@v4.2.0
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
 
-    - name: Set binary ARCH
-      id: build-opts
-      run: |
-        if [ "${{ matrix.target }}" = 'linux-static' ]; then
-          echo ::set-output name=arch::amd64
-        else
-          echo ::set-output name=arch::arm64
-        fi
+      - name: Build static binary
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          mkdir dist
+          cabal install exe:hadolint \
+          --install-method=copy\
+          --overwrite-policy=always \
+          --installdir=dist \
+          --enable-executable-static
+          --disable-executable-dynamic \
+          --enable-executable-static \
+          --disable-shared \
+          --ghc-options="-fPIC"
+      
+      - name: Build regular binaries
+        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
+        run: |
+          mkdir dist
+          cabal install exe:hadolint \
+          --install-method=copy\
+          --overwrite-policy=always \
+          --installdir=dist \
+          --ghc-options="-fPIC"
 
-    - name: Move binary
-      run: |
-        sudo cp result/bin/hadolint hadolint
-        sudo chmod 777 hadolint
+      - id: build-opts
+        name: Set binary path name
+        run: |
+          if [ "${{ runner.os }}" = 'windows-latest' ]; then
+            echo "::set-output name=binary_path::./dist/hadolint.exe"
+          else
+            echo "::set-output name=binary_path::./dist/hadolint"
+          fi
+          echo "::set-output name=binary_os::${{ runner.os }}"
+          echo "::set-output name=arch::${{ matrix.target }}"
 
-    - if: matrix.target == 'linux-static'
-      name: Compress binary
-      uses: svenstaro/upx-action@2.3.0
-      with:
-        file: hadolint
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: hadolint-Linux-${{steps.build-opts.outputs.arch}}
-        path: hadolint
-        retention-days: 3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ steps.build-opts.outputs.binary_os }}-${{ steps.build-opts.outputs.arch }}
+          path: ${{ steps.build-opts.outputs.binary_path }}
+          retention-days: 3
 
   docker:
     needs: build
@@ -126,6 +158,7 @@ jobs:
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
+    if: github.event_name != 'workflow_dispatch'
     needs: docker
     runs-on: ubuntu-latest
     strategy:
@@ -201,92 +234,9 @@ jobs:
             hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
           docker manifest push hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
 
-  os-binaries:
-    name: ${{ matrix.os }} / ${{ github.ref }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - os: macos-13
-        - os: macos-14
-        - os: windows-latest
-
-    steps:
-
-    - name: Check out
-      uses: actions/checkout@v4
-
-    - name: Set tag name
-      uses: little-core-labs/get-git-tag@v3.0.2
-      id: tag
-      with:
-        tagRegex: "v(.*)"
-        tagRegexGroup: 1
-
-    - name: Setup Haskell
-      id: setup-haskell-cabal
-      uses: haskell-actions/setup@v2
-      with:
-        ghc-version: 9.8
-
-    - name: Freeze
-      run: cabal freeze
-
-    - name: Cache store
-      uses: actions/cache@v4.2.0
-      with:
-        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
-
-    - name: Build binary
-      run: |
-        mkdir dist
-        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options=-fPIC
-
-    - if: matrix.os == 'windows-latest'
-      name: Set extension to .exe on Windows
-      uses: allenevans/set-env@v3.0.0
-      with:
-        EXT: '.exe'
-
-    - name: Set binary OS name
-      uses: allenevans/set-env@v3.0.0
-      with:
-        BINARY_OS: ${{ runner.os }}
-
-    - name: Set binary Arch name
-      uses: allenevans/set-env@v3.0.0
-      with:
-        ARCH: 'x86_64'
-
-    - if: (matrix.os == 'macos-13') || (matrix.os == 'macos-14')
-      name: Set binary OS name on Macos
-      uses: allenevans/set-env@v3.0.0
-      with:
-        BINARY_OS: 'Darwin'
-
-    - if: matrix.os == 'macos-14'
-      name: Set binary ARCH name for apple silicon
-      uses: allenevans/set-env@v3.0.0
-      with:
-        ARCH: 'arm64'
-
-    - name: Set binary path name
-      uses: allenevans/set-env@v3.0.0
-      with:
-        BINARY_PATH: ./dist/hadolint${{ env.EXT }}
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: hadolint-${{ env.BINARY_OS }}-${{env.ARCH}}${{ env.EXT }}
-        path: ${{ env.BINARY_PATH }}
-        retention-days: 3
-
   release:
-    needs: [docker-release, os-binaries]
+    if: github.event_name != 'workflow_dispatch'
+    needs: [docker-release, build]
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
