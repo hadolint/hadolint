@@ -54,7 +54,7 @@ jobs:
           cabal install exe:hadolint --install-method=copy \
           --overwrite-policy=always \
           --installdir=dist \
-          --enable-executable-static
+          --enable-executable-static \
           --disable-executable-dynamic \
           --enable-executable-static \
           --disable-shared \
