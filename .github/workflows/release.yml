@@ -47,33 +47,15 @@ jobs:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
           key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
 
-      - name: Build static binary
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Build binaries
         run: |
           mkdir dist
-          cabal install exe:hadolint --install-method=copy \
-          --overwrite-policy=always \
-          --installdir=dist \
-          --enable-executable-static \
-          --disable-executable-dynamic \
-          --enable-executable-static \
-          --disable-shared \
-          --ghc-options="-fPIC"
-      
-      - name: Build regular binaries
-        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
-        run: |
-          mkdir dist
-          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC" -fstatic
 
       - id: build-opts
         name: Set binary path name
         run: |
-          if [ "${{ runner.os }}" = 'windows-latest' ]; then
-            echo "::set-output name=binary_path::./dist/hadolint.exe"
-          else
-            echo "::set-output name=binary_path::./dist/hadolint"
-          fi
+          echo "::set-output name=binary_path::./dist/hadolint"
           echo "::set-output name=binary_os::${{ runner.os }}"
           echo "::set-output name=arch::${{ matrix.target }}"
 
@@ -266,8 +248,8 @@ jobs:
     - name: Download Windows x86
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Windows-x86_64.exe
-        path: artifacts/hadolint-Windows-x86_64.exe
+        name: hadolint-Windows-x86_64
+        path: artifacts/hadolint-Windows-x86_64
 
     - name: Rename and Checksum
       run: |
@@ -275,7 +257,7 @@ jobs:
         mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
         mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
         mv artifacts/hadolint-Darwin-arm64/hadolint hadolint-Darwin-arm64
-        mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
+        mv artifacts/hadolint-Windows-x86_64/hadolint hadolint-Windows-x86_64.exe
 
         sha256sum -b hadolint-Linux-x86_64 > hadolint-Linux-x86_64.sha256
         sha256sum -b hadolint-Linux-arm64 > hadolint-Linux-arm64.sha256
