@@ -57,7 +57,7 @@ jobs:
         if: matrix.target == 'linux-arm64'
         run: |
           mkdir dist
-          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
 
       - id: build-opts
         name: Set binary path name
