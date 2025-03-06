@@ -51,8 +51,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           mkdir dist
-          cabal install exe:hadolint \
-          --install-method=copy\
+          cabal install exe:hadolint --install-method=copy \
           --overwrite-policy=always \
           --installdir=dist \
           --enable-executable-static
@@ -65,11 +64,7 @@ jobs:
         if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')
         run: |
           mkdir dist
-          cabal install exe:hadolint \
-          --install-method=copy\
-          --overwrite-policy=always \
-          --installdir=dist \
-          --ghc-options="-fPIC"
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
 
       - id: build-opts
         name: Set binary path name
