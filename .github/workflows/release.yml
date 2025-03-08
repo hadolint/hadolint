@@ -23,8 +23,10 @@ jobs:
         include:
         - os: ubuntu-latest
           target: linux-amd64
+          ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
         - os: ubuntu-24.04-arm
           target: linux-arm64
+          ghcup: https://downloads.haskell.org/~ghcup/aarch64-linux-ghcup
     steps:
       - name: Install system dependencies
         run: |
@@ -33,7 +35,7 @@ jobs:
 
       - name: Install ghcup
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > /usr/bin/ghcup
+          curl --proto '=https' --tlsv1.2 -sSf ${{ matrix.ghcup }}  > /usr/bin/ghcup
           chmod +x /usr/bin/ghcup
           echo "$HOME/.ghcup/bin" $GITHUB_PATH
         shell: bash
