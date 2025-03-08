@@ -19,11 +19,6 @@ source-repository head
   type:     git
   location: git@github.com:hadolint/hadolint.git
 
-flag static
-  description: Use static linking for the hadolint executable
-  manual:      True
-  default:     True
-
 library
   exposed-modules:
     Hadolint
@@ -204,9 +199,6 @@ executable hadolint
     , optparse-applicative  >=0.14.0
     , prettyprinter         >=1.7.0
     , text
-
-  if (flag(static) && !os(osx))
-    ld-options: -static -pthread
 
   default-language:   GHC2021
 
