@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache@v4.2.0
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build binaries
         if: matrix.target != 'linux-arm64'
@@ -57,7 +57,7 @@ jobs:
         if: matrix.target == 'linux-arm64'
         run: |
           mkdir dist
-          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist -fno-static
 
       - id: build-opts
         name: Set binary path name
