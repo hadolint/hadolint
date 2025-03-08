@@ -52,17 +52,11 @@ jobs:
           mkdir dist
           cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
 
-      - id: build-opts
-        name: Set binary path name
-        run: |
-          echo "binary_path=./dist/hadolint" >> $GITHUB_OUTPUT
-          echo "arch=${{ matrix.target }}" >> $GITHUB_OUTPUT
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hadolint-${{ steps.build-opts.outputs.arch }}
-          path: ${{ steps.build-opts.outputs.binary_path }}
+          name: hadolint-${{ matrix.target }}
+          path: "./dist/hadolint"
           retention-days: 3
 
   docker:
