@@ -31,7 +31,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
-          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
+          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static nodejs
 
       - name: Install ghcup
         run: |
@@ -45,6 +45,15 @@ jobs:
           ghcup install ghc   --force -i /usr/local     9.8.4
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
+
+      - name: Prepare container for linux-arm64-musl platform
+        if: ${{ matrix.target == 'linux-arm64' }}
+        run: |
+          # workaround to support javascript actions in alpine arm64.
+          # https://github.com/actions/runner/issues/801#issuecomment-2394425757
+          sed -i "s:ID=alpine:ID=NotpineForGHA:" /etc/os-release
+          cd /host/home/runner/runners/*/externals/
+          rm -rf node20/* && mkdir node20/bin && ln -s /usr/bin/node node20/bin/node
 
       - uses: actions/checkout@v4
 
