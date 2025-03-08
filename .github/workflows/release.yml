@@ -48,7 +48,6 @@ jobs:
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build binaries
-        if: matrix.target != 'linux-arm64'
         run: |
           mkdir dist
           cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
