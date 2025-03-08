@@ -133,6 +133,11 @@ jobs:
     strategy:
       matrix:
         distro: ["scratch", "alpine", "debian"]
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
