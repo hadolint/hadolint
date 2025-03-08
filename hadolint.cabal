@@ -205,7 +205,7 @@ executable hadolint
     , prettyprinter         >=1.7.0
     , text
 
-  if ((flag(static) && !os(osx)) && !arch(aarch64))
+  if (flag(static) && !os(osx))
     ld-options: -static -pthread
 
   default-language:   GHC2021

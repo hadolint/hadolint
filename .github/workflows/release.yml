@@ -13,8 +13,10 @@ on:
         required: true
 
 jobs:
-  build:
+  build-static:
+    name: Create Release for Linux (static)
     runs-on: ${{ matrix.os }}
+    container: alpine:3.21
     strategy:
       fail-fast: false
       matrix:
@@ -23,6 +25,63 @@ jobs:
           target: linux-amd64
         - os: ubuntu-24.04-arm
           target: linux-arm64
+    steps:
+      - name: Install system dependencies
+        run: |
+          apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
+          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static
+
+      - name: Install ghcup
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > /usr/bin/ghcup
+          chmod +x /usr/bin/ghcup
+          echo "$HOME/.ghcup/bin" $GITHUB_PATH
+        shell: bash
+
+      - name: Install GHC and cabal
+        run: |
+          ghcup install ghc   --force -i /usr/local     9.8.4
+          ghcup install cabal --force -i /usr/local/bin
+        shell: bash
+
+      - uses: actions/checkout@v4
+
+      - name: Update cabal cache
+        run: cabal update
+        shell: bash
+
+      - name: create ~/.local/bin
+        run: mkdir -p "$HOME/.local/bin"
+        shell: bash
+
+      - name: Install cabal dependencies
+        run: cabal build --only-dependencies --ghc-options='-split-sections -optl-static'
+        shell: bash
+
+      - name: Install
+        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static'
+        shell: bash
+
+      - name: Strip
+        run: strip ~/.local/bin/hadolint
+        shell: bash
+      
+      - run: echo "HOME=$HOME" >> $GITHUB_ENV
+        shell: bash
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ matrix.target }}
+          path: ~/.local/bin/hadolint
+          retention-days: 3
+
+  build-dynamic:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
         - os: macos-13
           target: macos-x86_64
         - os: macos-14
