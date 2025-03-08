@@ -68,6 +68,10 @@ jobs:
         run: mkdir -p "$HOME/.local/bin"
         shell: bash
 
+      
+      - run: echo "HOME=$HOME" >> $GITHUB_ENV
+        shell: bash
+
       - name: Freeze
         run: cabal freeze
 
@@ -88,10 +92,7 @@ jobs:
       - name: Strip
         run: strip ~/.local/bin/hadolint
         shell: bash
-      
-      - run: echo "HOME=$HOME" >> $GITHUB_ENV
-        shell: bash
-      
+       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
