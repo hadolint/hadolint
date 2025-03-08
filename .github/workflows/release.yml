@@ -153,15 +153,25 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-          if [ "${{ matrix.distro }}" = 'scratch' ]; then
-            echo "target=${{github.sha}}" >> $GITHUB_OUTPUT
-            echo "latest=latest" >> $GITHUB_OUTPUT
-            echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
-          else
-            echo "target=${{github.sha}}-${{matrix.distro}}" >> $GITHUB_OUTPUT
-            echo "latest=latest-${{ matrix.distro }}" >> $GITHUB_OUTPUT
-            echo "tag=${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
-          fi
+            if [ "${{ matrix.distro }}" = 'scratch' ]; then
+              echo "target=${{github.sha}}" >> $GITHUB_OUTPUT
+              echo "latest=latest" >> $GITHUB_OUTPUT
+
+              if [[ $GITHUB_REF == refs/tags/* ]]; then
+                echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
+              else
+                echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "target=${{github.sha}}-${{matrix.distro}}" >> $GITHUB_OUTPUT
+              echo "latest=latest-${{ matrix.distro }}" >> $GITHUB_OUTPUT
+
+              if [[ $GITHUB_REF == refs/tags/* ]]; then
+                echo "tag=${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
+              else
+                echo "tag=${{ github.event.inputs.release_version }}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
+              fi
+            fi
 
       - name: Push Docker Images
         run: |
