@@ -55,14 +55,13 @@ jobs:
       - id: build-opts
         name: Set binary path name
         run: |
-          echo "::set-output name=binary_path::./dist/hadolint"
-          echo "::set-output name=binary_os::${{ runner.os }}"
-          echo "::set-output name=arch::${{ matrix.target }}"
+          echo "binary_path=./dist/hadolint" >> $GITHUB_OUTPUT
+          echo "arch=${{ matrix.target }}" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hadolint-${{ steps.build-opts.outputs.binary_os }}-${{ steps.build-opts.outputs.arch }}
+          name: hadolint-${{ steps.build-opts.outputs.arch }}
           path: ${{ steps.build-opts.outputs.binary_path }}
           retention-days: 3
 
@@ -82,7 +81,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
-          name: hadolint-Linux-${{matrix.target}}
+          name: hadolint-linux-${{matrix.target}}
           path: ${{matrix.target}}
 
       - name: Login to GitHub Container Registry
@@ -135,7 +134,6 @@ jobs:
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
-    if: github.event_name != 'workflow_dispatch'
     needs: docker
     runs-on: ubuntu-latest
     strategy:
@@ -162,13 +160,13 @@ jobs:
         id: build-opts
         run: |
           if [ "${{ matrix.distro }}" = 'scratch' ]; then
-            echo ::set-output name=target::${{github.sha}}
-            echo ::set-output name=latest::latest
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
+            echo "target=${{github.sha}}" >> $GITHUB_OUTPUT
+            echo "latest=latest" >> $GITHUB_OUTPUT
+            echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=target::${{github.sha}}-${{matrix.distro}}
-            echo ::set-output name=latest::"latest-${{ matrix.distro }}"
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}"
+            echo "target=${{github.sha}}-${{matrix.distro}}" >> $GITHUB_OUTPUT
+            echo "latest=latest-${{ matrix.distro }}" >> $GITHUB_OUTPUT
+            echo "tag=${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Push Docker Images
@@ -224,46 +222,46 @@ jobs:
     - name: Download Linux x86
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Linux-amd64
-        path: artifacts/hadolint-Linux-x86_64
+        name: hadolint-linux-amd64
+        path: artifacts/hadolint-linux-x86_64
 
     - name: Download Linux arm64
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Linux-arm64
-        path: artifacts/hadolint-Linux-arm64
+        name: hadolint-linux-arm64
+        path: artifacts/hadolint-linux-arm64
 
     - name: Download Macos x86
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Darwin-x86_64
-        path: artifacts/hadolint-Darwin-x86_64
+        name: hadolint-macos-x86_64
+        path: artifacts/hadolint-macos-x86_64
 
     - name: Download Macos arm
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Darwin-arm64
-        path: artifacts/hadolint-Darwin-arm64
+        name: hadolint-macos-arm64
+        path: artifacts/hadolint-macos-arm64
 
     - name: Download Windows x86
       uses: actions/download-artifact@v4
       with:
-        name: hadolint-Windows-x86_64
-        path: artifacts/hadolint-Windows-x86_64
+        name: hadolint-windows-x86_64
+        path: artifacts/hadolint-windows-x86_64
 
     - name: Rename and Checksum
       run: |
-        mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
-        mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
-        mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
-        mv artifacts/hadolint-Darwin-arm64/hadolint hadolint-Darwin-arm64
-        mv artifacts/hadolint-Windows-x86_64/hadolint hadolint-Windows-x86_64.exe
+        mv artifacts/hadolint-linux-x86_64/hadolint hadolint-linux-x86_64
+        mv artifacts/hadolint-linux-arm64/hadolint hadolint-linux-arm64
+        mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
+        mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
+        mv artifacts/hadolint-windows-x86_64/hadolint hadolint-windows-x86_64.exe
 
-        sha256sum -b hadolint-Linux-x86_64 > hadolint-Linux-x86_64.sha256
-        sha256sum -b hadolint-Linux-arm64 > hadolint-Linux-arm64.sha256
-        sha256sum -b hadolint-Darwin-x86_64 > hadolint-Darwin-x86_64.sha256
-        sha256sum -b hadolint-Darwin-arm64 > hadolint-Darwin-arm64.sha256
-        sha256sum -b hadolint-Windows-x86_64.exe > hadolint-Windows-x86_64.exe.sha256
+        sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
+        sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
+        sha256sum -b hadolint--x86_64 > hadolint-macos-x86_64.sha256
+        sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
+        sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
 
     - name: Release
       uses: softprops/action-gh-release@v2
@@ -272,13 +270,13 @@ jobs:
         generate_release_notes: true
         fail_on_unmatched_files: true
         files: |
-          hadolint-Linux-x86_64
-          hadolint-Linux-x86_64.sha256
-          hadolint-Linux-arm64
-          hadolint-Linux-arm64.sha256
-          hadolint-Darwin-x86_64
-          hadolint-Darwin-x86_64.sha256
-          hadolint-Darwin-arm64
-          hadolint-Darwin-arm64.sha256
-          hadolint-Windows-x86_64.exe
-          hadolint-Windows-x86_64.exe.sha256
+          hadolint-linux-x86_64
+          hadolint-linux-x86_64.sha256
+          hadolint-linux-arm64
+          hadolint-linux-arm64.sha256
+          hadolint-macos-x86_64
+          hadolint-macos-x86_64.sha256
+          hadolint-macos-arm64
+          hadolint-macos-arm64.sha256
+          hadolint-windows-x86_64.exe
+          hadolint-windows-x86_64.exe.sha256
