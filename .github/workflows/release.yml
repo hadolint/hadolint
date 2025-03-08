@@ -119,7 +119,7 @@ jobs:
           retention-days: 3
 
   docker:
-    needs: build
+    needs: [build-static, build-dynamic]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -279,7 +279,7 @@ jobs:
 
   release:
     if: github.event_name != 'workflow_dispatch'
-    needs: [docker-release, build]
+    needs: [docker-release, build-static, build-dynamic]
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
