@@ -14,7 +14,7 @@ dl4005 = simpleRule code severity message check
   where
     code = "DL4005"
     severity = DLWarningC
-    message = "Use SHELL to change the default shell"
+    message = "Use SHELL to change the default shell."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands (Shell.cmdHasArgs "ln" ["/bin/sh"])) args
     check _ = True

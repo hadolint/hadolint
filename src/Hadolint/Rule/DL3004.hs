@@ -16,7 +16,7 @@ dl3004 = simpleRule code severity message check
     severity = DLErrorC
     message =
       "Do not use sudo as it leads to unpredictable behavior. Use a tool like\
-      \ gosu to enforce root"
+      \ gosu to enforce root."
     check (Run (RunArgs args _)) = foldArguments (not . usingProgram "sudo") args
     check _ = True
 {-# INLINEABLE dl3004 #-}

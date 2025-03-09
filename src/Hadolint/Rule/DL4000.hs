@@ -8,7 +8,7 @@ rule = simpleRule code severity message check
   where
     code = "DL4000"
     severity = DLErrorC
-    message = "MAINTAINER is deprecated"
+    message = "MAINTAINER is deprecated."
     check (Maintainer _) = False
     check _ = True
 {-# INLINEABLE rule #-}
