@@ -195,7 +195,7 @@ Available options:
                            ignore=DLxxxx`
   -t,--failure-threshold THRESHOLD
                            Exit with failure code only when rules with a
-                           severity equal to or above THRESHOLD are violated.
+                           severity above THRESHOLD are violated.
                            Accepted values: [error | warning | info | style |
                            ignore | none] (default: info)
 ```
