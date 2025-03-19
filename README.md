@@ -689,8 +689,8 @@ cabal test
 [github-actions]: https://travis-ci.org/hadolint/hadolint/actions
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
-[release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
-[release]: https://github.com/hadolint/hadolint/releases/latest
+[release-img]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml/badge.svg
+[release]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml
 [downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
