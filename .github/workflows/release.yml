@@ -27,14 +27,11 @@ jobs:
         - os: ubuntu-latest
           target: linux-amd64
           ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
-        - os: ubuntu-24.04-arm
-          target: linux-arm64
-          ghcup: https://downloads.haskell.org/~ghcup/aarch64-linux-ghcup
     steps:
       - name: Install system dependencies
         run: |
           apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
-          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static nodejs libc-dev libffi-dev musl-dev
+          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static libc-dev libffi-dev musl-dev
 
       - name: Install ghcup
         run: |
@@ -48,15 +45,6 @@ jobs:
           ghcup install ghc   --force -i /usr/local     9.2.8
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
-
-      - name: Prepare container for linux-arm64-musl platform
-        if: ${{ matrix.target == 'linux-arm64' }}
-        run: |
-          # workaround to support javascript actions in alpine arm64.
-          # https://github.com/actions/runner/issues/801#issuecomment-2394425757
-          sed -i "s:ID=alpine:ID=NotpineForGHA:" /etc/os-release
-          cd /host/home/runner/runners/*/externals/
-          rm -rf node20/* && mkdir node20/bin && ln -s /usr/bin/node node20/bin/node
 
       - uses: actions/checkout@v4
 
@@ -106,6 +94,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+        - os: ubuntu-24.04-arm
+          target: linux-arm64
         - os: macos-13
           target: macos-x86_64
         - os: macos-14
@@ -176,6 +166,7 @@ jobs:
 
       - name: Push Docker Image Scratch
         uses: docker/build-push-action@v6
+        if: matrix.target == 'amd64'
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -200,6 +191,7 @@ jobs:
 
       - name: Push Docker Image Alpine
         uses: docker/build-push-action@v6
+        if: matrix.target == 'amd64'
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -213,9 +205,6 @@ jobs:
   docker-release:
     needs: docker
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        distro: ["scratch", "alpine", "debian"]
     permissions:
       contents: read
       packages: write
@@ -241,65 +230,56 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-            if [ "${{ matrix.distro }}" = 'scratch' ]; then
-              echo "target=${{github.sha}}" >> $GITHUB_OUTPUT
-              echo "latest=latest" >> $GITHUB_OUTPUT
-
-              if [[ $GITHUB_REF == refs/tags/* ]]; then
-                echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
-              else
-                echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
-              fi
+            if [[ $GITHUB_REF == refs/tags/* ]]; then
+              echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
             else
-              echo "target=${{github.sha}}-${{matrix.distro}}" >> $GITHUB_OUTPUT
-              echo "latest=latest-${{ matrix.distro }}" >> $GITHUB_OUTPUT
-
-              if [[ $GITHUB_REF == refs/tags/* ]]; then
-                echo "tag=${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
-              else
-                echo "tag=${{ github.event.inputs.release_version }}-${{ matrix.distro }}" >> $GITHUB_OUTPUT
-              fi
+              echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
             fi
 
-      - name: Push Docker Images
+
+      - name: Push scratch image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
-          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
-          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-amd64
+          docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:latest
+          docker push ghcr.io/hadolint/hadolint:latest
+
+          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
+            docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-amd64
+            docker push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-amd64
+          fi
+
+      - name: Push alpine image
+        run: |
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-amd64
+          docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-amd64 ghcr.io/hadolint/hadolint:alpine
+          docker push ghcr.io/hadolint/hadolint:latest-alpine
+
+          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
+            docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+            docker push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+          fi
+
+      - name: Push debian image
+        run: |
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64
+          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
 
           docker manifest create \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
-          docker manifest create \
-            hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
+            ghcr.io/hadolint/hadolint:debian \
+            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64 \
+            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
+          
+          docker manifest push ghcr.io/hadolint/hadolint:latest-debian
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
-          docker manifest create \
-            hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
+            docker manifest create \
+              ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian \
+              ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64 \
+              ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
-          docker manifest create \
-            hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
+            docker manifest push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian
+          fi
+
 
   release:
     if: github.event_name != 'workflow_dispatch'
