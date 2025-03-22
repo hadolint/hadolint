@@ -86,7 +86,7 @@ jobs:
         shell: bash
 
       - name: Install
-        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --ghc-options='-split-sections -optl-static'
+        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --disable-shared --disable-executable-dynamic --ghc-options='-split-sections -optl-static -optl-pthread'
         shell: bash
 
       - name: Strip
