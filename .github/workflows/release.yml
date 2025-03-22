@@ -138,6 +138,11 @@ jobs:
     strategy:
       matrix:
         target: ["amd64", "arm64"]
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
