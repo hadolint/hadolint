@@ -205,6 +205,9 @@ jobs:
   docker-release:
     needs: docker
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        registry: ["ghcr.io/hadolint/hadolint", "hadolint/hadolint"]
     permissions:
       contents: read
       packages: write
@@ -239,45 +242,55 @@ jobs:
 
       - name: Push scratch image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-amd64
-          docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:latest
-          docker push ghcr.io/hadolint/hadolint:latest
+          docker pull ${{ matrix.registry }}:${{github.sha}}-amd64
+          docker pull ${{ matrix.registry }}:${{github.sha}}-debian-arm64
+
+          docker manifest create \
+            ${{ matrix.registry }}:latest \
+            ${{ matrix.registry }}:${{github.sha}}-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
+
+          docker manifest push ${{ matrix.registry }}:latest
 
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-amd64
-            docker push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-amd64
+            docker manifest create \
+              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
+              ${{ matrix.registry }}:${{github.sha}}-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-debian-arm64
+
+            docker manifest push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}
           fi
 
       - name: Push alpine image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-amd64
-          docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-amd64 ghcr.io/hadolint/hadolint:alpine
-          docker push ghcr.io/hadolint/hadolint:latest-alpine
+          docker pull ${{ matrix.registry }}:${{github.sha}}-alpine-amd64
+          docker tag ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 ${{ matrix.registry }}:alpine
+          docker push ${{ matrix.registry }}:latest-alpine
 
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker tag ghcr.io/hadolint/hadolint:${{github.sha}}-amd64 ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
-            docker push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+            docker tag ${{ matrix.registry }}:${{github.sha}}-amd64 ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+            docker push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
           fi
 
       - name: Push debian image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64
-          docker pull ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
+          docker pull ${{ matrix.registry }}:${{github.sha}}-debian-amd64
+          docker pull ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
           docker manifest create \
-            ghcr.io/hadolint/hadolint:debian \
-            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64 \
-            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
+            ${{ matrix.registry }}:latest-debian \
+            ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
           
-          docker manifest push ghcr.io/hadolint/hadolint:latest-debian
+          docker manifest push ${{ matrix.registry }}:latest-debian
 
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
             docker manifest create \
-              ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian \
-              ghcr.io/hadolint/hadolint:${{github.sha}}-debian-amd64 \
-              ghcr.io/hadolint/hadolint:${{github.sha}}-debian-arm64
+              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+              ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-            docker manifest push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}-debian
+            docker manifest push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian
           fi
 
 
