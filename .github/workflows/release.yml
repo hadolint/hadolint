@@ -45,7 +45,7 @@ jobs:
 
       - name: Install GHC and cabal
         run: |
-          ghcup install ghc   --force -i /usr/local     9.8.4
+          ghcup install ghc   --force -i /usr/local     9.4.8
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
 
