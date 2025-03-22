@@ -82,11 +82,11 @@ jobs:
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Install cabal dependencies
-        run: cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static'
+        run: cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static -fPIC'
         shell: bash
 
       - name: Install
-        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --enable-executable-static --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread'
+        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --enable-executable-static --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
         shell: bash
 
       - name: Strip
