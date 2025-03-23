@@ -685,8 +685,8 @@ cabal test
 
 <!-- References -->
 
-[github-actions-img]: https://github.com/hadolint/hadolint/workflows/Haskell%20Tests/badge.svg?branch=master
-[github-actions]: https://travis-ci.org/hadolint/hadolint/actions
+[github-actions-img]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml/badge.svg?branch=master
+[github-actions]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
 [release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
