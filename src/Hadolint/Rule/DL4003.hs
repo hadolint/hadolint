@@ -12,7 +12,7 @@ rule = customRule check (emptyState NoCmd)
     severity = DLWarningC
     message =
       "Multiple `CMD` instructions found. If you list more than one `CMD` then only the last \
-      \`CMD` will take effect"
+      \`CMD` will take effect."
 
     -- Reset the state each time we find a FROM
     check _ st From {} = st |> replaceWith NoCmd
