@@ -41,7 +41,15 @@
     },
     "format": {
       "type": "string",
-      "enum": ["tty", "json", "checkstyle", "codeclimate", "gitlab_codeclimate", "gnu", "codacy"],
+      "enum": [
+        "tty",
+        "json",
+        "checkstyle",
+        "codeclimate",
+        "gitlab_codeclimate",
+        "gnu",
+        "codacy"
+      ],
       "description": "Output format"
     },
     "strict-labels": {
@@ -500,6 +508,11 @@
             "const": "SC1087",
             "description": "Braces are required when expanding arrays, as in `${array[idx]}`.",
             "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1087"
+          },
+          {
+            "const": "SC1091",
+            "description": "Not following: Reasons include: file not found, no permissions, not included on the command line, not allowing shellcheck to follow files with -x, etc.",
+            "$comment": "https://github.com/koalaman/shellcheck/wiki/SC1091"
           },
           {
             "const": "SC1095",
