@@ -133,11 +133,12 @@ library
   build-depends:
       aeson
     , base                  >=4.8    && <5
+    , base16-bytestring
     , bytestring
     , Cabal
     , colourista
     , containers
-    , cryptonite
+    , cryptohash-sha1
     , data-default
     , deepseq               >=1.4.4
     , directory             >=1.3.0
