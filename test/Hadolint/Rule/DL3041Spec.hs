@@ -14,6 +14,10 @@ spec = do
       ruleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"
       ruleCatches "DL3041" "RUN microdnf install -y tomcat && microdnf clean all"
       onBuildRuleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"
+    it "not ok without dnf version pinning - package name with `-`" $ do
+      ruleCatches "DL3041" "RUN dnf install -y rpm-sign && dnf clean all"
+      ruleCatches "DL3041" "RUN microdnf install -y rpm-sign && microdnf clean all"
+      onBuildRuleCatches "DL3041" "RUN dnf install -y rpm-sign && dnf clean all"
     it "ok with dnf version pinning" $ do
       ruleCatchesNot "DL3041" "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
       ruleCatchesNot "DL3041" "RUN microdnf install -y tomcat-9.0.1 && microdnf clean all"
@@ -21,6 +25,13 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y tomcat-9.0.1 && microdnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf install tomcat"
+    it "ok with dnf version pinning - package name with `-`" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y rpm-sign-4.16.1.3 && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y rpm-sign-4.16.1.3 && microdnf clean all"
+      ruleCatchesNot "DL3041" "RUN notdnf install rpm-sign"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y rpm-sign-4.16.1.3 && dnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y rpm-sign-4.16.1.3 && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN notdnf install rpm-sign"
     it "not ok without dnf version pinning - modules" $ do
       ruleCatches "DL3041" "RUN dnf module install -y tomcat && dnf clean all"
       ruleCatches "DL3041" "RUN microdnf module install -y tomcat && microdnf clean all"
