@@ -179,8 +179,8 @@ jobs:
           target: base
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-${{matrix.target}}
+          # ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
 
       - name: Push Docker Image Debian
         uses: docker/build-push-action@v6
@@ -191,8 +191,8 @@ jobs:
           target: debian
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
+          # ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
 
       - name: Push Docker Image Alpine
         uses: docker/build-push-action@v6
@@ -204,15 +204,17 @@ jobs:
           target: alpine
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
+          # ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
     needs: docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        registry: ["ghcr.io/hadolint/hadolint", "hadolint/hadolint"]
+        registry:
+          - hadolint/hadolint
+        # - ghcr.io/hadolint/hadolint
     permissions:
       contents: read
       packages: write
