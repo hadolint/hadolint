@@ -285,7 +285,7 @@ jobs:
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
           docker buildx imagetools create \
-            --tag${{ matrix.registry }}:latest-debian \
+            --tag ${{ matrix.registry }}:latest-debian \
             ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
