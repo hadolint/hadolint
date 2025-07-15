@@ -222,17 +222,6 @@ jobs:
       id-token: write
     steps:
 
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v4
-        with:
-          daemon-config: |
-            {
-              "debug": true,
-              "features": {
-                "containerd-snapshotter": true
-              }
-            }
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -263,20 +252,16 @@ jobs:
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-amd64
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-          docker manifest create \
-            ${{ matrix.registry }}:latest \
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:latest \
             ${{ matrix.registry }}:${{github.sha}}-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-          docker manifest push ${{ matrix.registry }}:latest
-
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker manifest create \
-              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
               ${{ matrix.registry }}:${{github.sha}}-amd64 \
               ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-
-            docker manifest push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}
           fi
 
       - name: Push alpine image
@@ -295,20 +280,18 @@ jobs:
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-debian-amd64
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-          docker manifest create \
-            ${{ matrix.registry }}:latest-debian \
+          docker buildx imagetools create \
+            --tag${{ matrix.registry }}:latest-debian \
             ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
           docker manifest push ${{ matrix.registry }}:latest-debian
 
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker manifest create \
-              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
               ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
               ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-
-            docker manifest push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian
           fi
 
   release:
