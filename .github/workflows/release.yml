@@ -267,11 +267,15 @@ jobs:
       - name: Push alpine image
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-alpine-amd64
-          docker tag ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 ${{ matrix.registry }}:alpine
+          docker tag \
+            ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
+            ${{ matrix.registry }}:latest-alpine
           docker push ${{ matrix.registry }}:latest-alpine
 
           if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker tag ${{ matrix.registry }}:${{github.sha}}-amd64 ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+            docker tag \
+              ${{ matrix.registry }}:${{github.sha}}-amd64 \
+              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
             docker push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
           fi
 
