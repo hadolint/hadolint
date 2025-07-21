@@ -11,7 +11,7 @@ rule = customRule check (emptyState Set.empty)
   where
     code = "DL3006"
     severity = DLWarningC
-    message = "Always tag the version of an image explicitly"
+    message = "Always tag the version of an image explicitly."
 
     check line st (From from) =
       let newState = st |> modify (insertFromAlias from)

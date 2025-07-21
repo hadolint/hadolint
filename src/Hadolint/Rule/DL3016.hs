@@ -27,7 +27,7 @@ dl3016 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Pin versions in npm. Instead of `npm install <package>` use `npm install \
-      \<package>@<version>`"
+      \<package>@<version>`."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotToPinVersion) args
     check _ = True

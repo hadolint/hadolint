@@ -10,7 +10,7 @@ rule = simpleRule code severity message check
   where
     code = "DL3020"
     severity = DLErrorC
-    message = "Use COPY instead of ADD for files and folders"
+    message = "Use COPY instead of ADD for files and folders."
 
     check (Add (AddArgs srcs _) _) =
       and [isArchive src || isUrl src | SourcePath src <- toList srcs]

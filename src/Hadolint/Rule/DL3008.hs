@@ -18,7 +18,7 @@ dl3008 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
-      \install <package>=<version>`"
+      \install <package>=<version>`."
     check (Run (RunArgs args _)) = foldArguments (all versionFixed . aptGetPackages) args
     check _ = True
     versionFixed package = "=" `Text.isInfixOf` package || ("/" `Text.isInfixOf` package || ".deb" `Text.isSuffixOf` package)

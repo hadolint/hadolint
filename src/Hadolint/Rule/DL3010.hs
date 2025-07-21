@@ -22,7 +22,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3010"
     severity = DLInfoC
-    message = "Use `ADD` for extracting archives into an image"
+    message = "Use `ADD` for extracting archives into an image."
 
     check _ _ (From _) = emptyState Empty
     check line st (Copy (CopyArgs srcs tgt) (CopyFlags _ _ _ NoSource _)) =

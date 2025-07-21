@@ -18,7 +18,7 @@ dl3018 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Pin versions in apk add. Instead of `apk add <package>` \
-      \use `apk add <package>=<version>`"
+      \use `apk add <package>=<version>`."
     check (Run (RunArgs args _)) =
       foldArguments
         ( \as ->

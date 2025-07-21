@@ -15,7 +15,7 @@ dl3015 = simpleRule code severity message check
   where
     code = "DL3015"
     severity = DLInfoC
-    message = "Avoid additional packages by specifying `--no-install-recommends`"
+    message = "Avoid additional packages by specifying `--no-install-recommends`."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotNoInstallRecommends) args
     check _ = True

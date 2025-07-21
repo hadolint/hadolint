@@ -15,7 +15,7 @@ dl3014 = simpleRule code severity message check
   where
     code = "DL3014"
     severity = DLWarningC
-    message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`"
+    message = "Use the `-y` switch to avoid manual input `apt-get -y install <package>`."
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands forgotAptYesOption) args
     check _ = True

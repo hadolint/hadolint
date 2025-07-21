@@ -8,7 +8,7 @@ rule = customRule check (emptyState Nothing)
   where
     code = "DL3023"
     severity = DLErrorC
-    message = "`COPY --from` cannot reference its own `FROM` alias"
+    message = "`COPY --from` cannot reference its own `FROM` alias."
 
     check _ st f@(From _) = st |> replaceWith (Just f) -- Remember the last FROM instruction found
     check line st@(State _ (Just fromInstr)) (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource stageName) _))

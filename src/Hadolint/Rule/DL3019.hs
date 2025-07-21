@@ -19,7 +19,7 @@ dl3019 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use the `--no-cache` switch to avoid the need to use `--update` and \
-      \remove `/var/cache/apk/*` when done installing packages"
+      \remove `/var/cache/apk/*` when done installing packages."
     check (Run (RunArgs args flags)) = hasCacheMount flags
       || foldArguments (Shell.noCommands forgotCacheOption) args
     check _ = True
