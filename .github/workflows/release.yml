@@ -17,7 +17,7 @@ jobs:
     name: Create Release for Linux (static)
     runs-on: ${{ matrix.os }}
     container:
-      image: alpine:3.22
+      image: alpine:3.21
       volumes:
         - /:/host
     strategy:
