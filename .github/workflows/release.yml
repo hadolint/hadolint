@@ -24,9 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-latest
-          target: linux-amd64
-          ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
+          - os: ubuntu-latest
+            target: linux-amd64
+            ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
     steps:
       - name: Install system dependencies
         run: |
@@ -56,7 +56,6 @@ jobs:
         run: mkdir -p "$HOME/.local/bin"
         shell: bash
 
-      
       - run: echo "HOME=$HOME" >> $GITHUB_ENV
         shell: bash
 
@@ -80,7 +79,7 @@ jobs:
       - name: Strip
         run: strip ~/.local/bin/hadolint
         shell: bash
-       
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -94,14 +93,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-24.04-arm
-          target: linux-arm64
-        - os: macos-13
-          target: macos-x86_64
-        - os: macos-14
-          target: macos-arm64
-        - os: windows-latest
-          target: windows-x86_64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+          - os: macos-13
+            target: macos-x86_64
+          - os: macos-14
+            target: macos-arm64
+          - os: windows-latest
+            target: windows-x86_64
+
     steps:
       - uses: actions/checkout@v4
 
@@ -133,11 +133,15 @@ jobs:
           retention-days: 3
 
   docker:
-    needs: [build-static, build-dynamic]
+    needs:
+      - build-static
+      - build-dynamic
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: ["amd64", "arm64"]
+        target:
+          - amd64
+          - arm64
     permissions:
       contents: read
       packages: write
@@ -160,7 +164,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to DockerHub
@@ -180,7 +184,7 @@ jobs:
           push: true
           tags: |
             hadolint/hadolint:${{github.sha}}-${{matrix.target}}
-          # ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
 
       - name: Push Docker Image Debian
         uses: docker/build-push-action@v6
@@ -192,7 +196,7 @@ jobs:
           push: true
           tags: |
             hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
-          # ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
 
       - name: Push Docker Image Alpine
         uses: docker/build-push-action@v6
@@ -205,7 +209,7 @@ jobs:
           push: true
           tags: |
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
-          # ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
     needs: docker
@@ -214,12 +218,13 @@ jobs:
       matrix:
         registry:
           - hadolint/hadolint
-        # - ghcr.io/hadolint/hadolint
+          - ghcr.io/hadolint/hadolint
     permissions:
       contents: read
       packages: write
       attestations: write
       id-token: write
+
     steps:
 
       - name: Set up Docker Buildx
@@ -298,72 +303,75 @@ jobs:
 
   release:
     if: github.event_name != 'workflow_dispatch'
-    needs: [docker-release, build-static, build-dynamic]
+    needs:
+      - docker-release
+      - build-static
+      - build-dynamic
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
 
-    - name: Check out
-      uses: actions/checkout@v4
+      - name: Check out
+        uses: actions/checkout@v4
 
-    - name: Download Linux x86
-      uses: actions/download-artifact@v4
-      with:
-        name: hadolint-linux-amd64
-        path: artifacts/hadolint-linux-x86_64
+      - name: Download Linux x86
+        uses: actions/download-artifact@v4
+        with:
+          name: hadolint-linux-amd64
+          path: artifacts/hadolint-linux-x86_64
 
-    - name: Download Linux arm64
-      uses: actions/download-artifact@v4
-      with:
-        name: hadolint-linux-arm64
-        path: artifacts/hadolint-linux-arm64
+      - name: Download Linux arm64
+        uses: actions/download-artifact@v4
+        with:
+          name: hadolint-linux-arm64
+          path: artifacts/hadolint-linux-arm64
 
-    - name: Download Macos x86
-      uses: actions/download-artifact@v4
-      with:
-        name: hadolint-macos-x86_64
-        path: artifacts/hadolint-macos-x86_64
+      - name: Download Macos x86
+        uses: actions/download-artifact@v4
+        with:
+          name: hadolint-macos-x86_64
+          path: artifacts/hadolint-macos-x86_64
 
-    - name: Download Macos arm
-      uses: actions/download-artifact@v4
-      with:
-        name: hadolint-macos-arm64
-        path: artifacts/hadolint-macos-arm64
+      - name: Download Macos arm
+        uses: actions/download-artifact@v4
+        with:
+          name: hadolint-macos-arm64
+          path: artifacts/hadolint-macos-arm64
 
-    - name: Download Windows x86
-      uses: actions/download-artifact@v4
-      with:
-        name: hadolint-windows-x86_64
-        path: artifacts/hadolint-windows-x86_64
+      - name: Download Windows x86
+        uses: actions/download-artifact@v4
+        with:
+          name: hadolint-windows-x86_64
+          path: artifacts/hadolint-windows-x86_64
 
-    - name: Rename and Checksum
-      run: |
-        mv artifacts/hadolint-linux-x86_64/hadolint hadolint-linux-x86_64
-        mv artifacts/hadolint-linux-arm64/hadolint hadolint-linux-arm64
-        mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
-        mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
-        mv artifacts/hadolint-windows-x86_64/hadolint hadolint-windows-x86_64.exe
+      - name: Rename and Checksum
+        run: |
+          mv artifacts/hadolint-linux-x86_64/hadolint hadolint-linux-x86_64
+          mv artifacts/hadolint-linux-arm64/hadolint hadolint-linux-arm64
+          mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
+          mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
+          mv artifacts/hadolint-windows-x86_64/hadolint hadolint-windows-x86_64.exe
 
-        sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
-        sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
-        sha256sum -b hadolint--x86_64 > hadolint-macos-x86_64.sha256
-        sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
-        sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
+          sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
+          sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
+          sha256sum -b hadolint--x86_64 > hadolint-macos-x86_64.sha256
+          sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
+          sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
 
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        generate_release_notes: true
-        fail_on_unmatched_files: true
-        files: |
-          hadolint-linux-x86_64
-          hadolint-linux-x86_64.sha256
-          hadolint-linux-arm64
-          hadolint-linux-arm64.sha256
-          hadolint-macos-x86_64
-          hadolint-macos-x86_64.sha256
-          hadolint-macos-arm64
-          hadolint-macos-arm64.sha256
-          hadolint-windows-x86_64.exe
-          hadolint-windows-x86_64.exe.sha256
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            hadolint-linux-x86_64
+            hadolint-linux-x86_64.sha256
+            hadolint-linux-arm64
+            hadolint-linux-arm64.sha256
+            hadolint-macos-x86_64
+            hadolint-macos-x86_64.sha256
+            hadolint-macos-arm64
+            hadolint-macos-arm64.sha256
+            hadolint-windows-x86_64.exe
+            hadolint-windows-x86_64.exe.sha256

@@ -1,6 +1,6 @@
 cabal-version:      2.0
 name:               hadolint
-version:            3.0.0
+version:            2.13.1-beta3
 synopsis:           Dockerfile Linter JavaScript API
 description:
   A smarter Dockerfile linter that helps you build best practice Docker images.
