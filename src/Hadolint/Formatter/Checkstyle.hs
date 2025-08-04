@@ -7,7 +7,7 @@ where
 import qualified Control.Foldl as Foldl
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.Char (isAsciiLower, isAsciiUpper, isDigit, ord)
+import Data.Char (ord)
 import qualified Data.Text as Text
 import Data.Text.Encoding (encodeUtf8Builder)
 import Hadolint.Formatter.Format
@@ -78,8 +78,15 @@ escape = Text.concatMap doEscape
     doEscape c =
       if isOk c
         then Text.singleton c
-        else "&#" <> Text.pack (show (ord c)) <> ";"
-    isOk x = any (\check -> check x) [isAsciiUpper, isAsciiLower, isDigit, (`elem` [' ', '.', '/'])]
+        else xmlEscape c
+    isOk c = c `notElem` ['&', '<', '>', '\'', '\"']
+    xmlEscape c = case c of
+      '&' -> "&amp;"
+      '<' -> "&lt;"
+      '>' -> "&gt;"
+      '\'' -> "&apos;"
+      '\"' -> "&quot;"
+      _ -> "&#" <> Text.pack (show (ord c)) <> ";"
 
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Builder.Builder
 formatResult (Result filename errors checks) filePathInReport = header <> xmlBody <> footer
@@ -111,9 +118,9 @@ printResults results filePathInReport = do
     footer = "</checkstyle>"
     put result = Builder.hPutBuilder stdout (formatResult result filePathInReport)
 
-getFilePath :: Maybe FilePath -> Text.Text 
+getFilePath :: Maybe FilePath -> Text.Text
 getFilePath Nothing = ""
 getFilePath (Just filePath) = toText [filePath]
 
-toText :: [FilePath] -> Text.Text 
+toText :: [FilePath] -> Text.Text
 toText = foldMap Text.pack
