@@ -90,3 +90,14 @@ spec = do
     it "don't trigger when installing from .apk file" $ do
       ruleCatchesNot "DL3018" "RUN apk add mypackage-1.1.1.apk"
       onBuildRuleCatchesNot "DL3018" "RUN apk add mypackage-1.1.1.apk"
+    it "apk add version lower bound (>=) pinned regression" $
+      let dockerFile =
+            [ "RUN apk add --no-cache \\",
+              "flex>=2.6.4-r1 \\",
+              "libffi>=3.2.1-r3 \\",
+              "python2>=2.7.13-r1 \\",
+              "libbz2>=1.0.6-r5"
+            ]
+       in do
+            ruleCatchesNot "DL3018" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
