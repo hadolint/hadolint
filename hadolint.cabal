@@ -275,6 +275,7 @@ test-suite hadolint-unit-tests
     Hadolint.Rule.DL3059Spec
     Hadolint.Rule.DL3060Spec
     Hadolint.Rule.DL3061Spec
+    Hadolint.Rule.DL3062Spec
     Hadolint.Rule.DL4000Spec
     Hadolint.Rule.DL4001Spec
     Hadolint.Rule.DL4003Spec
