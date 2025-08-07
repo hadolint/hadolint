@@ -5,7 +5,7 @@ import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 
 -- | DL3062: Install only essential dependencies. Instead of `npm ci/install` use `npm --production ci/install`
-dl3062 :: Rule ParsedShell
+dl3062 :: Rule Shell.ParsedShell
 dl3062 = simpleRule code severity message check
   where
     code = "DL3062"
