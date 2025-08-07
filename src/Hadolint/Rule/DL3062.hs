@@ -3,6 +3,7 @@ module Hadolint.Rule.DL3062 (rule) where
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
+import qualified Data.Text as Text
 
 rule :: Rule Shell.ParsedShell
 rule = dl3062 <> onbuild dl3062
@@ -33,4 +34,5 @@ isNpmCi = Shell.cmdHasArgs "npm" ["ci"]
 
 hasProductionFlag :: Shell.Command -> Bool
 hasProductionFlag cmd =
-  Shell.hasFlag "--production" cmd || Shell.hasFlag "--omit=dev" cmd
+  any (`elem` Shell.getArgs cmd) ["--production"] ||
+  any (\arg -> "--omit=dev" `Text.isPrefixOf` arg) (Shell.getArgs cmd)
