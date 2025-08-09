@@ -9,14 +9,14 @@ rule :: Rule Shell.ParsedShell
 rule = dl3062 <> onbuild dl3062
 {-# INLINEABLE rule #-}
 
--- | DL3062: Install only essential dependencies. Instead of `npm ci/install` use `npm --production ci/install`
+-- | DL3062: Install only production dependencies. Use `npm ci --production` or `npm install --production`
 dl3062 :: Rule Shell.ParsedShell
 dl3062 = simpleRule code severity message check
   where
     code = "DL3062"
     severity = DLWarningC
     message =
-      "Install only essential dependencies. Instead of `npm ci/install` use `npm --production ci/install`"
+      "Install only production dependencies. Use `npm ci --production` or `npm install --production`"
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands missingProductionFlag) args
     check _ = True
