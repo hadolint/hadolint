@@ -9,14 +9,14 @@ rule :: Rule Shell.ParsedShell
 rule = dl3062 <> onbuild dl3062
 {-# INLINEABLE rule #-}
 
--- | DL3062: Install only production dependencies. Use `npm ci --production` or `npm install --production`
+-- | DL3062: Install only production dependencies for npm, yarn, and pnpm package managers
 dl3062 :: Rule Shell.ParsedShell
 dl3062 = simpleRule code severity message check
   where
     code = "DL3062"
     severity = DLWarningC
     message =
-      "Install only production dependencies. Use `npm ci --production` or `npm install --production`"
+      "Install only production dependencies. Use `npm ci --production`, `yarn install --production`, or `pnpm install --production`"
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands missingProductionFlag) args
     check _ = True
@@ -24,15 +24,31 @@ dl3062 = simpleRule code severity message check
 
 missingProductionFlag :: Shell.Command -> Bool
 missingProductionFlag cmd =
-  (isNpmInstall cmd || isNpmCi cmd) && not (hasProductionFlag cmd)
+  (isNpmInstallOrCi cmd && not (hasNpmProductionFlag cmd)) ||
+  (isYarnInstall cmd && not (hasYarnProductionFlag cmd)) ||
+  (isPnpmInstallOrCi cmd && not (hasPnpmProductionFlag cmd))
 
-isNpmInstall :: Shell.Command -> Bool
-isNpmInstall = Shell.cmdHasArgs "npm" ["install"]
+-- npm helpers
+isNpmInstallOrCi :: Shell.Command -> Bool
+isNpmInstallOrCi cmd = Shell.cmdHasArgs "npm" ["install"] cmd || Shell.cmdHasArgs "npm" ["ci"] cmd
 
-isNpmCi :: Shell.Command -> Bool
-isNpmCi = Shell.cmdHasArgs "npm" ["ci"]
-
-hasProductionFlag :: Shell.Command -> Bool
-hasProductionFlag cmd =
-  any (`elem` Shell.getArgs cmd) ["--production"] ||
+hasNpmProductionFlag :: Shell.Command -> Bool
+hasNpmProductionFlag cmd =
+  any (`elem` Shell.getArgs cmd) ["--production", "--only=production"] ||
   any (\arg -> "--omit=dev" `Text.isPrefixOf` arg) (Shell.getArgs cmd)
+
+-- yarn helpers
+isYarnInstall :: Shell.Command -> Bool
+isYarnInstall = Shell.cmdHasArgs "yarn" ["install"]
+
+hasYarnProductionFlag :: Shell.Command -> Bool
+hasYarnProductionFlag cmd =
+  any (`elem` Shell.getArgs cmd) ["--production", "--prod"]
+
+-- pnpm helpers
+isPnpmInstallOrCi :: Shell.Command -> Bool
+isPnpmInstallOrCi cmd = Shell.cmdHasArgs "pnpm" ["install"] cmd || Shell.cmdHasArgs "pnpm" ["ci"] cmd
+
+hasPnpmProductionFlag :: Shell.Command -> Bool
+hasPnpmProductionFlag cmd =
+  any (`elem` Shell.getArgs cmd) ["--production", "--prod", "--only=production"]
