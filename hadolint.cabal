@@ -163,6 +163,7 @@ library
     , time
     , timerep               >=2.0
     , void
+    , xml-conduit
 
   default-language:   GHC2021
 
