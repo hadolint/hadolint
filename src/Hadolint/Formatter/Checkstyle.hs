@@ -74,7 +74,7 @@ toFile results filePathInReport =
     }
   where
     filepath = if null filePathInReport then filename results else getFilePath filePathInReport
-    filename (Result {fileName=fn}) = fn
+    filename Result {fileName=fn} = fn
 
 renderResults ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
@@ -82,11 +82,11 @@ renderResults ::
 renderResults results filePathInReport = XML.Element
   { elementName = "checkstyle",
     elementAttributes = Map.fromList [("version", "4.3")],
-    elementNodes = Maybe.catMaybes $ map maybeFile ( toList results )
+    elementNodes = Maybe.mapMaybe maybeFile ( toList results )
   }
   where
     maybeFile r = if isEmpty r then Nothing else Just $ toFile r filePathInReport
-    isEmpty (Result {errors=e, checks=c}) = null e && null c
+    isEmpty Result {errors=e, checks=c} = null e && null c
 
 printResults ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
