@@ -20,6 +20,8 @@ jobs:
       image: alpine:3.21
       volumes:
         - /:/host
+        - /opt:/opt:rw,rshared
+        - /opt:/__e/node20:ro,rshared
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +29,21 @@ jobs:
           - os: ubuntu-latest
             target: linux-amd64
             ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
+            ghc: 9.10.1
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+            ghcup: https://downloads.haskell.org/~ghcup/aarch64-linux-ghcup
+            ghc: 9.10.1
+
     steps:
+
+      - name: Workaround to make checkout work on Alpine arm64
+        run: |
+          sed -i "/^ID=/s/alpine/NotpineForGHA/" /etc/os-release
+          apk add nodejs --update-cache
+          mkdir /opt/bin
+          ln -sf /usr/bin/node /opt/bin/node
+
       - name: Install system dependencies
         run: |
           apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
@@ -42,7 +58,7 @@ jobs:
 
       - name: Install GHC and cabal
         run: |
-          ghcup install ghc   --force -i /usr/local     9.2.8
+          ghcup install ghc   --force -i /usr/local ${{ matrix.ghc }}
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
 
@@ -68,16 +84,12 @@ jobs:
           path: ~/.cabal/store
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
-      - name: Install cabal dependencies
-        run: cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static -fPIC'
-        shell: bash
-
-      - name: Install
-        run: cabal install --installdir="$HOME/.local/bin" --install-method=copy --overwrite-policy=always --enable-executable-static --disable-executable-dynamic --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
-        shell: bash
-
-      - name: Strip
-        run: strip ~/.local/bin/hadolint
+      - name: Build
+        run: |
+          cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static -fPIC'
+          cabal build --enable-executable-static --disable-executable-dynamic --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
+          mv "$(cabal list-bin hadolint)" ~/.local/bin/hadolint
+          strip ~/.local/bin/hadolint
         shell: bash
 
       - name: Upload Artifact
@@ -93,8 +105,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04-arm
-            target: linux-arm64
           - os: macos-13
             target: macos-x86_64
           - os: macos-14
@@ -175,7 +185,6 @@ jobs:
 
       - name: Push Docker Image Scratch
         uses: docker/build-push-action@v6
-        if: matrix.target == 'amd64'
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -200,7 +209,6 @@ jobs:
 
       - name: Push Docker Image Alpine
         uses: docker/build-push-action@v6
-        if: matrix.target == 'amd64'
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -246,7 +254,7 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-            if [[ $GITHUB_REF == refs/tags/* ]]; then
+            if [[ $GITHUB_REF == refs/tags/* ]] ; then
               echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
             else
               echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
@@ -255,51 +263,53 @@ jobs:
       - name: Push scratch image
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-amd64
-          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-arm64
+
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:latest \
+              ${{ matrix.registry }}:${{github.sha}}-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-arm64
+          fi
 
           docker buildx imagetools create \
-            --tag ${{ matrix.registry }}:latest \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
             ${{ matrix.registry }}:${{github.sha}}-amd64 \
-            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-
-          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker buildx imagetools create \
-              --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
-              ${{ matrix.registry }}:${{github.sha}}-amd64 \
-              ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-          fi
+            ${{ matrix.registry }}:${{github.sha}}-arm64
 
       - name: Push alpine image
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-alpine-amd64
-          docker tag \
-            ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
-            ${{ matrix.registry }}:latest-alpine
-          docker push ${{ matrix.registry }}:latest-alpine
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
-          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
-            docker tag \
-              ${{ matrix.registry }}:${{github.sha}}-amd64 \
-              ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
-            docker push ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine-amd64
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:latest-alpine \
+              ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
           fi
+
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine \
+            ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
       - name: Push debian image
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-debian-amd64
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-          docker buildx imagetools create \
-            --tag ${{ matrix.registry }}:latest-debian \
-            ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
-            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-
-          if [ -n "${{ steps.build-opts.outputs.tag }}" ]; then
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
             docker buildx imagetools create \
-              --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+              --tag ${{ matrix.registry }}:latest-debian \
               ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
               ${{ matrix.registry }}:${{github.sha}}-debian-arm64
           fi
+
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+            ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
   release:
     if: github.event_name != 'workflow_dispatch'
@@ -354,7 +364,7 @@ jobs:
 
           sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
           sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
-          sha256sum -b hadolint--x86_64 > hadolint-macos-x86_64.sha256
+          sha256sum -b hadolint-macos-x86_64 > hadolint-macos-x86_64.sha256
           sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
           sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
 
