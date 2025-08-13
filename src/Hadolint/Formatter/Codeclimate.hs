@@ -7,9 +7,11 @@ module Hadolint.Formatter.Codeclimate
 where
 
 import qualified Control.Foldl as Foldl
-import Crypto.Hash (Digest, SHA1 (..), hash)
+import qualified Crypto.Hash.SHA1 as SHA1
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Base16 as B16
+import Data.ByteString.Char8 as Char8
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
@@ -29,7 +31,7 @@ data Issue = Issue
 
 data FingerprintIssue = FingerprintIssue
   { issue :: Issue,
-    fingerprint :: Digest SHA1
+    fingerprint :: ByteString
   }
 
 data Location
@@ -68,7 +70,7 @@ instance ToJSON FingerprintIssue where
   toJSON FingerprintIssue {..} =
     object
       [ "type" .= ("issue" :: Text.Text),
-        "fingerprint" .= show fingerprint,
+        "fingerprint" .= Char8.unpack fingerprint,
         "check_name" .= checkName issue,
         "description" .= description issue,
         "categories" .= (["Bug Risk"] :: [Text.Text]),
@@ -107,8 +109,8 @@ severityText severity =
     DLStyleC -> "minor"
     _ -> ""
 
-generateFingerprint :: Issue -> Digest SHA1
-generateFingerprint = hash . B.toStrict . encode
+generateFingerprint :: Issue -> ByteString
+generateFingerprint = B16.encode . SHA1.hashlazy . encode
 
 issueToFingerprintIssue :: Issue -> FingerprintIssue
 issueToFingerprintIssue i =
