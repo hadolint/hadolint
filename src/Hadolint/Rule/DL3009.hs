@@ -28,7 +28,7 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3009"
     severity = DLInfoC
-    message = "Delete the apt-get lists after installing something"
+    message = "Delete the apt lists (/var/lib/apt/lists) after installing something"
 
     check line st (From from) = st |> modify (rememberStage line from)
     check line st (Run (RunArgs args flags))
@@ -76,8 +76,12 @@ forgotToCleanup args
       any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
 
 hasUpdate :: Shell.ParsedShell -> Bool
-hasUpdate args =
-  any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.presentCommands args)
+hasUpdate args = any isPackageUpdate (Shell.presentCommands args)
+  where
+    isPackageUpdate cmd =
+      Shell.cmdHasArgs "apt" ["update"] cmd ||
+      Shell.cmdHasArgs "apt-get" ["update"] cmd ||
+      Shell.cmdHasArgs "aptitude" ["update"] cmd
 
 disabledDockerClean :: Shell.ParsedShell -> Bool
 disabledDockerClean args
