@@ -11,7 +11,7 @@ import qualified Crypto.Hash.SHA1 as SHA1
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Base16 as B16
-import Data.ByteString (ByteString)
+import Data.ByteString.Char8 as Char8
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
@@ -70,7 +70,7 @@ instance ToJSON FingerprintIssue where
   toJSON FingerprintIssue {..} =
     object
       [ "type" .= ("issue" :: Text.Text),
-        "fingerprint" .= show fingerprint,
+        "fingerprint" .= Char8.unpack fingerprint,
         "check_name" .= checkName issue,
         "description" .= description issue,
         "categories" .= (["Bug Risk"] :: [Text.Text]),
