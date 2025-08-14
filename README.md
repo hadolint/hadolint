@@ -48,17 +48,54 @@ hadolint --ignore DL3003 --ignore DL3006 <Dockerfile> # exclude specific rules
 hadolint --trusted-registry my-company.com:500 <Dockerfile> # Warn when using untrusted FROM images
 ```
 
-Docker comes to the rescue, providing an easy way how to run `hadolint` on most
-platforms.
+### Docker
+
+Docker comes to the rescue, providing an easy way how to run `hadolint` on most platforms.
+
 Just pipe your `Dockerfile` to `docker run`:
 
 ```bash
-docker run --rm -i hadolint/hadolint < Dockerfile
+# docker run --rm -i -v <local Dockerfile relative path>:<container Dockerfile destination path> hadolint/hadolint hadolint <container Dockerfile destination path>
+docker run --rm -i -v ~/lab/docker/nginx/Dockerfile:/mnt/Dockerfile hadolint/hadolint hadolint /mnt/Dockerfile
 # OR
-docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+# docker run --rm -i -v <local Dockerfile relative path>:<container Dockerfile destination path> ghcr.io/hadolint/hadolint hadolint <container Dockerfile destination path>
+docker run --rm -i -v ~/lab/docker/nginx/Dockerfile:/mnt/Dockerfile ghcr.io/hadolint/hadolint hadolint /mnt/Dockerfile
 ```
 
-or using [Podman](https://podman.io/):
+Alternatively, you can add the following to your `.bashrc` or `.zshrc` file:
+
+```bash
+hadolint() {
+  if [ ! -f "$1" ]; then
+    printf "\nThe specified file '%s' was not found.\n\n" "$1"
+    return 1
+  fi
+
+  dockerFile=$(realpath "$1"); shift
+  dockerImage="hadolint/hadolint" # or "ghcr.io/hadolint/hadolint"
+
+  docker run --rm -v "$dockerFile":/mnt/Dockerfile "$dockerImage" hadolint "$@" /mnt/Dockerfile \
+    && printf "\nNice! No problems were found!\n\n" && return 0
+
+  return 1
+}
+```
+
+And then simply run:
+
+```bash
+hadolint path/to/Dockerfile
+```
+
+or, additionally add parameters at the end of the command line, as follows:
+
+```bash
+hadolint ~/lab/docker/nginx/Dockerfile --ignore DL3003
+```
+
+### Podman
+
+Using [Podman](https://podman.io/):
 
 ```bash
 podman run --rm -i docker.io/hadolint/hadolint < Dockerfile
