@@ -4,8 +4,7 @@ import qualified Data.Text as Text
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
-import Data.List.Split (splitOn)
-import Data.Char (isDigit)
+import Data.Char (isDigit, isAsciiUpper, isAsciiLower)
 
 rule :: Rule Shell.ParsedShell
 rule = dl3041 <> onbuild dl3041
@@ -36,14 +35,12 @@ dnfPackages args =
     ]
 
 packageVersionFixed :: Text.Text -> Bool
-packageVersionFixed package =
-  let parts = splitOn "-" (Text.unpack package)
-      numParts = length parts
-  in  if numParts <= 1
-      then False  -- No dashes, definitely no version
-      else if ".rpm" `Text.isSuffixOf` package
-           then True -- rpm files always have a version
-           else isVersionLike (map Text.pack $ drop 1 parts)
+packageVersionFixed package
+  | length parts <= 1 = False  -- No dashes, definitively no version
+  | ".rpm" `Text.isSuffixOf` package = True  -- rpm files always have a version
+  | otherwise = isVersionLike $ drop 1 parts
+  where
+    parts = Text.splitOn "-" package
 
 isVersionLike :: [Text.Text] -> Bool
 isVersionLike parts =
@@ -57,9 +54,7 @@ isVersionLike parts =
                                  Nothing -> False -- Empty Text
 
 isVersionChar :: Char -> Bool
-isVersionChar c = isDigit c || isAlpha c || c `elem` ['.', '~', '^', '_']
-  where
-    isAlpha char = (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z')
+isVersionChar c = isDigit c || isAsciiUpper c || isAsciiLower c || c `elem` ['.', '~', '^', '_']
 
 dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =
