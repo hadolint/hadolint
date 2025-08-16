@@ -30,8 +30,8 @@ printResults format nocolor filePathInReport allResults =
   case format of
     Checkstyle -> FormatCheckstyle.printResults allResults filePathInReport
     Codacy -> FormatCodacy.printResults allResults
-    CodeclimateJson -> FormatCodeclimate.printResults allResults
-    GitLabCodeclimateJson -> FormatCodeclimate.printGitLabResults allResults
+    CodeclimateJson -> FormatCodeclimate.printResults allResults filePathInReport
+    GitLabCodeclimateJson -> FormatCodeclimate.printGitLabResults allResults filePathInReport
     Gnu -> FormatGnu.printResults allResults
     Json -> FormatJson.printResults allResults
     Sarif -> FormatSarif.printResults allResults
