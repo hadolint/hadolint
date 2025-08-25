@@ -62,7 +62,7 @@ jobs:
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Update cabal cache
         run: cabal update
@@ -113,7 +113,7 @@ jobs:
             target: windows-x86_64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - id: setup-haskell
         name: Set up Haskell
@@ -159,7 +159,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -322,7 +322,7 @@ jobs:
     steps:
 
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download Linux x86
         uses: actions/download-artifact@v4
