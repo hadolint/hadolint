@@ -240,6 +240,26 @@ pipelines:
           - hadolint Dockerfile
 ```
 
+### Azure Devops Pipelines
+
+You can add an hadolint container to your pipeline:
+
+``` yaml
+resources:
+  containers:
+  - container: hadolint
+    image: hadolint/hadolint:latest-debian
+```
+
+Then go with the linter step:
+
+``` yaml
+steps:
+  - script: hadolint Dockerfile
+    target:
+      container: hadolint
+```
+
 ## Editors
 
 Using hadolint in your terminal is not always the most convinient way, but it
