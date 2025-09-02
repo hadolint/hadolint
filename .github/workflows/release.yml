@@ -361,7 +361,7 @@ jobs:
           mv artifacts/hadolint-linux-arm64/hadolint hadolint-linux-arm64
           mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
           mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
-          mv artifacts/hadolint-windows-x86_64/hadolint hadolint-windows-x86_64.exe
+          mv artifacts/hadolint-windows-x86_64/hadolint.exe hadolint-windows-x86_64.exe
 
           sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
           sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
