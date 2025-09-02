@@ -374,6 +374,7 @@ jobs:
         with:
           generate_release_notes: true
           fail_on_unmatched_files: true
+          draft: true
           files: |
             hadolint-linux-x86_64
             hadolint-linux-x86_64.sha256
