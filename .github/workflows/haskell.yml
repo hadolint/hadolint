@@ -7,7 +7,8 @@ on:
     branches:
       - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
     paths:
       - '.github/workflows/haskell.yml'
       - 'cabal.project'
@@ -24,44 +25,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-latest
+          - os: ubuntu-latest
 
     steps:
 
-    - name: Check out
-      uses: actions/checkout@v5
+      - name: Check out
+        uses: actions/checkout@v5
 
 
-    - name: Setup Haskell
-      id: setup-haskell-cabal
-      uses: haskell-actions/setup@v2
-      with:
-          ghc-version: 9.8
+      - name: Setup Haskell
+        id: setup-haskell-cabal
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.10.2
 
+      - name: Update Cabal Index
+        run: cabal update
 
-    - name: Update Cabal Index
-      run: cabal update
+      - name: Freeze
+        run: cabal freeze
 
-    - name: Freeze
-      run: cabal freeze
+      - name: Cache store
+        uses: actions/cache@v4.2.4
+        with:
+          path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
-    # cache
+      - name: Build
+        run: |
+          cabal configure --enable-tests
+          cabal build
 
-    - name: Cache store
-      uses: actions/cache@v4.2.4
-      with:
-        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-        key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
-
-    #actions
-
-    - name: Build
-      run: |
-        cabal configure --enable-tests
-        cabal build
-
-    - name: Test
-      run: |
-        cabal test all --test-show-details=direct
-      env:
-        HSPEC_OPTIONS: --color
+      - name: Test
+        run: |
+          cabal test all --test-show-details=direct
+        env:
+          HSPEC_OPTIONS: --color

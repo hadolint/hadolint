@@ -1,6 +1,6 @@
 cabal-version:      2.0
 name:               hadolint
-version:            2.13.1-beta3
+version:            2.13.1
 synopsis:           Dockerfile Linter JavaScript API
 description:
   A smarter Dockerfile linter that helps you build best practice Docker images.
@@ -131,40 +131,40 @@ library
     -optP-Wno-nonportable-include-path -flate-dmd-anal
 
   build-depends:
-      aeson
-    , base                  >=4.8    && <5
-    , base16-bytestring
-    , bytestring
-    , Cabal
-    , colourista
-    , containers
-    , cryptohash-sha1
-    , data-default
-    , deepseq               >=1.4.4
-    , directory             >=1.3.0
-    , email-validate
-    , filepath
-    , foldl
-    , gitrev                >=1.3.1
-    , HsYAML
-    , ilist
-    , language-docker       >=14.0.1 && <15
-    , megaparsec            >=9.0.0
-    , mtl
-    , network-uri
-    , optparse-applicative  >=0.14.0
-    , parallel
-    , parsec                >=3.1.14
-    , prettyprinter         >=1.7.0
-    , semver
-    , ShellCheck            >=0.8.0
-    , spdx
-    , split                 >=0.2
-    , text
-    , time
-    , timerep               >=2.0
-    , void
-    , xml-conduit
+      aeson                 >=2.2.3    && <2.3
+    , base                  >=4.20.1   && <5
+    , base16-bytestring     >=1.0.2    && <1.1
+    , bytestring            >=0.12.2   && <0.13
+    , Cabal                 >=3.12.1   && <3.13
+    , colourista            >=0.1.0    && <0.2
+    , containers            >=0.7      && <0.8
+    , cryptohash-sha1       >=0.11.101 && <0.12
+    , data-default          >=0.8.0    && <0.9
+    , deepseq               >=1.5.0    && <1.6
+    , directory             >=1.3.8    && <1.4
+    , email-validate        >=2.3.2    && <2.4
+    , filepath              >=1.5.4    && <1.6
+    , foldl                 >=1.4.18   && <1.5
+    , gitrev                >=1.3.1    && <1.4
+    , HsYAML                >=0.2.1    && <0.3
+    , ilist                 >=0.3.1    && <0.4
+    , language-docker       >=14.0.1   && <15
+    , megaparsec            >=9.0.0    && <9.8
+    , mtl                   >=2.3.1    && <2.4
+    , network-uri           >=2.6.4    && <2.7
+    , optparse-applicative  >=0.19.0   && <0.20
+    , parallel              >=3.2.2    && <3.3
+    , parsec                >=3.1.18   && <3.2
+    , prettyprinter         >=1.7.1    && <1.8
+    , semver                >=0.4.0    && <0.5
+    , ShellCheck            >=0.11.0   && <0.12
+    , spdx                  >=1.1      && <1.2
+    , split                 >=0.2.5    && <0.3
+    , text                  >=2.1.2    && <2.2
+    , time                  >=1.12.2   && <1.13
+    , timerep               >=2.1.0    && <2.2
+    , void                  >=0.7.3    && <0.8
+    , xml-conduit           >=1.10.0   && <1.11
 
   default-language:   GHC2021
 
@@ -188,19 +188,19 @@ executable hadolint
   ghc-options:
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wredundant-constraints
-    -optP-Wno-nonportable-include-path -flate-dmd-anal -O2 -threaded
+    -optP-Wno-nonportable-include-path -flate-dmd-anal -threaded
     -rtsopts "-with-rtsopts=-N5 -A4m"
 
   build-depends:
-      base                  >=4.8    && <5
-    , containers
-    , data-default
+      base                  >=4.20.1    && <5
+    , containers            >=0.7       && <0.8
+    , data-default          >=0.8.0     && <0.9
     , hadolint
-    , language-docker       >=14.0.1 && <15
-    , megaparsec            >=9.0.0
-    , optparse-applicative  >=0.14.0
-    , prettyprinter         >=1.7.0
-    , text
+    , language-docker       >=14.0.1    && <15
+    , megaparsec            >=9.7.0     && <9.8
+    , optparse-applicative  >=0.19.0    && <0.20
+    , prettyprinter         >=1.7.1     && <1.8
+    , text                  >=2.1.2     && <2.2
 
   default-language:   GHC2021
 
@@ -313,8 +313,8 @@ test-suite hadolint-unit-tests
   build-tool-depends: hspec-discover:hspec-discover >=2 && <3
   build-depends:
       aeson
-    , base                  >=4.8    && <5
-    , bytestring            >=0.10
+    , base
+    , bytestring
     , containers
     , data-default
     , foldl
@@ -322,12 +322,12 @@ test-suite hadolint-unit-tests
     , hspec                 >=2.8.3
     , HsYAML
     , HUnit                 >=1.2
-    , language-docker       >=14.0.1 && <15
-    , megaparsec            >=9.0.0
-    , optparse-applicative  >=0.14.0
-    , ShellCheck            >=0.8.0
+    , language-docker
+    , megaparsec
+    , optparse-applicative
+    , ShellCheck
     , silently
-    , split                 >=0.2
+    , split
     , text
 
   default-language:   GHC2021
