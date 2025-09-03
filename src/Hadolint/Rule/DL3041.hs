@@ -54,7 +54,11 @@ isVersionLike parts =
                                  Nothing -> False -- Empty Text
 
 isVersionChar :: Char -> Bool
-isVersionChar c = isDigit c || isAsciiUpper c || isAsciiLower c || c `elem` ['.', '~', '^', '_']
+isVersionChar c =
+  isDigit c
+    || isAsciiUpper c
+    || isAsciiLower c
+    || c `elem` ['.', '~', '^', '_', ':']
 
 dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =
