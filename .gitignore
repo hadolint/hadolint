@@ -8,6 +8,7 @@ stack.yaml.lock
 
 #cabal
 dist-newstyle
+dist
 
 # travis wait is generating log in PWD
 travis_wait_*.log
