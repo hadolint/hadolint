@@ -6,7 +6,6 @@ import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
-import Data.Set
 
 data Acc
   = Acc

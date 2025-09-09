@@ -23,7 +23,7 @@ isCacheOrTmpfsMountWith _ _ = False
 -- Returns true if the given RunFlags contain a mount of type cache or tmpfs
 hasCacheOrTmpfsMount :: RunFlags -> Bool
 hasCacheOrTmpfsMount RunFlags { mount } =
-  not ( null $ Set.filter (isCacheOrTmpfsMount) mount)
+  not ( null $ Set.filter isCacheOrTmpfsMount mount)
 
 isCacheOrTmpfsMount :: RunMount -> Bool
 isCacheOrTmpfsMount (CacheMount _) = True
