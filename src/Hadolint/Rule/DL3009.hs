@@ -102,11 +102,12 @@ disabledDockerClean args
 
 hasCacheDirectory :: Text.Text -> RunFlags -> Bool
 hasCacheDirectory dir RunFlags { mount } =
-  not ( null $ Set.filter (isCacheMount dir) mount)
+  not ( null $ Set.filter (isCacheOrTmpfsMount dir) mount)
 
-isCacheMount :: Text.Text -> RunMount -> Bool
-isCacheMount dir (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
-isCacheMount _ _ = False
+isCacheOrTmpfsMount :: Text.Text -> RunMount -> Bool
+isCacheOrTmpfsMount dir (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
+isCacheOrTmpfsMount dir (TmpfsMount TmpOpts {tTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
+isCacheOrTmpfsMount _ _ = False
 
 -- | Even though dockerfiles without a FROM are not valid, we still want to provide some feedback for this rule
 -- so we pretend there is a base image at the start of the file if there is none

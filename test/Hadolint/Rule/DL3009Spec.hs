@@ -132,6 +132,50 @@ spec = do
             ruleCatches "DL3009" $ Text.unlines dockerFile
             onBuildRuleCatches "DL3009" $ Text.unlines dockerFile
 
+    it "don't warn: tmpfs mount to apt cache and lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=tmpfs,target=/var/cache/apt \\",
+              "  --mount=type=tmpfs,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: tmpfs mount to apt cache and cache mount to lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=tmpfs,target=/var/cache/apt \\",
+              "  --mount=type=cache,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: cache mount to apt cache and tmpfs mount to lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=cache,target=/var/cache/apt \\",
+              "  --mount=type=tmpfs,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: cache mount to apt cache and lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=cache,target=/var/cache/apt \\",
+              "  --mount=type=cache,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
     it "apt no cleanup" $
       let dockerFile =
             [ "FROM scratch",
