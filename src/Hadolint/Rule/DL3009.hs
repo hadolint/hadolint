@@ -3,9 +3,9 @@ module Hadolint.Rule.DL3009 (rule) where
 import Hadolint.Rule
 import Language.Docker.Syntax
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Hadolint.Shell as Shell
+import qualified Hadolint.Utils as Utils
 
 
 data Acc
@@ -36,9 +36,9 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
           if foldArguments disabledDockerClean args
           then st |> modify rememberDockerClean
           else st
-      | hasCacheDirectory "/var/lib/apt/lists" flags = st
-      | hasCacheDirectory "/var/lib/apt" flags
-        && hasCacheDirectory "/var/cache/apt" flags = st
+      | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt/lists" flags = st
+      | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt" flags
+        && Utils.hasCacheOrTmpfsMountWith "/var/cache/apt" flags = st
       | otherwise = st |> modify (rememberLine line)
     check _ st _ = st
 
@@ -99,15 +99,6 @@ disabledDockerClean args
             ["\'Binary::apt::APT::Keep-Downloaded-Packages \"true\";\'"]
         )
         (Shell.presentCommands args)
-
-hasCacheDirectory :: Text.Text -> RunFlags -> Bool
-hasCacheDirectory dir RunFlags { mount } =
-  not ( null $ Set.filter (isCacheOrTmpfsMount dir) mount)
-
-isCacheOrTmpfsMount :: Text.Text -> RunMount -> Bool
-isCacheOrTmpfsMount dir (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
-isCacheOrTmpfsMount dir (TmpfsMount TmpOpts {tTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
-isCacheOrTmpfsMount _ _ = False
 
 -- | Even though dockerfiles without a FROM are not valid, we still want to provide some feedback for this rule
 -- so we pretend there is a base image at the start of the file if there is none

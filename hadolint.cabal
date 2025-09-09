@@ -109,6 +109,7 @@ library
     Hadolint.Rule.DL4006
     Hadolint.Rule.Shellcheck
     Hadolint.Shell
+    Hadolint.Utils
 
   other-modules:      Paths_hadolint
   autogen-modules:    Paths_hadolint

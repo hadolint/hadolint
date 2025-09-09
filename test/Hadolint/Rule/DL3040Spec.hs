@@ -24,7 +24,18 @@ spec = do
       onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && microdnf clean all"
       onBuildRuleCatchesNot "DL3040" "RUN notdnf install mariadb"
     it "ok with rm /var/cache/yum" $ do
-      ruleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
-      ruleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
-      onBuildRuleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
-      onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
+      ruleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      ruleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      onBuildRuleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+
+    it "ok with cache mount at /var/cache/yum" $ do
+      ruleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      ruleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+    it "ok with tmpfs mount at /var/cache/yum" $ do
+      ruleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      ruleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
