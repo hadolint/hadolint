@@ -56,7 +56,7 @@ isVersionChar c =
   isDigit c
     || isAsciiUpper c
     || isAsciiLower c
-    || c `elem` ['.', '~', '^', '_', ':']
+    || c `elem` ['.', '~', '^', '_', ':', '+']
 
 yumModules :: Shell.ParsedShell -> [Text.Text]
 yumModules args =
