@@ -2,6 +2,7 @@ module Hadolint.Rule.DL3036 (rule) where
 
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
+import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
 
 
@@ -16,11 +17,12 @@ dl3036 = simpleRule code severity message check
     severity = DLWarningC
     message = "`zypper clean` missing after zypper use."
 
-    check (Run (RunArgs args _)) =
-      foldArguments (Shell.noCommands zypperInstall) args
-        || ( foldArguments (Shell.anyCommands zypperInstall) args
-               && foldArguments (Shell.anyCommands zypperClean) args
-           )
+    check (Run (RunArgs args flags))
+      | foldArguments (Shell.noCommands zypperInstall) args = True
+      | Utils.hasCacheOrTmpfsMountWith "/var/cache/zypp" flags = True
+      | foldArguments (Shell.anyCommands zypperInstall) args
+          && foldArguments (Shell.anyCommands zypperClean) args = True
+      | otherwise = False
     check _ = True
 
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]

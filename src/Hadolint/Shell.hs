@@ -162,9 +162,7 @@ findCommandNames :: ParsedShell -> [Text]
 findCommandNames script = map name (presentCommands script)
 
 cmdHasArgs :: Text.Text -> [Text.Text] -> Command -> Bool
-cmdHasArgs expectedName expectedArgs (Command n args _)
-  | expectedName /= n = False
-  | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
+cmdHasArgs expectedName = cmdsHaveArgs [expectedName]
 
 cmdsHaveArgs :: [Text.Text] -> [Text.Text] -> Command -> Bool
 cmdsHaveArgs expectedNames expectedArgs (Command n args _)
@@ -204,7 +202,7 @@ getArgsNoFlags args = map arg $ filter (notAFlagId . partId) (arguments args)
     notAFlagId pId = pId `notElem` map partId (flags args)
 
 hasFlag :: Text.Text -> Command -> Bool
-hasFlag flag Command {flags} = not $ null [f | CmdPart f _ <- flags, f == flag]
+hasFlag flag cmd = countFlag flag cmd > 0
 
 countFlag :: Text.Text -> Command -> Int
 countFlag flag Command {flags} = length [ f | CmdPart f _ <- flags, f == flag ]
