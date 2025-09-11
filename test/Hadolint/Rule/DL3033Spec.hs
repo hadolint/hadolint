@@ -28,6 +28,10 @@ spec = do
       ruleCatchesNot "DL3033" "RUN yum install -y rpm-sign-4.16.1.3"
       onBuildRuleCatchesNot "DL3033" "RUN yum install -y rpm-sign-4.16.1.3"
 
+    it "ok with yum version pinning - package name contains `-` and `+`" $ do
+      ruleCatchesNot "DL3033" "RUN yum install -y gcc-c++-1.1.1"
+      onBuildRuleCatchesNot "DL3033" "RUN yum install -y gcc-c++-1.1.1"
+
     it "not ok without yum version pinning - modules" $ do
       ruleCatches "DL3033" "RUN yum module install -y tomcat && yum clean all"
       onBuildRuleCatches "DL3033" "RUN yum module install -y tomcat && yum clean all"

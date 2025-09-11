@@ -41,6 +41,12 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf install -y rpm-sign-4.16.1.3 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y rpm-sign-4.16.1.3 && microdnf clean all"
 
+    it "ok with dnf version pinning - package name with `-` and `+`" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y gcc-c++-1.1.1"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y gcc-c++-1.1.1"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y gcc-c++-1.1.1"
+      onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y gcc-c++-1.1.1"
+
     it "ok with dnf version pinning - package version with epoch" $ do
       ruleCatchesNot "DL3041" "RUN dnf install -y openssl-1:1.1.1k"
       ruleCatchesNot "DL3041" "RUN microdnf install -y openssl-1:1.1.1k"
