@@ -58,7 +58,7 @@ isVersionChar c =
   isDigit c
     || isAsciiUpper c
     || isAsciiLower c
-    || c `elem` ['.', '~', '^', '_', ':']
+    || c `elem` ['.', '~', '^', '_', ':', '+']
 
 dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =
