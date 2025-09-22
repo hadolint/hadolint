@@ -1,6 +1,5 @@
 module Hadolint.Rule.DL3044 (rule) where
 
-import Data.List.Index (indexed)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Hadolint.Rule
@@ -28,9 +27,12 @@ rule = customRule check (emptyState Set.empty)
 listOfReferences :: Pairs -> [Text.Text]
 listOfReferences prs =
   [ var
-    | (idx, (var, _)) <- indexed prs,
-      var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (indexed prs))
+    | (idx, (var, _)) <- enum prs,
+      var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (enum prs))
   ]
+  where
+    enum :: Pairs -> [(Integer, (Text.Text, Text.Text))]
+    enum = zip [0..]
 
 -- | is a reference of a variable substring of any text?
 -- matches ${var_name} and $var_name, but not $var_nameblafoo
