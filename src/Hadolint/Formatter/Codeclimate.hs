@@ -91,14 +91,16 @@ errorToIssue err =
     line = unPos (sourceLine pos)
     column = unPos (sourceColumn pos)
 
-checkToIssue :: Text.Text -> CheckFailure -> Issue
-checkToIssue fileName CheckFailure {..} =
+checkToIssue :: Text.Text -> Maybe FilePath -> CheckFailure -> Issue
+checkToIssue fileName filePathInReport CheckFailure {..} =
   Issue
     { checkName = unRuleCode code,
       description = message,
-      location = LocLine fileName line,
+      location = LocLine reportFileName line,
       impact = severityText severity
     }
+  where
+    reportFileName = if null filePathInReport then fileName else getFilePath filePathInReport
 
 severityText :: DLSeverity -> Text.Text
 severityText severity =
@@ -119,23 +121,38 @@ issueToFingerprintIssue i =
       fingerprint = generateFingerprint i
     }
 
-formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
-formatResult (Result filename errors checks) = (errorToIssue <$> errors) <> (checkToIssue filename <$> checks)
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Seq Issue
+formatResult (Result filename errors checks) filePathInReport = (errorToIssue <$> errors) <> (checkToIssue filename filePathInReport <$> checks)
 
-formatGitLabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq FingerprintIssue
-formatGitLabResult result = issueToFingerprintIssue <$> formatResult result
+formatGitLabResult :: 
+  (VisualStream s, TraversableStream s, ShowErrorComponent e) => 
+  Result s e -> Maybe FilePath ->
+  Seq FingerprintIssue
+formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> (formatResult result filePathInReport)
 
-printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
-printResult result = mapM_ output (formatResult result)
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> IO ()
+printResult result filePathInReport = mapM_ output (formatResult result filePathInReport)
   where
     output value = do
       B.putStr (encode value)
       B.putStr (B.singleton 0x00)
 
-printResults :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) => f (Result s e) -> IO ()
-printResults = mapM_ printResult
-
-printGitLabResults :: (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) => f (Result s e) -> IO ()
-printGitLabResults results = B.putStr . encode $ flattened
+printResults :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) => f (Result s e) -> Maybe FilePath -> IO ()
+printResults results filePathInReport = flattened
   where
-    flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results
+    flattened = Foldl.fold (Foldl.premap printResult Foldl.mconcat) results filePathInReport
+
+printGitLabResults :: 
+  (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
+  f (Result s e) -> Maybe FilePath ->
+  IO ()
+printGitLabResults results filePathInReport = B.putStr . encode $ flattened
+  where
+    flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results filePathInReport
+
+getFilePath :: Maybe FilePath -> Text.Text 
+getFilePath Nothing = ""
+getFilePath (Just filePath) = toText [filePath]
+
+toText :: [FilePath] -> Text.Text 
+toText = foldMap Text.pack
