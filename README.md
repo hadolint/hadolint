@@ -595,6 +595,7 @@ To compile, you will need a recent Haskell environment and `cabal-install`.
 
     ```bash
     cabal configure
+    cabal update
     cabal build
     ```
 
