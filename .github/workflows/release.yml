@@ -13,7 +13,7 @@ on:
         required: true
 
 jobs:
-  build-static:
+  build-linux:
     name: Create Release for Linux (static)
     runs-on: ${{ matrix.os }}
     container:
@@ -100,7 +100,7 @@ jobs:
           path: ~/.local/bin/hadolint
           retention-days: 3
 
-  build-dynamic:
+  build-macos:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -110,8 +110,6 @@ jobs:
             target: macos-x86_64
           - os: macos-14
             target: macos-arm64
-          - os: windows-latest
-            target: windows-x86_64
 
     steps:
       - uses: actions/checkout@v5
@@ -120,7 +118,7 @@ jobs:
         name: Set up Haskell
         uses: haskell-actions/setup@v2
         with:
-          ghc-version: '9.10.2'
+          ghc-version: 9.10.2
 
       - name: Freeze
         run: cabal freeze
@@ -140,13 +138,51 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: hadolint-${{ matrix.target }}
-          path: ${{ runner.os == 'Windows' && 'dist\\hadolint.exe' || './dist/hadolint' }}
+          path: ./dist/hadolint
+          retention-days: 3
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-x86_64
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup-haskell
+        name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.10.2
+
+      - name: Freeze
+        run: cabal freeze
+
+      - name: Cache store
+        uses: actions/cache@v4.2.4
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+      - name: Build binaries
+        run: |
+          mkdir dist
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ matrix.target }}
+          path: dist\hadolint.exe
           retention-days: 3
 
   docker:
     needs:
-      - build-static
-      - build-dynamic
+      - build-linux
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -221,7 +257,8 @@ jobs:
             ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
-    needs: docker
+    needs:
+      - docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -316,8 +353,9 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     needs:
       - docker-release
-      - build-static
-      - build-dynamic
+      - build-linux
+      - build-macos
+      - build-windows
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
