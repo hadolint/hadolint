@@ -31,6 +31,7 @@ listOfReferences prs =
       var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (enum prs))
   ]
   where
+    enum :: Pairs -> [(Integer, (Text.Text, Text.Text))]
     enum = zip [0..]
 
 -- | is a reference of a variable substring of any text?
