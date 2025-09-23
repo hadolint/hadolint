@@ -23,17 +23,17 @@ dl3062 = simpleRule code severity message check
 goCommands :: [Text.Text]
 goCommands = ["install", "get", "run"]
 
-isGoCommand :: Shell.Command -> Bool
-isGoCommand = Shell.cmdsHaveArgs ["go"] goCommands
-
 getGoPackage :: Shell.ParsedShell -> [Text.Text]
 getGoPackage args =
   [ arg
     | cmd <- Shell.presentCommands args,
-      isGoCommand cmd,
-      arg <- Shell.getArgsNoFlags cmd,
-      arg `notElem` goCommands
+      Shell.cmdsHaveArgs ["go"] goCommands cmd,
+      (idx, arg) <- enum $ Shell.getArgsNoFlags cmd,
+      arg `notElem` goCommands && idx <= 1  -- everything after the package name is an argument to the go program
   ]
+  where
+    enum :: [Text.Text] -> [(Integer, Text.Text)]
+    enum = zip [0..]
 
 hasVersionSymbol :: Text.Text -> Bool
 hasVersionSymbol package = "@" `Text.isInfixOf` package
@@ -42,5 +42,13 @@ isTagsVersion :: Text.Text -> Bool
 isTagsVersion package =
   or [("@" <> tag) `Text.isSuffixOf` package | tag <- ["latest", "none"]]
 
+isLocalPath :: Text.Text -> Bool
+isLocalPath p = p == "."
+  || "/" `Text.isPrefixOf` p
+  || "." `Text.isPrefixOf` p
+
 checkGoPackageVersion :: Text.Text -> Bool
-checkGoPackageVersion package = hasVersionSymbol package && not (isTagsVersion package)
+checkGoPackageVersion package =
+  isLocalPath package
+    || hasVersionSymbol package
+    && not (isTagsVersion package)
