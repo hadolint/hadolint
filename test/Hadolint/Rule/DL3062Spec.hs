@@ -41,6 +41,17 @@ spec = do
         ruleCatchesNot "DL3062" "RUN go get example.com/pkg@v1.2.3"
         onBuildRuleCatchesNot "DL3062" "RUN go get example.com/pkg@v1.2.3"
 
+      describe "go get tool" $ do
+        it "version not pinned" $ do
+          ruleCatches "DL3062" "RUN go get -tool foobar"
+          onBuildRuleCatches "DL3062" "RUN go get -tool foobar"
+        it "version pinned as latest" $ do
+          ruleCatches "DL3062" "RUN go get -tool foobar@latest"
+          onBuildRuleCatches "DL3062" "RUN go get -tool foobar@latest"
+        it "version pinned" $ do
+          ruleCatchesNot "DL3062" "RUN go get -tool foobar@v1.2.3"
+          onBuildRuleCatchesNot "DL3062" "RUN go get -tool foobar@v1.2.3"
+
     describe "go run" $ do
       it "go version not pinned" $ do
         ruleCatches "DL3062" "RUN go run example.com/pkg"
