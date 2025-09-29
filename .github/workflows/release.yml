@@ -80,7 +80,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.cabal/store
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
@@ -124,7 +124,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
@@ -163,7 +163,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
