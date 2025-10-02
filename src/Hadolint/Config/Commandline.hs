@@ -75,7 +75,8 @@ parseCommandline =
             ( long "file-path-in-report"
                 <> metavar "FILEPATHINREPORT"
                 <> help "The file path referenced in the generated report.\
-                        \ This only applies for the 'checkstyle' format and is\
+                        \ This only applies for the 'checkstyle', 'codeclimate',\
+                        \ and 'gitlab_codeclimate' formats and is\
                         \ useful when running Hadolint with Docker to set the\
                         \ correct file path."
             )
