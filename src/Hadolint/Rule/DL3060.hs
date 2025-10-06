@@ -2,7 +2,6 @@ module Hadolint.Rule.DL3060 (rule) where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
-import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import qualified Hadolint.Utils as Utils
@@ -30,9 +29,14 @@ dl3060 = veryCustomRule check (emptyState Empty) markFailures
 
     check line st (From from) =
       st |> modify (rememberStage line from)
+    check line st (Run (RunArgs args flags))
+      | foldArguments (Shell.anyCommands yarnInstall) args
+          && foldArguments (Shell.noCommands yarnCacheClean) args
+          && not (Utils.hasCacheOrTmpfsMountWith ".cache/yarn" flags) =
+        st |> modify (rememberLine line)
     check line st (Run (RunArgs args _))
       | Just True == (
-           (<) <$> foldArguments (Shell.findCommandIndex yarnInstall) args
+           (>) <$> foldArguments (Shell.findCommandIndex yarnInstall) args
                <*> foldArguments (Shell.findCommandIndex yarnCacheClean) args) =
           st |> modify (rememberLine line)
       | otherwise = st

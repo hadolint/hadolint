@@ -29,7 +29,7 @@ spec = do
       onBuildRuleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
       onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
     it "not ok with clean before install" $ do
-      ruleCatches "DL3040" "microdnf clean all && RUN dnf install -y mariadb-10.4"
+      ruleCatches "DL3040" "RUN microdnf clean all && dnf install -y mariadb-10.4"
       ruleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
       ruleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
       onBuildRuleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
