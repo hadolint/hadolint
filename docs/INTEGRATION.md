@@ -1,5 +1,36 @@
 # Hadolint Integrations
 
+## Table of Contents
+
+- [Hadolint Integrations](#hadolint-integrations)
+  - [Table of Contents](#table-of-contents)
+  - [Code Review](#code-review)
+    - [Codacy](#codacy)
+    - [Codeship Pro](#codeship-pro)
+    - [Mega-Linter](#mega-linter)
+    - [Super-Linter](#super-linter)
+  - [Continuous Integration](#continuous-integration)
+    - [Azure Devops Pipelines](#azure-devops-pipelines)
+    - [Bitbucket Pipelines](#bitbucket-pipelines)
+    - [CircleCI](#circleci)
+    - [Drone CI](#drone-ci)
+    - [GitHub Actions](#github-actions)
+    - [GitLab CI](#gitlab-ci)
+    - [Jenkins declarative pipeline](#jenkins-declarative-pipeline)
+    - [Jenkins K8S plugin](#jenkins-k8s-plugin)
+    - [Travis CI](#travis-ci)
+  - [Editors](#editors)
+    - [Atom](#atom)
+    - [Emacs](#emacs)
+    - [Geany](#geany)
+    - [Sublime Text 3](#sublime-text-3)
+    - [Vim and NeoVim](#vim-and-neovim)
+    - [VS Code](#vs-code)
+  - [Version Control](#version-control)
+    - [pre-commit](#pre-commit)
+  - [Other](#other)
+
+
 ## Code Review
 
 ### Codacy
@@ -43,27 +74,84 @@ hadolint out of the box.
 
 ## Continuous Integration
 
-### Travis CI
+### Azure Devops Pipelines
 
-Integration with Travis CI requires minimal changes and adding less than
-two seconds to your build time.
+You can add an hadolint container to your pipeline:
+
+``` yaml
+resources:
+  containers:
+  - container: hadolint
+    image: hadolint/hadolint:latest-debian
+```
+
+Then go with the linter step:
+
+``` yaml
+steps:
+  - script: hadolint Dockerfile
+    target:
+      container: hadolint
+```
+
+### Bitbucket Pipelines
+
+Create a `bitbucket-pipelines.yml` configuration file:
 
 ```yaml
-# Use container-based infrastructure for quicker build start-up
-sudo: false
-# Use generic image to cut start-up time
-language: generic
-env:
-  # Path to 'hadolint' binary
-  HADOLINT: "${HOME}/hadolint"
-install:
-  # Download hadolint binary and set it as executable
-  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.17.6/hadolint-$(uname -s)-$(uname -m)"
-    && chmod 700 ${HADOLINT}
-script:
-  # List files which name starts with 'Dockerfile'
-  # eg. Dockerfile, Dockerfile.build, etc.
-  - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 ${HADOLINT}
+pipelines:
+  default:
+    - step:
+        image: hadolint/hadolint:latest-debian
+        # image: ghcr.io/hadolint/hadolint:latest-debian
+        script:
+          - hadolint Dockerfile
+```
+
+### CircleCI
+
+For CircleCI integration use the [docker orb](https://circleci.com/orbs/registry/orb/circleci/docker).
+Update your project's `.circleci/config.yml` pipeline (workflows version 2.1),
+adding the docker orb and you can call the job docker/hadolint:
+
+```yaml
+orbs:
+  docker: circleci/docker@x.y.z
+version: 2.1
+workflows:
+  lint:
+    jobs:
+      - docker/hadolint:
+          dockerfiles: 'path/to/Dockerfile:path/to/another/Dockerfile'
+          ignore-rules: 'DL4005,DL3008'
+          trusted-registries: 'docker.io,my-company.com:5000'
+```
+
+### Drone CI
+
+For Drone CI, a basic shell is similarly required.
+
+Add the following job to your project's `.drone.yml` pipeline (drone version 0.8 or earlier):
+
+```yaml
+  hadolint:
+    group: validate
+    image: hadolint/hadolint:latest-debian
+    # image: ghcr.io/hadolint/hadolint:latest-debian
+    commands:
+      - hadolint --version
+      - hadolint Dockerfile
+```
+
+Add the following job to your project's `.drone.yml` pipeline (drone version 1.0 or later):
+
+```yaml
+  - name: hadolint
+    image: hadolint/hadolint:latest-debian
+    # image: ghcr.io/hadolint/hadolint:latest-debian
+    commands:
+      - hadolint --version
+      - hadolint  Dockerfile
 ```
 
 ### GitHub Actions
@@ -126,52 +214,6 @@ docker-hadolint:
 
 This way, a widget will be integrated to your merge requests alerting potential changes.
 
-### Drone CI
-
-For Drone CI, a basic shell is similarly required.
-
-Add the following job to your project's `.drone.yml` pipeline (drone version 0.8 or earlier):
-
-```yaml
-  hadolint:
-    group: validate
-    image: hadolint/hadolint:latest-debian
-    # image: ghcr.io/hadolint/hadolint:latest-debian
-    commands:
-      - hadolint --version
-      - hadolint Dockerfile
-```
-
-Add the following job to your project's `.drone.yml` pipeline (drone version 1.0 or later):
-
-```yaml
-  - name: hadolint
-    image: hadolint/hadolint:latest-debian
-    # image: ghcr.io/hadolint/hadolint:latest-debian
-    commands:
-      - hadolint --version
-      - hadolint  Dockerfile
-```
-
-### CircleCI
-
-For CircleCI integration use the [docker orb](https://circleci.com/orbs/registry/orb/circleci/docker).
-Update your project's `.circleci/config.yml` pipeline (workflows version 2.1),
-adding the docker orb and you can call the job docker/hadolint:
-
-```yaml
-orbs:
-  docker: circleci/docker@x.y.z
-version: 2.1
-workflows:
-  lint:
-    jobs:
-      - docker/hadolint:
-          dockerfiles: 'path/to/Dockerfile:path/to/another/Dockerfile'
-          ignore-rules: 'DL4005,DL3008'
-          trusted-registries: 'docker.io,my-company.com:5000'
-```
-
 ### Jenkins declarative pipeline
 
 You can add a step during your CI process to lint and archive the output of hadolint
@@ -226,18 +268,27 @@ stage('lint dockerfile') {
 }
 ```
 
-### Bitbucket Pipelines
+### Travis CI
 
-Create a `bitbucket-pipelines.yml` configuration file:
+Integration with Travis CI requires minimal changes and adding less than
+two seconds to your build time.
 
 ```yaml
-pipelines:
-  default:
-    - step:
-        image: hadolint/hadolint:latest-debian
-        # image: ghcr.io/hadolint/hadolint:latest-debian
-        script:
-          - hadolint Dockerfile
+# Use container-based infrastructure for quicker build start-up
+sudo: false
+# Use generic image to cut start-up time
+language: generic
+env:
+  # Path to 'hadolint' binary
+  HADOLINT: "${HOME}/hadolint"
+install:
+  # Download hadolint binary and set it as executable
+  - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.17.6/hadolint-$(uname -s)-$(uname -m)"
+    && chmod 700 ${HADOLINT}
+script:
+  # List files which name starts with 'Dockerfile'
+  # eg. Dockerfile, Dockerfile.build, etc.
+  - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 ${HADOLINT}
 ```
 
 ## Editors
@@ -257,35 +308,10 @@ Thanks to [lucasdf][], there is an integration [linter-hadolint][] with
 
 ![linter-hadolint-img][]
 
-### Sublime Text 3
-
-> A sophisticated text editor for code, markup and prose.
-
-Thanks to [niksite][], there is an integration
-[SublimeLinter-contrib-hadolint][] with [Sublime Text][].
-
-### Vim and NeoVim
-
-Hadolint is used in two plugins:
-
--   [Syntastic][] - syntax checking plugin for Vim created by Martin Grenfell.
-
--   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
-    and Vim 8 while you edit your text files.
-
 ### Emacs
 > Emacs is an extensible, customizable, free/libre text editor.
 
 - [flycheck][] - a modern on-the-fly syntax checking extension for GNU Emacs.
-
-### VS Code
-
-> Visual Studio Code is a lightweight but powerful source code editor which
-> runs on your desktop and is available for Windows, macOS and Linux.
-
-There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
-
-![vscode-hadolint-gif][]
 
 ### Geany
 
@@ -312,6 +338,32 @@ if docker run --rm -i ghcr.io/hadolint/hadolint < "%d/%f"
 | sed -re 's|^/dev/stdin:([0-9]*)|%d/%f:\1:WARNING:|'
 | grep -EC100 ':WARNING:' ; then exit 1 ; else exit 0 ; fi
 ```
+
+### Sublime Text 3
+
+> A sophisticated text editor for code, markup and prose.
+
+Thanks to [niksite][], there is an integration
+[SublimeLinter-contrib-hadolint][] with [Sublime Text][].
+
+### Vim and NeoVim
+
+Hadolint is used in two plugins:
+
+-   [Syntastic][] - syntax checking plugin for Vim created by Martin Grenfell.
+
+-   [ALE][] (Asynchronous Lint Engine) - plugin for providing linting in NeoVim
+    and Vim 8 while you edit your text files.
+
+### VS Code
+
+> Visual Studio Code is a lightweight but powerful source code editor which
+> runs on your desktop and is available for Windows, macOS and Linux.
+
+There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
+
+![vscode-hadolint-gif][]
+
 
 ## Version Control
 

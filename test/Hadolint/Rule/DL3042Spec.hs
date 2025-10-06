@@ -86,3 +86,15 @@ spec = do
             ]
        in do
         ruleCatches "DL3042" dockerFile
+
+    it "ok with cache mount in cache dir" $
+      let line = "RUN --mount=type=cache,target=/root/.cache/pip pip install foobar"
+      in do
+        ruleCatchesNot "DL3042" line
+        onBuildRuleCatchesNot "DL3042" line
+
+    it "ok with tmpfs mount in cache dir" $
+      let line = "RUN --mount=type=tmpfs,target=/root/.cache/pip pip install foobar"
+      in do
+        ruleCatchesNot "DL3042" line
+        onBuildRuleCatchesNot "DL3042" line

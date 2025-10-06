@@ -16,6 +16,28 @@ the Bash code inside `RUN` instructions.
 hadolint.github.io/hadolint**](https://hadolint.github.io/hadolint)
 [![Screenshot](screenshot.png)](https://hadolint.github.io/hadolint)
 
+## Table of Contents
+
+- [How to use](#how-to-use)
+- [Install](#install)
+- [CLI](#cli)
+- [Configure](#configure)
+- [Non-Posix Shells](#non-posix-shells)
+- [Ignoring Rules](#ignoring-rules)
+  - [Inline ignores](#inline-ignores)
+  - [Global ignores](#global-ignores)
+- [Linting Labels](#linting-labels)
+  - [Note on dealing with variables in labels](#note-on-dealing-with-variables-in-labels)
+- [Integrations](#integrations)
+- [Rules](#rules)
+- [Develop](#develop)
+  - [Setup](#setup)
+  - [REPL](#repl)
+  - [Tests](#tests)
+  - [AST](#ast)
+  - [Building against custom libraries](#building-against-custom-libraries)
+- [Alternatives](#alternatives)
+
 ## How to use
 
 You can run `hadolint` locally to lint your Dockerfile.
@@ -183,13 +205,14 @@ Available options:
 Configuration files can be used globally or per project.
 Hadolint looks for configuration files in the following locations or their
 platform specific equivalents in this order and uses the first one exclusively:
+
 - `$PWD/.hadolint.yaml`
 - `$XDG_CONFIG_HOME/hadolint.yaml`
 - `$HOME/.config/hadolint.yaml`
 - `$HOME/.hadolint/hadolint.yaml or $HOME/hadolint/config.yaml`
 - `$HOME/.hadolint.yaml`
 
-In windows, the `%LOCALAPPDATA%` environment variable is used instead of 
+In windows, the `%LOCALAPPDATA%` environment variable is used instead of
 `XDG_CONFIG_HOME`. Config files can have either `yaml` or `yml` extensions.
 
 `hadolint` full `yaml` config file schema
@@ -290,6 +313,7 @@ docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io
 
 In addition to config files, Hadolint can be configured with environment
 variables.
+
 ```bash
 NO_COLOR=1                               # Set or unset. See https://no-color.org
 HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
@@ -319,7 +343,9 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022
 RUN Get-Process notepad | Stop-Process
 ```
 
-## Inline ignores
+## Ignoring Rules
+
+### Inline ignores
 
 It is also possible to ignore rules by adding a special comment directly
 above the Dockerfile statement for which you want to make an exception for.
@@ -336,7 +362,7 @@ RUN cd /tmp && echo "hello!"
 
 The comment "inline ignores" applies only to the statement following it.
 
-## Global ignores
+### Global ignores
 
 Rules can also be ignored on a per-file basis using the global ignore pragma.
 It works just like inline ignores, except that it applies to the whole file
@@ -374,6 +400,7 @@ label-schema:
 
 The value of a label can be either of `text`, `url`, `semver`, `hash` or
 `rfc3339`:
+
 | Schema  | Description                                        |
 |:--------|:---------------------------------------------------|
 | text    | Anything                                           |
@@ -434,10 +461,10 @@ write it. See our [Integration][] docs.
 An incomplete list of implemented rules. Click on the error code to get more
 detailed information.
 
--   Rules with the prefix `DL` are from `hadolint`. Have a look at
+- Rules with the prefix `DL` are from `hadolint`. Have a look at
     `Rules.hs` to find the implementation of the rules.
 
--   Rules with the `SC` prefix are from **ShellCheck** (only the most
+- Rules with the `SC` prefix are from **ShellCheck** (only the most
     common rules are listed, there are dozens more).
 
 Please [create an issue][] if you have an idea for a good rule.
@@ -445,7 +472,7 @@ Please [create an issue][] if you have an idea for a good rule.
 <!--lint disable maximum-line-length-->
 
 | Rule                                                         | Default Severity | Description                                                                                                                                         |
-| :----------------------------------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
+|:-------------------------------------------------------------|:-----------------| :-------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [DL1001](https://github.com/hadolint/hadolint/wiki/DL1001)   | Ignore           | Please refrain from using inline ignore pragmas `# hadolint ignore=DLxxxx`.                                                                         |
 | [DL3000](https://github.com/hadolint/hadolint/wiki/DL3000)   | Error            | Use absolute WORKDIR.                                                                                                                               |
 | [DL3001](https://github.com/hadolint/hadolint/wiki/DL3001)   | Info             | For some bash commands it makes no sense running them in a Docker container like ssh, vim, shutdown, service, ps, free, top, kill, mount, ifconfig. |
@@ -505,6 +532,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3059](https://github.com/hadolint/hadolint/wiki/DL3059)   | Info             | Multiple consecutive `RUN` instructions. Consider consolidation.                                                                                    |
 | [DL3060](https://github.com/hadolint/hadolint/wiki/DL3060)   | Info             | `yarn cache clean` missing after `yarn install` was run.                                                                                            |
 | [DL3061](https://github.com/hadolint/hadolint/wiki/DL3061)   | Error            | Invalid instruction order. Dockerfile must begin with `FROM`, `ARG` or comment.                                                                     |
+| [DL3062](https://github.com/hadolint/hadolint/wiki/DL3061)   | Warning          | Pin versions in go install. Instead of `go install <package>` use `go install <package>@<version>`                                                  |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | Error            | `MAINTAINER` is deprecated.                                                                                                                         |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Warning          | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Warning          | Multiple `CMD` instructions found.                                                                                                                  |
@@ -528,6 +556,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC1083](https://github.com/koalaman/shellcheck/wiki/SC1083) |                  | This `{/}` is literal. Check expression (missing `;/\n`?) or quote it.                                                                              |
 | [SC1086](https://github.com/koalaman/shellcheck/wiki/SC1086) |                  | Don't use `$` on the iterator name in for loops.                                                                                                    |
 | [SC1087](https://github.com/koalaman/shellcheck/wiki/SC1087) |                  | Braces are required when expanding arrays, as in `${array[idx]}`.                                                                                   |
+| [SC1091](https://github.com/koalaman/shellcheck/wiki/SC1091) |                  | Not following: Reasons include: file not found, no permissions, not included on the command line, not allowing shellcheck to follow files with -x, etc.                                                                                    |
 | [SC1095](https://github.com/koalaman/shellcheck/wiki/SC1095) |                  | You need a space or linefeed between the function name and body.                                                                                    |
 | [SC1097](https://github.com/koalaman/shellcheck/wiki/SC1097) |                  | Unexpected `==`. For assignment, use `=`. For comparison, use `[ .. ]` or `[[ .. ]]`.                                                               |
 | [SC1098](https://github.com/koalaman/shellcheck/wiki/SC1098) |                  | Quote/escape special characters when using `eval`, e.g. `eval "a=(b)"`.                                                                             |
@@ -536,7 +565,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC2015](https://github.com/koalaman/shellcheck/wiki/SC2015) |                  | Note that <code>A && B &#124;&#124; C</code> is not if-then-else. C may run when A is true.                                                         |
 | [SC2026](https://github.com/koalaman/shellcheck/wiki/SC2026) |                  | This word is outside of quotes. Did you intend to 'nest '"'single quotes'"' instead'?                                                               |
 | [SC2028](https://github.com/koalaman/shellcheck/wiki/SC2028) |                  | `echo` won't expand escape sequences. Consider `printf`.                                                                                            |
-| [SC2035](https://github.com/koalaman/shellcheck/wiki/SC2035) |                  | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.                                                                            |
+| [SC2035](https://github.com/koalaman/shellcheck/wiki/SC2035) |                  | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.                                                                             |
 | [SC2039](https://github.com/koalaman/shellcheck/wiki/SC2039) |                  | In POSIX sh, something is undefined.                                                                                                                |
 | [SC2046](https://github.com/koalaman/shellcheck/wiki/SC2046) |                  | Quote this to prevent word splitting                                                                                                                |
 | [SC2086](https://github.com/koalaman/shellcheck/wiki/SC2086) |                  | Double quote to prevent globbing and word splitting.                                                                                                |
@@ -556,20 +585,20 @@ To compile, you will need a recent Haskell environment and `cabal-install`.
 
 ### Setup
 
-1.  Clone repository
+1. Clone repository
 
     ```bash
     git clone --recursive git@github.com:hadolint/hadolint.git
     ```
 
-1.  Install dependencies and compile source
+1. Install dependencies and compile source
 
     ```bash
     cabal configure
     cabal build
     ```
 
-1.  (Optional) Install Hadolint on your system
+1. (Optional) Install Hadolint on your system
 
     ```bash
     cabal install
@@ -643,6 +672,7 @@ packages:
 ```
 
  4) Recompile Hadolint and run the tests
+
 ```bash
 cd /home/user/repos/hadolint
 cabal configure --enable-tests
@@ -652,17 +682,17 @@ cabal test
 
 ## Alternatives
 
--   replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
+- replicatedhq/[dockerfilelint](https://github.com/replicatedhq/dockerfilelint),
     the other linter used by the [super-linter](https://github.com/github/super-linter/blob/main/README.md#supported-linters)
 
--   RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
+- RedCoolBeans/[dockerlint](https://github.com/RedCoolBeans/dockerlint/)
 
--   projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
+- projectatomic/[dockerfile_lint](https://github.com/projectatomic/dockerfile_lint/)
 
 <!-- References -->
 
-[github-actions-img]: https://github.com/hadolint/hadolint/workflows/Haskell%20Tests/badge.svg?branch=master
-[github-actions]: https://travis-ci.org/hadolint/hadolint/actions
+[github-actions-img]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml/badge.svg?branch=master
+[github-actions]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
 [release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg

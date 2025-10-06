@@ -1,13 +1,13 @@
 module Hadolint.Rule.DL3022 (rule) where
 
-import qualified Data.Set as Set
-import qualified Data.Text as Text
-import qualified Data.Text.Read as Read
+import Data.Set qualified as Set
+import Data.Text qualified as Text
+import Data.Text.Read qualified as Read
 import Hadolint.Rule
 import Language.Docker.Syntax
 
 data Acc
-  = Acc { count :: Int, names :: Set.Set Text.Text }
+  = Acc {count :: Int, names :: Set.Set Text.Text}
   | Empty
   deriving (Eq)
 
@@ -20,27 +20,27 @@ rule = customRule check (emptyState Empty)
 
     check _ st (From BaseImage {alias = Just (ImageAlias als)}) = st |> modify (incAndAddName als)
     check _ st (From BaseImage {}) = st |> modify incCount
-    check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource s)))
+    check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource s) _))
       | ":" `Text.isInfixOf` dropQuotes s = st
       | isMember s (state st) = st
       | otherwise = case Read.decimal s of
-                      Right (v, _) | v < nameCount (state st) -> st
-                      _ -> st |> addFail CheckFailure {..}
+          Right (v, _) | v < nameCount (state st) -> st
+          _ -> st |> addFail CheckFailure {..}
     check _ st _ = st
 {-# INLINEABLE rule #-}
 
 incAndAddName :: Text.Text -> Acc -> Acc
-incAndAddName s Empty = Acc { count = 1, names = Set.singleton s }
-incAndAddName s Acc { count, names } = Acc { count = count + 1, names = Set.insert s names }
+incAndAddName s Empty = Acc {count = 1, names = Set.singleton s}
+incAndAddName s Acc {count, names} = Acc {count = count + 1, names = Set.insert s names}
 
 incCount :: Acc -> Acc
-incCount Empty = Acc { count = 1, names = Set.empty }
-incCount Acc { count, names } = Acc { count = count + 1, names = names }
+incCount Empty = Acc {count = 1, names = Set.empty}
+incCount Acc {count, names} = Acc {count = count + 1, names = names}
 
 isMember :: Text.Text -> Acc -> Bool
 isMember _ Empty = False
-isMember s Acc { names } = Set.member s names
+isMember s Acc {names} = Set.member s names
 
 nameCount :: Acc -> Int
 nameCount Empty = 0
-nameCount Acc { count } = count
+nameCount Acc {count} = count

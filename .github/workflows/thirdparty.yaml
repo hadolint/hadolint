@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Setup Haskell
         id: setup-haskell-cabal
         uses: haskell/actions/setup@v2

@@ -5,93 +5,223 @@ on:
     tags:
       - "v*"
 
+  # also on manual trigger
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'The version number for the release'
+        required: true
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-linux:
+    name: Create Release for Linux (static)
+    runs-on: ${{ matrix.os }}
+    container:
+      image: alpine:3.21
+      volumes:
+        - /:/host
+        - /opt:/opt:rw,rshared
+        - /opt:/__e/node24:ro,rshared
+        - /opt:/__e/node20:ro,rshared
     strategy:
+      fail-fast: false
       matrix:
-        target: ["linux-static", "linux-arm-static"]
+        include:
+          - os: ubuntu-latest
+            target: linux-amd64
+            ghcup: https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup
+            ghc: 9.10.2
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+            ghcup: https://downloads.haskell.org/~ghcup/aarch64-linux-ghcup
+            ghc: 9.10.2
+
     steps:
-    - uses: actions/checkout@v3
 
-    - uses: cachix/install-nix-action@v20
-      with:
-        nix_path: nixpkgs=channel:nixos-21.11
-        extra_nix_config: |
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
-          substituters = https://cache.nixos.org/ https://cache.iog.io
+      - name: Workaround to make checkout work on Alpine arm64
+        run: |
+          sed -i "/^ID=/s/alpine/NotpineForGHA/" /etc/os-release
+          apk add nodejs --update-cache
+          mkdir /opt/bin
+          ln -sf /usr/bin/node /opt/bin/node
 
-    - uses: cachix/cachix-action@v12
-      with:
-        name: hadolint
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-        pushFilter: '(-source$|-config$|-hadolint-root$|hadolint-gitFiles|git-ls-files|hadolint-exe-hadolint-x86_64-unknown-linux-musl-|hadolint-exe-hadolint-aarch64-unknown-linux-musl-|hadolint-lib-hadolint-x86_64-unknown-linux-musl-|hadolint-lib-hadolint-aarch64-unknown-linux-musl-)'
+      - name: Install system dependencies
+        run: |
+          apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
+          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static libc-dev libffi-dev musl-dev
 
-    - name: Build
-      run: |
-        nix-build release.nix -A "${{matrix.target}}" -j3
+      - name: Install ghcup
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf ${{ matrix.ghcup }}  > /usr/bin/ghcup
+          chmod +x /usr/bin/ghcup
+          echo "$HOME/.ghcup/bin" $GITHUB_PATH
+        shell: bash
 
-    - name: Set binary ARCH
-      id: build-opts
-      run: |
-        if [ "${{ matrix.target }}" = 'linux-static' ]; then
-          echo ::set-output name=arch::amd64
-        else
-          echo ::set-output name=arch::arm64
-        fi
+      - name: Install GHC and cabal
+        run: |
+          ghcup install ghc   --force -i /usr/local ${{ matrix.ghc }}
+          ghcup install cabal --force -i /usr/local/bin
+        shell: bash
 
-    - name: Move binary
-      run: |
-        sudo cp result/bin/hadolint hadolint
-        sudo chmod 777 hadolint
+      - uses: actions/checkout@v5
 
-    - if: matrix.target == 'linux-static'
-      name: Compress binary
-      uses: svenstaro/upx-action@2.2.0
-      with:
-        file: hadolint
+      - name: Update cabal cache
+        run: cabal update
+        shell: bash
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: hadolint-Linux-${{steps.build-opts.outputs.arch}}
-        path: hadolint
-        retention-days: 3
+      - name: create ~/.local/bin
+        run: mkdir -p "$HOME/.local/bin"
+        shell: bash
+
+      - run: echo "HOME=$HOME" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Freeze
+        run: cabal freeze
+
+      - name: Cache store
+        uses: actions/cache@v4.3.0
+        with:
+          path: ~/.cabal/store
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+      - name: Build
+        run: |
+          cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static -fPIC'
+          cabal build --enable-executable-static --disable-executable-dynamic --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
+          mv "$(cabal list-bin hadolint)" ~/.local/bin/hadolint
+          strip ~/.local/bin/hadolint
+        shell: bash
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ matrix.target }}
+          path: ~/.local/bin/hadolint
+          retention-days: 3
+
+  build-macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            target: macos-x86_64
+          - os: macos-14
+            target: macos-arm64
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup-haskell
+        name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.10.2
+
+      - name: Freeze
+        run: cabal freeze
+
+      - name: Cache store
+        uses: actions/cache@v4.3.0
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+      - name: Build binaries
+        run: |
+          mkdir dist
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ matrix.target }}
+          path: ./dist/hadolint
+          retention-days: 3
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-x86_64
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: setup-haskell
+        name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.10.2
+
+      - name: Freeze
+        run: cabal freeze
+
+      - name: Cache store
+        uses: actions/cache@v4.3.0
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+
+      - name: Build binaries
+        run: |
+          mkdir dist
+          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-${{ matrix.target }}
+          path: dist\hadolint.exe
+          retention-days: 3
 
   docker:
-    needs: build
+    needs:
+      - build-linux
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: ["amd64", "arm64"]
+        target:
+          - amd64
+          - arm64
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
-          name: hadolint-Linux-${{matrix.target}}
+          name: hadolint-linux-${{matrix.target}}
           path: ${{matrix.target}}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Docker Image Scratch
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -99,11 +229,11 @@ jobs:
           target: base
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
 
       - name: Push Docker Image Debian
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -111,11 +241,11 @@ jobs:
           target: debian
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
 
       - name: Push Docker Image Alpine
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: ${{matrix.target}}
           file: docker/Dockerfile
@@ -123,225 +253,175 @@ jobs:
           target: alpine
           push: true
           tags: |
-            ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
+            ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
   docker-release:
-    needs: docker
+    needs:
+      - docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        distro: ["scratch", "alpine", "debian"]
+        registry:
+          - hadolint/hadolint
+          - ghcr.io/hadolint/hadolint
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
     steps:
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_IO_REGISTRY_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set target and tag
         id: build-opts
         run: |
-          if [ "${{ matrix.distro }}" = 'scratch' ]; then
-            echo ::set-output name=target::${{github.sha}}
-            echo ::set-output name=latest::latest
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}"
-          else
-            echo ::set-output name=target::${{github.sha}}-${{matrix.distro}}
-            echo ::set-output name=latest::"latest-${{ matrix.distro }}"
-            echo ::set-output name=tag::"${GITHUB_REF/refs\/tags\/v/}-${{ matrix.distro }}"
+            if [[ $GITHUB_REF == refs/tags/* ]] ; then
+              echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
+            else
+              echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Push scratch image
+        run: |
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-arm64
+
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:latest \
+              ${{ matrix.registry }}:${{github.sha}}-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-arm64
           fi
 
-      - name: Push Docker Images
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
+            ${{ matrix.registry }}:${{github.sha}}-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-arm64
+
+      - name: Push alpine image
         run: |
-          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
-          docker pull ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64
-          docker pull hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-alpine-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
-          docker manifest create \
-            hadolint/hadolint:${{ steps.build-opts.outputs.latest }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.latest }}
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:latest-alpine \
+              ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
+          fi
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
-          docker manifest create \
-            hadolint/hadolint:${{ steps.build-opts.outputs.tag }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:${{ steps.build-opts.outputs.tag }}
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine \
+            ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
-          docker manifest create \
-            ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            ghcr.io/hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push ghcr.io/hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
-          docker manifest create \
-            hadolint/hadolint:v${{ steps.build-opts.outputs.tag }} \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-amd64 \
-            hadolint/hadolint:${{ steps.build-opts.outputs.target }}-arm64
-          docker manifest push hadolint/hadolint:v${{ steps.build-opts.outputs.tag }}
+      - name: Push debian image
+        run: |
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-debian-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-  os-binaries:
-    name: ${{ matrix.os }} / ${{ github.ref }}
-    runs-on: ${{ matrix.os }}
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            docker buildx imagetools create \
+              --tag ${{ matrix.registry }}:latest-debian \
+              ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
+              ${{ matrix.registry }}:${{github.sha}}-debian-arm64
+          fi
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - os: macos-latest
-        - os: windows-latest
-
-    steps:
-
-    - name: Check out
-      uses: actions/checkout@v3
-
-    - name: Set tag name
-      uses: little-core-labs/get-git-tag@v3.0.2
-      id: tag
-      with:
-        tagRegex: "v(.*)"
-        tagRegexGroup: 1
-
-    - name: Set GHC_VERSION
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.5'
-
-    - if: matrix.os == 'windows-latest'
-      name: Set GHC_VERSION on windows
-      uses: allenevans/set-env@v2.2.0
-      with:
-        GHC_VERSION: '9.2.4'
-
-    - name: Setup Haskell
-      id: setup-haskell-cabal
-      uses: haskell/actions/setup@v2
-      with:
-        ghc-version: ${{ env.GHC_VERSION }}
-
-    - name: Freeze
-      run: cabal freeze
-
-    - name: Cache store
-      uses: actions/cache@v3.3.1
-      with:
-        path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
-        key: ${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
-
-    - name: Build binary
-      run: |
-        mkdir dist
-        cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options=-fPIC
-
-    - if: matrix.os == 'windows-latest'
-      name: Set extension to .exe on Windows
-      uses: allenevans/set-env@v2.2.0
-      with:
-        EXT: '.exe'
-
-    - name: Set binary OS name
-      uses: allenevans/set-env@v2.2.0
-      with:
-        BINARY_OS: ${{ runner.os }}
-
-    - if: matrix.os == 'macos-latest'
-      name: Set binary OS name on Macos
-      uses: allenevans/set-env@v2.2.0
-      with:
-        BINARY_OS: 'Darwin'
-
-    - name: Set binary path name
-      uses: allenevans/set-env@v2.2.0
-      with:
-        BINARY_PATH: ./dist/hadolint${{ env.EXT }}
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: hadolint-${{ env.BINARY_OS }}-x86_64${{ env.EXT }}
-        path: ${{ env.BINARY_PATH }}
-        retention-days: 3
+          docker buildx imagetools create \
+            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+            ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
+            ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
   release:
-    needs: [docker-release, os-binaries]
+    if: github.event_name != 'workflow_dispatch'
+    needs:
+      - docker-release
+      - build-linux
+      - build-macos
+      - build-windows
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
 
-    - name: Check out
-      uses: actions/checkout@v3
+      - name: Check out
+        uses: actions/checkout@v5
 
-    - name: Download Linux x86
-      uses: actions/download-artifact@v3
-      with:
-        name: hadolint-Linux-amd64
-        path: artifacts/hadolint-Linux-x86_64
+      - name: Download Linux x86
+        uses: actions/download-artifact@v5
+        with:
+          name: hadolint-linux-amd64
+          path: artifacts/hadolint-linux-x86_64
 
-    - name: Download Linux arm64
-      uses: actions/download-artifact@v3
-      with:
-        name: hadolint-Linux-arm64
-        path: artifacts/hadolint-Linux-arm64
+      - name: Download Linux arm64
+        uses: actions/download-artifact@v5
+        with:
+          name: hadolint-linux-arm64
+          path: artifacts/hadolint-linux-arm64
 
-    - name: Download Macos x86
-      uses: actions/download-artifact@v3
-      with:
-        name: hadolint-Darwin-x86_64
-        path: artifacts/hadolint-Darwin-x86_64
+      - name: Download Macos x86
+        uses: actions/download-artifact@v5
+        with:
+          name: hadolint-macos-x86_64
+          path: artifacts/hadolint-macos-x86_64
 
-    - name: Download Windows x86
-      uses: actions/download-artifact@v3
-      with:
-        name: hadolint-Windows-x86_64.exe
-        path: artifacts/hadolint-Windows-x86_64.exe
+      - name: Download Macos arm
+        uses: actions/download-artifact@v5
+        with:
+          name: hadolint-macos-arm64
+          path: artifacts/hadolint-macos-arm64
 
-    - name: Rename and Checksum
-      run: |
-        mv artifacts/hadolint-Linux-x86_64/hadolint hadolint-Linux-x86_64
-        mv artifacts/hadolint-Linux-arm64/hadolint hadolint-Linux-arm64
-        mv artifacts/hadolint-Darwin-x86_64/hadolint hadolint-Darwin-x86_64
-        mv artifacts/hadolint-Windows-x86_64.exe/hadolint.exe hadolint-Windows-x86_64.exe
+      - name: Download Windows x86
+        uses: actions/download-artifact@v5
+        with:
+          name: hadolint-windows-x86_64
+          path: artifacts/hadolint-windows-x86_64
 
-        sha256sum -b hadolint-Linux-x86_64 > hadolint-Linux-x86_64.sha256
-        sha256sum -b hadolint-Linux-arm64 > hadolint-Linux-arm64.sha256
-        sha256sum -b hadolint-Darwin-x86_64 > hadolint-Darwin-x86_64.sha256
-        sha256sum -b hadolint-Windows-x86_64.exe > hadolint-Windows-x86_64.exe.sha256
+      - name: Rename and Checksum
+        run: |
+          mv artifacts/hadolint-linux-x86_64/hadolint hadolint-linux-x86_64
+          mv artifacts/hadolint-linux-arm64/hadolint hadolint-linux-arm64
+          mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
+          mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
+          mv artifacts/hadolint-windows-x86_64/hadolint.exe hadolint-windows-x86_64.exe
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        generate_release_notes: true
-        fail_on_unmatched_files: true
-        files: |
-          hadolint-Linux-x86_64
-          hadolint-Linux-x86_64.sha256
-          hadolint-Linux-arm64
-          hadolint-Linux-arm64.sha256
-          hadolint-Darwin-x86_64
-          hadolint-Darwin-x86_64.sha256
-          hadolint-Windows-x86_64.exe
-          hadolint-Windows-x86_64.exe.sha256
+          sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
+          sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
+          sha256sum -b hadolint-macos-x86_64 > hadolint-macos-x86_64.sha256
+          sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
+          sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          draft: true
+          files: |
+            hadolint-linux-x86_64
+            hadolint-linux-x86_64.sha256
+            hadolint-linux-arm64
+            hadolint-linux-arm64.sha256
+            hadolint-macos-x86_64
+            hadolint-macos-x86_64.sha256
+            hadolint-macos-arm64
+            hadolint-macos-arm64.sha256
+            hadolint-windows-x86_64.exe
+            hadolint-windows-x86_64.exe.sha256

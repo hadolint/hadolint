@@ -34,8 +34,15 @@ gems shell =
       not (Shell.cmdHasArgs "gem" ["-v"] cmd),
       not (Shell.cmdHasArgs "gem" ["--version"] cmd),
       not (Shell.cmdHasPrefixArg "gem" "--version=" cmd),
-      arg <- Shell.getArgsNoFlags cmd,
+      let args = Shell.getArgs cmd,
+      let argsUntilDoubleDash = takeWhile (/= "--") args,
+      arg <- removeOptions argsUntilDoubleDash,
       arg /= "install",
-      arg /= "i",
-      arg /= "--"
+      arg /= "i"
   ]
+  where
+    removeOptions [] = []
+    removeOptions (x : xs)
+      | x == "--" = removeOptions xs
+      | "-" `Text.isPrefixOf` x = removeOptions (drop 1 xs)
+      | otherwise = x : removeOptions xs

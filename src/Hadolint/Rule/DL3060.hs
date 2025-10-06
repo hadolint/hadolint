@@ -5,8 +5,8 @@ import qualified Data.Text as Text
 import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
+import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
-
 
 data Acc
   = Acc
@@ -16,7 +16,6 @@ data Acc
       }
   | Empty
   deriving (Show)
-
 
 rule :: Rule Shell.ParsedShell
 rule = dl3060 <> onbuild dl3060

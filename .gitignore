@@ -8,8 +8,22 @@ stack.yaml.lock
 
 #cabal
 dist-newstyle
+dist
 
 # travis wait is generating log in PWD
 travis_wait_*.log
 
 cabal.project.local*
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+.DS_Store
+.vim

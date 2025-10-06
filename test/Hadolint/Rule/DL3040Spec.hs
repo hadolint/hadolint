@@ -30,3 +30,18 @@ spec = do
       onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
     it "not ok with clean before install" $ do
       ruleCatches "DL3040" "microdnf clean all && RUN dnf install -y mariadb-10.4"
+      ruleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      ruleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      onBuildRuleCatchesNot "DL3040" "RUN dnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+      onBuildRuleCatchesNot "DL3040" "RUN microdnf install -y mariadb-10.4 && rm -rf /var/cache/libdnf5"
+
+    it "ok with cache mount at /var/cache/yum" $ do
+      ruleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      ruleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=cache,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+    it "ok with tmpfs mount at /var/cache/yum" $ do
+      ruleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      ruleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 dnf install -y mariadb-10.4"
+      onBuildRuleCatchesNot "DL3040" "RUN --mount=type=tmpfs,target=/var/cache/libdnf5 microdnf install -y mariadb-10.4"
