@@ -35,10 +35,10 @@ dl3060 = veryCustomRule check (emptyState Empty) markFailures
           && not (Utils.hasCacheOrTmpfsMountWith ".cache/yarn" flags) =
         st |> modify (rememberLine line)
     check line st (Run (RunArgs args _))
-      | Just True == (
-           (>) <$> foldArguments (Shell.findCommandIndex yarnInstall) args
-               <*> foldArguments (Shell.findCommandIndex yarnCacheClean) args) =
-          st |> modify (rememberLine line)
+      | foldArguments (Shell.anyCommands yarnInstall) args
+          && foldArguments (Shell.anyCommands yarnCacheClean) args
+          && foldArguments isCleanBeforeInstall args =
+        st |> modify (rememberLine line)
       | otherwise = st
     check _ st _ = st
 
@@ -69,6 +69,14 @@ yarnInstall = Shell.cmdHasArgs "yarn" ["install"]
 
 yarnCacheClean :: Shell.Command -> Bool
 yarnCacheClean = Shell.cmdHasArgs "yarn" ["cache", "clean"]
+
+isCleanBeforeInstall :: Shell.ParsedShell -> Bool
+isCleanBeforeInstall args =
+  case ( Shell.findCommandIndex yarnCacheClean args,
+         Shell.findCommandIndex yarnInstall args
+       ) of
+    (Just cleanIdx, Just installIdx) -> cleanIdx < installIdx
+    _ -> False
 
 -- | This is needed as placeholder when no FROM statement has yet been
 -- encountered.
