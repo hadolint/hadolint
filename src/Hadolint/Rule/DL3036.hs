@@ -1,6 +1,5 @@
 module Hadolint.Rule.DL3036 (rule) where
 
-import Data.Maybe (fromMaybe)
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
 import qualified Hadolint.Utils as Utils

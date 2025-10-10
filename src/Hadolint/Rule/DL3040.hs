@@ -1,7 +1,6 @@
 module Hadolint.Rule.DL3040 (rule) where
 
 import Hadolint.Rule
-import Data.Maybe (fromMaybe)
 import qualified Hadolint.Shell as Shell
 import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
