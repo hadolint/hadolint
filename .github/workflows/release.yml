@@ -94,7 +94,7 @@ jobs:
         shell: bash
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: ~/.local/bin/hadolint
@@ -135,7 +135,7 @@ jobs:
           cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: ./dist/hadolint
@@ -174,7 +174,7 @@ jobs:
           cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: dist\hadolint.exe
