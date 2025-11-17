@@ -18,9 +18,9 @@ dl3032 = simpleRule code severity message check
 
     check (Run (RunArgs args _)) =
       foldArguments (Shell.noCommands yumInstall) args
-        || ( foldArguments (Shell.anyCommands yumInstall) args
-               && foldArguments (Shell.anyCommands yumClean) args
-           )
+        || Just True == (
+             (<) <$> foldArguments (Shell.findCommandIndex yumInstall) args
+                 <*> foldArguments (Shell.findCommandIndex yumClean) args)
     check _ = True
 
     yumInstall = Shell.cmdHasArgs "yum" ["install"]

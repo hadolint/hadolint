@@ -20,6 +20,8 @@ spec = do
     it "ok with cache clean" $ do
       ruleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
       onBuildRuleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
+    it "not ok with clean before install" $ do
+      ruleCatches "DL3060" "RUN yarn cache clean && yarn install foo"
 
     it "ok when cache mount is used" $
       let line = "RUN --mount=type=cache,target=/root/.cache/yarn yarn install foobar"

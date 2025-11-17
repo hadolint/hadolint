@@ -21,3 +21,6 @@ spec = do
     it "ok with rm -rf /var/cache/yum/*" $ do
       ruleCatchesNot "DL3032" "RUN yum install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
       onBuildRuleCatchesNot "DL3032" "RUN yum install -y mariadb-10.4 && rm -rf /var/cache/yum/*"
+    it "not ok with clean before install" $ do
+      ruleCatchesNot "DL3032" "RUN yum install -y mariadb-10.4 && yum clean all"
+      ruleCatches "DL3032" "RUN yum clean all && yum install -y"

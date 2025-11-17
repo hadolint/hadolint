@@ -21,6 +21,9 @@ spec = do
       onBuildRuleCatchesNot "DL3036" "RUN zypper install -y mariadb=10.4 && zypper clean"
       onBuildRuleCatchesNot "DL3036" "RUN zypper install -y mariadb=10.4 && zypper cc"
 
+    it "not ok with clean before install" $ do
+      ruleCatches "DL3036" "RUN zypper clean && zypper install -y mariadb=10.4"
+
     it "ok when mount type cache is used" $
       let line = "RUN --mount=type=cache,target=/var/cache/zypp zypper install -y mariadb"
       in do

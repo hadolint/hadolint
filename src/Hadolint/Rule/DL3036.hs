@@ -20,8 +20,9 @@ dl3036 = simpleRule code severity message check
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands zypperInstall) args = True
       | Utils.hasCacheOrTmpfsMountWith "/var/cache/zypp" flags = True
-      | foldArguments (Shell.anyCommands zypperInstall) args
-          && foldArguments (Shell.anyCommands zypperClean) args = True
+      | Just True == (
+             (<) <$> foldArguments (Shell.findCommandIndex zypperInstall) args
+                 <*> foldArguments (Shell.findCommandIndex zypperClean) args) = True
       | otherwise = False
     check _ = True
 

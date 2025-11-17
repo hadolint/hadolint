@@ -2,7 +2,7 @@ module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, findIndex)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -157,6 +157,9 @@ noCommands check = allCommands (not . check)
 
 anyCommands :: (Command -> Bool) -> ParsedShell -> Bool
 anyCommands check script = any check (presentCommands script)
+
+findCommandIndex :: (Command -> Bool) -> ParsedShell -> Maybe Int
+findCommandIndex check script = findIndex check (presentCommands script)
 
 findCommandNames :: ParsedShell -> [Text]
 findCommandNames script = map name (presentCommands script)
