@@ -30,7 +30,7 @@ dnfPackages :: Shell.ParsedShell -> [Text.Text]
 dnfPackages args =
     [ arg
       | cmd <- Shell.presentCommands args,
-        not (Shell.cmdsHaveArgs dnfCmds ["module"] cmd),
+        not (Shell.cmdsHaveArgs dnfCmds ["module", "group"] cmd),
         arg <- installFilter cmd
     ]
 
