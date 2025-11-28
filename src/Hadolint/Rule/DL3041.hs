@@ -45,20 +45,24 @@ packageVersionFixed package
 isVersionLike :: [Text.Text] -> Bool
 isVersionLike parts =
   case parts of
-    [] -> False  -- No parts after splitting by hyphen
-    _ -> all partIsValid parts && any partStartsWithDigit parts
+    [] -> False -- No parts after splitting by hyphen
+    _ -> all partIsValid parts && any partStartsWithDigitOrVariable parts
   where
     partIsValid part = Text.all isVersionChar part
-    partStartsWithDigit part = case Text.uncons part of
-                                 Just (c, _) -> isDigit c
-                                 Nothing -> False -- Empty Text
+    partStartsWithDigitOrVariable part =
+      case Text.uncons part of
+        Just (c, _) -> isDigit c || isVariableStartChar c
+        Nothing -> False -- Empty Text
 
 isVersionChar :: Char -> Bool
 isVersionChar c =
   isDigit c
     || isAsciiUpper c
     || isAsciiLower c
-    || c `elem` ['.', '~', '^', '_', ':', '+']
+    || c `elem` ['.', '~', '^', '_', ':', '+', '$', '{', '}']
+
+isVariableStartChar :: Char -> Bool
+isVariableStartChar c = c `elem` ['$']
 
 dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =
