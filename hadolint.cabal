@@ -289,6 +289,7 @@ test-suite hadolint-unit-tests
     Hadolint.Rule.ShellcheckSpec
     Hadolint.ShellSpec
     Helpers
+    MainSpec
     Paths_hadolint
     RegressionSpec
 
@@ -320,6 +321,7 @@ test-suite hadolint-unit-tests
     , bytestring
     , containers
     , data-default
+    , directory
     , foldl
     , hadolint
     , hspec                 >=2.8.3
@@ -328,6 +330,7 @@ test-suite hadolint-unit-tests
     , language-docker
     , megaparsec
     , optparse-applicative
+    , process
     , ShellCheck
     , silently
     , split
