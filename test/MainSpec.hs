@@ -2,11 +2,9 @@ module MainSpec (spec) where
 
 import System.Directory (createDirectory, doesDirectoryExist, removeDirectoryRecursive,
                         withCurrentDirectory, getCurrentDirectory)
-import System.Environment (getEnv)
 import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Test.Hspec
-import Control.Exception (catch, IOException)
 
 -- Helper to create a test directory and run tests in it
 withTestDir :: String -> IO a -> IO a
@@ -28,13 +26,12 @@ createMinimalDockerfile path =
   writeFile path "FROM alpine:3.19\n"
 
 -- Helper to run hadolint executable
--- Uses the locally built hadolint from ~/.local/bin
+-- Uses 'cabal exec hadolint' to run the locally built version
 runHadolint :: [String] -> IO (ExitCode, String, String)
 runHadolint args = do
-  -- Try to use the locally built hadolint (installed to ~/.local/bin)
-  home <- getEnv "HOME" `catch` (\(_ :: IOException) -> return "/Users/nilborodulia")
-  let localBin = home ++ "/.local/bin/hadolint"
-  readProcessWithExitCode localBin args ""
+  -- Use 'cabal exec hadolint' to run the locally built version
+  -- This works across all platforms without hardcoding paths
+  readProcessWithExitCode "cabal" (["exec", "hadolint", "--"] ++ args) ""
 
 spec :: SpecWith ()
 spec = do
