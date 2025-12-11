@@ -11,7 +11,7 @@ import qualified Crypto.Hash.SHA1 as SHA1
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Base16 as B16
-import Data.ByteString.Char8 as Char8
+import qualified Data.ByteString.Char8 as Char8
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
@@ -31,7 +31,7 @@ data Issue = Issue
 
 data FingerprintIssue = FingerprintIssue
   { issue :: Issue,
-    fingerprint :: ByteString
+    fingerprint :: Char8.ByteString
   }
 
 data Location
@@ -111,7 +111,7 @@ severityText severity =
     DLStyleC -> "minor"
     _ -> ""
 
-generateFingerprint :: Issue -> ByteString
+generateFingerprint :: Issue -> Char8.ByteString
 generateFingerprint = B16.encode . SHA1.hashlazy . encode
 
 issueToFingerprintIssue :: Issue -> FingerprintIssue
@@ -124,8 +124,8 @@ issueToFingerprintIssue i =
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Seq Issue
 formatResult (Result filename errors checks) filePathInReport = (errorToIssue <$> errors) <> (checkToIssue filename filePathInReport <$> checks)
 
-formatGitLabResult :: 
-  (VisualStream s, TraversableStream s, ShowErrorComponent e) => 
+formatGitLabResult ::
+  (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
   Result s e -> Maybe FilePath ->
   Seq FingerprintIssue
 formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> (formatResult result filePathInReport)
@@ -142,7 +142,7 @@ printResults results filePathInReport = flattened
   where
     flattened = Foldl.fold (Foldl.premap printResult Foldl.mconcat) results filePathInReport
 
-printGitLabResults :: 
+printGitLabResults ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
   f (Result s e) -> Maybe FilePath ->
   IO ()
@@ -150,9 +150,9 @@ printGitLabResults results filePathInReport = B.putStr . encode $ flattened
   where
     flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results filePathInReport
 
-getFilePath :: Maybe FilePath -> Text.Text 
+getFilePath :: Maybe FilePath -> Text.Text
 getFilePath Nothing = ""
 getFilePath (Just filePath) = toText [filePath]
 
-toText :: [FilePath] -> Text.Text 
+toText :: [FilePath] -> Text.Text
 toText = foldMap Text.pack
