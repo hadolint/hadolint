@@ -1,0 +1,10 @@
+[build-system]
+requires = ["release-gitter[builder]"]
+build-backend = "pseudo_builder"
+
+[tool.release-gitter]
+# If you're running a fork and need to download from the
+# upstream release, uncomment this line
+# git-url = "https://github.com/hadolint/hadolint"
+format = "hadolint-{system}-{arch}"
+exec = "mv {} hadolint && chmod +x hadolint"
