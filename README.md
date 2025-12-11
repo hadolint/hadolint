@@ -165,7 +165,8 @@ Available options:
   -c,--config FILENAME     Path to the configuration file
   --file-path-in-report FILEPATHINREPORT
                            The file path referenced in the generated report.
-                           This only applies for the 'checkstyle', 'codeclimate', and 'gitlab_codeclimate' formats and is
+                           This only applies for the 'checkstyle', 'codeclimate',
+                           'sonarqube' and 'gitlab_codeclimate' formats and is
                            useful when running Hadolint with Docker to set the
                            correct file path.
   --no-fail                Don't exit with a failure status code when any rule
