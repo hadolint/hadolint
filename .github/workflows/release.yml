@@ -47,9 +47,9 @@ jobs:
       - name: Install system dependencies
         run: |
           apk add --no-cache \
-            curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl \
-            git bash sudo binutils-gold zlib zlib-dev zlib-static gmp gmp-dev \
-            ncurses-static libc-dev libffi-dev musl-dev
+            curl gcc g++ ncurses-dev libffi-dev make xz gzip tar perl git bash \
+            sudo binutils-gold zlib zlib-dev zlib-static gmp gmp-dev \
+            gmp-static ncurses-static libc-dev libffi-dev musl-dev
 
       - name: Install ghcup
         run: |
@@ -184,9 +184,9 @@ jobs:
       - name: Build binaries
         run: |
           mkdir dist
-          cabal install exe:hadolint \
-            --install-method=copy \
-            --overwrite-policy=always \
+          cabal install exe:hadolint `
+            --install-method=copy `
+            --overwrite-policy=always `
             --installdir=dist
 
       - name: Upload Artifact
