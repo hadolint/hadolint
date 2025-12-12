@@ -35,5 +35,5 @@ printResults format nocolor filePathInReport allResults =
     Gnu -> FormatGnu.printResults allResults
     Json -> FormatJson.printResults allResults
     Sarif -> FormatSarif.printResults allResults
-    SonarQube -> FormatSonarQube.printResults allResults
+    SonarQube -> FormatSonarQube.printResults allResults filePathInReport
     TTY -> FormatTTY.printResults allResults nocolor
