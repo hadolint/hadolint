@@ -7,7 +7,8 @@ on:
     branches:
       - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
     paths:
       - '.github/workflows/hlint.yml'
       - 'app/**/*.hs'
@@ -21,7 +22,7 @@ jobs:
       HLINT_ACTION_LOG_LEVEL: debug
     steps:
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up HLint
         uses: rwe/actions-hlint-setup@v1

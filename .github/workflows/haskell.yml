@@ -30,8 +30,7 @@ jobs:
     steps:
 
       - name: Check out
-        uses: actions/checkout@v5
-
+        uses: actions/checkout@v6
 
       - name: Setup Haskell
         id: setup-haskell-cabal
@@ -46,7 +45,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5
         with:
           path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}

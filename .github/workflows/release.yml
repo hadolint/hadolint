@@ -17,7 +17,7 @@ jobs:
     name: Create Release for Linux (static)
     runs-on: ${{ matrix.os }}
     container:
-      image: alpine:3.21
+      image: alpine:3.23
       volumes:
         - /:/host
         - /opt:/opt:rw,rshared
@@ -47,12 +47,15 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          apk add --no-cache curl gcc g++ gmp-dev ncurses-dev libffi-dev make xz gzip tar perl git bash sudo binutils-gold
-          apk add --no-cache zlib zlib-dev zlib-static gmp gmp-dev ncurses-static libc-dev libffi-dev musl-dev
+          apk add --no-cache \
+            curl gcc g++ ncurses-dev libffi-dev make xz gzip tar perl git bash \
+            sudo binutils-gold zlib zlib-dev zlib-static gmp gmp-dev \
+            gmp-static ncurses-static libc-dev libffi-dev musl-dev
 
       - name: Install ghcup
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf ${{ matrix.ghcup }}  > /usr/bin/ghcup
+          curl \
+            --proto '=https' --tlsv1.2 -sSf ${{ matrix.ghcup }} > /usr/bin/ghcup
           chmod +x /usr/bin/ghcup
           echo "$HOME/.ghcup/bin" $GITHUB_PATH
         shell: bash
@@ -63,7 +66,7 @@ jobs:
           ghcup install cabal --force -i /usr/local/bin
         shell: bash
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Update cabal cache
         run: cabal update
@@ -80,21 +83,28 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5
         with:
           path: ~/.cabal/store
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build
         run: |
-          cabal build --only-dependencies --disable-shared --ghc-options='-split-sections -optl-static -fPIC'
-          cabal build --enable-executable-static --disable-executable-dynamic --disable-shared --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
+          cabal build \
+            --only-dependencies \
+            --disable-shared \
+            --ghc-options='-split-sections -optl-static -fPIC'
+          cabal build \
+            --enable-executable-static \
+            --disable-executable-dynamic \
+            --disable-shared \
+            --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
           mv "$(cabal list-bin hadolint)" ~/.local/bin/hadolint
           strip ~/.local/bin/hadolint
         shell: bash
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: ~/.local/bin/hadolint
@@ -106,13 +116,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15
             target: macos-x86_64
-          - os: macos-14
+          - os: macos-15
             target: macos-arm64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - id: setup-haskell
         name: Set up Haskell
@@ -124,7 +134,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
@@ -132,10 +142,14 @@ jobs:
       - name: Build binaries
         run: |
           mkdir dist
-          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist --ghc-options="-fPIC"
+          cabal install exe:hadolint \
+            --install-method=copy \
+            --overwrite-policy=always \
+            --installdir=dist \
+            --ghc-options="-fPIC"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: ./dist/hadolint
@@ -151,7 +165,7 @@ jobs:
             target: windows-x86_64
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - id: setup-haskell
         name: Set up Haskell
@@ -163,7 +177,7 @@ jobs:
         run: cabal freeze
 
       - name: Cache store
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
           key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
@@ -171,10 +185,13 @@ jobs:
       - name: Build binaries
         run: |
           mkdir dist
-          cabal install exe:hadolint --install-method=copy --overwrite-policy=always --installdir=dist
+          cabal install exe:hadolint `
+            --install-method=copy `
+            --overwrite-policy=always `
+            --installdir=dist
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hadolint-${{ matrix.target }}
           path: dist\hadolint.exe
@@ -196,13 +213,13 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Download Artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-linux-${{matrix.target}}
           path: ${{matrix.target}}
@@ -361,34 +378,34 @@ jobs:
     steps:
 
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download Linux x86
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-linux-amd64
           path: artifacts/hadolint-linux-x86_64
 
       - name: Download Linux arm64
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-linux-arm64
           path: artifacts/hadolint-linux-arm64
 
       - name: Download Macos x86
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-macos-x86_64
           path: artifacts/hadolint-macos-x86_64
 
       - name: Download Macos arm
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-macos-arm64
           path: artifacts/hadolint-macos-arm64
 
       - name: Download Windows x86
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: hadolint-windows-x86_64
           path: artifacts/hadolint-windows-x86_64
