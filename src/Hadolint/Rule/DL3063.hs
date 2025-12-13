@@ -14,16 +14,14 @@ rule = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3063"
     severity = DLIgnoreC
-    message = "A USER instruction should be specified"
+    message = "A USER should be set after the last FROM"
 
-    check line st (From _) = st |> modify (setReportLine (line + 1))
+    check line st (From _) = st |> modify (resetForNewStage line)
     check _ st (User _) = st |> modify setHasUser
     check _ st _ = st
 
-    setReportLine :: Linenumber -> Acc -> Acc
-    setReportLine line Empty = Acc False line
-    setReportLine line (Acc False _) = Acc False line
-    setReportLine _ st@(Acc True _) = st
+    resetForNewStage :: Linenumber -> Acc -> Acc
+    resetForNewStage line _ = Acc False (line + 1)
 
     setHasUser :: Acc -> Acc
     setHasUser (Acc _ line) = Acc True line
