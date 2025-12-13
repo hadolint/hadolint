@@ -217,6 +217,7 @@ test-suite hadolint-unit-tests
     Hadolint.Formatter.GnuSpec
     Hadolint.Formatter.ParseErrorSpec
     Hadolint.Formatter.SarifSpec
+    Hadolint.Formatter.SonarQubeSpec
     Hadolint.Formatter.TTYSpec
     Hadolint.PragmaSpec
     Hadolint.Rule.DL1001Spec
