@@ -65,3 +65,10 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf module install -y tomcat:9 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf module install -y tomcat:9 && microdnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf module install tomcat"
+
+    it "ok with dnf version pinning via shell variable" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y \"git-core-${GIT_VER}\" && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN dnf install -y \"rpm-sign-${VERSION}\" && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN dnf install -y tomcat-$VERSION && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y \"git-core-${GIT_VER}\" && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y \"git-core-${GIT_VER}\" && dnf clean all"
