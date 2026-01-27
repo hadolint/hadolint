@@ -357,11 +357,13 @@ Such comments look like
 # hadolint ignore=DL3006
 FROM ubuntu
 
-# hadolint ignore=DL3003,SC1035
+# hadolint ignore=DL3003,SC1035 # We accept these issues, because ...
 RUN cd /tmp && echo "hello!"
 ```
 
 The comment "inline ignores" applies only to the statement following it.
+
+Comments are allowed after the `ignore=...`, you need an extra `#`
 
 ### Global ignores
 
@@ -370,7 +372,7 @@ It works just like inline ignores, except that it applies to the whole file
 instead of just the next line.
 
 ```dockerfile
-# hadolint global ignore=DL3003,DL3006,SC1035
+# hadolint global ignore=DL3003,DL3006,SC1035 # We accept these issues, because ...
 FROM ubuntu
 
 RUN cd /tmp && echo "foo"
