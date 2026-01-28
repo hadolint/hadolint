@@ -116,6 +116,22 @@ docker pull ghcr.io/hadolint/hadolint:latest-debian
 docker pull ghcr.io/hadolint/hadolint:latest-alpine
 ```
 
+You also can install it in Dockerfile
+
+```dockerfile
+# Pull one of the images above
+FROM ghcr.io/hadolint/hadolint as hadolint
+
+# Your base image here
+FROM mcr.microsoft.com/devcontainers/python:3.10-bookworm
+
+# Copy binary over
+COPY --from=hadolint /bin/hadolint /usr/local/bin/hadolint
+
+# "Draw the rest of the owl"
+RUN ...
+```
+
 You can also build `hadolint` locally. You need [Haskell][] and the [cabal][]
 build tool to build the binary.
 
