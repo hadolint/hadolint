@@ -374,6 +374,10 @@ jobs:
       - build-windows
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
     steps:
 
       - name: Check out
@@ -422,6 +426,7 @@ jobs:
           sha256sum -b hadolint-macos-x86_64 > hadolint-macos-x86_64.sha256
           sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
           sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
+          cat *.sha256 >SHA256SUMS
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -441,3 +446,9 @@ jobs:
             hadolint-macos-arm64.sha256
             hadolint-windows-x86_64.exe
             hadolint-windows-x86_64.exe.sha256
+
+      - name: Generate artifact attestations
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-checksums: SHA256SUMS
