@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -17,6 +16,9 @@ spec = do
     it "apk add no version pinning single" $ do
       ruleCatchesNot "DL3018" "RUN apk add flex=2.6.4-r1"
       onBuildRuleCatchesNot "DL3018" "RUN apk add flex=2.6.4-r1"
+    it "apk add tilde version pinning single" $ do
+      ruleCatchesNot "DL3018" "RUN apk add --no-cache git~2.52.0"
+      onBuildRuleCatchesNot "DL3018" "RUN apk add --no-cache git~2.52.0"
     it "apk add version pinned chained" $
       let dockerFile =
             [ "RUN apk add --no-cache flex=2.6.4-r1 \\",
