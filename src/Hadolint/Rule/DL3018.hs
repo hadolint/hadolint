@@ -1,11 +1,10 @@
 module Hadolint.Rule.DL3018 (rule) where
 
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Hadolint.Rule
 import Hadolint.Shell (ParsedShell)
-import qualified Hadolint.Shell as Shell
+import Hadolint.Shell qualified as Shell
 import Language.Docker.Syntax
-
 
 rule :: Rule ParsedShell
 rule = dl3018 <> onbuild dl3018
@@ -24,22 +23,22 @@ dl3018 = simpleRule code severity message check
         ( \as ->
             and
               [ versionFixed p || packageFile p
-                | p <- apkAddPackages as
+              | p <- apkAddPackages as
               ]
         )
         args
     check _ = True
-    versionFixed package = "=" `Text.isInfixOf` package
+    versionFixed package = any (`Text.isInfixOf` package) ["=", "~"]
     packageFile package = ".apk" `Text.isSuffixOf` package
 {-# INLINEABLE dl3018 #-}
 
 apkAddPackages :: ParsedShell -> [Text.Text]
 apkAddPackages args =
   [ arg
-    | cmd <- Shell.presentCommands args,
-      Shell.cmdHasArgs "apk" ["add"] cmd,
-      arg <- Shell.getArgsNoFlags (dropTarget cmd),
-      arg /= "add"
+  | cmd <- Shell.presentCommands args,
+    Shell.cmdHasArgs "apk" ["add"] cmd,
+    arg <- Shell.getArgsNoFlags (dropTarget cmd),
+    arg /= "add"
   ]
   where
     dropTarget = Shell.dropFlagArg ["t", "virtual", "repository", "X"]
