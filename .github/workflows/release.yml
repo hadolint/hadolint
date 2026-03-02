@@ -103,7 +103,7 @@ jobs:
         shell: bash
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: hadolint-${{ matrix.target }}
           path: ~/.local/bin/hadolint
@@ -148,7 +148,7 @@ jobs:
             --ghc-options="-fPIC"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: hadolint-${{ matrix.target }}
           path: ./dist/hadolint
@@ -190,7 +190,7 @@ jobs:
             --installdir=dist
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: hadolint-${{ matrix.target }}
           path: dist\hadolint.exe
