@@ -5,9 +5,17 @@
   language: docker_image
   types: ["dockerfile"]
   entry: ghcr.io/hadolint/hadolint hadolint
+
 - id: hadolint
   name: Lint Dockerfiles
   description: Runs hadolint to lint Dockerfiles
   language: system
+  types: ["dockerfile"]
+  entry: hadolint
+
+- id: hadolint-github
+  name: Lint Dockerfiles
+  description: Runs hadolint to lint Dockerfiles. Downloads Github release
+  language: python
   types: ["dockerfile"]
   entry: hadolint
