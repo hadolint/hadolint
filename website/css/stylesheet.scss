@@ -1,0 +1,59 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@charset "utf-8";
+
+// Our variables
+$header-height:    5.2rem;
+
+$base-font-family: Helvetica, Arial, sans-serif;
+$base-font-size:   1.6rem;
+$base-line-height: 1.5;
+$title-font-family: 'audimatregular', sans-serif;
+
+$spacing-unit:     3rem;
+
+$text-color:       #111;
+$background-color: white;
+$brand-color:      #131A38;
+
+$grey-color:       #828282;
+$grey-color-light: lighten($grey-color, 40%);
+$grey-color-dark:  darken($grey-color, 25%);
+
+@mixin breakpoint($point) {
+   @if $point == xs {
+     @media (min-width: 420px) { @content; }
+  }
+   @else if $point == s {
+     @media (min-width: 640px) { @content; }
+  }
+    @else if $point == md {
+     @media (min-width: 900px) { @content; }
+  }
+   @else if $point == l {
+     @media (min-width: 1100px)  { @content; }
+  }
+}
+
+// Add vendor prefixes
+@mixin vendor-prefix($name, $argument) {
+    -webkit-#{$name}: #{$argument};
+    -ms-#{$name}: #{$argument};
+    -moz-#{$name}: #{$argument};
+    -o-#{$name}: #{$argument};
+    #{$name}: #{$argument};
+}
+
+@mixin clearfix {
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+// Import partials from `sass_dir` (defaults to `_sass`)
+@import "base";
+@import "layout";
+@import "modules";

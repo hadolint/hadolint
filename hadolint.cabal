@@ -162,7 +162,7 @@ library
     , spdx                  >=1.1      && <1.2
     , split                 >=0.2.5    && <0.3
     , text                  >=2.1.2    && <2.2
-    , time                  >=1.12.2   && <1.13
+    , time                  >=1.14     && <1.15
     , timerep               >=2.1.0    && <2.2
     , void                  >=0.7.3    && <0.8
     , xml-conduit           >=1.10.0   && <1.11
@@ -170,6 +170,10 @@ library
   default-language:   GHC2021
 
 executable hadolint
+  if !arch(wasm32)
+    buildable: True
+  else
+    buildable: False
   main-is:            Main.hs
   other-modules:      Paths_hadolint
   autogen-modules:    Paths_hadolint
@@ -201,6 +205,30 @@ executable hadolint
     , megaparsec            >=9.7.0     && <9.8
     , optparse-applicative  >=0.19.0    && <0.20
     , prettyprinter         >=1.7.1     && <1.8
+    , text                  >=2.1.2     && <2.2
+
+  default-language:   GHC2021
+
+executable hadolint-embedded
+  if arch(wasm32)
+    buildable: True
+  else
+    buildable: False
+  main-is:        embedded.hs
+  hs-source-dirs: app
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+    -no-hs-main -optl-mexec-model=reactor -optl-Wl,--export=setup -o website/hadolint.wasm
+
+  build-depends:
+      base                  >=4.20.1    && <5
+    , ghc-experimental
+    , containers            >=0.7       && <0.8
+    , data-default          >=0.8.0     && <0.9
+    , hadolint
+    , language-docker
     , text                  >=2.1.2     && <2.2
 
   default-language:   GHC2021

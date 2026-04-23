@@ -27,3 +27,5 @@ devenv.local.nix
 
 .DS_Store
 .vim
+
+*.wasm
