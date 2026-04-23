@@ -30,6 +30,7 @@ spec = do
               [ "FROM alpine:3",  -- to satisfy DL3061
                 "ARG A_WITHOUT_EQ",
                 "ARG A_WITH_EQ=",
+                "USER app",  -- to satisfy DL3063, even though it is ignored by default
                 "HEALTHCHECK NONE",  -- to satisfy DL3057, even though it is ignored by default
                 "RUN echo bla"
               ]
