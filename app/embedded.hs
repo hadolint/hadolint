@@ -34,6 +34,9 @@ foreign import javascript unsafe "$1.addEventListener($2, $3)"
 foreign import javascript "wrapper"
   asEventListener :: (JSVal -> IO ()) -> IO JSVal
 
+foreign import javascript unsafe "$1.textContent = $2;"
+  js_setText :: JSVal -> JSString -> IO ()
+
 
 -- JavaScript exports --
 foreign export javascript "setup" setup :: IO ()
@@ -42,6 +45,9 @@ setup = do
   lintInput <- js_document_getElementById (toJSString "lint")
   lintInputCallback <- asEventListener onLint
   js_addEventListener lintInput (toJSString "click") lintInputCallback
+
+  versionOutput <- js_document_getElementById (toJSString "version")
+  js_setText versionOutput $ toJSString $ Hadolint.getVersion
 
 foreign export javascript "lint" lint :: IO ()
 lint :: IO ()
