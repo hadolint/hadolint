@@ -1,5 +1,23 @@
 packages:
   .
 
+allow-newer:
+  time
+
 optional-packages:
   vendored/**/*.cabal
+
+
+if arch(wasm32)
+  shared: True
+
+  source-repository-package
+    type: git
+    location: https://github.com/haskell-wasm/network
+    tag: ab92e48e9fdf3abe214f85fdbe5301c1280e14e9
+
+  source-repository-package
+    type: git
+    location: https://github.com/m-ildefons/haskell-xml
+    tag: 755c749efe70bcaefa7d182dc62f70cb79f45a32
+    subdir: xml-conduit
