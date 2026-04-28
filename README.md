@@ -1,9 +1,12 @@
-# Haskell Dockerfile Linter
+# Hadolint - Haskell Dockerfile Linter
 
-[![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
-![GitHub downloads][downloads-img]
+[![Hackage version][hackage-img]][hackage]
+[![GitHub downloads][downloads-img]][release]
+[![Docker pulls][docker-img]][docker]
+[![Build Status][github-actions-img]][github-actions]
+
 <img align="right" alt="pipecat" width="150"
 src="https://hadolint.github.io/hadolint/img/cat_container.png" />
 
@@ -699,9 +702,14 @@ cabal test
 [github-actions]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
-[release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
+[release-img]: https://img.shields.io/github/v/release/hadolint/hadolint?logo=github
+[release-date]: https://img.shields.io/github/release-date/hadolint/hadolint?logo=github
 [release]: https://github.com/hadolint/hadolint/releases/latest
-[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
+[docker]: https://hub.docker.com/r/hadolint/hadolint
+[hackage]: https://hackage.haskell.org/package/hadolint
+[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total?logo=github
+[hackage-img]: https://img.shields.io/hackage/v/hadolint?logo=haskell
+[docker-img]: https://img.shields.io/docker/pulls/hadolint/hadolint?logo=docker
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest
