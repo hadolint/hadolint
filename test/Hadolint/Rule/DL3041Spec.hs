@@ -65,3 +65,10 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf module install -y tomcat:9 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf module install -y tomcat:9 && microdnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf module install tomcat"
+
+    it "ok with dnf group install" $ do
+      ruleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf -y --setopt=group_package_types=\"mandatory\" group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf group install -y \"Development Tools\" && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf group install -y \"Development Tools\" && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
