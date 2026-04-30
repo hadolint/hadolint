@@ -2,11 +2,6 @@
 
 Only `master` branch is used for releases.
 
-1.  Update _hadolint-docker_ entry version in the
-    [.pre-commit-hooks.yaml](../.pre-commit-hooks.yaml) file.
-    Use the new version you're going to release.
-    And push to master.
-
 1.  Create branch to update release number in `package.yaml` and
     [integration](INTEGRATION.md) guide and merge it when it pass CI.
 
@@ -26,6 +21,12 @@ Only `master` branch is used for releases.
     binaries to GitHub release draft with the same name as is the name
     of the tag (created in step 1).
     ![draft_binaries](https://user-images.githubusercontent.com/18702153/32983247-7692d528-cc89-11e7-9340-2af1434a6bdf.png)
+
+    Tag creation also triggers the GitHub Actions **Release** workflow, which
+    publishes Docker images and automatically pins the _hadolint-docker_ hook in
+    [.pre-commit-hooks.yaml](../.pre-commit-hooks.yaml) to
+    `ghcr.io/hadolint/hadolint:v<version>@sha256:<digest>` (commit to `master`).
+    No manual edit is required for the Docker image reference.
 
 1.  Edit release notes, mention all new features and important fixes and
     publish it.
