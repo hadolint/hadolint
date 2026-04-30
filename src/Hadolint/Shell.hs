@@ -7,7 +7,29 @@ import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text
-import ShellCheck.AST (Id (..), Token (..), pattern T_Pipe, pattern T_SimpleCommand)
+import ShellCheck.AST
+  ( Id (..),
+    Token (..),
+    pattern T_Pipe,
+    pattern T_SimpleCommand,
+    pattern T_NormalWord,
+    pattern T_DoubleQuoted,
+    pattern T_SingleQuoted,
+    pattern T_DollarBraced,
+    pattern T_DollarArithmetic,
+    pattern T_DollarExpansion,
+    pattern T_Backticked,
+    pattern T_Glob,
+    pattern T_Pipeline,
+    pattern T_Literal,
+    pattern T_ParamSubSpecialChar,
+    pattern T_SimpleCommand,
+    pattern T_Redirecting,
+    pattern T_DollarSingleQuoted,
+    pattern T_Annotation,
+    pattern TA_Sequence,
+    pattern TA_Expansion,
+  )
 import qualified ShellCheck.AST
 import qualified ShellCheck.ASTLib
 import ShellCheck.Checker (checkScript)
@@ -32,6 +54,9 @@ data ParsedShell = ParsedShell
     parsed :: ParseResult,
     presentCommands :: [Command]
   }
+
+instance Show (ParsedShell) where
+  show p = show (presentCommands p)
 
 data ShellOpts = ShellOpts
   { shellName :: Text.Text,
@@ -182,10 +207,32 @@ extractAllArgs (T_SimpleCommand _ _ (_ : allArgs)) = map mkPart allArgs
   where
     mkPart token =
       CmdPart
-        (Text.concat . fmap Text.pack $ ShellCheck.ASTLib.oversimplify token)
+        (Text.concat . fmap Text.pack $ simplify token)
         (mkId (ShellCheck.AST.getId token))
     mkId (Id i) = i
 extractAllArgs _ = []
+
+-- Modified version of ShellCheck.ASTLib.oversimplify
+-- This version keeps variable names
+simplify token =
+  case token of
+    (T_NormalWord _ l) -> [concat (concatMap simplify l)]
+    (T_DoubleQuoted _ l) -> [concat (concatMap simplify l)]
+    (T_SingleQuoted _ s) -> [s]
+    (T_DollarBraced _ _ t) -> ["${" ++ (concat $ simplify t) ++ "}"]
+    (T_DollarArithmetic _ _) -> ["${VAR}"]
+    (T_DollarExpansion _ t) -> ["${" ++ (concat $ concatMap simplify t) ++ "}"]
+    (T_Backticked _ _) -> ["${VAR}"]
+    (T_Glob _ s) -> [s]
+    (T_Pipeline _ _ [x]) -> simplify x
+    (T_Literal _ x) -> [x]
+    (T_ParamSubSpecialChar _ x) -> [x]
+    (T_SimpleCommand _ vars words) -> concatMap simplify words
+    (T_Redirecting _ _ foo) -> simplify foo
+    (T_DollarSingleQuoted _ s) -> [s]
+    (T_Annotation _ _ s) -> simplify s
+    (TA_Sequence _ [TA_Expansion _ v]) -> concatMap simplify v
+    _ -> []
 
 getArgs :: Command -> [Text.Text]
 getArgs cmd = map arg (arguments cmd)
