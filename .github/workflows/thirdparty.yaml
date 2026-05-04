@@ -32,7 +32,7 @@ jobs:
             > ThirdPartyNotices.txt
 
       - name: Commit ThirdPartyNotices.txt
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v10
         with:
           add: "ThirdPartyNotices.txt"
           message: "Update ThirdPartyNotices.txt"
