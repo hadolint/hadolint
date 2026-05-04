@@ -55,7 +55,7 @@ data ParsedShell = ParsedShell
     presentCommands :: [Command]
   }
 
-instance Show (ParsedShell) where
+instance Show ParsedShell where
   show p = show (presentCommands p)
 
 data ShellOpts = ShellOpts
@@ -214,20 +214,21 @@ extractAllArgs _ = []
 
 -- Modified version of ShellCheck.ASTLib.oversimplify
 -- This version keeps variable names
+simplify :: Token -> [String]
 simplify token =
   case token of
     (T_NormalWord _ l) -> [concat (concatMap simplify l)]
     (T_DoubleQuoted _ l) -> [concat (concatMap simplify l)]
     (T_SingleQuoted _ s) -> [s]
-    (T_DollarBraced _ _ t) -> ["${" ++ (concat $ simplify t) ++ "}"]
+    (T_DollarBraced _ _ t) -> ["${" ++ concat ( simplify t ) ++ "}"]
     (T_DollarArithmetic _ _) -> ["${VAR}"]
-    (T_DollarExpansion _ t) -> ["${" ++ (concat $ concatMap simplify t) ++ "}"]
+    (T_DollarExpansion _ t) -> ["${" ++ concat ( concatMap simplify t ) ++ "}"]
     (T_Backticked _ _) -> ["${VAR}"]
     (T_Glob _ s) -> [s]
     (T_Pipeline _ _ [x]) -> simplify x
     (T_Literal _ x) -> [x]
     (T_ParamSubSpecialChar _ x) -> [x]
-    (T_SimpleCommand _ vars words) -> concatMap simplify words
+    (T_SimpleCommand _ _ wds) -> concatMap simplify wds
     (T_Redirecting _ _ foo) -> simplify foo
     (T_DollarSingleQuoted _ s) -> [s]
     (T_Annotation _ _ s) -> simplify s

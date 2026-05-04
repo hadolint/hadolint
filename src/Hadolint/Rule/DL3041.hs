@@ -1,5 +1,7 @@
 module Hadolint.Rule.DL3041 (rule) where
 
+import qualified Data.Map as Map
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Hadolint.Rule
@@ -8,7 +10,9 @@ import Language.Docker.Syntax
 import Data.Char (isDigit, isAsciiUpper, isAsciiLower)
 
 data Acc
-  = Acc { envs :: Set.Set Text.Text,
+  = Acc { stageIdx :: Int,
+          stageAliases :: Map.Map Int Text.Text,
+          envs :: Map.Map Int (Set.Set Text.Text),
           args :: Set.Set Text.Text
         }
   | Empty
@@ -31,7 +35,7 @@ dl3041 = customRule check (emptyState Empty)
       | otherwise = st |> addFail CheckFailure {..}
     check _ st (Env pairs) = st |> modify (registerEnvs pairs)
     check _ st (Arg arg _) = st |> modify (registerArg arg)
-    check _ st (From _) = st |> modify (resetEnv)
+    check _ st (From bi) = st |> modify (newStage bi)
     check _ st _ = st
 {-# INLINEABLE dl3041 #-}
 
@@ -57,9 +61,11 @@ packageVersionFixed acc package
 
 envDefined :: Acc -> Text.Text -> Bool
 envDefined Empty _ = False
-envDefined (Acc envs args) package =
-  any (\v -> varInText v package) envs
+envDefined (Acc stageIdx _ envs args) package =
+  any (`varInText` package) (thisStage envs)
     || any (`varInText` package) args
+  where
+    thisStage envsMap = Maybe.fromMaybe Set.empty $ Map.lookup stageIdx envsMap
 
 varInText :: Text.Text -> Text.Text -> Bool
 varInText var txt =
@@ -106,31 +112,70 @@ installFilter cmd =
 registerEnvs :: Pairs -> Acc -> Acc
 registerEnvs pairs Empty =
   Acc
-    { envs = Set.fromList (map fst pairs),
+    { stageIdx = 0,
+      stageAliases = Map.singleton 0 (Text.pack ""),
+      envs = Map.singleton 0 (Set.fromList (map fst pairs)),
       args = Set.empty
     }
-registerEnvs pairs (Acc envs args) =
+registerEnvs pairs (Acc stageIdx stageAliases envs args) =
   Acc
-    { envs = Set.union (Set.fromList (map fst pairs)) envs,
+    { stageIdx,
+      stageAliases,
+      envs = Map.adjust stageEnvs stageIdx envs,
       args
     }
+  where
+    stageEnvs es = Set.union (Set.fromList (map fst pairs)) es
 
 registerArg :: Text.Text -> Acc -> Acc
 registerArg arg Empty =
   Acc
-    { envs = Set.empty,
+    { stageIdx = 0,
+      stageAliases = Map.singleton 0 (Text.pack ""),
+      envs = Map.singleton 0 Set.empty,
       args = Set.singleton arg
     }
-registerArg arg (Acc envs args) =
+registerArg arg (Acc stageIdx stageAliases envs args) =
   Acc
-    { envs,
+    { stageIdx,
+      stageAliases,
+      envs,
       args = Set.insert arg args
     }
 
-resetEnv :: Acc -> Acc
-resetEnv Empty = Empty
-resetEnv (Acc _ args) =
+newStage :: BaseImage -> Acc -> Acc
+newStage (BaseImage _ _ _ Nothing _) Empty =
   Acc
-    { envs = Set.empty,
-      args = args
+    { stageIdx = 1,
+      stageAliases = Map.singleton 1 (Text.pack ""),
+      envs = Map.singleton 1 Set.empty,
+      args = Set.empty
     }
+newStage (BaseImage _ _ _ (Just alias) _) Empty =
+  Acc
+    { stageIdx = 1,
+      stageAliases = Map.singleton 1 (unImageAlias alias),
+      envs = Map.singleton 1 Set.empty,
+      args = Set.empty
+    }
+newStage (BaseImage image _ _ alias _) (Acc stageIdx stageAliases envs args) =
+  Acc
+    { stageIdx = stageIdx + 1,
+      stageAliases = Map.insert (stageIdx + 1) (als alias) stageAliases,
+      envs = Map.insert (stageIdx + 1) (stageEnvs stageIdxOfAlias) envs,
+      args
+    }
+  where
+    als :: Maybe ImageAlias -> Text.Text
+    als Nothing = Text.pack ""
+    als (Just a) = unImageAlias a
+
+    stageIdxOfAlias :: Int
+    stageIdxOfAlias = do
+      let l = Map.toList (Map.filter (== imageName image) stageAliases)
+       in case l of
+            [] -> stageIdx + 1
+            x:_ -> fst x
+
+    stageEnvs :: Int -> Set.Set Text.Text
+    stageEnvs idx = Maybe.fromMaybe Set.empty $ Map.lookup idx envs

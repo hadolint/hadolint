@@ -92,7 +92,7 @@ spec = do
         snippet =
           Text.unlines
             [ "ARG version=2.51.0-2.fc42",
-              "RUN dnf -y install git-core-${version}"
+              "RUN dnf -y install git-core-$version"
             ]
        in do
         ruleCatchesNot rule snippet
@@ -110,7 +110,20 @@ spec = do
        in do
         ruleCatchesNot rule snippet
 
-    it "not ok with version as variable - different stages" $ do
+    it "ok with version as env - different stages, reused stage" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ENV version=2.51.0-2.fc42",
+              "FROM build",
+              "RUN dnf -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "not ok with version as variable - different stages, new stage" $ do
       let
         rule = "DL3041"
         snippet =
