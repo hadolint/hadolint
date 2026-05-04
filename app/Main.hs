@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad (when)
+import Control.Monad (filterM, when)
 import Data.Default
 import Hadolint (OutputFormat (..), printResults, DLSeverity (..))
 import Hadolint.Config
@@ -18,6 +18,7 @@ import Options.Applicative
     progDesc
   )
 -- version from hadolint.cabal file
+import System.Directory (doesFileExist)
 import System.Exit (exitFailure, exitSuccess)
 import System.IO (hPrint, stderr)
 
@@ -53,11 +54,20 @@ runLint cmd conf = do
 
 execute :: CommandlineConfig -> Configuration -> IO ()
 execute CommandlineConfig {showVersion = True} _ =
-  putStrLn Hadolint.getVersion >> exitSuccess
-execute CommandlineConfig {dockerfiles = []} _ =
-  putStrLn "Please provide a Dockerfile" >> exitFailure
-execute cmd config = runLint cmd config
-
+    putStrLn Hadolint.getVersion >> exitSuccess
+execute cmd@CommandlineConfig {dockerfiles = []} config = do
+    fileExists <- doesFileExist "Dockerfile"
+    if fileExists
+        then runLint cmd {dockerfiles = ["Dockerfile"]} config
+        else putStrLn "Please provide a Dockerfile" >> exitFailure
+execute cmd config = do
+    existingFiles <- filterM doesFileExist (dockerfiles cmd)
+    let missingFiles = filter (`notElem` existingFiles) (dockerfiles cmd)
+    if null missingFiles
+        then runLint cmd config
+        else do
+            putStrLn $ "Error: The following files do not exist: " ++ show missingFiles
+            exitFailure
 
 main :: IO ()
 main = do
