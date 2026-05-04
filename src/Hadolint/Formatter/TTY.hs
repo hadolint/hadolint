@@ -44,8 +44,8 @@ printResults ::
 printResults results color = mapM_ printResult results
   where
     printResult Result {fileName, errors, checks} = printErrors errors >> printChecks fileName checks
-    printErrors errors = mapM_ (putStrLn . formatError) errors
-    printChecks fileName checks = mapM_ (putStrLn . Text.unpack . formatCheck color fileName) checks
+    printErrors = mapM_ (putStrLn . formatError)
+    printChecks fileName = mapM_ (putStrLn . Text.unpack . formatCheck color fileName)
 
 colorizedSeverity :: DLSeverity -> Text.Text
 colorizedSeverity s =

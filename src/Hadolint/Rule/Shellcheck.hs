@@ -63,7 +63,7 @@ newStage BaseImage {..} Empty =
     fromAlias Nothing = Map.empty
     fromAlias (Just a) = Map.singleton 0 (unImageAlias a)
 newStage BaseImage {..} Acc {..} =
-  if Map.null (Map.filter (== (imageName image)) stages)
+  if Map.null (Map.filter (== imageName image) stages)
   then
     Acc
       { opts = defaultOpts,
@@ -91,7 +91,7 @@ newStage BaseImage {..} Acc {..} =
     getIdx [(k, _)] = k
     getIdx ((k, _):_:_) = k
 
-    getList = Map.toList (Map.filter (== (imageName image)) stages)
+    getList = Map.toList (Map.filter (== imageName image) stages)
 
     toOpts Nothing = defaultOpts
     toOpts (Just o) = o
