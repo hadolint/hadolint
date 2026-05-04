@@ -424,7 +424,7 @@ jobs:
           sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           generate_release_notes: true
