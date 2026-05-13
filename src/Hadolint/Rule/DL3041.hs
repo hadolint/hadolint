@@ -48,7 +48,7 @@ isVersionLike parts =
     [] -> False  -- No parts after splitting by hyphen
     _ -> all partIsValid parts && any partStartsWithDigit parts
   where
-    partIsValid part = Text.all isVersionChar part
+    partIsValid = Text.all isVersionChar
     partStartsWithDigit part = case Text.uncons part of
                                  Just (c, _) -> isDigit c
                                  Nothing -> False -- Empty Text

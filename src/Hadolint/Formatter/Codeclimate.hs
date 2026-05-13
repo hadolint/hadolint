@@ -128,7 +128,7 @@ formatGitLabResult ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
   Result s e -> Maybe FilePath ->
   Seq FingerprintIssue
-formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> (formatResult result filePathInReport)
+formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> formatResult result filePathInReport
 
 printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> IO ()
 printResult result filePathInReport = mapM_ output (formatResult result filePathInReport)

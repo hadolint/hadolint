@@ -47,7 +47,7 @@ setup = do
   js_addEventListener lintInput (toJSString "click") lintInputCallback
 
   versionOutput <- js_document_getElementById (toJSString "version")
-  js_setText versionOutput $ toJSString $ Hadolint.getVersion
+  js_setText versionOutput $ toJSString Hadolint.getVersion
 
 foreign export javascript "lint" lint :: IO ()
 lint :: IO ()
