@@ -17,6 +17,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
 import qualified Data.Text as Text
 import qualified Hadolint.Process
+import qualified Text.XML as XML
 
 
 assertChecks ::
@@ -151,3 +152,16 @@ assertFormatterJson formatter failures expectation = do
   (cap, _) <- capture
                 (printResults formatter ?noColor (Just "<string>") results)
   decode (BSC.pack cap) `shouldBe` Just expectation
+
+assertFormatterXML
+  :: (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  [CheckFailure] ->
+  XML.Document ->
+  Assertion
+assertFormatterXML formatter failures expectation = do
+  let results =
+        NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
+  (cap, _) <- capture
+                (printResults formatter ?noColor (Just "<string>") results)
+  XML.parseLBS_ XML.def (BSC.pack cap) `shouldBe` expectation
