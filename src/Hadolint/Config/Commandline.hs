@@ -76,9 +76,9 @@ parseCommandline =
                 <> metavar "FILEPATHINREPORT"
                 <> help "The file path referenced in the generated report.\
                         \ This only applies for the 'checkstyle', 'codeclimate',\
-                        \ 'sonarqube' and 'gitlab_codeclimate' formats and is\
-                        \ useful when running Hadolint with Docker to set the\
-                        \ correct file path."
+                        \ 'sonarqube', 'junit' and 'gitlab_codeclimate' formats \
+                        \ and is useful when running Hadolint with Docker to set \
+                        \ the correct file path."
             )
         )
 
@@ -139,7 +139,7 @@ parseCommandline =
               <> help
                 "The output format for the results [tty | json | checkstyle |\
                 \ codeclimate | gitlab_codeclimate | gnu | codacy | sonarqube |\
-                \ sarif] (default: tty)"
+                \ sarif | junit] (default: tty)"
               <> completeWith
                   [ "tty",
                     "json",
@@ -148,7 +148,8 @@ parseCommandline =
                     "gitlab_codeclimate",
                     "codacy",
                     "sonarqube",
-                    "sarif"
+                    "sarif",
+                    "junit"
                   ]
           )
 

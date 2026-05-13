@@ -33,6 +33,7 @@ library
     Hadolint.Formatter.Codeclimate
     Hadolint.Formatter.Format
     Hadolint.Formatter.Gnu
+    Hadolint.Formatter.JUnit
     Hadolint.Formatter.Json
     Hadolint.Formatter.Sarif
     Hadolint.Formatter.SonarQube
@@ -245,6 +246,7 @@ test-suite hadolint-unit-tests
     Hadolint.Config.SpecHook
     Hadolint.Formatter.GnuSpec
     Hadolint.Formatter.ParseErrorSpec
+    Hadolint.Formatter.JUnitSpec
     Hadolint.Formatter.SarifSpec
     Hadolint.Formatter.SonarQubeSpec
     Hadolint.Formatter.TTYSpec
@@ -362,5 +364,7 @@ test-suite hadolint-unit-tests
     , silently
     , split
     , text
+    , time
+    , xml-conduit
 
   default-language:   GHC2021

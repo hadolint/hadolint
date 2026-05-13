@@ -169,9 +169,9 @@ Available options:
   --file-path-in-report FILEPATHINREPORT
                            The file path referenced in the generated report.
                            This only applies for the 'checkstyle', 'codeclimate',
-                           'sonarqube' and 'gitlab_codeclimate' formats and is
-                           useful when running Hadolint with Docker to set the
-                           correct file path.
+                           'sonarqube', 'junit' and 'gitlab_codeclimate' formats
+                           and is useful when running Hadolint with Docker to set
+                           the correct file path.
   --no-fail                Don't exit with a failure status code when any rule
                            is violated
   --no-color               Don't colorize output
@@ -179,7 +179,7 @@ Available options:
                            stderr
   -f,--format ARG          The output format for the results [tty | json |
                            checkstyle | codeclimate | gitlab_codeclimate | gnu |
-                           codacy | sonarqube | sarif] (default: tty)
+                           codacy | sonarqube | sarif | junit] (default: tty)
   --error RULECODE         Make the rule `RULECODE` have the level `error`
   --warning RULECODE       Make the rule `RULECODE` have the level `warning`
   --info RULECODE          Make the rule `RULECODE` have the level `info`
@@ -223,7 +223,7 @@ In windows, the `%LOCALAPPDATA%` environment variable is used instead of
 
 ```yaml
 failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)
-format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy)
+format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sonarqube | sarif | junit)
 ignored: [string]                       # list of rules
 label-schema:                           # See Linting Labels below for specific label-schema details
   author: string                        # Your name
@@ -322,7 +322,7 @@ variables.
 NO_COLOR=1                               # Set or unset. See https://no-color.org
 HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
 HADOLINT_VERBOSE=1                       # Truthy value e.g. 1, true or yes
-HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sarif )
+HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sarif | junit )
 HADOLINT_FAILURE_THRESHOLD=info          # threshold level (error | warning | info | style | ignore | none)
 HADOLINT_OVERRIDE_ERROR=DL3010,DL3020    # comma separated list of rule codes
 HADOLINT_OVERRIDE_WARNING=DL3010,DL3020  # comma separated list of rule codes
