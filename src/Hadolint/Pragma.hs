@@ -1,5 +1,6 @@
 module Hadolint.Pragma
   ( ignored,
+    stageIgnored,
     globalIgnored,
     parseIgnorePragma,
     parseShell
@@ -27,6 +28,19 @@ ignored = Foldl.Fold parse mempty id
         _ -> acc
     parse acc _ = acc
 
+stageIgnored :: Foldl.Fold (InstructionPos Text) (Map.IntMap (Set.Set RuleCode))
+stageIgnored = Foldl.Fold parse mempty id
+  where
+    parse acc InstructionPos { instruction = Comment comment, lineNumber = line } =
+      case parseStageIgnorePragma comment of
+        Just ignores@(_ : _) -> Map.insert (line + 1) ( Set.fromList . fmap RuleCode $ ignores ) acc
+        _ -> acc
+    parse acc InstructionPos { instruction = From _ , lineNumber = line } =
+      case Map.lookup line acc of
+        Just _ -> acc
+        _ -> Map.insert line mempty acc
+    parse acc _ = acc
+
 globalIgnored :: Foldl.Fold (InstructionPos Text) (Set.Set RuleCode)
 globalIgnored = Foldl.Fold parse mempty id
   where
@@ -39,17 +53,26 @@ globalIgnored = Foldl.Fold parse mempty id
 parseIgnorePragma :: Text -> Maybe [Text]
 parseIgnorePragma = Megaparsec.parseMaybe ignoreParser
 
+parseStageIgnorePragma :: Text -> Maybe [Text]
+parseStageIgnorePragma = Megaparsec.parseMaybe stageIgnoreParser
+
 parseGlobalIgnorePragma :: Text -> Maybe [Text]
 parseGlobalIgnorePragma = Megaparsec.parseMaybe globalIgnoreParser
 
 ignoreParser :: Megaparsec.Parsec Void Text [Text]
 ignoreParser = hadolintPragma >> ignore
 
+stageIgnoreParser :: Megaparsec.Parsec Void Text [Text]
+stageIgnoreParser = hadolintPragma >> stage >> ignore
+
 globalIgnoreParser :: Megaparsec.Parsec Void Text [Text]
 globalIgnoreParser = hadolintPragma >> global >> ignore
 
 hadolintPragma :: Megaparsec.Parsec Void Text Text
 hadolintPragma = spaces >> string "hadolint" >> spaces1
+
+stage :: Megaparsec.Parsec Void Text Text
+stage = string "stage" >> spaces1
 
 global :: Megaparsec.Parsec Void Text Text
 global = string "global" >> spaces1
