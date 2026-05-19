@@ -38,16 +38,18 @@ scrule = customRule check (emptyState Empty)
       case Hadolint.Pragma.parseShell com of
         Just sh -> st |> modify (shellPragma sh)
         _ -> st
-    check line st (Run (RunArgs args _)) = getFailures (state st) |> foldr addFail st
-      where
-        getFailures Empty = foldArguments (runShellCheck Shell.defaultShellOpts) args
-        getFailures s = foldArguments (runShellCheck (opts s)) args
-        runShellCheck options script =
-          Set.fromList
-            [ toFailure line c
-              | c <- Shell.shellcheck options script
-            ]
+    check line st (Run (RunArgs args@(ArgumentsText _) _)) = getFailures line args (state st) |> foldr addFail st
+    check _ st (Run (RunArgs (ArgumentsList _) _)) = st
     check _ st _ = st
+
+    getFailures line args Empty = foldArguments (runShellCheck line Shell.defaultShellOpts) args
+    getFailures line args s = foldArguments (runShellCheck line (opts s)) args
+
+    runShellCheck line options script =
+      Set.fromList
+        [ toFailure line c
+          | c <- Shell.shellcheck options script
+        ]
 {-# INLINEABLE scrule #-}
 
 newStage :: BaseImage -> Acc -> Acc
