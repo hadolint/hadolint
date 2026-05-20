@@ -2,7 +2,7 @@ module Hadolint.Formatter.TTYSpec (spec) where
 
 import Helpers
 import Data.List.NonEmpty as NonEmpty
-import Hadolint (OutputFormat (..), printResults)
+import Hadolint (OutputFormat (..), write)
 import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..))
 import Test.Hspec
@@ -15,7 +15,7 @@ spec = do
   describe "Formatter: TTY" $ do
     it "print empty results" $ do
       let results = NonEmpty.fromList [Result "<string>" mempty Seq.empty]
-      printResults TTY True (Just "<string>") results `shouldReturn` ()
+      write [] TTY True (Just "<string>") results `shouldReturn` ()
 
     it "print some result: no colors" $ do
       let checkFails = [ CheckFailure

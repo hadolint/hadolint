@@ -3,7 +3,7 @@ module Helpers where
 import Control.Monad (unless, when)
 import qualified Data.ByteString.Lazy.Char8 as BSC
 import Data.Aeson hiding (Result)
-import Hadolint (Configuration (..), OutputFormat (..), printResults)
+import Hadolint (Configuration (..), OutputFormat (..), write)
 import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Formatter.TTY (formatCheck)
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
@@ -137,7 +137,7 @@ assertFormatter formatter failures expectation = do
   let results =
         NonEmpty.fromList [Result "<string>" mempty (Seq.fromList failures)]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] formatter ?noColor (Just "<string>") results)
   cap `shouldBe` expectation
 
 assertFormatterJson
@@ -150,7 +150,7 @@ assertFormatterJson formatter failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] formatter ?noColor (Just "<string>") results)
   decode (BSC.pack cap) `shouldBe` Just expectation
 
 assertFormatterXML

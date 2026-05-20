@@ -1,7 +1,7 @@
 module Hadolint.Formatter
   ( OutputFormat (..),
     Result (..),
-    printResults,
+    write,
     readMaybeOutputFormat,
   )
 where
@@ -18,24 +18,43 @@ import qualified Hadolint.Formatter.Json as FormatJson
 import qualified Hadolint.Formatter.Sarif as FormatSarif
 import qualified Hadolint.Formatter.SonarQube as FormatSonarQube
 import qualified Hadolint.Formatter.TTY as FormatTTY
+import System.IO
 
 
-printResults ::
-  Foldable f =>
+hWrite :: Foldable f =>
+  Handle ->
   OutputFormat ->
   Bool ->
   Maybe FilePath ->
   f (Result Text DockerfileError) ->
   IO ()
-printResults format nocolor filePathInReport allResults =
+hWrite handle format nocolor filePathInReport allResults =
   case format of
-    Checkstyle -> FormatCheckstyle.printResults allResults filePathInReport
-    Codacy -> FormatCodacy.printResults allResults
-    CodeclimateJson -> FormatCodeclimate.printResults allResults filePathInReport
-    GitLabCodeclimateJson -> FormatCodeclimate.printGitLabResults allResults filePathInReport
-    Gnu -> FormatGnu.printResults allResults
-    JUnit -> FormatJUnit.printResults allResults filePathInReport
-    Json -> FormatJson.printResults allResults
-    Sarif -> FormatSarif.printResults allResults
-    SonarQube -> FormatSonarQube.printResults allResults filePathInReport
-    TTY -> FormatTTY.printResults allResults nocolor
+    Checkstyle -> FormatCheckstyle.hWrite handle allResults filePathInReport
+    Codacy -> FormatCodacy.hWrite handle allResults
+    CodeclimateJson -> FormatCodeclimate.hWrite handle allResults filePathInReport
+    GitLabCodeclimateJson -> FormatCodeclimate.hWriteGitLab handle allResults filePathInReport
+    Gnu -> FormatGnu.hWrite handle allResults
+    JUnit -> FormatJUnit.hWrite handle allResults filePathInReport
+    Json -> FormatJson.hWrite handle allResults
+    Sarif -> FormatSarif.hWrite handle allResults
+    SonarQube -> FormatSonarQube.hWrite handle allResults filePathInReport
+    TTY -> FormatTTY.hWrite handle allResults nocolor
+
+
+write :: Foldable f =>
+  [FilePath] ->
+  OutputFormat ->
+  Bool ->
+  Maybe FilePath ->
+  f (Result Text DockerfileError) ->
+  IO ()
+write [] format nocolor filePathInReport allResults =
+  hWrite stdout format nocolor filePathInReport allResults
+write paths format nocolor filePathInReport allResults =
+  mapM_ writePath paths
+  where
+    writePath p =
+      case p == "-" of
+        True -> hWrite stdout format nocolor filePathInReport allResults
+        _ -> withFile p WriteMode (\h -> hWrite h format nocolor filePathInReport allResults)
