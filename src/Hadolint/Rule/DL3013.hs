@@ -80,6 +80,7 @@ packages cmd =
           "prefix",
           "progress-bar",
           "proxy",
+          "python",
           "python-version",
           "root",
           "src",
