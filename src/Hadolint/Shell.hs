@@ -219,7 +219,10 @@ hasArg arg Command {arguments} = not $ null [a | CmdPart a _ <- arguments, a == 
 dropFlagArg :: [Text.Text] -> Command -> Command
 dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filteredArgs flags
   where
-    idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
+    idsToDrop =
+      Set.fromList
+        [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop, not (hasInlineValue fId)]
+    hasInlineValue fId = or ["=" `Text.isInfixOf` a | CmdPart a aId <- arguments, aId == fId]
     filteredArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
 -- | given a flag and a command, return list of arguments for that particular
