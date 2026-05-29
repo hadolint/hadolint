@@ -13,6 +13,7 @@ import qualified Hadolint.Formatter.Checkstyle as FormatCheckstyle
 import qualified Hadolint.Formatter.Codacy as FormatCodacy
 import qualified Hadolint.Formatter.Codeclimate as FormatCodeclimate
 import qualified Hadolint.Formatter.Gnu as FormatGnu
+import qualified Hadolint.Formatter.JUnit as FormatJUnit
 import qualified Hadolint.Formatter.Json as FormatJson
 import qualified Hadolint.Formatter.Sarif as FormatSarif
 import qualified Hadolint.Formatter.SonarQube as FormatSonarQube
@@ -33,6 +34,7 @@ printResults format nocolor filePathInReport allResults =
     CodeclimateJson -> FormatCodeclimate.printResults allResults filePathInReport
     GitLabCodeclimateJson -> FormatCodeclimate.printGitLabResults allResults filePathInReport
     Gnu -> FormatGnu.printResults allResults
+    JUnit -> FormatJUnit.printResults allResults filePathInReport
     Json -> FormatJson.printResults allResults
     Sarif -> FormatSarif.printResults allResults
     SonarQube -> FormatSonarQube.printResults allResults filePathInReport
