@@ -113,5 +113,5 @@ spec = do
                     ]
               ]
           expected = Object ["issues" .= Array [mkCustomIssue "path/to/custom/Dockerfile"]]
-      (cap, _) <- capture (write [] SonarQube ?noColor customPath results)
+      (cap, _) <- capture (write [] [SonarQube] ?noColor customPath results)
       decode (BSC.pack cap) `shouldBe` Just expected

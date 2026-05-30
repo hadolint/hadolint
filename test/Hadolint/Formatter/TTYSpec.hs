@@ -1,12 +1,9 @@
 module Hadolint.Formatter.TTYSpec (spec) where
 
 import Helpers
-import Data.List.NonEmpty as NonEmpty
-import Hadolint (OutputFormat (..), write)
-import Hadolint.Formatter.Format (Result (..))
+import Hadolint (OutputFormat (..))
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..))
 import Test.Hspec
-import qualified Data.Sequence as Seq
 
 
 spec :: SpecWith ()
@@ -14,8 +11,9 @@ spec = do
   let ?noColor = True
   describe "Formatter: TTY" $ do
     it "print empty results" $ do
-      let results = NonEmpty.fromList [Result "<string>" mempty Seq.empty]
-      write [] TTY True (Just "<string>") results `shouldReturn` ()
+      let checkFails = []
+          expectation = unlines []
+      assertFormatter TTY checkFails expectation
 
     it "print some result: no colors" $ do
       let checkFails = [ CheckFailure

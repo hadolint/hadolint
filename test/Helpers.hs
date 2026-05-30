@@ -126,18 +126,17 @@ passesShellcheck checks =
   where
     matched = Seq.filter (\CheckFailure {code = RuleCode rc} -> "SC" `Text.isPrefixOf` rc) checks
 
-
 assertFormatter ::
   (HasCallStack, ?noColor :: Bool) =>
   OutputFormat ->
   [CheckFailure] ->
   String ->
   Assertion
-assertFormatter formatter failures expectation = do
+assertFormatter format failures expectation = do
   let results =
         NonEmpty.fromList [Result "<string>" mempty (Seq.fromList failures)]
   (cap, _) <- capture
-                (write [] formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   cap `shouldBe` expectation
 
 assertFormatterJson
@@ -146,11 +145,11 @@ assertFormatterJson
   [CheckFailure] ->
   Value ->
   Assertion
-assertFormatterJson formatter failures expectation = do
+assertFormatterJson format failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (write [] formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   decode (BSC.pack cap) `shouldBe` Just expectation
 
 assertFormatterXML
@@ -159,9 +158,9 @@ assertFormatterXML
   [CheckFailure] ->
   XML.Document ->
   Assertion
-assertFormatterXML formatter failures expectation = do
+assertFormatterXML format failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   XML.parseLBS_ XML.def (BSC.pack cap) `shouldBe` expectation

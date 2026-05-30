@@ -44,17 +44,25 @@ hWrite handle format nocolor filePathInReport allResults =
 
 write :: Foldable f =>
   [FilePath] ->
-  OutputFormat ->
+  [OutputFormat] ->
   Bool ->
   Maybe FilePath ->
   f (Result Text DockerfileError) ->
   IO ()
-write [] format nocolor filePathInReport allResults =
-  hWrite stdout format nocolor filePathInReport allResults
-write paths format nocolor filePathInReport allResults =
-  mapM_ writePath paths
+write paths formats nocolor filePathInReport allResults =
+  mapM_ writePath ziplist
   where
-    writePath p =
-      case p == "-" of
-        True -> hWrite stdout format nocolor filePathInReport allResults
-        _ -> withFile p WriteMode (\h -> hWrite h format nocolor filePathInReport allResults)
+    ziplist = zipWithDef "-" TTY paths formats
+    writePath ( p, f ) =
+      if p == "-" then hWrite stdout f nocolor filePathInReport allResults
+      else withFile p WriteMode (\h -> hWrite h f nocolor filePathInReport allResults)
+
+
+zipWithDef :: FilePath -> OutputFormat -> [FilePath] -> [OutputFormat] -> [(FilePath, OutputFormat)]
+zipWithDef defP defF []     []     = [(defP, defF)]
+zipWithDef defP _    []     [f]    = [(defP, f)]
+zipWithDef _    defF [p]    []     = [(p, defF)]
+zipWithDef _    _    [p]    [f]    = [(p, f)]
+zipWithDef defP defF []     (f:fs) = (defP, f):zipWithDef defP defF [] fs
+zipWithDef defP defF (p:ps) []     = (p, defF):zipWithDef defP defF ps []
+zipWithDef defP defF (p:ps) (f:fs) = (p, f):zipWithDef defP defF ps fs

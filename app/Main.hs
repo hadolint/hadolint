@@ -35,8 +35,8 @@ exitProgram ::
   IO ()
 exitProgram conf res
   | noFail conf = exitSuccess
-  | CodeclimateJson == format conf = exitSuccess
-  | Codacy == format conf = exitSuccess
+  | CodeclimateJson `elem` formats conf = exitSuccess
+  | Codacy `elem` formats conf = exitSuccess
   | all (`noFailure` failureThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
@@ -49,7 +49,7 @@ runLint cmd conf = do
       filePathInReport = filePathInReportOption cmd
       destinations = output cmd
   res <- Hadolint.lintIO conf files
-  write destinations (format conf) (noColor conf) filePathInReport res
+  write destinations (formats conf) (noColor conf) filePathInReport res
   exitProgram conf res
 
 execute :: CommandlineConfig -> Configuration -> IO ()

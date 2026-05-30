@@ -143,7 +143,7 @@ parseCommandline =
         )
 
     parseOutputFormat =
-      optional $
+      many $
         option
           ( maybeReader (readMaybeOutputFormat . pack) )
           ( long "format"

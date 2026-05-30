@@ -168,23 +168,33 @@ spec = do
                                 []
                                 mempty { partialVerbose = Just True }
 
-      it "parse -f json" $ do
-        checkCommandline ["-f", "json"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                []
-                                mempty { partialFormat = Just Json }
+      describe "parse format options" $ do
+        it "parse -f json" $ do
+          checkCommandline ["-f", "json"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [Json] }
 
-      it "parse --format" $ do
-        checkCommandline ["--format", "sarif"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                []
-                                mempty { partialFormat = Just Sarif }
+        it "parse --format" $ do
+          checkCommandline ["--format", "sarif"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [Sarif] }
+
+        it "parse multiple --format" $ do
+          checkCommandline ["-f", "junit", "--format", "sarif"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [JUnit, Sarif] }
 
     describe "parse severity overrides" $ do
       it "parse --error=DL3010" $ do
