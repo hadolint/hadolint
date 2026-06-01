@@ -1,4 +1,5 @@
-module Hadolint.Formatter.Checkstyle ( printResults )
+module Hadolint.Formatter.Checkstyle
+  ( hWrite )
 where
 
 import qualified Data.ByteString.Lazy.Char8 as B
@@ -13,6 +14,7 @@ import Hadolint.Formatter.Format
     severityText,
   )
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), RuleCode (..))
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
   ( ParseErrorBundle,
@@ -88,11 +90,11 @@ renderResults results filePathInReport = XML.Element
     maybeFile r = if isEmpty r then Nothing else Just $ toFile r filePathInReport
     isEmpty Result {errors=e, checks=c} = null e && null c
 
-printResults ::
+hWrite ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  f (Result s e) -> Maybe FilePath -> IO ()
-printResults results filePathInReport =
-  B.putStr $ XML.renderLBS settings document
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results filePathInReport =
+  B.hPutStr handle $ XML.renderLBS settings document
   where
     settings = XML.def -- use default render settings
     document =
@@ -101,6 +103,7 @@ printResults results filePathInReport =
           documentRoot = renderResults results filePathInReport,
           documentEpilogue = []
         }
+
 
 getFilePath :: Maybe FilePath -> Text.Text
 getFilePath Nothing = ""
