@@ -83,6 +83,7 @@ packages cmd =
           "python",
           "python-version",
           "root",
+          "root-user-action",
           "src",
           "t",
           "target",
