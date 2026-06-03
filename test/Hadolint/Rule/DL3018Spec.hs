@@ -35,6 +35,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add version pinned regression" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -46,6 +47,20 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
+    it "apk add version pinned with fuzzy versions" $
+      let dockerfile =
+            Text.unlines
+              [ "RUN apk add --no-cache \\",
+                "  \"flex>=2.6.1-r1\" \\",
+                "  \"libffi~3.2.1\" \\",
+                "  \"python3<3.6.12-r2\" \\",
+                "  \"libbz2=~1.0.6-r4\""
+              ]
+       in do
+            ruleCatchesNot "DL3018" dockerfile
+            onBuildRuleCatchesNot "DL3018" dockerfile
+
     it "apk add version pinned regression - one missed" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -57,6 +72,7 @@ spec = do
        in do
             ruleCatches "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatches "DL3018" $ Text.unlines dockerFile
+
     it "apk add virtual package" $
       let dockerFile =
             [ "RUN apk add \\",
@@ -69,6 +85,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository without equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -78,6 +95,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository with equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -87,6 +105,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository (-X) without equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
