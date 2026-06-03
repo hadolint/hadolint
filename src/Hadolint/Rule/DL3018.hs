@@ -28,7 +28,7 @@ dl3018 = simpleRule code severity message check
         )
         args
     check _ = True
-    versionFixed package = any (`Text.isInfixOf` package) ["=", "~"]
+    versionFixed package = any (`Text.isInfixOf` package) ["=", "~", ">", "<"]
     packageFile package = ".apk" `Text.isSuffixOf` package
 {-# INLINEABLE dl3018 #-}
 
