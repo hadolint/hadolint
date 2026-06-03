@@ -320,6 +320,7 @@ test-suite hadolint-unit-tests
     Hadolint.Rule.DL4004Spec
     Hadolint.Rule.DL4005Spec
     Hadolint.Rule.DL4006Spec
+    Hadolint.Rule.DL4007Spec
     Hadolint.Rule.ShellcheckSpec
     Hadolint.ShellSpec
     Helpers
