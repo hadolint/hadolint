@@ -86,3 +86,11 @@ spec = do
       let ?config = def { allowedRegistries = ["*"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
+
+    it "warn on non-allowed registry using COPY --from" $ do
+      let dockerFile =
+            [ "COPY --from not-allowed.org/debian /tmp /tmp"
+            ]
+      let ?config = def { allowedRegistries = ["allowed.com"] }
+
+      ruleCatches "DL3026" $ Text.unlines dockerFile
