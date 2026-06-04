@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'The version number for the release'
+        description: "The version number for the release"
         required: true
 
 jobs:
@@ -36,7 +36,6 @@ jobs:
             ghc: 9.10.2
 
     steps:
-
       - name: Workaround to make checkout work on Alpine arm64
         run: |
           sed -i "/^ID=/s/alpine/NotpineForGHA/" /etc/os-release
@@ -282,13 +281,12 @@ jobs:
           - hadolint/hadolint
           - ghcr.io/hadolint/hadolint
     permissions:
-      contents: read
+      contents: write
       packages: write
       attestations: write
       id-token: write
 
     steps:
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -308,13 +306,14 @@ jobs:
       - name: Set target and tag
         id: build-opts
         run: |
-            if [[ $GITHUB_REF == refs/tags/* ]] ; then
-              echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
-            else
-              echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
-            fi
+          if [[ $GITHUB_REF == refs/tags/* ]] ; then
+            echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Push scratch image
+        id: scratch-manifest
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-amd64
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-arm64
@@ -330,6 +329,25 @@ jobs:
             --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
             ${{ matrix.registry }}:${{github.sha}}-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-arm64
+
+          # Manifest-only registry read (no image layer pull) for pre-commit pin on GHCR.
+          if [[ "${{ matrix.registry }}" == "ghcr.io/hadolint/hadolint" ]]; then
+            set -euo pipefail
+            VERSION="${{ steps.build-opts.outputs.tag }}"
+            IMAGE="${{ matrix.registry }}:v${VERSION}"
+            DIGEST="$(
+              docker buildx imagetools inspect "$IMAGE" --format '{{json .}}' | jq -r '.manifest.digest // empty'
+            )"
+            if [[ -z "$DIGEST" ]]; then
+              DIGEST="$(docker buildx imagetools inspect "$IMAGE" | awk '/^Digest:/ {print $2; exit}')"
+            fi
+            if [[ ! "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "Failed to resolve digest for $IMAGE (got: ${DIGEST:-empty})" >&2
+              exit 1
+            fi
+            echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+            echo "Pinned image reference: ${IMAGE}@${DIGEST}"
+          fi
 
       - name: Push alpine image
         run: |
@@ -365,6 +383,49 @@ jobs:
             ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
+      - name: Check out master (pre-commit hook pin)
+        if: matrix.registry == 'ghcr.io/hadolint/hadolint'
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 1
+
+      - name: Update pre-commit hook with pinned image
+        if: matrix.registry == 'ghcr.io/hadolint/hadolint'
+        env:
+          VERSION: ${{ steps.build-opts.outputs.tag }}
+          DIGEST: ${{ steps.scratch-manifest.outputs.digest }}
+        run: |
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          ver = os.environ["VERSION"]
+          digest = os.environ["DIGEST"]
+          path = Path(".pre-commit-hooks.yaml")
+          text = path.read_text()
+          pattern = r"^(\s*entry:\s)ghcr\.io/hadolint/hadolint\S*(\s+hadolint)\s*$"
+
+          def repl(m):
+              return f"{m.group(1)}ghcr.io/hadolint/hadolint:v{ver}@{digest}{m.group(2)}"
+
+          new_text, n = re.subn(pattern, repl, text, count=1, flags=re.MULTILINE)
+          if n != 1:
+              raise SystemExit(
+                  f"Expected to update one ghcr.io/hadolint pre-commit entry, matched {n}"
+              )
+          path.write_text(new_text)
+          PY
+
+      - name: Commit pre-commit hook pin
+        if: matrix.registry == 'ghcr.io/hadolint/hadolint'
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: ".pre-commit-hooks.yaml"
+          message: "chore: pin hadolint-docker pre-commit image to v${{ steps.build-opts.outputs.tag }}"
+          default_author: github_actions
+
   release:
     if: github.event_name != 'workflow_dispatch'
     needs:
@@ -375,7 +436,6 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
-
       - name: Check out
         uses: actions/checkout@v6
 
