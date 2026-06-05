@@ -9,6 +9,7 @@ import qualified Hadolint.Shell as Shell
 import Language.Docker.Syntax
 import Data.Char (isDigit, isAsciiUpper, isAsciiLower)
 
+
 data Acc
   = Acc { stageIdx :: Int,
           stageAliases :: Map.Map Int Text.Text,
@@ -17,6 +18,7 @@ data Acc
         }
   | Empty
   deriving (Show)
+
 
 rule :: Rule Shell.ParsedShell
 rule = dl3041 <> onbuild dl3041
@@ -38,6 +40,7 @@ dl3041 = customRule check (emptyState Empty)
     check _ st (From bi) = st |> modify (newStage bi)
     check _ st _ = st
 {-# INLINEABLE dl3041 #-}
+
 
 dnfCmds :: [Text.Text]
 dnfCmds = ["dnf", "microdnf"]
@@ -77,7 +80,7 @@ isVersionLike parts =
     [] -> False  -- No parts after splitting by hyphen
     _ -> all partIsValid parts && any partStartsWithDigit parts
   where
-    partIsValid part = Text.all isVersionChar part
+    partIsValid = Text.all isVersionChar
     partStartsWithDigit part = case Text.uncons part of
                                  Just (c, _) -> isDigit c
                                  Nothing -> False -- Empty Text
@@ -125,7 +128,7 @@ registerEnvs pairs (Acc stageIdx stageAliases envs args) =
       args
     }
   where
-    stageEnvs es = Set.union (Set.fromList (map fst pairs)) es
+    stageEnvs = Set.union (Set.fromList (map fst pairs))
 
 registerArg :: Text.Text -> Acc -> Acc
 registerArg arg Empty =
