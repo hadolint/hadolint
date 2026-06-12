@@ -4,7 +4,6 @@ where
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Foldable
 import qualified Data.Map as Map
-import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format
   ( Result (..),
@@ -66,14 +65,14 @@ renderNodes (Result _ errors checks) =
 toFile ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
   Result s e -> Maybe FilePath -> XML.Node
-toFile results filePathInReport =
+toFile result filePathInReport =
   XML.NodeElement XML.Element
     { elementName = "file",
       elementAttributes = Map.fromList [("name", filepath)],
-      elementNodes = renderNodes results
+      elementNodes = renderNodes result
     }
   where
-    filepath = if null filePathInReport then filename results else getFilePath filePathInReport
+    filepath = if null filePathInReport then filename result else getFilePath filePathInReport
     filename Result {fileName=fn} = fn
 
 renderResults ::
@@ -82,11 +81,8 @@ renderResults ::
 renderResults results filePathInReport = XML.Element
   { elementName = "checkstyle",
     elementAttributes = Map.fromList [("version", "4.3")],
-    elementNodes = Maybe.mapMaybe maybeFile ( toList results )
+    elementNodes = fmap (`toFile` filePathInReport) ( toList results )
   }
-  where
-    maybeFile r = if isEmpty r then Nothing else Just $ toFile r filePathInReport
-    isEmpty Result {errors=e, checks=c} = null e && null c
 
 printResults ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
@@ -104,7 +100,4 @@ printResults results filePathInReport =
 
 getFilePath :: Maybe FilePath -> Text.Text
 getFilePath Nothing = ""
-getFilePath (Just filePath) = toText [filePath]
-
-toText :: [FilePath] -> Text.Text
-toText = foldMap Text.pack
+getFilePath (Just filePath) = Text.pack filePath
