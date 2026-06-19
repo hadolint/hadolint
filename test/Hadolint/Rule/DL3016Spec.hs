@@ -122,3 +122,12 @@ spec = do
     it "don't fire on loglevel flag" $ do
       ruleCatchesNot "DL3016" "RUN npm install --loglevel verbose sax@0.1.1"
       onBuildRuleCatchesNot "DL3016" "RUN npm install --loglevel verbose sax@0.1.1"
+    it "don't fire on registry flag" $ do
+      ruleCatchesNot "DL3016" "RUN npm install --registry https://example.com sax@0.1.1"
+      onBuildRuleCatchesNot "DL3016" "RUN npm install --registry https://example.com sax@0.1.1"
+    it "version not pinned with --registry flag" $ do
+      ruleCatches "DL3016" "RUN npm install --registry https://example.com express"
+      onBuildRuleCatches "DL3016" "RUN npm install --registry https://example.com express"
+    it "version not pinned with --registry=value form" $ do
+      ruleCatches "DL3016" "RUN npm install --registry=https://example.com express"
+      onBuildRuleCatches "DL3016" "RUN npm install --registry=https://example.com express"
