@@ -1,10 +1,7 @@
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Hadolint.Formatter.TTY
-  ( printResults,
+  ( hWrite,
     formatCheck,
-    formatError,
+    formatError
   )
 where
 
@@ -14,6 +11,7 @@ import qualified Data.Text as Text
 import Hadolint.Formatter.Format
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), RuleCode (..))
 import Language.Docker.Syntax
+import System.IO (Handle, hPutStrLn)
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Stream (VisualStream)
@@ -36,16 +34,17 @@ formatCheck nocolor source CheckFailure {code, severity, line, message} =
 formatPos :: Filename -> Linenumber -> Text.Text
 formatPos source line = source <> ":" <> Text.pack (show line) <> " "
 
-printResults ::
+hWrite ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldl.Foldable f) =>
+  Handle ->
   f (Result s e) ->
   Bool ->
   IO ()
-printResults results color = mapM_ printResult results
+hWrite handle results color = mapM_ writeResult results
   where
-    printResult Result {fileName, errors, checks} = printErrors errors >> printChecks fileName checks
-    printErrors = mapM_ (putStrLn . formatError)
-    printChecks fileName = mapM_ (putStrLn . Text.unpack . formatCheck color fileName)
+    writeResult Result {fileName, errors, checks} = writeErrors errors >> writeChecks fileName checks
+    writeErrors = mapM_ (hPutStrLn handle . formatError)
+    writeChecks fileName = mapM_ (hPutStrLn handle . Text.unpack . formatCheck color fileName)
 
 colorizedSeverity :: DLSeverity -> Text.Text
 colorizedSeverity s =
