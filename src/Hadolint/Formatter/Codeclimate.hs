@@ -1,8 +1,6 @@
 module Hadolint.Formatter.Codeclimate
-  ( printResults,
-    printGitLabResults,
-    formatResult,
-    formatGitLabResult,
+  ( hWrite,
+    hWriteGitLab,
   )
 where
 
@@ -17,6 +15,7 @@ import qualified Data.Text as Text
 import GHC.Generics
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), RuleCode (..))
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -130,23 +129,24 @@ formatGitLabResult ::
   Seq FingerprintIssue
 formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> formatResult result filePathInReport
 
-printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> IO ()
-printResult result filePathInReport = mapM_ output (formatResult result filePathInReport)
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
+  Handle -> Result s e -> Maybe FilePath -> IO ()
+printResult handle result filePathInReport = mapM_ output (formatResult result filePathInReport)
   where
     output value = do
-      B.putStr (encode value)
-      B.putStr (B.singleton 0x00)
+      B.hPutStr handle (encode value)
+      B.hPutStr handle (B.singleton 0x00)
 
-printResults :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) => f (Result s e) -> Maybe FilePath -> IO ()
-printResults results filePathInReport = flattened
+hWrite :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results filePathInReport = flattened
   where
-    flattened = Foldl.fold (Foldl.premap printResult Foldl.mconcat) results filePathInReport
+    flattened = Foldl.fold (Foldl.premap ( printResult handle ) Foldl.mconcat) results filePathInReport
 
-printGitLabResults ::
+hWriteGitLab ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  f (Result s e) -> Maybe FilePath ->
-  IO ()
-printGitLabResults results filePathInReport = B.putStr . encode $ flattened
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWriteGitLab handle results filePathInReport = B.hPutStr handle . encode $ flattened
   where
     flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results filePathInReport
 

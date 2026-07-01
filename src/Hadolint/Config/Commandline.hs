@@ -44,6 +44,7 @@ data CommandlineConfig =
       configFile :: Maybe FilePath,
       dockerfiles :: [String],
       filePathInReportOption :: Maybe FilePath,
+      output :: [FilePath],
       configuration :: PartialConfiguration
     }
   deriving (Eq, Show)
@@ -55,6 +56,7 @@ parseCommandline =
     <*> parseConfigFile
     <*> parseFiles
     <*> parseFilePathInReportOption
+    <*> parseOutput
     <*> parseConfiguration
   where
     parseVersion = switch (long "version" <> short 'v' <> help "Show version")
@@ -79,6 +81,16 @@ parseCommandline =
                         \ 'sonarqube', 'junit' and 'gitlab_codeclimate' formats \
                         \ and is useful when running Hadolint with Docker to set \
                         \ the correct file path."
+            )
+        )
+
+    parseOutput =
+      many
+        ( strOption
+            ( short 'o'
+                <> long "output"
+                <> metavar "OUTPUT"
+                <> help "Output destination file"
             )
         )
 
@@ -131,7 +143,7 @@ parseCommandline =
         )
 
     parseOutputFormat =
-      optional $
+      many $
         option
           ( maybeReader (readMaybeOutputFormat . pack) )
           ( long "format"

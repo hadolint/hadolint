@@ -3,7 +3,7 @@ module Helpers where
 import Control.Monad (unless, when)
 import qualified Data.ByteString.Lazy.Char8 as BSC
 import Data.Aeson hiding (Result)
-import Hadolint (Configuration (..), OutputFormat (..), printResults)
+import Hadolint (Configuration (..), OutputFormat (..), write)
 import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Formatter.TTY (formatCheck)
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
@@ -126,18 +126,17 @@ passesShellcheck checks =
   where
     matched = Seq.filter (\CheckFailure {code = RuleCode rc} -> "SC" `Text.isPrefixOf` rc) checks
 
-
 assertFormatter ::
   (HasCallStack, ?noColor :: Bool) =>
   OutputFormat ->
   [CheckFailure] ->
   String ->
   Assertion
-assertFormatter formatter failures expectation = do
+assertFormatter format failures expectation = do
   let results =
         NonEmpty.fromList [Result "<string>" mempty (Seq.fromList failures)]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   cap `shouldBe` expectation
 
 assertFormatterJson
@@ -146,11 +145,11 @@ assertFormatterJson
   [CheckFailure] ->
   Value ->
   Assertion
-assertFormatterJson formatter failures expectation = do
+assertFormatterJson format failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   decode (BSC.pack cap) `shouldBe` Just expectation
 
 assertFormatterXML
@@ -159,9 +158,9 @@ assertFormatterXML
   [CheckFailure] ->
   XML.Document ->
   Assertion
-assertFormatterXML formatter failures expectation = do
+assertFormatterXML format failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   XML.parseLBS_ XML.def (BSC.pack cap) `shouldBe` expectation

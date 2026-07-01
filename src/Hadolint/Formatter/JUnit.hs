@@ -1,4 +1,4 @@
-module Hadolint.Formatter.JUnit ( printResults ) where
+module Hadolint.Formatter.JUnit ( hWrite ) where
 
 
 import qualified Data.ByteString.Lazy.Char8 as B
@@ -15,6 +15,7 @@ import Hadolint.Formatter.Format
   )
 import Hadolint.Rule (CheckFailure (..), RuleCode (..))
 import Hadolint.Meta (getShortVersion)
+import System.IO (Handle)
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
   ( ParseErrorBundle,
@@ -32,12 +33,12 @@ providerID :: Text.Text
 providerID = "hadolint"
 
 
-printResults ::
+hWrite ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  f (Result s e) -> Maybe FilePath -> IO ()
-printResults results maybeFilepath = do
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results maybeFilepath = do
   time <- Time.getCurrentTime
-  B.putStr $ XML.renderLBS settings $ document time
+  B.hPutStr handle $ XML.renderLBS settings $ document time
 
   where
     settings = XML.def
