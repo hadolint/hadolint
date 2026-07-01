@@ -42,7 +42,7 @@ spec = do
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
 
-    it "allows boths all forms of docker.io" $ do
+    it "allows all forms of docker.io" $ do
       let dockerFile =
             [ "FROM ubuntu:18.04 AS builder1",
               "FROM zemanlx/ubuntu:18.04 AS builder2",
@@ -86,3 +86,26 @@ spec = do
       let ?config = def { allowedRegistries = ["*"] }
 
       ruleCatchesNot "DL3026" $ Text.unlines dockerFile
+
+    it "does warn on copy from untrusted registry" $ do
+      let dockerfile =
+            Text.unlines
+              [ "COPY --from=untrusted.com/repo/image:tag /foo /bar" ]
+      let ?config = def { allowedRegistries = [ "trusted.com" ] }
+       in ruleCatches "DL3026" dockerfile
+
+    it "does not warn on copy from untrusted registry" $ do
+      let dockerfile =
+            Text.unlines
+              [ "COPY --from=trusted.com/repo/image:tag /foo /bar" ]
+      let ?config = def { allowedRegistries = [ "trusted.com" ] }
+       in ruleCatchesNot "DL3026" dockerfile
+
+    it "distrust all forms of docker.io if trusted registries are given" $ do
+      let dockerFile =
+            [ "FROM ubuntu:18.04 AS builder1",
+              "FROM zemanlx/ubuntu:18.04 AS builder2",
+              "FROM docker.io/zemanlx/ubuntu:18.04 AS builder3"
+            ]
+      let ?config = def { allowedRegistries = ["trusted.com"] }
+       in assertChecks ( Text.unlines dockerFile ) ( failsWith 3 "DL3026" )
