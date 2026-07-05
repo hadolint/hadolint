@@ -62,7 +62,7 @@ isVersionChar c =
     || c `elem` ['.', '~', '^', '_', ':', '+', '$', '{', '}']
 
 isVariableStartChar :: Char -> Bool
-isVariableStartChar c = c `elem` ['$']
+isVariableStartChar c = c == '$'
 
 dnfModules :: Shell.ParsedShell -> [Text.Text]
 dnfModules args =

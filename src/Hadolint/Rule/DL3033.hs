@@ -60,7 +60,7 @@ isVersionChar c =
     || c `elem` ['.', '~', '^', '_', ':', '+', '$', '{', '}']
 
 isVariableStartChar :: Char -> Bool
-isVariableStartChar c = c `elem` ['$']
+isVariableStartChar c = c == '$'
 
 yumModules :: Shell.ParsedShell -> [Text.Text]
 yumModules args =
