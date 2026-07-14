@@ -41,3 +41,10 @@ spec = do
       ruleCatchesNot "DL3033" "RUN bash -c `# not even a yum command`"
       onBuildRuleCatchesNot "DL3033" "RUN yum module install -y tomcat:9 && yum clean all"
       onBuildRuleCatchesNot "DL3033" "RUN bash -c `# not even a yum command`"
+
+    it "ok with yum version pinning via shell variable" $ do
+      ruleCatchesNot "DL3033" "RUN yum install -y \"git-core-${GIT_VER}\" && yum clean all"
+      ruleCatchesNot "DL3033" "RUN yum install -y \"which-${WHICH_VERSION}\" && yum clean all"
+      ruleCatchesNot "DL3033" "RUN yum install -y \"rpm-sign-${VERSION}\" && yum clean all"
+      ruleCatchesNot "DL3033" "RUN yum install -y tomcat-$VERSION && yum clean all"
+      onBuildRuleCatchesNot "DL3033" "RUN yum install -y \"git-core-${GIT_VER}\" && yum clean all"
