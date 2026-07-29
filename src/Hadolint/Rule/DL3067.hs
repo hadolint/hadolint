@@ -10,7 +10,7 @@ rule = simpleRule code severity message check
     severity = DLWarningC
     message = "Do not copy an entire filesystem from another stage"
 
-    check (Copy (CopyArgs sources target) (CopyFlags _ _ _ (CopySource _) _)) =
+    check (Copy (CopyArgs sources target) (CopyFlags _ _ _ _ (CopySource _) _)) =
       not $ any isRootSource sources && isRootTarget target
     check _ = True
 {-# INLINEABLE rule #-}
