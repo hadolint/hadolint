@@ -19,7 +19,7 @@ rule allowed = customRule check (emptyState Set.empty)
        in if doCheck (state st) image
             then newState
             else newState |> addFail CheckFailure {..}
-    check line st (Copy _ (CopyFlags _ _ _ (CopySource src) _)) =
+    check line st (Copy _ (CopyFlags _ _ _ _ (CopySource src) _)) =
       let img = fromString ( Data.Text.unpack src )
        in if doCheck (state st) img
             then st

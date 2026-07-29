@@ -34,7 +34,7 @@ missingLabelRule label = veryCustomRule check (emptyState Empty) markFailure
     message = "Label `" <> label <> "` is missing."
     check line state (From img) =
       state |> modify (currentStage (StageID img line))
-    check _ state (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource src) _)) =
+    check _ state (Copy (CopyArgs _ _) (CopyFlags _ _ _ _ (CopySource src) _)) =
       state |> modify (markSilentByAlias src)
     check _ state (Label pairs)
       | label `elem` fmap fst pairs =
