@@ -387,7 +387,7 @@ jobs:
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-arm64
           docker buildx imagetools create \
             --tag ${{ matrix.registry }}:latest \
-            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }} \
+            --tag ${{ matrix.registry }}:${{ needs.autotag.outputs.name }} \
             ${{ matrix.registry }}:${{github.sha}}-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-arm64
 
@@ -395,8 +395,9 @@ jobs:
         run: |
           docker pull --platform linux/amd64 ${{ matrix.registry }}:${{ github.sha }}-alpine-amd64
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-alpine-arm64
+          docker buildx imagetools create \
             --tag ${{ matrix.registry }}:latest-alpine \
-            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-alpine \
+            --tag ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-alpine \
             ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
@@ -406,7 +407,7 @@ jobs:
           docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-debian-arm64
           docker buildx imagetools create \
             --tag ${{ matrix.registry }}:latest-debian \
-            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-debian \
+            --tag ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-debian \
             ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
@@ -421,6 +422,7 @@ jobs:
       - autotag
     if: needs.autotag.outputs.created
     permissions:
+      contents: read
       id-token: write
       attestations: write
       artifact-metadata: write
