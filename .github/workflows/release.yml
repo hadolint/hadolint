@@ -474,6 +474,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           draft: true
+          tag_name: ${{ needs.autotag.outputs.name }}
           files: |
             hadolint-linux-x86_64
             hadolint-linux-arm64
