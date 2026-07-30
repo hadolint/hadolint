@@ -48,6 +48,7 @@ jobs:
       - name: Install GHC
         run: |
           source ~/.ghc-wasm/env
+          ghcup install cabal --set 3.14.2.0
           ghcup install ghc --set wasm32-wasi-9.10.3.20260403 -- \
               --host=x86_64-linux \
               --with-intree-gmp \
@@ -61,9 +62,13 @@ jobs:
       - name: Compile Hadolint embedded WASM version and JSFFI module
         working-directory: hadolint
         run: |
+          cabal --version
           export GHCPATH="/usr/local/.ghcup/ghc/wasm32-wasi-9.10.3.20260403/bin"
           source ~/.ghc-wasm/env
           export PATH="$GHCPATH:$PATH"
+
+          which wasm32-wasi-clang
+          wasm32-wasi-clang --version
 
           # Fix up paths to GHC and utilities, because Cabal somehow mixes up
           # the regular GHC and wasm32-wasi-ghc versions
