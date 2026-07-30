@@ -1,20 +1,79 @@
-name: Release
-on:
-  # Trigger the workflow on the new 'v*' tag created
-  push:
-    tags:
-      - "v*"
+# Release workflow. Triggered by pushing a new version number in the Cabal file to the master
+# branch.
 
-  # also on manual trigger
-  workflow_dispatch:
-    inputs:
-      release_version:
-        description: 'The version number for the release'
-        required: true
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - master
 
 jobs:
+  autotag:
+    name: Automatically Create Git Tag from Cabal file
+    runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.autotag.outputs.created }}
+      name: ${{ steps.autotag.outputs.name }}
+
+    steps:
+
+      - name: Check Out
+        uses: actions/checkout@v7
+
+      - name: Create git tag from Cabal file
+        uses: sol/haskell-autotag@v1
+        id: autotag
+
+      - name: Write autotag output to GitHub state
+        run: |
+          echo "created=${{ steps.autotag.outputs.created }}" >> "$GITHUB_OUTPUT"
+          echo "name=${{ steps.autotag.outputs.name }}" >> "$GITHUB_OUTPUT"
+
+
+  hackage-release:
+    name: Create Hackage Release Candidate
+    runs-on: ubuntu-latest
+    needs:
+      - autotag
+    if: needs.autotag.outputs.created
+
+    steps:
+
+      - name: Check Out
+        uses: actions/checkout@v7
+
+      - name: Setup Haskell
+        if: steps.autotag.outputs.created
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.10.2
+
+      - name: Build documentation and source archive
+        if: steps.autotag.outputs.created
+        run: |
+          cabal check
+          cabal sdist
+          cabal haddock --haddock-for-hackage
+
+      - name: Upload Candidate to Hackage
+        if: steps.autotag.outputs.created
+        uses: haskell-actions/hackage-publish@v1.1
+        with:
+          hackageToken: ${{ secrets.HACKAGE_AUTH_TOKEN }}
+          packagesPath: ${{ github.workspace }}/dist-newstyle/sdist
+          docsPath: ${{ github.workspace }}/dist-newstyle
+          publish: false
+
+
   build-linux:
     name: Create Release for Linux (static)
+    needs:
+      - autotag
+    if: needs.autotag.outputs.created
     runs-on: ${{ matrix.os }}
     container:
       image: alpine:3.24
@@ -109,8 +168,13 @@ jobs:
           path: ~/.local/bin/hadolint
           retention-days: 3
 
+
   build-macos:
+    name: Build MacOS Binaries
     runs-on: ${{ matrix.os }}
+    needs:
+      - autotag
+    if: needs.autotag.outputs.created
     strategy:
       fail-fast: false
       matrix:
@@ -154,8 +218,13 @@ jobs:
           path: ./dist/hadolint
           retention-days: 3
 
+
   build-windows:
+    name: Build Windows Binaries
     runs-on: ${{ matrix.os }}
+    needs:
+      - autotag
+    if: needs.autotag.outputs.created
     strategy:
       fail-fast: false
       matrix:
@@ -196,9 +265,13 @@ jobs:
           path: dist\hadolint.exe
           retention-days: 3
 
-  docker:
+
+  build-docker:
+    name: Build Docker Images
     needs:
       - build-linux
+      - autotag
+    if: needs.autotag.outputs.created
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -244,6 +317,7 @@ jobs:
           platforms: linux/${{matrix.target}}
           target: base
           push: true
+          provenance: mode=max
           tags: |
             hadolint/hadolint:${{github.sha}}-${{matrix.target}}
             ghcr.io/hadolint/hadolint:${{github.sha}}-${{matrix.target}}
@@ -256,6 +330,7 @@ jobs:
           platforms: linux/${{matrix.target}}
           target: debian
           push: true
+          provenance: mode=max
           tags: |
             hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
             ghcr.io/hadolint/hadolint:${{github.sha}}-debian-${{matrix.target}}
@@ -268,13 +343,17 @@ jobs:
           platforms: linux/${{matrix.target}}
           target: alpine
           push: true
+          provenance: mode=max
           tags: |
             hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
             ghcr.io/hadolint/hadolint:${{github.sha}}-alpine-${{matrix.target}}
 
+
   docker-release:
     needs:
-      - docker
+      - build-docker
+      - autotag
+    if: needs.autotag.outputs.created
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -305,79 +384,52 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set target and tag
-        id: build-opts
-        run: |
-            if [[ $GITHUB_REF == refs/tags/* ]] ; then
-              echo "tag=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_OUTPUT
-            else
-              echo "tag=${{ github.event.inputs.release_version }}" >> $GITHUB_OUTPUT
-            fi
-
       - name: Push scratch image
         run: |
-          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-amd64
-          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-arm64
-
-          if [[ $GITHUB_REF == refs/tags/* ]] ; then
-            docker buildx imagetools create \
-              --tag ${{ matrix.registry }}:latest \
-              ${{ matrix.registry }}:${{github.sha}}-amd64 \
-              ${{ matrix.registry }}:${{github.sha}}-arm64
-          fi
-
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{ github.sha }}-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-arm64
           docker buildx imagetools create \
-            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }} \
+            --tag ${{ matrix.registry }}:latest \
+            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }} \
             ${{ matrix.registry }}:${{github.sha}}-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-arm64
 
       - name: Push alpine image
         run: |
-          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-alpine-amd64
-          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
-
-          if [[ $GITHUB_REF == refs/tags/* ]] ; then
-            docker buildx imagetools create \
-              --tag ${{ matrix.registry }}:latest-alpine \
-              ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
-              ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
-          fi
-
-          docker buildx imagetools create \
-            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-alpine \
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{ github.sha }}-alpine-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-alpine-arm64
+            --tag ${{ matrix.registry }}:latest-alpine \
+            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-alpine \
             ${{ matrix.registry }}:${{github.sha}}-alpine-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-alpine-arm64
 
       - name: Push debian image
         run: |
-          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{github.sha}}-debian-amd64
-          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-
-          if [[ $GITHUB_REF == refs/tags/* ]] ; then
-            docker buildx imagetools create \
-              --tag ${{ matrix.registry }}:latest-debian \
-              ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
-              ${{ matrix.registry }}:${{github.sha}}-debian-arm64
-          fi
-
+          docker pull --platform linux/amd64 ${{ matrix.registry }}:${{ github.sha }}-debian-amd64
+          docker pull --platform linux/arm64 ${{ matrix.registry }}:${{ github.sha }}-debian-arm64
           docker buildx imagetools create \
-            --tag ${{ matrix.registry }}:v${{ steps.build-opts.outputs.tag }}-debian \
+            --tag ${{ matrix.registry }}:latest-debian \
+            ${{ matrix.registry }}:${{ needs.autotag.outputs.name }}-debian \
             ${{ matrix.registry }}:${{github.sha}}-debian-amd64 \
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
-  release:
-    if: github.event_name != 'workflow_dispatch'
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
     needs:
+      - hackage-release
       - docker-release
       - build-linux
       - build-macos
       - build-windows
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
+      - autotag
+    if: needs.autotag.outputs.created
+    permissions:
+      id-token: write
+      attestation: write
+      artifact-metadata: write
     steps:
-
-      - name: Check out
-        uses: actions/checkout@v7
 
       - name: Download Linux x86
         uses: actions/download-artifact@v8
@@ -417,27 +469,23 @@ jobs:
           mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
           mv artifacts/hadolint-windows-x86_64/hadolint.exe hadolint-windows-x86_64.exe
 
-          sha256sum -b hadolint-linux-x86_64 > hadolint-linux-x86_64.sha256
-          sha256sum -b hadolint-linux-arm64 > hadolint-linux-arm64.sha256
-          sha256sum -b hadolint-macos-x86_64 > hadolint-macos-x86_64.sha256
-          sha256sum -b hadolint-macos-arm64 > hadolint-macos-arm64.sha256
-          sha256sum -b hadolint-windows-x86_64.exe > hadolint-windows-x86_64.exe.sha256
+          sha256sum -b hadolint* > checksums.sha256
 
       - name: Release
         uses: softprops/action-gh-release@v3
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           generate_release_notes: true
           fail_on_unmatched_files: true
           draft: true
           files: |
             hadolint-linux-x86_64
-            hadolint-linux-x86_64.sha256
             hadolint-linux-arm64
-            hadolint-linux-arm64.sha256
             hadolint-macos-x86_64
-            hadolint-macos-x86_64.sha256
             hadolint-macos-arm64
-            hadolint-macos-arm64.sha256
             hadolint-windows-x86_64.exe
-            hadolint-windows-x86_64.exe.sha256
+            checksums.sha256
+
+      - name: Generate artifact attestations
+        uses: actions/attest@v4
+        with:
+          subject-checksums: checksums.sha256
