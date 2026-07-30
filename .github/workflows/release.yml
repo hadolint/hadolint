@@ -140,8 +140,8 @@ jobs:
       - name: Cache store
         uses: actions/cache@v6
         with:
-          path: ~/.cabal/store
-          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ matrix.target }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build
         run: |
@@ -176,7 +176,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
+          - os: macos-15-intel
             target: macos-x86_64
           - os: macos-15
             target: macos-arm64
@@ -197,7 +197,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+          key: ${{ matrix.os }}-${{ matrix.target }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build binaries
         run: |
@@ -245,7 +245,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+          key: ${{ matrix.os }}-${{ matrix.target }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build binaries
         run: |
