@@ -1,7 +1,9 @@
 ---
 name: Build and deploy Hadolint Online
 on:
-  create: {}
+  push:
+    tags:
+      - v*
 
   workflow_dispatch: {}
 
@@ -9,7 +11,6 @@ jobs:
   build:
     name: Build WASM and JSFFI artifacts
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
 
       - name: Install System Dependencies
