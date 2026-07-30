@@ -176,7 +176,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
+          - os: macos-15-intel
             target: macos-x86_64
           - os: macos-15
             target: macos-arm64
