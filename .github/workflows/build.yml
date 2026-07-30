@@ -90,7 +90,17 @@ jobs:
             --with-hc-pkg="$GHCPATH/wasm32-wasi-ghc-pkg" \
             --with-hsc2hs="$GHCPATH/wasm32-wasi-hsc2hs" \
             --with-haddock="$GHCPATH/wasm32-wasi-haddock" \
-            build
+            build exe:hadolint-embedded
+
+          mv \
+            $(cabal \
+                --with-compiler="$GHCPATH/wasm32-wasi-ghc" \
+                --with-hc-pkg="$GHCPATH/wasm32-wasi-ghc-pkg" \
+                --with-hsc2hs="$GHCPATH/wasm32-wasi-hsc2hs" \
+                --with-haddock="$GHCPATH/wasm32-wasi-haddock" \
+                list-bin exe:hadolint-embedded) \
+            website/hadolint.wasm
+
           $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
             -i website/hadolint.wasm \
             -o website/js/ghc_wasm_jsffi.js
