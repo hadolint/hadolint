@@ -52,6 +52,7 @@ jobs:
 
       - name: Build
         run: |
+          cabal check
           cabal configure --enable-tests
           cabal build
 

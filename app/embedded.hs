@@ -73,7 +73,7 @@ doLint res =
 
 showResult :: Format.Result Text.Text DockerfileError -> IO ()
 showResult result = do
-  Hadolint.printResults Hadolint.Json True Nothing [ result ]
+  Hadolint.write ["-"] [Hadolint.Json] True Nothing [ result ]
 
 jsStringToText :: JSString -> Text.Text
 jsStringToText = Text.pack . fromJSString

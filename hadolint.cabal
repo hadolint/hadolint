@@ -226,11 +226,11 @@ executable hadolint-embedded
   ghc-options:
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wredundant-constraints
-    -no-hs-main -optl-mexec-model=reactor -optl-Wl,--export=setup -o website/hadolint.wasm
+    -no-hs-main -optl-mexec-model=reactor -optl-Wl,--export=setup
 
   build-depends:
       base                  >=4.20.1    && <5
-    , ghc-experimental
+    , ghc-experimental      >=9.1003.0  && <9.1201
     , containers            >=0.7       && <0.8
     , data-default          >=0.8.0     && <0.9
     , hadolint
