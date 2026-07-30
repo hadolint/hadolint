@@ -427,7 +427,7 @@ jobs:
     if: needs.autotag.outputs.created
     permissions:
       id-token: write
-      attestation: write
+      attestations: write
       artifact-metadata: write
     steps:
 
