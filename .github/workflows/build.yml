@@ -68,8 +68,8 @@ jobs:
           source ~/.ghc-wasm/env
           export PATH="$GHCPATH:$PATH"
 
-          which wasm32-wasi-clang
-          wasm32-wasi-clang --version
+          which clang
+          clang --version
 
           # Fix up paths to GHC and utilities, because Cabal somehow mixes up
           # the regular GHC and wasm32-wasi-ghc versions
