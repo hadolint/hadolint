@@ -117,7 +117,7 @@ addVars vars Empty = do
 addVars vars Acc {..} = do
   let newOpts =
         Shell.ShellOpts
-          { shellName = Shell.shellName Shell.defaultShellOpts,
+          { shellName = Shell.shellName opts,
             envVars = Shell.envVars opts <> Set.fromList vars
           }
    in
