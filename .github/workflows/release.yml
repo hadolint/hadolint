@@ -78,8 +78,6 @@ jobs:
         - /:/host
         - /opt:/opt:rw,rshared
         - /opt:/__e/node24:ro,rshared
-    env:
-      CABAL_DIR: ${{ runner.temp }}/cabal/store
     strategy:
       fail-fast: false
       matrix:
@@ -130,7 +128,11 @@ jobs:
         shell: bash
 
       - name: create ~/.local/bin
-        run: mkdir -p "$HOME/.local/bin"
+        env:
+          CABAL_DIR: ${{ runner.temp }}/cabal/store
+        run: |
+          mkdir -p "$CABAL_DIR"
+          mkdir -p "$HOME/.local/bin"
         shell: bash
 
       - run: echo "HOME=$HOME" >> $GITHUB_ENV
@@ -142,10 +144,12 @@ jobs:
       - name: Cache store
         uses: actions/cache@v6
         with:
-          path: ${{ env.CABAL_DIR }}
+          path: ${{ runner.temp }}/cabal/store
           key: ${{ matrix.os }}-${{ matrix.target }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build
+        env:
+          CABAL_DIR: ${{ runner.temp }}/cabal/store
         run: |
           cabal build \
             --only-dependencies \
