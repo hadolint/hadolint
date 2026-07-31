@@ -78,6 +78,8 @@ jobs:
         - /:/host
         - /opt:/opt:rw,rshared
         - /opt:/__e/node24:ro,rshared
+    env:
+      CABAL_DIR: ${{ runner.temp }}/cabal/store
     strategy:
       fail-fast: false
       matrix:
@@ -140,7 +142,7 @@ jobs:
       - name: Cache store
         uses: actions/cache@v6
         with:
-          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          path: ${{ env.CABAL_DIR }}
           key: ${{ matrix.os }}-${{ matrix.target }}-${{ hashFiles('cabal.project.freeze') }}
 
       - name: Build
