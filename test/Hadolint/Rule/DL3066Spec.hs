@@ -1,6 +1,7 @@
 module Hadolint.Rule.DL3066Spec (spec) where
 
 import Data.Default
+import qualified Data.Text as Text
 import Helpers
 import Test.Hspec
 
@@ -23,3 +24,7 @@ spec = do
 
     it "not ok: non-numeric UID and GID" $ do
       ruleCatches rule "USER foobar:barfoo"
+
+    it "ok: UID is non-numeric, but is a defined ARG" $ do
+      let dockerfile = Text.unlines [ "ARG APP_UID", "FROM foobar:barfoo", "USER ${APP_UID}" ]
+       in ruleCatchesNot rule dockerfile
