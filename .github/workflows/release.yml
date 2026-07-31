@@ -128,14 +128,14 @@ jobs:
           CABAL_DIR: ${{ runner.temp }}/cabal/store
         run: |
           mkdir -p "$CABAL_DIR"
-          mkdir -p "$HOME/.local/bin"
-        shell: bash
-
-      - run: echo "HOME=$HOME" >> $GITHUB_ENV
         shell: bash
 
       - name: Freeze
-        run: cabal freeze
+        env:
+          CABAL_DIR: ${{ runner.temp }}/cabal/store
+        run: |
+          cabal update
+          cabal freeze
 
       - name: Cache store
         uses: actions/cache@v6
@@ -147,7 +147,6 @@ jobs:
         env:
           CABAL_DIR: ${{ runner.temp }}/cabal/store
         run: |
-          cabal update
           cabal build \
             --only-dependencies \
             --disable-shared \
@@ -157,15 +156,15 @@ jobs:
             --disable-executable-dynamic \
             --disable-shared \
             --ghc-options='-split-sections -optl-static -optl-pthread -fPIC'
-          mv "$(cabal list-bin hadolint)" ~/.local/bin/hadolint
-          strip ~/.local/bin/hadolint
+          mv "$(cabal list-bin hadolint)" ./hadolint
+          strip ./hadolint
         shell: bash
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
           name: hadolint-${{ matrix.target }}
-          path: ~/.local/bin/hadolint
+          path: ./hadolint
           retention-days: 3
 
 
