@@ -123,10 +123,6 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      - name: Update cabal cache
-        run: cabal update
-        shell: bash
-
       - name: create ~/.local/bin
         env:
           CABAL_DIR: ${{ runner.temp }}/cabal/store
@@ -151,6 +147,7 @@ jobs:
         env:
           CABAL_DIR: ${{ runner.temp }}/cabal/store
         run: |
+          cabal update
           cabal build \
             --only-dependencies \
             --disable-shared \
