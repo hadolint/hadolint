@@ -32,8 +32,7 @@ rule = customRule check (emptyState False)
         null
           [ True
             | cmd@(Shell.Command name arguments _) <- Shell.presentCommands script,
-              validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"],
-              name == validShell,
+              Shell.shellBasename name `elem` ["bash", "zsh", "ash"],
               Shell.hasFlag "o" cmd,
               arg <- Shell.arg <$> arguments,
               arg == "pipefail"
