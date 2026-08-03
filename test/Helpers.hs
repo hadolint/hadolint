@@ -126,6 +126,14 @@ passesShellcheck checks =
   where
     matched = Seq.filter (\CheckFailure {code = RuleCode rc} -> "SC" `Text.isPrefixOf` rc) checks
 
+passesAllEnabled :: ( HasCallStack, ?config :: Configuration ) => Failures -> Assertion
+passesAllEnabled checks =
+  unless (null matched) $
+    assertFailure $
+      "I was expecting no errors. Found: \n" <> (Text.unpack . formatChecksNoColor $ checks)
+  where
+    matched = Seq.filter (\CheckFailure {..} -> code `notElem` Hadolint.ignoreRules ?config) checks
+
 assertFormatter ::
   (HasCallStack, ?noColor :: Bool) =>
   OutputFormat ->
