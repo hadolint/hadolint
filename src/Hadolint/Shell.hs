@@ -114,6 +114,14 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
 nonPosixShells :: [Text.Text]
 nonPosixShells = ["pwsh", "powershell", "cmd"]
 
+-- | Returns the last path segment of a shell command name, so that
+-- "/usr/bin/bash" and "/bin/bash" both resolve to "bash" just like a bare
+-- "bash" would. This lets shell-name matching (e.g. detecting bash/zsh/ash
+-- for the "-o pipefail" check) work regardless of which absolute path a
+-- shell happens to be installed under.
+shellBasename :: Text.Text -> Text.Text
+shellBasename = last . Text.splitOn "/"
+
 hasUnsupportedShebang :: Text.Text -> Bool
 hasUnsupportedShebang script =
   "#!" `Text.isPrefixOf` script &&
