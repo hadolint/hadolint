@@ -310,9 +310,9 @@ To pass a custom configuration file (using relative or absolute path) to
 a container, use the following command:
 
 ```bash
-docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.hadolint.yaml hadolint/hadolint < Dockerfile
 # OR
-docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 In addition to config files, Hadolint can be configured with environment
