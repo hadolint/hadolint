@@ -94,6 +94,12 @@ install `hadolint`.
 scoop install hadolint
 ```
 
+Or install with [winget](https://learn.microsoft.com/windows/package-manager/winget/):
+
+```batch
+winget install hadolint.hadolint
+```
+
 On distributions that have `nix` installed, you can use the `hadolint`
 package to run ad-hoc shells or permanently install `hadolint` into
 your environment.
