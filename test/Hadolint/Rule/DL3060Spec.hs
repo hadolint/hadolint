@@ -10,44 +10,53 @@ spec :: SpecWith ()
 spec = do
   let ?config = def
 
-  describe "DL3060 - `yarn cache clean` missing after `yarn install`" $ do
-    it "ok with non-yarn commands" $ do
+  describe "DL3060 - Use BuildKit cache mount for yarn." $ do
+    it "don't warn: non-yarn commands" $ do
       ruleCatchesNot "DL3060" "RUN foo"
       onBuildRuleCatchesNot "DL3060" "RUN foo"
-    it "not ok with no cache clean" $ do
+
+    it "warn: yarn install without cache mount" $ do
       ruleCatches "DL3060" "RUN yarn install foo"
       onBuildRuleCatches "DL3060" "RUN yarn install foo"
-    it "ok with cache clean" $ do
-      ruleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
-      onBuildRuleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
-    it "not ok with clean before install" $ do
+
+    it "warn: yarn cache clean no longer suppresses" $ do
+      ruleCatches "DL3060" "RUN yarn install bar && yarn cache clean"
+      onBuildRuleCatches "DL3060" "RUN yarn install bar && yarn cache clean"
+
+    it "warn: yarn install regardless of order" $ do
       ruleCatches "DL3060" "RUN yarn cache clean && yarn install foo"
 
-    it "ok when cache mount is used" $
+    it "don't warn: cache mount is used" $
       let line = "RUN --mount=type=cache,target=/root/.cache/yarn yarn install foobar"
       in do
         ruleCatchesNot "DL3060" line
         onBuildRuleCatchesNot "DL3060" line
 
-    it "ok when tmpfs mount is used" $
+    it "don't warn: tmpfs mount is used" $
       let line = "RUN --mount=type=tmpfs,target=/root/.cache/yarn yarn install foobar"
       in do
         ruleCatchesNot "DL3060" line
         onBuildRuleCatchesNot "DL3060" line
 
-    it "not ok when cache mount is in wrong location" $
+    it "don't warn: cache mount with non-root user home" $
+      let line = "RUN --mount=type=cache,target=/home/node/.cache/yarn yarn install foobar"
+      in do
+        ruleCatchesNot "DL3060" line
+        onBuildRuleCatchesNot "DL3060" line
+
+    it "warn: cache mount in wrong location" $
       let line = "RUN --mount=type=cache,target=/var/lib/foobar yarn install foobar"
       in do
         ruleCatches "DL3060" line
         onBuildRuleCatches "DL3060" line
 
-    it "not ok when tmpfs mount is in wrong location" $
+    it "warn: tmpfs mount in wrong location" $
       let line = "RUN --mount=type=tmpfs,target=/var/lib/foobar yarn install foobar"
       in do
         ruleCatches "DL3060" line
         onBuildRuleCatches "DL3060" line
 
-    it "not ok when yarn install is in last stage w/o yarn clean" $
+    it "warn: yarn install in any stage without cache mount" $
       let dockerFile =
             Text.unlines
               [ "FROM node:lts-alpine as foo",
@@ -59,7 +68,7 @@ spec = do
             ruleCatches "DL3060" dockerFile
             onBuildRuleCatches "DL3060" dockerFile
 
-    it "not ok when inheriting from stage with yarn install w/o yarn clean" $
+    it "warn: yarn install without cache mount even in intermediate stages" $
       let dockerFile =
             Text.unlines
               [ "FROM node:lts-alpine as foo",
@@ -71,7 +80,7 @@ spec = do
             ruleCatches "DL3060" dockerFile
             onBuildRuleCatches "DL3060" dockerFile
 
-    it "ok when inheriting from stage with yarn cache clear" $
+    it "warn: yarn cache clean no longer suppresses in inherited stage" $
       let dockerFile =
             Text.unlines
               [ "FROM node:lts-alpine as foo",
@@ -80,10 +89,10 @@ spec = do
                 "RUN hey!"
               ]
        in do
-            ruleCatchesNot "DL3060" dockerFile
-            onBuildRuleCatchesNot "DL3060" dockerFile
+            ruleCatches "DL3060" dockerFile
+            onBuildRuleCatches "DL3060" dockerFile
 
-    it "ok when omitting yarn cache clean in stage that is not reused later" $
+    it "warn: yarn install without cache mount in unused intermediate stage" $
       let dockerFile =
             Text.unlines
               [ "FROM node:lts-alpine as foo",
@@ -92,5 +101,5 @@ spec = do
                 "RUN hey!"
               ]
        in do
-            ruleCatchesNot "DL3060" dockerFile
+            ruleCatches "DL3060" dockerFile
             onBuildRuleCatches "DL3060" dockerFile

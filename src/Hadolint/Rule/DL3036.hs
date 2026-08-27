@@ -15,17 +15,15 @@ dl3036 = simpleRule code severity message check
   where
     code = "DL3036"
     severity = DLWarningC
-    message = "`zypper clean` missing after zypper use."
+    message =
+      "Use BuildKit cache mount for zypper (`--mount=type=cache,target=/var/cache/zypp`) \
+      \or run `zypper clean` after zypper command"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands zypperInstall) args = True
       | Utils.hasCacheOrTmpfsMountWith "/var/cache/zypp" flags = True
-      | Just True == (
-             (<) <$> foldArguments (Shell.findCommandIndex zypperInstall) args
-                 <*> foldArguments (Shell.findCommandIndex zypperClean) args) = True
       | otherwise = False
     check _ = True
 
     zypperInstall = Shell.cmdHasArgs "zypper" ["install", "in"]
-    zypperClean = Shell.cmdHasArgs "zypper" ["clean", "cc"]
 {-# INLINEABLE dl3036 #-}
