@@ -110,6 +110,16 @@ library
     Hadolint.Rule.DL3065
     Hadolint.Rule.DL3066
     Hadolint.Rule.DL3067
+    Hadolint.Rule.DL3068
+    Hadolint.Rule.DL3069
+    Hadolint.Rule.DL3070
+    Hadolint.Rule.DL3071
+    Hadolint.Rule.DL3072
+    Hadolint.Rule.DL3073
+    Hadolint.Rule.DL3074
+    Hadolint.Rule.DL3075
+    Hadolint.Rule.DL3076
+    Hadolint.Rule.DL3077
     Hadolint.Rule.DL4000
     Hadolint.Rule.DL4001
     Hadolint.Rule.DL4003
@@ -318,6 +328,16 @@ test-suite hadolint-unit-tests
     Hadolint.Rule.DL3065Spec
     Hadolint.Rule.DL3066Spec
     Hadolint.Rule.DL3067Spec
+    Hadolint.Rule.DL3068Spec
+    Hadolint.Rule.DL3069Spec
+    Hadolint.Rule.DL3070Spec
+    Hadolint.Rule.DL3071Spec
+    Hadolint.Rule.DL3072Spec
+    Hadolint.Rule.DL3073Spec
+    Hadolint.Rule.DL3074Spec
+    Hadolint.Rule.DL3075Spec
+    Hadolint.Rule.DL3076Spec
+    Hadolint.Rule.DL3077Spec
     Hadolint.Rule.DL4000Spec
     Hadolint.Rule.DL4001Spec
     Hadolint.Rule.DL4003Spec

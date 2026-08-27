@@ -17,15 +17,14 @@ dl3019 = simpleRule code severity message check
     code = "DL3019"
     severity = DLInfoC
     message =
-      "Use the `--no-cache` switch to avoid the need to use `--update` and \
-      \remove `/var/cache/apk/*` when done installing packages"
+      "Use BuildKit cache mount for apk (`--mount=type=cache,target=/var/cache/apk`) \
+      \-- without it, cached package files are baked into the image layer and bloat the image"
     check (Run (RunArgs args flags))
       | Utils.hasCacheOrTmpfsMountWith "/var/cache/apk" flags = True
-      | foldArguments (Shell.noCommands forgotCacheOption) args = True
+      | foldArguments (Shell.noCommands hasApkAdd) args = True
       | otherwise = False
     check _ = True
 {-# INLINEABLE dl3019 #-}
 
-forgotCacheOption :: Shell.Command -> Bool
-forgotCacheOption cmd = Shell.cmdHasArgs "apk" ["add"] cmd
-  && not (Shell.hasFlag "no-cache" cmd)
+hasApkAdd :: Shell.Command -> Bool
+hasApkAdd cmd = Shell.cmdHasArgs "apk" ["add"] cmd

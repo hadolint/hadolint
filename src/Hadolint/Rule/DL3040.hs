@@ -15,25 +15,22 @@ dl3040 = simpleRule code severity message check
   where
     code = "DL3040"
     severity = DLWarningC
-    message = "`dnf clean all` missing after dnf command."
+    message =
+      "Use BuildKit cache mount for dnf (`--mount=type=cache,target=/var/cache/libdnf5`) \
+      \-- without it, cached package files are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
-      | all (checkMissingClean args) dnfCmds = True
+      | all (checkNoInstall args) dnfCmds = True
       | Utils.hasCacheOrTmpfsMountWith "/var/cache/libdnf5" flags = True
       | Utils.hasCacheOrTmpfsMountWith ".cache/libdnf5" flags = True
       | otherwise = False
     check _ = True
 
-    checkMissingClean args cmdName =
+    checkNoInstall args cmdName =
       foldArguments (Shell.noCommands $ dnfInstall cmdName) args
-        || Just True == (
-             (<) <$> foldArguments (Shell.findCommandIndex $ dnfInstall cmdName) args
-                 <*> foldArguments (Shell.findCommandIndex $ dnfClean cmdName) args)
 
     dnfInstall cmdName args = ( cmdName `elem` dnfCmds )
       && Shell.cmdHasArgs cmdName installCmds args
-    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args
-      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/libdnf5*"] args
     dnfCmds = ["dnf", "microdnf"]
     installCmds = ["install", "in", "upgrade", "up", "upgrade-minimal", "up-min", "reinstall", "rei"]
 {-# INLINEABLE dl3040 #-}

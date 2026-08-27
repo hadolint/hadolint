@@ -2,6 +2,7 @@ module Hadolint.Rule.DL3032 (rule) where
 
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
+import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
 
 
@@ -14,16 +15,16 @@ dl3032 = simpleRule code severity message check
   where
     code = "DL3032"
     severity = DLWarningC
-    message = "`yum clean all` missing after yum command."
+    message =
+      "Use BuildKit cache mount for yum (`--mount=type=cache,target=/var/cache/yum`) \
+      \-- without it, cached package files are baked into the image layer and bloat the image"
 
-    check (Run (RunArgs args _)) =
-      foldArguments (Shell.noCommands yumInstall) args
-        || Just True == (
-             (<) <$> foldArguments (Shell.findCommandIndex yumInstall) args
-                 <*> foldArguments (Shell.findCommandIndex yumClean) args)
+    check (Run (RunArgs args flags))
+      | foldArguments (Shell.noCommands yumInstall) args = True
+      | Utils.hasCacheOrTmpfsMountWith "/var/cache/yum" flags = True
+      | otherwise = False
     check _ = True
-
-    yumInstall = Shell.cmdHasArgs "yum" ["install"]
-    yumClean args = Shell.cmdHasArgs "yum" ["clean", "all"] args
-      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/yum/*"] args
 {-# INLINEABLE dl3032 #-}
+
+yumInstall :: Shell.Command -> Bool
+yumInstall = Shell.cmdHasArgs "yum" ["install"]
