@@ -17,7 +17,7 @@ dl3075 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for pnpm (`--mount=type=cache,target=/root/.local/share/pnpm/store`) \
-      \to speed up package installation"
+      \-- without it, the pnpm store is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isPnpmCommand) args = True

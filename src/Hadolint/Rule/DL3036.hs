@@ -17,7 +17,7 @@ dl3036 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Use BuildKit cache mount for zypper (`--mount=type=cache,target=/var/cache/zypp`) \
-      \or run `zypper clean` after zypper command"
+      \-- without it, cached package files are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands zypperInstall) args = True

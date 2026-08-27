@@ -17,7 +17,8 @@ dl3076 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mounts for Mix (`--mount=type=cache,target=/root/.hex \
-      \--mount=type=cache,target=/root/.mix`) to speed up Elixir dependency fetching"
+      \--mount=type=cache,target=/root/.mix`) -- without them, the Hex and Mix caches \
+      \are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isMixCommand) args = True

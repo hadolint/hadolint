@@ -17,7 +17,7 @@ dl3060 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for yarn (`--mount=type=cache,target=/root/.cache/yarn`) \
-      \or run `yarn cache clean` after `yarn install`"
+      \-- without it, the yarn cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands yarnInstall) args = True

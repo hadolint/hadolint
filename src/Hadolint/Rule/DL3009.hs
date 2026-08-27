@@ -17,7 +17,8 @@ dl3009 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mounts for apt (`--mount=type=cache,target=/var/cache/apt \
-      \--mount=type=cache,target=/var/lib/apt`) to cache packages across builds"
+      \--mount=type=cache,target=/var/lib/apt`) -- without them, cached package \
+      \files are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands hasAptUpdate) args = True

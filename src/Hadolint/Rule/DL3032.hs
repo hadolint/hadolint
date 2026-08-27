@@ -17,7 +17,7 @@ dl3032 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Use BuildKit cache mount for yum (`--mount=type=cache,target=/var/cache/yum`) \
-      \or run `yum clean all` after yum command"
+      \-- without it, cached package files are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands yumInstall) args = True

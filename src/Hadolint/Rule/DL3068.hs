@@ -17,7 +17,7 @@ dl3068 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for npm (`--mount=type=cache,target=/root/.npm`) \
-      \to speed up package installation"
+      \-- without it, the npm cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isNpmCommand) args = True

@@ -17,7 +17,8 @@ dl3069 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mounts for cargo (`--mount=type=cache,target=/root/.cargo/registry \
-      \--mount=type=cache,target=/root/.cargo/git`) to speed up Rust builds"
+      \--mount=type=cache,target=/root/.cargo/git`) -- without them, the cargo registry \
+      \is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isCargoCommand) args = True

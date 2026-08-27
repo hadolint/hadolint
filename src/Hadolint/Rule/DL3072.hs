@@ -18,7 +18,7 @@ dl3072 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for Gradle (`--mount=type=cache,target=/root/.gradle`) \
-      \to speed up dependency resolution"
+      \-- without it, the Gradle cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isGradleCommand) args = True

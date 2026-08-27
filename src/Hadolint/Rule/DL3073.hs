@@ -17,7 +17,7 @@ dl3073 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for Composer (`--mount=type=cache,target=/root/.composer/cache`) \
-      \to speed up PHP dependency installation"
+      \-- without it, the Composer cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isComposerCommand) args = True

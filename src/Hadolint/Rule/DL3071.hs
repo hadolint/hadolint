@@ -17,7 +17,7 @@ dl3071 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for Maven (`--mount=type=cache,target=/root/.m2`) \
-      \to speed up dependency resolution"
+      \-- without it, the local Maven repository is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isMavenCommand) args = True

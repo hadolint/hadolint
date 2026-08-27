@@ -17,7 +17,8 @@ dl3070 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mounts for Go (`--mount=type=cache,target=/root/.cache/go-build \
-      \--mount=type=cache,target=/go/pkg/mod`) to speed up Go builds"
+      \--mount=type=cache,target=/go/pkg/mod`) -- without them, the Go build and module \
+      \caches are baked into the image layer and bloat the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isGoCommand) args = True

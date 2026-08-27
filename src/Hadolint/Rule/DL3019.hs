@@ -18,7 +18,7 @@ dl3019 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for apk (`--mount=type=cache,target=/var/cache/apk`) \
-      \or the `--no-cache` switch to avoid stale package cache"
+      \-- without it, cached package files are baked into the image layer and bloat the image"
     check (Run (RunArgs args flags))
       | Utils.hasCacheOrTmpfsMountWith "/var/cache/apk" flags = True
       | foldArguments (Shell.noCommands hasApkAdd) args = True

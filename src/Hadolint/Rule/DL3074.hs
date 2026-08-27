@@ -17,7 +17,7 @@ dl3074 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for NuGet (`--mount=type=cache,target=/root/.nuget/packages`) \
-      \to speed up .NET dependency restoration"
+      \-- without it, the NuGet package cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isDotnetOrNugetCommand) args = True

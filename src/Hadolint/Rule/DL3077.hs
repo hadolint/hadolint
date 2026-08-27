@@ -17,7 +17,7 @@ dl3077 = simpleRule code severity message check
     severity = DLInfoC
     message =
       "Use BuildKit cache mount for gem/bundler (`--mount=type=cache,target=/usr/local/bundle`) \
-      \to speed up Ruby gem installation"
+      \-- without it, the gem cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isGemOrBundlerCommand) args = True

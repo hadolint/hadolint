@@ -19,7 +19,7 @@ dl3042 = simpleRule code severity message check
     severity = DLWarningC
     message =
       "Use BuildKit cache mount for pip (`--mount=type=cache,target=/root/.cache/pip`) \
-      \or use `pip install --no-cache-dir <package>` to avoid cache bloat"
+      \-- without it, the pip cache is baked into the image layer and bloats the image"
 
     check (Run (RunArgs args flags))
       | foldArguments (Shell.noCommands isPipInstallCommand) args = True
