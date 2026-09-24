@@ -435,6 +435,11 @@
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3067"
           },
           {
+            "const": "DL3068",
+            "description": "Pin versions in pecl. Instead of `pecl install <package>` use `pecl install <package>-<version>`",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3068"
+          },
+          {
             "const": "DL4000",
             "description": "MAINTAINER is deprecated.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL4000"
