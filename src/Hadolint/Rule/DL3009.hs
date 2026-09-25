@@ -73,7 +73,7 @@ forgotToCleanup args
   | otherwise = False
   where
     hasCleanup =
-      any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
+      any (Shell.cmdHasAllArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
 
 hasUpdate :: Shell.ParsedShell -> Bool
 hasUpdate args = any isPackageUpdate (Shell.presentCommands args)

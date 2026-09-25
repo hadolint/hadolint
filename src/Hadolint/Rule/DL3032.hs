@@ -24,6 +24,6 @@ dl3032 = simpleRule code severity message check
     check _ = True
 
     yumInstall = Shell.cmdHasArgs "yum" ["install"]
-    yumClean args = Shell.cmdHasArgs "yum" ["clean", "all"] args
-      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/yum/*"] args
+    yumClean args = Shell.cmdHasAllArgs "yum" ["clean", "all"] args
+      || Shell.cmdHasAllArgs "rm" ["-rf", "/var/cache/yum/*"] args
 {-# INLINEABLE dl3032 #-}

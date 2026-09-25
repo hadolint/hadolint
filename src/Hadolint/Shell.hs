@@ -205,6 +205,14 @@ cmdsHaveArgs expectedNames expectedArgs (Command n args _)
   | n `notElem` expectedNames = False
   | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
 
+cmdHasAllArgs :: Text.Text -> [Text.Text] -> Command -> Bool
+cmdHasAllArgs expectedName = cmdsHaveAllArgs [expectedName]
+
+cmdsHaveAllArgs :: [Text.Text] -> [Text.Text] -> Command -> Bool
+cmdsHaveAllArgs expectedNames expectedArgs (Command n args _)
+  | n `notElem` expectedNames = False
+  | otherwise = all (`elem` [arg | CmdPart arg _ <- args]) expectedArgs
+
 cmdHasPrefixArg :: Text.Text -> Text.Text -> Command -> Bool
 cmdHasPrefixArg expectedName expectedArg (Command n args _)
   | expectedName /= n = False

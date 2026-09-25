@@ -211,3 +211,22 @@ spec = do
        in do
             ruleCatchesNot "DL3009" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "ok with strict all-args matching for aptitude cleanup" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN aptitude update && aptitude install python && rm -rf /var/lib/apt/lists/*",
+              "RUN rm -rf /foo/bar && aptitude update && aptitude install python && rm -rf /var/lib/apt/lists/*",
+              "RUN aptitude update && rm -rf /foo/bar && aptitude install python && rm -rf /var/lib/apt/lists/*"
+            ]
+      mapM_ (ruleCatchesNot "DL3009") dockerFile
+      mapM_ (onBuildRuleCatchesNot "DL3009") dockerFile
+
+    it "not ok with strict all-args matching for aptitude cleanup" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN aptitude update && aptitude install python && rm -rf /var/cache/libdnf5",
+              "RUN aptitude update && aptitude install python && rm -rf /var/cache/yum/*"
+            ]
+      mapM_ (ruleCatches "DL3009") dockerFile
+      mapM_ (onBuildRuleCatches "DL3009") dockerFile

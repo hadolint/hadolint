@@ -94,3 +94,23 @@ spec = do
        in do
             ruleCatchesNot "DL3060" dockerFile
             onBuildRuleCatches "DL3060" dockerFile
+
+    it "ok with strict all-args matching for yarn cache clean" $
+      let dockerFile =
+            Text.unlines
+              [ "RUN yarn install foo && yarn cache clean"
+              ]
+       in do
+            ruleCatchesNot "DL3060" dockerFile
+            onBuildRuleCatchesNot "DL3060" dockerFile
+
+    it "not ok with strict all-args matching for yarn cache clean" $
+      let dockerFile :: [Text.Text]
+          dockerFile =
+            [ "RUN yarn install foo && yarn cache",
+              "RUN yarn install foo && yarn cache dir"
+            ]
+       in do
+            mapM_ (ruleCatches "DL3060") dockerFile
+            mapM_ (onBuildRuleCatches "DL3060") dockerFile
+

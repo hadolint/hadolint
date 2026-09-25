@@ -68,7 +68,7 @@ yarnInstall :: Shell.Command -> Bool
 yarnInstall = Shell.cmdHasArgs "yarn" ["install"]
 
 yarnCacheClean :: Shell.Command -> Bool
-yarnCacheClean = Shell.cmdHasArgs "yarn" ["cache", "clean"]
+yarnCacheClean = Shell.cmdHasAllArgs "yarn" ["cache", "clean"]
 
 isCleanBeforeInstall :: Shell.ParsedShell -> Bool
 isCleanBeforeInstall args =

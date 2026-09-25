@@ -32,8 +32,8 @@ dl3040 = simpleRule code severity message check
 
     dnfInstall cmdName args = ( cmdName `elem` dnfCmds )
       && Shell.cmdHasArgs cmdName installCmds args
-    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args
-      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/libdnf5*"] args
+    dnfClean cmdName args = Shell.cmdHasAllArgs cmdName ["clean", "all"] args
+      || Shell.cmdHasAllArgs "rm" ["-rf", "/var/cache/libdnf5"] args
     dnfCmds = ["dnf", "microdnf"]
     installCmds = ["install", "in", "upgrade", "up", "upgrade-minimal", "up-min", "reinstall", "rei"]
 {-# INLINEABLE dl3040 #-}
