@@ -13,7 +13,7 @@ jobs:
     steps:
 
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Haskell
         id: setup-haskell-cabal
@@ -32,7 +32,7 @@ jobs:
             > ThirdPartyNotices.txt
 
       - name: Commit ThirdPartyNotices.txt
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v11
         with:
           add: "ThirdPartyNotices.txt"
           message: "Update ThirdPartyNotices.txt"

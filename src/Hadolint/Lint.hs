@@ -6,10 +6,9 @@ module Hadolint.Lint
   )
 where
 
-import Data.Sequence (Seq)
 import Data.Text (Text)
 import Hadolint.Config.Configuration (Configuration (..))
-import Hadolint.Rule (RuleCode, DLSeverity (..), CheckFailure (..))
+import Hadolint.Rule (RuleCode, DLSeverity (..), CheckFailure (..), Failures)
 import Language.Docker.Parser (DockerfileError, Error)
 import Language.Docker.Syntax (Dockerfile)
 import qualified Control.Parallel.Strategies as Parallel
@@ -57,7 +56,7 @@ lint config parsedFiles = gather results `Parallel.using` parallelRun
       ]
     parallelRun = Parallel.parList Parallel.rseq
 
-analyze :: Configuration -> Dockerfile -> Seq Hadolint.Rule.CheckFailure
+analyze :: Configuration -> Dockerfile -> Failures
 analyze config dockerfile = fixer process
   where
     fixer = fixSeverity config
@@ -65,8 +64,8 @@ analyze config dockerfile = fixer process
 
 fixSeverity ::
   Configuration ->
-  Seq CheckFailure ->
-  Seq CheckFailure
+  Failures ->
+  Failures
 fixSeverity Configuration {..} =
   Seq.filter ignoredRules . Seq.mapWithIndex (const correctSeverity)
   where

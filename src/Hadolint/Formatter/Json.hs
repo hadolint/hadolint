@@ -1,7 +1,5 @@
 module Hadolint.Formatter.Json
-  ( printResults,
-    formatResult,
-  )
+  ( hWrite )
 where
 
 import qualified Control.Foldl as Foldl
@@ -16,6 +14,7 @@ import Hadolint.Formatter.Format
     errorMessage
   )
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), unRuleCode)
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -47,11 +46,10 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
     where
       pos = errorPosition err
 
-printResults ::
+hWrite ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
-  f (Result s e) ->
-  IO ()
-printResults results = B.putStr . encode $ flattened
+  Handle -> f (Result s e) -> IO ()
+hWrite handle results = B.hPutStr handle . encode $ flattened
   where
     flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
 

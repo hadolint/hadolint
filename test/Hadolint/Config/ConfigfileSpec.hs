@@ -46,15 +46,24 @@ spec =
           conf = parseYaml yaml
       conf `shouldBe` Right mempty { partialVerbose = Just False }
 
-    it "parse `format: json`" $ do
-      let yaml = ["format: json"]
-          conf = parseYaml yaml
-      conf `shouldBe` Right mempty { partialFormat = Just Json }
+    describe "parse format options" $ do
+      it "parse `format: json`" $ do
+        let yaml = ["format: json"]
+            conf = parseYaml yaml
+        conf `shouldBe` Right mempty { partialFormats = [Json] }
 
-    it "parse `format: sarif`" $ do
-      let yaml = ["format: sarif"]
-          conf = parseYaml yaml
-      conf `shouldBe` Right mempty { partialFormat = Just Sarif }
+      it "parse `format: sarif`" $ do
+        let yaml = ["format: sarif"]
+            conf = parseYaml yaml
+        conf `shouldBe` Right mempty { partialFormats = [Sarif] }
+
+      it "parse multiple formats" $ do
+        let yaml = [ "formats:",
+                     "  - sarif",
+                     "  - json"
+                   ]
+            conf = parseYaml yaml
+        conf `shouldBe` Right mempty { partialFormats = [Sarif, Json] }
 
     it "parse override error rules" $ do
       let yaml = [ "override:",

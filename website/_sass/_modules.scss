@@ -1,0 +1,47 @@
+.github-corner:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out
+}
+
+@keyframes octocat-wave {
+    0%, 100% {
+        transform: rotate(0)
+    }
+    20%,
+    60% {
+        transform: rotate(-25deg)
+    }
+    40%,
+    80% {
+        transform: rotate(10deg)
+    }
+}
+
+@media (max-width: 500px) {
+    .github-corner:hover .octo-arm {
+        animation: none
+    }
+    .github-corner .octo-arm {
+        animation: octocat-wave 560ms ease-in-out
+    }
+}
+
+.dockerfile {
+    &__container {
+        max-width: 100rem;
+        font-size: 2.5rem;
+        border: 1px solid $grey-color-light;
+        margin-bottom: 2rem;
+    }
+}
+
+.CodeMirror {
+  border: 1px solid #eee;
+  height: 450px;
+}
+
+.lint-error {
+    font-size: 0.6em;
+    color: #a00;
+    background: #ffa;
+    padding: 2px 5px 3px;
+}

@@ -11,12 +11,18 @@ spec = do
   let ?config = def
 
   describe "Shellcheck" $ do
+
     it "runs shellcheck on RUN instructions" $ do
       assertChecks "RUN echo $MISSING_QUOTES" failsShellcheck
       assertOnBuildChecks "RUN echo $MISSING_QUOTES" failsShellcheck
+
     it "not warns on valid scripts" $ do
       assertChecks "RUN echo foo" passesShellcheck
       assertOnBuildChecks "RUN echo foo" passesShellcheck
+
+    it "no warnings on exec notations" $ do
+      assertChecks "RUN [\"foobar\", \"$f\"]" passesShellcheck
+      assertOnBuildChecks "RUN [\"foobar\", \"$f\"]" passesShellcheck
 
     it "Does not complain on default env vars" $
       let dockerFile =
@@ -169,3 +175,53 @@ spec = do
        in do
             assertChecks dockerFile passesShellcheck
             assertOnBuildChecks dockerFile passesShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 1" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "",
+                "FROM base",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck
+
+    it "SHELL instructions are propagated only propagated if referencing earlier stage" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "",
+                "FROM ubuntu:24.04",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile failsShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 2" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM something AS nothing",
+                "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "FROM nothing",
+                "FROM base",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 3" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "FROM base AS next",
+                "RUN foobar && barfoo | tee logfile",
+                "FROM next",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck

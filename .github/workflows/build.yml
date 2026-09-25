@@ -1,0 +1,134 @@
+---
+name: Build and deploy Hadolint Online
+on:
+  push:
+    tags:
+      - v*
+
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build WASM and JSFFI artifacts
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - ghc: 9.10.3
+            cabal: 3.14.2.0
+
+    steps:
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            binutils-gold \
+            curl \
+            g++ \
+            gcc \
+            git \
+            gzip \
+            libc-dev \
+            libffi-dev \
+            libffi-dev \
+            libgmp-dev \
+            libncurses-dev \
+            make \
+            musl \
+            musl-dev \
+            musl-tools \
+            perl \
+            tar \
+            xz-utils \
+            zlib1g \
+            zlib1g-dev
+
+      - name: Install ghc-wasm-meta release channel
+        id: ghc-wasm
+        run: |
+          git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git
+          export GHC_VERSION="$(grep -rE '^[[:space:]]{4}wasm32-wasi-${{ matrix.ghc }}.*:' ghc-wasm-meta/ghcup-wasm-0.0.9.yaml | tr -d ' :')"
+          echo "ghc_version=${GHC_VERSION}" >> "$GITHUB_OUTPUT"
+
+          SKIP_GHC=1 ghc-wasm-meta/setup.sh
+          source ~/.ghc-wasm/env
+
+          ghcup config add-release-channel \
+            https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/ghcup-wasm-0.0.9.yaml
+          ghcup install cabal --set ${{ matrix.cabal }}
+          ghcup install ghc --set "${GHC_VERSION}" -- $CONFIGURE_ARGS
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          path: hadolint
+
+      - name: Compile Hadolint embedded WASM version and JSFFI module
+        working-directory: hadolint
+        run: |
+          export GHCPATH="/usr/local/.ghcup/ghc/${{ steps.ghc-wasm.outputs.ghc_version }}/bin"
+          source ~/.ghc-wasm/env
+          export PATH="$GHCPATH:$PATH"
+
+          # Fix up paths to GHC and utilities, because Cabal somehow mixes up
+          # the regular GHC and wasm32-wasi-ghc versions
+          sudo ln -sf \
+            $GHCPATH/wasm32-wasi-ghc \
+            /usr/local/.ghcup/bin/ghc
+
+          sudo ln -sf \
+            $GHCPATH/wasm32-wasi-ghc-pkg \
+            /usr/local/.ghcup/bin/ghc-pkg
+
+          sudo ln -sf \
+            $GHCPATH/wasm32-wasi-hsc2hs \
+            /usr/local/.ghcup/bin/hsc2hs
+
+          sudo ln -sf \
+            $GHCPATH/wasm32-wasi-haddock \
+            /usr/local/.ghcup/bin/haddock
+
+          cabal update
+          cabal \
+            --with-compiler="$GHCPATH/wasm32-wasi-ghc" \
+            --with-hc-pkg="$GHCPATH/wasm32-wasi-ghc-pkg" \
+            --with-hsc2hs="$GHCPATH/wasm32-wasi-hsc2hs" \
+            --with-haddock="$GHCPATH/wasm32-wasi-haddock" \
+            build exe:hadolint-embedded
+
+          mv \
+            $(cabal \
+                --with-compiler="$GHCPATH/wasm32-wasi-ghc" \
+                --with-hc-pkg="$GHCPATH/wasm32-wasi-ghc-pkg" \
+                --with-hsc2hs="$GHCPATH/wasm32-wasi-hsc2hs" \
+                --with-haddock="$GHCPATH/wasm32-wasi-haddock" \
+                list-bin exe:hadolint-embedded) \
+            website/hadolint.wasm
+
+          $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
+            -i website/hadolint.wasm \
+            -o website/js/ghc_wasm_jsffi.js
+
+      - name: Upload WASM Artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: hadolint/website
+
+
+  deploy:
+    needs:
+      - build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

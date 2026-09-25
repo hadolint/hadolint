@@ -1,8 +1,6 @@
 module Hadolint.Formatter.SonarQube
-  ( formatResult,
-    printResults
-  )
-  where
+  ( hWrite )
+where
 
 import qualified Control.Foldl as Foldl
 import Data.Aeson hiding (Result)
@@ -19,6 +17,7 @@ import Hadolint.Rule
     DLSeverity (..),
     unRuleCode
   )
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos
@@ -84,12 +83,15 @@ formatResult filePathInReport (Result filename errors checks) = allMessages
     checkMessages = fmap (SonarQubeCheck filepath) checks
     filepath = if null filePathInReport then filename else getFilePath filePathInReport
 
-printResults :: (VisualStream s,
-  TraversableStream s,
-  ShowErrorComponent e,
-  Foldable f) => f (Result s e) -> Maybe FilePath -> IO ()
-printResults results filePathInReport =
-  B.putStr . encode $ object [ "issues" .= flattened ]
+hWrite ::
+  ( VisualStream s,
+    TraversableStream s,
+    ShowErrorComponent e,
+    Foldable f
+  ) =>
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results filePathInReport =
+  B.hPutStr handle . encode $ object [ "issues" .= flattened ]
   where
     flattened = Foldl.fold (Foldl.premap (formatResult filePathInReport) Foldl.mconcat) results
 

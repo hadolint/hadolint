@@ -20,7 +20,7 @@ rule = customRule check (emptyState Empty)
 
     check _ st (From BaseImage {alias = Just (ImageAlias als)}) = st |> modify (incAndAddName als)
     check _ st (From BaseImage {}) = st |> modify incCount
-    check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ (CopySource s) _))
+    check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ _ (CopySource s) _))
       | ":" `Text.isInfixOf` dropQuotes s = st
       | isMember s (state st) = st
       | otherwise = case Read.decimal s of

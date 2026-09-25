@@ -3,7 +3,7 @@ module Helpers where
 import Control.Monad (unless, when)
 import qualified Data.ByteString.Lazy.Char8 as BSC
 import Data.Aeson hiding (Result)
-import Hadolint (Configuration (..), OutputFormat (..), printResults)
+import Hadolint (Configuration (..), OutputFormat (..), write)
 import Hadolint.Formatter.Format (Result (..))
 import Hadolint.Formatter.TTY (formatCheck)
 import Hadolint.Rule (CheckFailure (..), Failures, RuleCode (..))
@@ -17,6 +17,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
 import qualified Data.Text as Text
 import qualified Hadolint.Process
+import qualified Text.XML as XML
 
 
 assertChecks ::
@@ -125,6 +126,13 @@ passesShellcheck checks =
   where
     matched = Seq.filter (\CheckFailure {code = RuleCode rc} -> "SC" `Text.isPrefixOf` rc) checks
 
+passesAllEnabled :: ( HasCallStack, ?config :: Configuration ) => Failures -> Assertion
+passesAllEnabled checks =
+  unless (null matched) $
+    assertFailure $
+      "I was expecting no errors. Found: \n" <> (Text.unpack . formatChecksNoColor $ checks)
+  where
+    matched = Seq.filter (\CheckFailure {..} -> code `notElem` Hadolint.ignoreRules ?config) checks
 
 assertFormatter ::
   (HasCallStack, ?noColor :: Bool) =>
@@ -132,11 +140,11 @@ assertFormatter ::
   [CheckFailure] ->
   String ->
   Assertion
-assertFormatter formatter failures expectation = do
+assertFormatter format failures expectation = do
   let results =
         NonEmpty.fromList [Result "<string>" mempty (Seq.fromList failures)]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   cap `shouldBe` expectation
 
 assertFormatterJson
@@ -145,9 +153,22 @@ assertFormatterJson
   [CheckFailure] ->
   Value ->
   Assertion
-assertFormatterJson formatter failures expectation = do
+assertFormatterJson format failures expectation = do
   let results =
         NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
   (cap, _) <- capture
-                (printResults formatter ?noColor (Just "<string>") results)
+                (write [] [format] ?noColor (Just "<string>") results)
   decode (BSC.pack cap) `shouldBe` Just expectation
+
+assertFormatterXML
+  :: (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  [CheckFailure] ->
+  XML.Document ->
+  Assertion
+assertFormatterXML format failures expectation = do
+  let results =
+        NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
+  (cap, _) <- capture
+                (write [] [format] ?noColor (Just "<string>") results)
+  XML.parseLBS_ XML.def (BSC.pack cap) `shouldBe` expectation

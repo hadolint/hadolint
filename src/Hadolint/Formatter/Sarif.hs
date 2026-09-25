@@ -1,7 +1,5 @@
 module Hadolint.Formatter.Sarif
-  ( printResults,
-    formatResult,
-  )
+  ( hWrite )
 where
 
 import qualified Control.Foldl as Foldl
@@ -22,6 +20,7 @@ import Hadolint.Rule
     DLSeverity (..),
     unRuleCode,
   )
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos
@@ -115,16 +114,15 @@ formatResult (Result filename errors checks) = allMessages
     checkMessages = fmap (SarifCheck filename) checks
     errorMessages = fmap SarifError errors
 
-printResults ::
+hWrite ::
   ( VisualStream s,
     TraversableStream s,
     ShowErrorComponent e,
     Foldable f
   ) =>
-  f (Result s e) ->
-  IO ()
-printResults results =
-  B.putStr . encode $
+  Handle -> f (Result s e) -> IO ()
+hWrite handle results =
+  B.hPutStr handle . encode $
     object
       [ ("version", "2.1.0"),
         "$schema"

@@ -21,20 +21,18 @@ rule = customRule check (emptyState False)
       | foldArguments isNonPosixShell args = st |> replaceWith True
       | otherwise = st |> replaceWith (foldArguments hasPipefailOption args)
     check line st@(State _ False) (Run (RunArgs args _))
-      | foldArguments hasPipes args = st |> addFail CheckFailure {..}
+      | foldArguments Shell.hasPipes args = st |> addFail CheckFailure {..}
       | otherwise = st
     check _ st _ = st
 
     isNonPosixShell (Shell.ParsedShell orig _ _) =
       any (`Text.isPrefixOf` orig) Shell.nonPosixShells
-    hasPipes script = Shell.hasPipes script
     hasPipefailOption script =
       not $
         null
           [ True
             | cmd@(Shell.Command name arguments _) <- Shell.presentCommands script,
-              validShell <- ["/bin/bash", "/bin/zsh", "/bin/ash", "bash", "zsh", "ash"],
-              name == validShell,
+              Shell.shellBasename name `elem` ["bash", "zsh", "ash"],
               Shell.hasFlag "o" cmd,
               arg <- Shell.arg <$> arguments,
               arg == "pipefail"

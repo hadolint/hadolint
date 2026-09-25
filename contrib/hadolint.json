@@ -110,6 +110,11 @@
         "type": "string",
         "oneOf": [
           {
+            "const": "DL1001",
+            "description": "Please refrain from using inline ignore pragmas # hadolint ignore=DLxxxx",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL1001"
+          },
+          {
             "const": "DL3000",
             "description": "Use absolute WORKDIR.",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3000"
@@ -398,6 +403,36 @@
             "const": "DL3062",
             "description": "Pin versions in go install. Instead of `go install <package>` use `go install <package>@<version>`",
             "$comment": "https://github.com/hadolint/hadolint/wiki/DL3062"
+          },
+          {
+            "const": "DL3061",
+            "description": "Invalid instruction order. Dockerfile must begin with FROM, ARG or comment.",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3061"
+          },
+          {
+            "const": "DL3063",
+            "description": "Stage name should not be a reserved word",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3063"
+          },
+          {
+            "const": "DL3064",
+            "description": "Potentially sensitive data should not be used in the ARG or ENV commands",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3064"
+          },
+          {
+            "const": "DL3065",
+            "description": "Setting FROM --platform to predefined $TARGETPLATFORM in is redundant as this is the default behavior",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3065"
+          },
+          {
+            "const": "DL3066",
+            "description": "Non-numeric user-id may not be resolvable by host system",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3066"
+          },
+          {
+            "const": "DL3067",
+            "description": "Do not copy an entire filesystem from another stage",
+            "$comment": "https://github.com/hadolint/hadolint/wiki/DL3067"
           },
           {
             "const": "DL4000",

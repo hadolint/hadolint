@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad (when)
 import Data.Default
-import Hadolint (OutputFormat (..), printResults, DLSeverity (..))
+import Hadolint (OutputFormat (..), write, DLSeverity (..))
 import Hadolint.Config
 import Prettyprinter
 import qualified Data.List.NonEmpty as NonEmpty
@@ -35,8 +35,8 @@ exitProgram ::
   IO ()
 exitProgram conf res
   | noFail conf = exitSuccess
-  | CodeclimateJson == format conf = exitSuccess
-  | Codacy == format conf = exitSuccess
+  | CodeclimateJson `elem` formats conf = exitSuccess
+  | Codacy `elem` formats conf = exitSuccess
   | all (`noFailure` failureThreshold conf) res = exitSuccess
   | otherwise = exitFailure
 
@@ -47,8 +47,9 @@ runLint ::
 runLint cmd conf = do
   let files = NonEmpty.fromList $ dockerfiles cmd
       filePathInReport = filePathInReportOption cmd
+      destinations = output cmd
   res <- Hadolint.lintIO conf files
-  printResults (format conf) (noColor conf) filePathInReport res
+  write destinations (formats conf) (noColor conf) filePathInReport res
   exitProgram conf res
 
 execute :: CommandlineConfig -> Configuration -> IO ()

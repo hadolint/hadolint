@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3041Spec (spec) where
 
+import qualified Data.Text as Text
 import Data.Default
 import Helpers
 import Test.Hspec
@@ -65,3 +66,72 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf module install -y tomcat:9 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf module install -y tomcat:9 && microdnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf module install tomcat"
+
+    it "ok with dnf group install" $ do
+      ruleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf -y --setopt=group_package_types=\"mandatory\" group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf group install -y \"Development Tools\" && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf group install -y \"Development Tools\" && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
+
+    -- this is important e.g. when using renovatebot
+    it "ok with version as variable - braced" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "ENV version=2.51.0-2.fc42",
+              "RUN dnf -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as arg - unbraced" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "ARG version=2.51.0-2.fc42",
+              "RUN dnf -y install git-core-$version"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as arg - different stages" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ARG version=2.51.0-2.fc42",
+              "FROM fedora:fc42",
+              "RUN dnf -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as env - different stages, reused stage" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ENV version=2.51.0-2.fc42",
+              "FROM build",
+              "RUN dnf -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "not ok with version as variable - different stages, new stage" $ do
+      let
+        rule = "DL3041"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ENV version=2.51.0-2.fc42",
+              "FROM fedora:fc42",
+              "RUN dnf -y install git-core-${version}"
+            ]
+       in do
+        ruleCatches rule snippet

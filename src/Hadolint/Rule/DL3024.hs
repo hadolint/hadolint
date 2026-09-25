@@ -11,10 +11,8 @@ rule = customRule check (emptyState Set.empty)
     severity = DLErrorC
     message = "FROM aliases (stage names) must be unique"
 
-    check line st (From BaseImage {alias = Just (ImageAlias als)}) =
-      let newState = st |> modify (Set.insert als)
-       in if Set.member als (state st)
-            then newState |> addFail CheckFailure {..}
-            else newState
+    check line st (From BaseImage {alias = Just (ImageAlias als)})
+      | Set.member als (state st) = st |> addFail CheckFailure {..}
+      | otherwise = st |> modify (Set.insert als)
     check _ st _ = st
 {-# INLINEABLE rule #-}

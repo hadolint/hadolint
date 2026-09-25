@@ -192,9 +192,8 @@ lint_dockerfile:
     - hadolint Dockerfile
 ```
 <!--lint disable remark-lint-maximum-line-length-->
-Moreover, you can publish a [gitlab compatible codeclimate report](https://docs.gitlab.com/ee/user/project/merge_requests/code_quality.html#implementing-a-custom-tool) 
-as follows:
-
+Moreover, you can publish a [gitlab compatible codeclimate report](https://docs.gitlab.com/ci/testing/code_quality_codeclimate_scanning/)
+as follows (note: GitLab has deprecated this feature as of GitLab 17.3, with removal planned for GitLab 19.0):
 ```yaml
 docker-hadolint:
   image: hadolint/hadolint:latest-debian

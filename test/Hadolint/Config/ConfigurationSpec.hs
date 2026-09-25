@@ -33,9 +33,9 @@ spec = do
         `shouldBe` def { verbose = True }
 
     it "override default with specific configuration: output-format json" $ do
-      let config = def { partialFormat = Just Json }
+      let config = def { partialFormats = [Json] }
       applyPartialConfiguration def config
-        `shouldBe` def { format = Json }
+        `shouldBe` def { formats = [Json] }
 
     it "override default with specific configuration: disable ignore pragma" $ do
       let config = def { partialDisableIgnorePragma = Just True }

@@ -51,6 +51,23 @@ spec = do
               "RUN wget -O - https://some.site | wc -l file > /number"
             ]
        in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    -- Regression test for #977: bash (and zsh/ash) should be recognized by
+    -- their basename, regardless of the absolute path they're found under
+    -- (e.g. systems where /bin is a symlink to /usr/bin).
+    it "don't warn when bash is invoked via a non-standard absolute path" $
+      let dockerFile =
+            [ "FROM scratch as build",
+              "SHELL [\"/usr/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "don't warn when zsh is invoked via a non-standard absolute path" $
+      let dockerFile =
+            [ "FROM scratch as build",
+              "SHELL [\"/usr/local/bin/zsh\", \"-o\", \"pipefail\", \"-c\"]",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
     it "don't warn on powershell" $
       let dockerFile =
             [ "FROM scratch as build",

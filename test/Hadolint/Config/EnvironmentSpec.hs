@@ -61,15 +61,26 @@ spec = do
         conf <- getConfigFromEnvironment
         conf `shouldBe` mempty { partialVerbose = Just False }
 
-    withJustEnv "HADOLINT_FORMAT" "json" $ do
-      it "parse HADOLINT_FORMAT=json" $ do
-        conf <- getConfigFromEnvironment
-        conf `shouldBe` mempty { partialFormat = Just Json }
+    describe "parse formats" $ do
+      withJustEnv "HADOLINT_FORMAT" "json" $ do
+        it "parse HADOLINT_FORMAT=json" $ do
+          conf <- getConfigFromEnvironment
+          conf `shouldBe` mempty { partialFormats = [Json] }
 
-    withJustEnv "HADOLINT_FORMAT" "sarif" $ do
-      it "parse HADOLINT_FORMAT=sarif" $ do
-        conf <- getConfigFromEnvironment
-        conf `shouldBe` mempty { partialFormat = Just Sarif }
+      withJustEnv "HADOLINT_FORMAT" "sarif" $ do
+        it "parse HADOLINT_FORMAT=sarif" $ do
+          conf <- getConfigFromEnvironment
+          conf `shouldBe` mempty { partialFormats = [Sarif] }
+
+      withJustEnv "HADOLINT_FORMAT" "sarif,json" $ do
+        it "parse HADOLINT_FORMAT=sarif,json" $ do
+          conf <- getConfigFromEnvironment
+          conf `shouldBe` mempty { partialFormats = [Sarif, Json] }
+
+      withJustEnv "HADOLINT_FORMAT" "junk,json" $ do
+        it "parse HADOLINT_FORMAT=junk,json" $ do
+          conf <- getConfigFromEnvironment
+          conf `shouldBe` mempty { partialFormats = [Json] }
 
     withJustEnv "HADOLINT_OVERRIDE_ERROR" "DL3010" $ do
       it "parse HADOLINT_OVERRIDE_ERROR=DL3010" $ do

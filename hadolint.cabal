@@ -1,6 +1,6 @@
 cabal-version:      2.0
 name:               hadolint
-version:            2.14.0
+version:            2.15.1
 synopsis:           Dockerfile Linter JavaScript API
 description:
   A smarter Dockerfile linter that helps you build best practice Docker images.
@@ -14,6 +14,8 @@ license:            GPL-3
 license-file:       LICENSE
 build-type:         Simple
 extra-source-files: README.md
+
+tested-with: GHC == 9.10.3
 
 source-repository head
   type:     git
@@ -33,6 +35,7 @@ library
     Hadolint.Formatter.Codeclimate
     Hadolint.Formatter.Format
     Hadolint.Formatter.Gnu
+    Hadolint.Formatter.JUnit
     Hadolint.Formatter.Json
     Hadolint.Formatter.Sarif
     Hadolint.Formatter.SonarQube
@@ -102,6 +105,11 @@ library
     Hadolint.Rule.DL3060
     Hadolint.Rule.DL3061
     Hadolint.Rule.DL3062
+    Hadolint.Rule.DL3063
+    Hadolint.Rule.DL3064
+    Hadolint.Rule.DL3065
+    Hadolint.Rule.DL3066
+    Hadolint.Rule.DL3067
     Hadolint.Rule.DL4000
     Hadolint.Rule.DL4001
     Hadolint.Rule.DL4003
@@ -142,34 +150,34 @@ library
     , containers            >=0.7      && <0.8
     , cryptohash-sha1       >=0.11.101 && <0.12
     , data-default          >=0.8.0    && <0.9
-    , deepseq               >=1.5.0    && <1.6
     , directory             >=1.3.8    && <1.4
     , email-validate        >=2.3.2    && <2.4
     , filepath              >=1.5.4    && <1.6
     , foldl                 >=1.4.18   && <1.5
-    , gitrev                >=1.3.1    && <1.4
-    , HsYAML                >=0.2.1    && <0.3
-    , language-docker       >=15.0.0   && <16
+    , HsYAML                >=0.2.1.6  && <0.3
+    , language-docker       >=16.0.0   && <17
     , megaparsec            >=9.0.0    && <9.8
     , mtl                   >=2.3.1    && <2.4
     , network-uri           >=2.6.4    && <2.7
     , optparse-applicative  >=0.18.1   && <0.20
     , parallel              >=3.2.2    && <3.3
-    , parsec                >=3.1.18   && <3.2
     , prettyprinter         >=1.7.1    && <1.8
     , semver                >=0.4.0    && <0.5
     , ShellCheck            >=0.11.0   && <0.12
     , spdx                  >=1.1      && <1.2
     , split                 >=0.2.5    && <0.3
     , text                  >=2.1.2    && <2.2
-    , time                  >=1.12.2   && <1.13
+    , time                  >=1.14     && <1.15
     , timerep               >=2.1.0    && <2.2
-    , void                  >=0.7.3    && <0.8
     , xml-conduit           >=1.10.0   && <1.11
 
   default-language:   GHC2021
 
 executable hadolint
+  if !arch(wasm32)
+    buildable: True
+  else
+    buildable: False
   main-is:            Main.hs
   other-modules:      Paths_hadolint
   autogen-modules:    Paths_hadolint
@@ -205,6 +213,30 @@ executable hadolint
 
   default-language:   GHC2021
 
+executable hadolint-embedded
+  if arch(wasm32)
+    buildable: True
+  else
+    buildable: False
+  main-is:        embedded.hs
+  hs-source-dirs: app
+
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints
+    -no-hs-main -optl-mexec-model=reactor -optl-Wl,--export=setup
+
+  build-depends:
+      base                  >=4.20.1    && <5
+    , ghc-experimental      >=9.1003.0  && <9.1201
+    , containers            >=0.7       && <0.8
+    , data-default          >=0.8.0     && <0.9
+    , hadolint
+    , language-docker
+    , text                  >=2.1.2     && <2.2
+
+  default-language:   GHC2021
+
 test-suite hadolint-unit-tests
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
@@ -216,6 +248,7 @@ test-suite hadolint-unit-tests
     Hadolint.Config.SpecHook
     Hadolint.Formatter.GnuSpec
     Hadolint.Formatter.ParseErrorSpec
+    Hadolint.Formatter.JUnitSpec
     Hadolint.Formatter.SarifSpec
     Hadolint.Formatter.SonarQubeSpec
     Hadolint.Formatter.TTYSpec
@@ -280,6 +313,11 @@ test-suite hadolint-unit-tests
     Hadolint.Rule.DL3060Spec
     Hadolint.Rule.DL3061Spec
     Hadolint.Rule.DL3062Spec
+    Hadolint.Rule.DL3063Spec
+    Hadolint.Rule.DL3064Spec
+    Hadolint.Rule.DL3065Spec
+    Hadolint.Rule.DL3066Spec
+    Hadolint.Rule.DL3067Spec
     Hadolint.Rule.DL4000Spec
     Hadolint.Rule.DL4001Spec
     Hadolint.Rule.DL4003Spec
@@ -332,5 +370,7 @@ test-suite hadolint-unit-tests
     , silently
     , split
     , text
+    , time
+    , xml-conduit
 
   default-language:   GHC2021

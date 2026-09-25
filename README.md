@@ -1,9 +1,12 @@
-# Haskell Dockerfile Linter
+# Hadolint - Haskell Dockerfile Linter
 
-[![Build Status][github-actions-img]][github-actions]
 [![GPL-3 licensed][license-img]][license]
 [![GitHub release][release-img]][release]
-![GitHub downloads][downloads-img]
+[![Hackage version][hackage-img]][hackage]
+[![GitHub downloads][downloads-img]][release]
+[![Docker pulls][docker-img]][docker]
+[![Build Status][github-actions-img]][github-actions]
+
 <img align="right" alt="pipecat" width="150"
 src="https://hadolint.github.io/hadolint/img/cat_container.png" />
 
@@ -175,9 +178,9 @@ Available options:
   --file-path-in-report FILEPATHINREPORT
                            The file path referenced in the generated report.
                            This only applies for the 'checkstyle', 'codeclimate',
-                           'sonarqube' and 'gitlab_codeclimate' formats and is
-                           useful when running Hadolint with Docker to set the
-                           correct file path.
+                           'sonarqube', 'junit' and 'gitlab_codeclimate' formats
+                           and is useful when running Hadolint with Docker to set
+                           the correct file path.
   --no-fail                Don't exit with a failure status code when any rule
                            is violated
   --no-color               Don't colorize output
@@ -185,7 +188,7 @@ Available options:
                            stderr
   -f,--format ARG          The output format for the results [tty | json |
                            checkstyle | codeclimate | gitlab_codeclimate | gnu |
-                           codacy | sonarqube | sarif] (default: tty)
+                           codacy | sonarqube | sarif | junit] (default: tty)
   --error RULECODE         Make the rule `RULECODE` have the level `error`
   --warning RULECODE       Make the rule `RULECODE` have the level `warning`
   --info RULECODE          Make the rule `RULECODE` have the level `info`
@@ -229,7 +232,7 @@ In windows, the `%LOCALAPPDATA%` environment variable is used instead of
 
 ```yaml
 failure-threshold: string               # name of threshold level (error | warning | info | style | ignore | none)
-format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy)
+format: string                          # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sonarqube | sarif | junit)
 ignored: [string]                       # list of rules
 label-schema:                           # See Linting Labels below for specific label-schema details
   author: string                        # Your name
@@ -316,9 +319,9 @@ To pass a custom configuration file (using relative or absolute path) to
 a container, use the following command:
 
 ```bash
-docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml hadolint/hadolint < Dockerfile
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.hadolint.yaml hadolint/hadolint < Dockerfile
 # OR
-docker run --rm -i -v /your/path/to/hadolint.yaml:/.config/hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
+docker run --rm -i -v /your/path/to/hadolint.yaml:/.hadolint.yaml ghcr.io/hadolint/hadolint < Dockerfile
 ```
 
 In addition to config files, Hadolint can be configured with environment
@@ -328,7 +331,7 @@ variables.
 NO_COLOR=1                               # Set or unset. See https://no-color.org
 HADOLINT_NOFAIL=1                        # Truthy value e.g. 1, true or yes
 HADOLINT_VERBOSE=1                       # Truthy value e.g. 1, true or yes
-HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sarif )
+HADOLINT_FORMAT=json                     # Output format (tty | json | checkstyle | codeclimate | gitlab_codeclimate | gnu | codacy | sarif | junit )
 HADOLINT_FAILURE_THRESHOLD=info          # threshold level (error | warning | info | style | ignore | none)
 HADOLINT_OVERRIDE_ERROR=DL3010,DL3020    # comma separated list of rule codes
 HADOLINT_OVERRIDE_WARNING=DL3010,DL3020  # comma separated list of rule codes
@@ -544,7 +547,12 @@ Please [create an issue][] if you have an idea for a good rule.
 | [DL3059](https://github.com/hadolint/hadolint/wiki/DL3059)   | Info             | Multiple consecutive `RUN` instructions. Consider consolidation.                                                                                    |
 | [DL3060](https://github.com/hadolint/hadolint/wiki/DL3060)   | Info             | `yarn cache clean` missing after `yarn install` was run.                                                                                            |
 | [DL3061](https://github.com/hadolint/hadolint/wiki/DL3061)   | Error            | Invalid instruction order. Dockerfile must begin with `FROM`, `ARG` or comment.                                                                     |
-| [DL3062](https://github.com/hadolint/hadolint/wiki/DL3061)   | Warning          | Pin versions in go install. Instead of `go install <package>` use `go install <package>@<version>`                                                  |
+| [DL3062](https://github.com/hadolint/hadolint/wiki/DL3062)   | Warning          | Pin versions in go install. Instead of `go install <package>` use `go install <package>@<version>`                                                  |
+| [DL3063](https://github.com/hadolint/hadolint/wiki/DL3063)   | Warning          | Stage name should not be a reserved word                                                                                                            |
+| [DL3064](https://github.com/hadolint/hadolint/wiki/DL3064)   | Warning          | Potentially sensitive data should not be used in the `ARG` or `ENV` commands                                                                        |
+| [DL3065](https://github.com/hadolint/hadolint/wiki/DL3065)   | Warning          | Setting FROM --platform to predefined $TARGETPLATFORM in is redundant as this is the default behavior                                               |
+| [DL3066](https://github.com/hadolint/hadolint/wiki/DL3066)   | Info             | Non-numeric user-id may not be resolvable by host system                                                                                            |
+| [DL3067](https://github.com/hadolint/hadolint/wiki/DL3067)   | Warning          | Do not copy an entire filesystem from another stage                                                                                                 |
 | [DL4000](https://github.com/hadolint/hadolint/wiki/DL4000)   | Error            | `MAINTAINER` is deprecated.                                                                                                                         |
 | [DL4001](https://github.com/hadolint/hadolint/wiki/DL4001)   | Warning          | Either use Wget or Curl but not both.                                                                                                               |
 | [DL4003](https://github.com/hadolint/hadolint/wiki/DL4003)   | Warning          | Multiple `CMD` instructions found.                                                                                                                  |
@@ -568,7 +576,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC1083](https://github.com/koalaman/shellcheck/wiki/SC1083) |                  | This `{/}` is literal. Check expression (missing `;/\n`?) or quote it.                                                                              |
 | [SC1086](https://github.com/koalaman/shellcheck/wiki/SC1086) |                  | Don't use `$` on the iterator name in for loops.                                                                                                    |
 | [SC1087](https://github.com/koalaman/shellcheck/wiki/SC1087) |                  | Braces are required when expanding arrays, as in `${array[idx]}`.                                                                                   |
-| [SC1091](https://github.com/koalaman/shellcheck/wiki/SC1091) |                  | Not following: Reasons include: file not found, no permissions, not included on the command line, not allowing shellcheck to follow files with -x, etc.                                                                                    |
+| [SC1091](https://github.com/koalaman/shellcheck/wiki/SC1091) |                  | Not following: Reasons include: file not found, no permissions, not included on the command line, not allowing shellcheck to follow files with -x, etc. |
 | [SC1095](https://github.com/koalaman/shellcheck/wiki/SC1095) |                  | You need a space or linefeed between the function name and body.                                                                                    |
 | [SC1097](https://github.com/koalaman/shellcheck/wiki/SC1097) |                  | Unexpected `==`. For assignment, use `=`. For comparison, use `[ .. ]` or `[[ .. ]]`.                                                               |
 | [SC1098](https://github.com/koalaman/shellcheck/wiki/SC1098) |                  | Quote/escape special characters when using `eval`, e.g. `eval "a=(b)"`.                                                                             |
@@ -577,7 +585,7 @@ Please [create an issue][] if you have an idea for a good rule.
 | [SC2015](https://github.com/koalaman/shellcheck/wiki/SC2015) |                  | Note that <code>A && B &#124;&#124; C</code> is not if-then-else. C may run when A is true.                                                         |
 | [SC2026](https://github.com/koalaman/shellcheck/wiki/SC2026) |                  | This word is outside of quotes. Did you intend to 'nest '"'single quotes'"' instead'?                                                               |
 | [SC2028](https://github.com/koalaman/shellcheck/wiki/SC2028) |                  | `echo` won't expand escape sequences. Consider `printf`.                                                                                            |
-| [SC2035](https://github.com/koalaman/shellcheck/wiki/SC2035) |                  | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.                                                                             |
+| [SC2035](https://github.com/koalaman/shellcheck/wiki/SC2035) |                  | Use `./*glob*` or `-- *glob*` so names with dashes won't become options.                                                                            |
 | [SC2039](https://github.com/koalaman/shellcheck/wiki/SC2039) |                  | In POSIX sh, something is undefined.                                                                                                                |
 | [SC2046](https://github.com/koalaman/shellcheck/wiki/SC2046) |                  | Quote this to prevent word splitting                                                                                                                |
 | [SC2086](https://github.com/koalaman/shellcheck/wiki/SC2086) |                  | Double quote to prevent globbing and word splitting.                                                                                                |
@@ -708,9 +716,14 @@ cabal test
 [github-actions]: https://github.com/hadolint/hadolint/actions/workflows/haskell.yml
 [license-img]: https://img.shields.io/badge/license-GPL--3-blue.svg
 [license]: https://tldrlegal.com/l/gpl-3.0
-[release-img]: https://img.shields.io/github/release/hadolint/hadolint.svg
+[release-img]: https://img.shields.io/github/v/release/hadolint/hadolint?logo=github
+[release-date]: https://img.shields.io/github/release-date/hadolint/hadolint?logo=github
 [release]: https://github.com/hadolint/hadolint/releases/latest
-[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total.svg
+[docker]: https://hub.docker.com/r/hadolint/hadolint
+[hackage]: https://hackage.haskell.org/package/hadolint
+[downloads-img]: https://img.shields.io/github/downloads/hadolint/hadolint/total?logo=github
+[hackage-img]: https://img.shields.io/hackage/v/hadolint?logo=haskell
+[docker-img]: https://img.shields.io/docker/pulls/hadolint/hadolint?logo=docker
 [best practice]: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices
 [shellcheck]: https://github.com/koalaman/shellcheck
 [release page]: https://github.com/hadolint/hadolint/releases/latest

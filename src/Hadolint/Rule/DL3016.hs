@@ -81,7 +81,7 @@ stripInstallPrefix cmd = dropWhile (== "install") (dropWhile (/= "install") cmd)
 
 
 ignoreFlags :: [Text.Text]
-ignoreFlags = ["loglevel"]
+ignoreFlags = ["loglevel", "registry"]
 
 gitPrefixes :: [Text.Text]
 gitPrefixes = ["git://", "git+ssh://", "git+http://", "git+https://"]

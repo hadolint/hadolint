@@ -62,6 +62,45 @@ spec = do
             ruleCatchesNot "DL3023" $ Text.unlines dockerFile
             ruleCatchesNot "DL3021" $ Text.unlines dockerFile
 
+  describe "Rules can be ignored per stage with stage ignore pragma" $ do
+    it "ignore single rule" $
+      let dockerfile =
+            [ "# hadolint stage ignore=DL3011",
+              "FROM ubuntu",
+              "EXPOSE 80000"
+            ]
+       in ruleCatchesNot "DL3011" $ Text.unlines dockerfile
+
+    it "stage ignore rule, but catch it in different stage 1" $
+      let dockerfile =
+            [ "# hadolint stage ignore=DL3011",
+              "FROM ubuntu",
+              "EXPOSE 80000",
+              "FROM ubuntu",
+              "EXPOSE 80000"
+            ]
+       in ruleCatches "DL3011" $ Text.unlines dockerfile
+
+    it "stage ignore rule, but catch it in different stage 2" $
+      let dockerfile =
+            [ "FROM ubuntu",
+              "EXPOSE 80000",
+              "# hadolint stage ignore=DL3011",
+              "FROM ubuntu",
+              "EXPOSE 80000"
+            ]
+       in ruleCatches "DL3011" $ Text.unlines dockerfile
+
+    it "ignore multiple rules" $
+      let dockerfile =
+            [ "# hadolint stage ignore=DL3011,DL3002",
+              "FROM ubuntu",
+              "USER root",
+              "EXPOSE 80000"
+            ]
+       in do
+            ruleCatchesNot "DL3012" $ Text.unlines dockerfile
+            ruleCatchesNot "DL3011" $ Text.unlines dockerfile
 
   describe "Rules can be ignored globally with global ignore pragma" $ do
 

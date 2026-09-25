@@ -1,5 +1,6 @@
 module Hadolint.Rule.DL3033Spec (spec) where
 
+import qualified Data.Text as Text
 import Data.Default
 import Helpers
 import Test.Hspec
@@ -41,3 +42,65 @@ spec = do
       ruleCatchesNot "DL3033" "RUN bash -c `# not even a yum command`"
       onBuildRuleCatchesNot "DL3033" "RUN yum module install -y tomcat:9 && yum clean all"
       onBuildRuleCatchesNot "DL3033" "RUN bash -c `# not even a yum command`"
+
+    -- this is important e.g. when using renovatebot
+    it "ok with version as variable - braced" $ do
+      let
+        rule = "DL3033"
+        snippet =
+          Text.unlines
+            [ "ENV version=2.51.0-2.fc42",
+              "RUN yum -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as arg - unbraced" $ do
+      let
+        rule = "DL3033"
+        snippet =
+          Text.unlines
+            [ "ARG version=2.51.0-2.fc42",
+              "RUN yum -y install git-core-$version"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as arg - different stages" $ do
+      let
+        rule = "DL3033"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ARG version=2.51.0-2.fc42",
+              "FROM fedora:fc42",
+              "RUN yum -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "ok with version as env - different stages, reused stage" $ do
+      let
+        rule = "DL3033"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ENV version=2.51.0-2.fc42",
+              "FROM build",
+              "RUN yum -y install git-core-${version}"
+            ]
+       in do
+        ruleCatchesNot rule snippet
+
+    it "not ok with version as variable - different stages, new stage" $ do
+      let
+        rule = "DL3033"
+        snippet =
+          Text.unlines
+            [ "FROM fedora:fc42 AS build",
+              "ENV version=2.51.0-2.fc42",
+              "FROM fedora:fc42",
+              "RUN yum -y install git-core-${version}"
+            ]
+       in do
+        ruleCatches rule snippet

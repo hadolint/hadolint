@@ -4,7 +4,7 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BSC
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence as Seq
-import Hadolint.Formatter (printResults)
+import Hadolint.Formatter (write)
 import Hadolint.Formatter.Format (Result (..))
 import Helpers
 import Hadolint
@@ -113,5 +113,5 @@ spec = do
                     ]
               ]
           expected = Object ["issues" .= Array [mkCustomIssue "path/to/custom/Dockerfile"]]
-      (cap, _) <- capture (printResults SonarQube ?noColor customPath results)
+      (cap, _) <- capture (write [] [SonarQube] ?noColor customPath results)
       decode (BSC.pack cap) `shouldBe` Just expected
