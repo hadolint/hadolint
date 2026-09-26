@@ -33,6 +33,7 @@ library
     Hadolint.Formatter.Checkstyle
     Hadolint.Formatter.Codacy
     Hadolint.Formatter.Codeclimate
+    Hadolint.Formatter.CodeQuality
     Hadolint.Formatter.Format
     Hadolint.Formatter.Gnu
     Hadolint.Formatter.JUnit
@@ -246,6 +247,7 @@ test-suite hadolint-unit-tests
     Hadolint.Config.ConfigurationSpec
     Hadolint.Config.EnvironmentSpec
     Hadolint.Config.SpecHook
+    Hadolint.Formatter.CodeQualitySpec
     Hadolint.Formatter.GnuSpec
     Hadolint.Formatter.ParseErrorSpec
     Hadolint.Formatter.JUnitSpec
