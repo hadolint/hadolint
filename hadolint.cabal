@@ -32,6 +32,7 @@ library
     Hadolint.Formatter
     Hadolint.Formatter.Checkstyle
     Hadolint.Formatter.Codacy
+    Hadolint.Formatter.Cobertura
     Hadolint.Formatter.Codeclimate
     Hadolint.Formatter.Format
     Hadolint.Formatter.Gnu
@@ -248,6 +249,7 @@ test-suite hadolint-unit-tests
     Hadolint.Config.SpecHook
     Hadolint.Formatter.GnuSpec
     Hadolint.Formatter.ParseErrorSpec
+    Hadolint.Formatter.CoberturaSpec
     Hadolint.Formatter.JUnitSpec
     Hadolint.Formatter.SarifSpec
     Hadolint.Formatter.SonarQubeSpec

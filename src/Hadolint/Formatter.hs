@@ -11,6 +11,7 @@ import Hadolint.Formatter.Format
 import Language.Docker.Parser (DockerfileError)
 import qualified Hadolint.Formatter.Checkstyle as FormatCheckstyle
 import qualified Hadolint.Formatter.Codacy as FormatCodacy
+import qualified Hadolint.Formatter.Cobertura as FormatCobertura
 import qualified Hadolint.Formatter.Codeclimate as FormatCodeclimate
 import qualified Hadolint.Formatter.Gnu as FormatGnu
 import qualified Hadolint.Formatter.JUnit as FormatJUnit
@@ -32,6 +33,7 @@ hWrite handle format nocolor filePathInReport allResults =
   case format of
     Checkstyle -> FormatCheckstyle.hWrite handle allResults filePathInReport
     Codacy -> FormatCodacy.hWrite handle allResults
+    Cobertura -> FormatCobertura.hWrite handle allResults filePathInReport
     CodeclimateJson -> FormatCodeclimate.hWrite handle allResults filePathInReport
     GitLabCodeclimateJson -> FormatCodeclimate.hWriteGitLab handle allResults filePathInReport
     Gnu -> FormatGnu.hWrite handle allResults

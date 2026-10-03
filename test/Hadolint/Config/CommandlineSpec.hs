@@ -187,6 +187,15 @@ spec = do
                                   []
                                   mempty { partialFormats = [Sarif] }
 
+        it "parse --format cobertura" $ do
+          checkCommandline ["--format", "cobertura"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [Cobertura] }
+
         it "parse multiple --format" $ do
           checkCommandline ["-f", "junit", "--format", "sarif"] $ CommandlineConfig
                                   False

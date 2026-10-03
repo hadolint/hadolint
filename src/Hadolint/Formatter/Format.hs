@@ -30,6 +30,7 @@ import qualified Hadolint.Rule
 data OutputFormat
   = Checkstyle
   | Codacy
+  | Cobertura
   | CodeclimateJson
   | GitLabCodeclimateJson
   | Gnu
@@ -43,6 +44,7 @@ data OutputFormat
 instance Pretty OutputFormat where
   pretty Checkstyle = "checkstyle"
   pretty Codacy = "codacy"
+  pretty Cobertura = "cobertura"
   pretty CodeclimateJson = "codeclimate"
   pretty GitLabCodeclimateJson = "gitlab_codeclimate"
   pretty Gnu = "gnu"
@@ -77,6 +79,7 @@ instance Default OutputFormat where
 readMaybeOutputFormat :: Text -> Maybe OutputFormat
 readMaybeOutputFormat "checkstyle" = Just Checkstyle
 readMaybeOutputFormat "codacy" = Just Codacy
+readMaybeOutputFormat "cobertura" = Just Cobertura
 readMaybeOutputFormat "codeclimate" = Just CodeclimateJson
 readMaybeOutputFormat "gitlab_codeclimate" = Just GitLabCodeclimateJson
 readMaybeOutputFormat "gnu" = Just Gnu
