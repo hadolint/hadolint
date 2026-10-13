@@ -5,13 +5,11 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
 
   describe "Shellcheck" $ do
-
     it "runs shellcheck on RUN instructions" $ do
       assertChecks "RUN echo $MISSING_QUOTES" failsShellcheck
       assertOnBuildChecks "RUN echo $MISSING_QUOTES" failsShellcheck
@@ -97,6 +95,35 @@ spec = do
             -- This is debatable, as it should actually pass, but detecting it correctly
             -- is quite difficult
             assertOnBuildChecks dockerFile failsShellcheck
+    it "ARG after SHELL does not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"/bin/bash\", \"-c\"]",
+                "ARG FOO=bar",
+                "RUN arr=(a b c) && echo \"${arr[1]}\""
+              ]
+       in assertChecks dockerFile passesShellcheck
+
+    it "ENV after SHELL does not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"/bin/bash\", \"-euo\", \"pipefail\", \"-c\"]",
+                "ENV FOO=bar",
+                "RUN if [[ -n \"$FOO\" ]]; then echo \"$FOO\"; fi",
+                "RUN set -o pipefail && echo foo | cat"
+              ]
+       in assertChecks dockerFile passesShellcheck
+
+    it "ARG and ENV after a shell pragma do not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "# hadolint shell=/bin/bash",
+                "ARG FOO=bar",
+                "ENV BAR=baz",
+                "RUN echo $RANDOM"
+              ]
+       in assertChecks dockerFile passesShellcheck
+
     it "Resets the SHELL to sh after a FROM" $
       let dockerFile =
             Text.unlines
