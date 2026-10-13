@@ -15,7 +15,7 @@ dl3008 :: Rule ParsedShell
 dl3008 = simpleRule code severity message check
   where
     code = "DL3008"
-    severity = DLWarningC
+    severity = DLIgnoreC
     message =
       "Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get \
       \install <package>=<version>`"
