@@ -1,17 +1,15 @@
 module Hadolint.Rule.DL3041Spec (spec) where
 
-import qualified Data.Text as Text
 import Data.Default
+import Data.Text qualified as Text
 import Helpers
 import Test.Hspec
-
 
 spec :: SpecWith ()
 spec = do
   let ?config = def
 
   describe "DL3041 - Specify version with `dnf install -y <package>-<version>`" $ do
-
     it "not ok without dnf version pinning" $ do
       ruleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"
       ruleCatches "DL3041" "RUN microdnf install -y tomcat && microdnf clean all"
@@ -76,62 +74,73 @@ spec = do
 
     -- this is important e.g. when using renovatebot
     it "ok with version as variable - braced" $ do
-      let
-        rule = "DL3041"
-        snippet =
-          Text.unlines
-            [ "ENV version=2.51.0-2.fc42",
-              "RUN dnf -y install git-core-${version}"
-            ]
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "ENV version=2.51.0-2.fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
        in do
-        ruleCatchesNot rule snippet
+            ruleCatchesNot rule snippet
 
     it "ok with version as arg - unbraced" $ do
-      let
-        rule = "DL3041"
-        snippet =
-          Text.unlines
-            [ "ARG version=2.51.0-2.fc42",
-              "RUN dnf -y install git-core-$version"
-            ]
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "ARG version=2.51.0-2.fc42",
+                "RUN dnf -y install git-core-$version"
+              ]
        in do
-        ruleCatchesNot rule snippet
+            ruleCatchesNot rule snippet
 
     it "ok with version as arg - different stages" $ do
-      let
-        rule = "DL3041"
-        snippet =
-          Text.unlines
-            [ "FROM fedora:fc42 AS build",
-              "ARG version=2.51.0-2.fc42",
-              "FROM fedora:fc42",
-              "RUN dnf -y install git-core-${version}"
-            ]
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ARG version=2.51.0-2.fc42",
+                "FROM fedora:fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
        in do
-        ruleCatchesNot rule snippet
+            ruleCatchesNot rule snippet
 
     it "ok with version as env - different stages, reused stage" $ do
-      let
-        rule = "DL3041"
-        snippet =
-          Text.unlines
-            [ "FROM fedora:fc42 AS build",
-              "ENV version=2.51.0-2.fc42",
-              "FROM build",
-              "RUN dnf -y install git-core-${version}"
-            ]
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ENV version=2.51.0-2.fc42",
+                "FROM build",
+                "RUN dnf -y install git-core-${version}"
+              ]
        in do
-        ruleCatchesNot rule snippet
+            ruleCatchesNot rule snippet
 
     it "not ok with version as variable - different stages, new stage" $ do
-      let
-        rule = "DL3041"
-        snippet =
-          Text.unlines
-            [ "FROM fedora:fc42 AS build",
-              "ENV version=2.51.0-2.fc42",
-              "FROM fedora:fc42",
-              "RUN dnf -y install git-core-${version}"
-            ]
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ENV version=2.51.0-2.fc42",
+                "FROM fedora:fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
        in do
-        ruleCatches rule snippet
+            ruleCatches rule snippet
+
+    it "ok with options that take a separate value" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y --installroot /mnt/rootfs --releasever 9 --setopt install_weak_deps=false tomcat-9.0.1"
+      ruleCatchesNot "DL3041" "RUN dnf install -y --enablerepo crb --disablerepo epel -x foo tomcat-9.0.1"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y --config /etc/dnf.conf tomcat-9.0.1"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y --releasever 9 tomcat-9.0.1"
+
+    it "not ok with options that take a separate value and an unpinned package" $ do
+      ruleCatches "DL3041" "RUN dnf install -y --releasever 9 tomcat"
+      ruleCatches "DL3041" "RUN dnf install -y --enablerepo crb tomcat"
+      onBuildRuleCatches "DL3041" "RUN dnf install -y --releasever 9 tomcat"
+
+    it "ok with a wildcard version" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y rspamd-3.* tini-0.*"
+      ruleCatches "DL3041" "RUN dnf install -y rspamd-*"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y rspamd-3.*"
