@@ -1,10 +1,9 @@
 module Hadolint.Rule.DL3064 (rule) where
 
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Hadolint.Rule
 import Hadolint.Shell (ParsedShell)
 import Language.Docker.Syntax
-
 
 rule :: Rule ParsedShell
 rule = dl3064 <> onbuild dl3064
@@ -17,22 +16,26 @@ dl3064 = simpleRule code severity message check
     severity = DLWarningC
     message = "Potentially sensitive data should not be used in the `ARG` or `ENV` commands"
 
-    check (Arg name _) =
-      Text.toUpper name `notElem` knownSensitiveNames
-        && none (`Text.isInfixOf` Text.toLower name) suspiciousSubstrings
-    check (Env pairs) =
-      none (\s -> (Text.toUpper . fst) s `elem` knownSensitiveNames) pairs
-        && none (\s -> any ((s `Text.isInfixOf`) . Text.toLower . fst) pairs) suspiciousSubstrings
+    check (Arg name _) = not (isSensitive name)
+    check (Env pairs) = not (any (isSensitive . fst) pairs)
     check _ = True
 {-# INLINEABLE dl3064 #-}
 
-none :: (a -> Bool) -> [a] -> Bool
-none p xs = not ( any p xs )
+isSensitive :: Text.Text -> Bool
+isSensitive name =
+  not (isFileReference name)
+    && ( Text.toUpper name `elem` knownSensitiveNames
+           || any (`Text.isInfixOf` Text.toLower name) suspiciousSubstrings
+       )
+
+-- | Variables ending in @_FILE@ hold the path to a secret (e.g. Docker
+-- secrets such as @POSTGRES_PASSWORD_FILE@), not the secret itself.
+isFileReference :: Text.Text -> Bool
+isFileReference name = "_FILE" `Text.isSuffixOf` Text.toUpper name
 
 knownSensitiveNames :: [Text.Text]
 knownSensitiveNames =
-  [
-    "ACCESS_TOKEN",
+  [ "ACCESS_TOKEN",
     "APPLICATION_KEY",
     "APP_SECRET",
     "AUTH_TOKEN",
@@ -50,7 +53,6 @@ knownSensitiveNames =
     "DOCKER_PASSWORD",
     "DOCKER_USERNAME",
     "FACEBOOK_ACCESS_TOKEN",
-    "FACEBOOK_APP_ID",
     "FACEBOOK_APP_SECRET",
     "FIREBASE_API_TOKEN",
     "FIREBASE_TOKEN",
@@ -63,10 +65,7 @@ knownSensitiveNames =
     "HEROKU_API_USER",
     "NPM_AUTH_TOKEN",
     "NPM_TOKEN",
-    "OKTA_AUTHN_GROUPID",
-    "OKTA_CLIENT_ORGURL",
     "OKTA_CLIENT_TOKEN",
-    "OKTA_OAUTH2_CLIENTID",
     "OKTA_OAUTH2_CLIENTSECRET",
     "OPENAI_API_KEY",
     "OS_PASSWORD",
@@ -74,21 +73,17 @@ knownSensitiveNames =
     "POSTGRES_PASSWORD",
     "SLACK_TOKEN",
     "STRIPE_API_KEY",
-    "STRIPE_DEVICE_NAME",
-    "TRAVIS_OS_NAME",
-    "TRAVIS_SECURE_ENV_VARS",
-    "TRAVIS_SUDO",
     "VAULT_CLIENT_KEY",
     "VAULT_TOKEN"
   ]
 
 suspiciousSubstrings :: [Text.Text]
 suspiciousSubstrings =
-  [
-    "api_key",
+  [ "api_key",
     "client_key",
     "password",
-    "private",
+    "private_key",
+    "privatekey",
     "secret",
     "token",
     "username"
