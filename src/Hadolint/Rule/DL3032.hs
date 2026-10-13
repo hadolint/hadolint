@@ -1,9 +1,8 @@
 module Hadolint.Rule.DL3032 (rule) where
 
 import Hadolint.Rule
-import qualified Hadolint.Shell as Shell
+import Hadolint.Shell qualified as Shell
 import Language.Docker.Syntax
-
 
 rule :: Rule Shell.ParsedShell
 rule = dl3032 <> onbuild dl3032
@@ -18,12 +17,15 @@ dl3032 = simpleRule code severity message check
 
     check (Run (RunArgs args _)) =
       foldArguments (Shell.noCommands yumInstall) args
-        || Just True == (
-             (<) <$> foldArguments (Shell.findCommandIndex yumInstall) args
-                 <*> foldArguments (Shell.findCommandIndex yumClean) args)
+        || Just True
+          == ( (<)
+                 <$> foldArguments (Shell.findCommandIndex yumInstall) args
+                 <*> foldArguments (Shell.findCommandIndex yumClean) args
+             )
     check _ = True
 
     yumInstall = Shell.cmdHasArgs "yum" ["install"]
-    yumClean args = Shell.cmdHasAllArgs "yum" ["clean", "all"] args
-      || Shell.cmdHasAllArgs "rm" ["-rf", "/var/cache/yum/*"] args
+    yumClean args =
+      Shell.cmdHasAllArgs "yum" ["clean", "all"] args
+        || Shell.isRecursiveRemoval ["/var/cache/yum", "/var/cache/yum/", "/var/cache/yum/*"] args
 {-# INLINEABLE dl3032 #-}
