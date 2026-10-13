@@ -2,6 +2,11 @@
 inputs:
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
+  git-hooks:
+    url: github:cachix/git-hooks.nix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
 
 # If you're using non-OSS software, you can set allowUnfree to true.
 # allowUnfree: true
