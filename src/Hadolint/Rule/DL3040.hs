@@ -1,10 +1,9 @@
 module Hadolint.Rule.DL3040 (rule) where
 
 import Hadolint.Rule
-import qualified Hadolint.Shell as Shell
-import qualified Hadolint.Utils as Utils
+import Hadolint.Shell qualified as Shell
+import Hadolint.Utils qualified as Utils
 import Language.Docker.Syntax
-
 
 rule :: Rule Shell.ParsedShell
 rule = dl3040 <> onbuild dl3040
@@ -26,15 +25,20 @@ dl3040 = simpleRule code severity message check
 
     checkMissingClean args cmdName =
       foldArguments (Shell.noCommands $ dnfInstall cmdName) args
-        || Just True == (
-             (<) <$> foldArguments (Shell.findCommandIndex $ dnfInstall cmdName) args
-                 <*> foldArguments (Shell.findCommandIndex $ dnfClean cmdName) args)
+        || Just True
+          == ( (<)
+                 <$> foldArguments (Shell.findCommandIndex $ dnfInstall cmdName) args
+                 <*> foldArguments (Shell.findCommandIndex $ dnfClean cmdName) args
+             )
 
-    dnfInstall cmdName args = ( cmdName `elem` dnfCmds )
-      && Shell.cmdHasArgs cmdName installCmds args
-    dnfClean cmdName args = Shell.cmdHasAllArgs cmdName ["clean", "all"] args
-      || Shell.cmdHasAllArgs "rm" ["-rf", "/var/cache/libdnf5"] args
+    dnfInstall cmdName args =
+      (cmdName `elem` dnfCmds)
+        && Shell.cmdHasArgs cmdName installCmds args
+    dnfClean cmdName args =
+      Shell.cmdHasAllArgs cmdName ["clean", "all"] args
+        || Shell.isRecursiveRemoval
+          ["/var/cache/libdnf5", "/var/cache/libdnf5/", "/var/cache/libdnf5/*", "/var/cache/libdnf5*"]
+          args
     dnfCmds = ["dnf", "microdnf"]
     installCmds = ["install", "in", "upgrade", "up", "upgrade-minimal", "up-min", "reinstall", "rei"]
 {-# INLINEABLE dl3040 #-}
-
