@@ -287,7 +287,8 @@ override:
 ```
 
 `failure-threshold` Exit with failure code only when rules with a
-severity above THRESHOLD are violated (Available in v2.6.0+)
+severity equal to or above THRESHOLD are violated (Available in v2.6.0+).
+It only affects the exit code; all findings are still printed.
 
 ```yaml
 failure-threshold: info
