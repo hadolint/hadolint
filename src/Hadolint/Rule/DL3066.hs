@@ -1,13 +1,12 @@
 module Hadolint.Rule.DL3066 (rule) where
 
-import qualified Data.Char as Char
-import qualified Data.IntMap.Strict as Map
-import qualified Data.Sequence as Seq
-import qualified Data.Set as Set
-import qualified Data.Text as Text
+import Data.Char qualified as Char
+import Data.IntMap.Strict qualified as Map
+import Data.Sequence qualified as Seq
+import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Hadolint.Rule
 import Language.Docker.Syntax
-
 
 data Acc
   = Acc
@@ -17,7 +16,6 @@ data Acc
       }
   | Empty
   deriving (Show)
-
 
 rule :: Rule args
 rule = veryCustomRule check (emptyState Empty) mark
@@ -32,6 +30,7 @@ rule = veryCustomRule check (emptyState Empty) mark
       | uidIsDefinedArg (state st) u = st |> modify forgetStage
       | otherwise = st |> modify (rememberLine line)
     check _ st (Arg arg _) = st |> modify (registerArg arg)
+    check _ st (Env pairs) = st |> modify (\acc -> foldr (registerArg . fst) acc pairs)
     check _ st _ = st
 
     mark (State fails (Acc _ lines _)) = Map.foldl' (Seq.|>) fails (fmap fail lines)
@@ -54,11 +53,11 @@ rememberLine line (Acc stage lines args) = Acc stage (lines |> Map.insert stage 
 
 getUid :: Text.Text -> Text.Text
 getUid t
-  | ":" `Text.isInfixOf` t = u ( Text.splitOn ":" t )
+  | ":" `Text.isInfixOf` t = u (Text.splitOn ":" t)
   | otherwise = t
   where
     u [] = ""
-    u (h:_) = h
+    u (h : _) = h
 
 uidIsDefinedArg :: Acc -> Text.Text -> Bool
 uidIsDefinedArg Empty _ = False
@@ -66,8 +65,8 @@ uidIsDefinedArg (Acc _ _ args) u = any (`varInUid` u) args
   where
     varInUid :: Text.Text -> Text.Text -> Bool
     varInUid var uid =
-      ( Text.pack "${" <> var <> Text.pack "}" ) `Text.isInfixOf` uid
-        || ( Text.pack "$" <> var ) `Text.isInfixOf` uid
+      (Text.pack "${" <> var <> Text.pack "}") `Text.isInfixOf` uid
+        || (Text.pack "$" <> var) `Text.isInfixOf` uid
 
 registerArg :: Text.Text -> Acc -> Acc
 registerArg arg Empty = Acc 0 Map.empty (Set.singleton arg)
