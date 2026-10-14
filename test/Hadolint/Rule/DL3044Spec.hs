@@ -4,7 +4,6 @@ import Data.Default
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -42,3 +41,8 @@ spec = do
       ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"$BLA\""
     it "fail with full match 2" $
       ruleCatches "DL3044" "ENV BLA=\"blubb\" BLUBB=\"${BLA}\""
+    it "ok with an escaped reference" $ do
+      ruleCatchesNot "DL3044" "ENV BLA=rw BLUBB=\"\\${BLA}_suffix\""
+      ruleCatchesNot "DL3044" "ENV BLA=rw BLUBB=\\$BLA"
+    it "fail with an escaped backslash followed by a reference" $
+      ruleCatches "DL3044" "ENV BLA=rw BLUBB=\"\\\\${BLA}\""
