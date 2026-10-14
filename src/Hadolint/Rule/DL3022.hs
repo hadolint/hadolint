@@ -22,6 +22,7 @@ rule = customRule check (emptyState Empty)
     check _ st (From BaseImage {}) = st |> modify incCount
     check line st (Copy (CopyArgs _ _) (CopyFlags _ _ _ _ (CopySource s) _))
       | ":" `Text.isInfixOf` dropQuotes s = st
+      | "$" `Text.isInfixOf` s = st -- a variable can't be resolved to a stage
       | isMember s (state st) = st
       | otherwise = case Read.decimal s of
           Right (v, _) | v < nameCount (state st) -> st
