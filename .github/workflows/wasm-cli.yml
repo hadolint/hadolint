@@ -1,0 +1,143 @@
+---
+name: Build WASM artifacts
+
+# Builds the two wasm artifacts hadolint ships:
+#
+#   * `exe:hadolint` — a WASI *command* module: `_start`, Dockerfile on stdin,
+#     runnable by any WASI host (wasmtime, wazero, node:wasi, ...).
+#   * `exe:hadolint-embedded` — the JSFFI reactor the online linter loads.
+#
+# The toolchain comes entirely from ghc-wasm-meta's setup.sh, which installs GHC,
+# wasi-sdk, cabal, binaryen and wasmtime, and creates `wasm32-wasi-cabal` with
+# the right compiler already wired up.
+#
+# Two things about it are easy to get wrong, and both have bitten this project:
+#
+#   * GHC must be installed by setup.sh. The wasm bindist is shipped
+#     *unconfigured*; setup.sh runs
+#         ./configure --host=... --target=wasm32-wasi ... && make install
+#     which is what makes it a wasm compiler. Installing the same bindist with
+#     `ghcup install ghc` and `SKIP_GHC=1` omits `--target=wasm32-wasi`, and the
+#     resulting compiler emits x86-64 assembly that wasm32-wasi-clang rejects.
+#   * FLAVOUR must be 9.10. The default is 9.14, whose GHC 9.14.1 trips
+#     hadolint's `ghc-experimental >=9.1003 && <9.1201` bound.
+on:
+  pull_request:
+    paths:
+      - hadolint.cabal
+      - cabal.project
+      - app/**
+      - src/**
+      - website/js/**
+      - .github/workflows/wasm-cli.yml
+
+  workflow_dispatch: {}
+
+  # Reused by release.yml, so released artifacts come from this exact job.
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build wasm modules
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            binutils-gold \
+            curl \
+            g++ \
+            gcc \
+            git \
+            gzip \
+            jq \
+            libc-dev \
+            libffi-dev \
+            libgmp-dev \
+            libncurses-dev \
+            make \
+            musl \
+            musl-dev \
+            musl-tools \
+            perl \
+            tar \
+            unzip \
+            xz-utils \
+            zlib1g \
+            zlib1g-dev \
+            zstd
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install the wasm toolchain
+        run: |
+          git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git
+          FLAVOUR=9.10 ghc-wasm-meta/setup.sh
+
+      - name: Build the command module
+        run: |
+          source ~/.ghc-wasm/env
+          wasm32-wasi-cabal build exe:hadolint
+
+          # `list-bin` shells out to cabal again, and cabal re-clones the
+          # source-repository packages on the way, so its stdout can carry git
+          # chatter. Take the path, not the noise.
+          BIN="$(wasm32-wasi-cabal list-bin exe:hadolint | grep -E '\.wasm$' | tail -1)"
+          test -f "$BIN"
+
+          # A plain read/write round trip through Binaryen already drops ~36% of
+          # the module (GHC's output is not minimally encoded and the `name`
+          # section is not written back), and `-Oz --converge` takes it roughly
+          # in half again on top of that.
+          wasm-opt -Oz --converge -o hadolint-wasm32-wasi.wasm "$BIN"
+
+          ls -l hadolint-wasm32-wasi.wasm
+          sha256sum -b hadolint-wasm32-wasi.wasm
+
+      - name: Build the embedded module
+        run: |
+          source ~/.ghc-wasm/env
+          wasm32-wasi-cabal build exe:hadolint-embedded
+          BIN="$(wasm32-wasi-cabal list-bin exe:hadolint-embedded | grep -E '\.wasm$' | tail -1)"
+          test -f "$BIN"
+          cp "$BIN" hadolint-embedded.wasm
+          "$(wasm32-wasi-ghc --print-libdir)/post-link.mjs" \
+            -i hadolint-embedded.wasm \
+            -o ghc_wasm_jsffi.js
+
+          ls -l hadolint-embedded.wasm ghc_wasm_jsffi.js
+
+      - name: Smoke test the command module
+        run: |
+          # setup.sh puts wasmtime on PATH as well.
+          source ~/.ghc-wasm/env
+          wasmtime --version
+
+          # WASI has no getEffectiveUserID, which GHC's getHomeDirectory falls
+          # back to, so the module aborts before linting unless HOME is set.
+          printf 'FROM ubuntu:latest\n' \
+            | wasmtime run --env HOME=/ hadolint-wasm32-wasi.wasm -- - \
+            > lint.txt 2>&1 || true
+          cat lint.txt
+          grep -q 'DL3007' lint.txt
+
+          # No `--` before the flag: wasmtime forwards it to the guest, and
+          # hadolint would then read `--version` as a Dockerfile path.
+          wasmtime run --env HOME=/ hadolint-wasm32-wasi.wasm --version
+
+      - name: Upload the modules
+        uses: actions/upload-artifact@v7
+        with:
+          name: hadolint-wasm32-wasi
+          path: |
+            hadolint-wasm32-wasi.wasm
+            hadolint-embedded.wasm
+            ghc_wasm_jsffi.js
+          if-no-files-found: error
+          retention-days: 3
