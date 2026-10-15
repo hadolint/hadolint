@@ -230,7 +230,10 @@ executable hadolint-embedded
   ghc-options:
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -Wredundant-constraints
-    -no-hs-main -optl-mexec-model=reactor -optl-Wl,--export=setup
+    -no-hs-main
+    -optl-mexec-model=reactor
+    -optl-Wl,--export=lint
+    -optl-Wl,--export=version
 
   build-depends:
       base                  >=4.20.1    && <5

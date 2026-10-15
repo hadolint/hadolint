@@ -1,5 +1,7 @@
 module Hadolint.Formatter.Json
-  ( hWrite )
+  ( hWrite,
+    render,
+  )
 where
 
 import qualified Control.Foldl as Foldl
@@ -7,6 +9,7 @@ import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as TextEncoding
 import Hadolint.Formatter.Format
   ( Result (..),
     errorPosition,
@@ -46,12 +49,20 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
     where
       pos = errorPosition err
 
+-- | The report as text, for callers that need the value rather than a stream —
+-- a JavaScript export cannot see what was written to a Handle.
+render ::
+  (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
+  f (Result s e) -> Text.Text
+render = TextEncoding.decodeUtf8 . B.toStrict . encode . flatten
+
 hWrite ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
   Handle -> f (Result s e) -> IO ()
-hWrite handle results = B.hPutStr handle . encode $ flattened
-  where
-    flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
+hWrite handle = B.hPutStr handle . encode . flatten
+
+flatten :: Foldable f => f (Result s e) -> Seq (JsonFormat s e)
+flatten = Foldl.fold (Foldl.premap formatResult Foldl.mconcat)
 
 formatResult :: Result s e -> Seq (JsonFormat s e)
 formatResult (Result fileName errors checks) = allMessages

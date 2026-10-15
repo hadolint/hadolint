@@ -3,10 +3,10 @@ import ghc_wasm_jsffi from "./ghc_wasm_jsffi.js";
 
 let widgets = []
 
+// The report is no longer printed to stdout: `lint` returns it.
 const wasi = new WASI({
     stdout: (out) => {
-      let checks = JSON.parse(out);
-      updateHints(checks);
+      console.debug(out);
     }
 });
 
@@ -24,7 +24,7 @@ wasi.initialize(wasm, {
     ghc_wasm_jsffi: ghc_wasm_jsffi(jsffiExports)
 });
 
-wasi.instance.exports.setup();
+document.getElementById('version').textContent = wasi.instance.exports.version();
 
 (function() {
   var delay = setTimeout(lint, 350);;
@@ -51,7 +51,8 @@ wasi.instance.exports.setup();
 })();
 
 function lint() {
-  wasi.instance.exports.lint();
+  const report = wasi.instance.exports.lint(document.getElementById('dockerfile__code').value);
+  updateHints(JSON.parse(report));
 }
 
 function clear() {
