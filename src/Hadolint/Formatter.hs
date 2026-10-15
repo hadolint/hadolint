@@ -12,6 +12,7 @@ import Language.Docker.Parser (DockerfileError)
 import qualified Hadolint.Formatter.Checkstyle as FormatCheckstyle
 import qualified Hadolint.Formatter.Codacy as FormatCodacy
 import qualified Hadolint.Formatter.Codeclimate as FormatCodeclimate
+import qualified Hadolint.Formatter.CodeQuality as FormatCodeQuality
 import qualified Hadolint.Formatter.Gnu as FormatGnu
 import qualified Hadolint.Formatter.JUnit as FormatJUnit
 import qualified Hadolint.Formatter.Json as FormatJson
@@ -34,6 +35,7 @@ hWrite handle format nocolor filePathInReport allResults =
     Codacy -> FormatCodacy.hWrite handle allResults
     CodeclimateJson -> FormatCodeclimate.hWrite handle allResults filePathInReport
     GitLabCodeclimateJson -> FormatCodeclimate.hWriteGitLab handle allResults filePathInReport
+    GitLabCodeQualityJson -> FormatCodeQuality.hWrite handle allResults filePathInReport
     Gnu -> FormatGnu.hWrite handle allResults
     JUnit -> FormatJUnit.hWrite handle allResults filePathInReport
     Json -> FormatJson.hWrite handle allResults
