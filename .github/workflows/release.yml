@@ -414,6 +414,13 @@ jobs:
             ${{ matrix.registry }}:${{github.sha}}-debian-arm64
 
 
+  build-wasm:
+    name: Build WASI command module
+    needs:
+      - autotag
+    if: needs.autotag.outputs.created
+    uses: ./.github/workflows/wasm-cli.yml
+
   github-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -421,6 +428,7 @@ jobs:
       - build-linux
       - build-macos
       - build-windows
+      - build-wasm
       - autotag
     if: needs.autotag.outputs.created
     permissions:
@@ -460,6 +468,12 @@ jobs:
           name: hadolint-windows-x86_64
           path: artifacts/hadolint-windows-x86_64
 
+      - name: Download WASI
+        uses: actions/download-artifact@v8
+        with:
+          name: hadolint-wasm32-wasi
+          path: artifacts/hadolint-wasm32-wasi
+
       - name: Rename and Checksum
         run: |
           mv artifacts/hadolint-linux-x86_64/hadolint hadolint-linux-x86_64
@@ -467,6 +481,7 @@ jobs:
           mv artifacts/hadolint-macos-x86_64/hadolint hadolint-macos-x86_64
           mv artifacts/hadolint-macos-arm64/hadolint hadolint-macos-arm64
           mv artifacts/hadolint-windows-x86_64/hadolint.exe hadolint-windows-x86_64.exe
+          mv artifacts/hadolint-wasm32-wasi/hadolint-wasm32-wasi.wasm hadolint-wasm32-wasi.wasm
 
           sha256sum -b hadolint* > checksums.sha256
 
@@ -483,6 +498,7 @@ jobs:
             hadolint-macos-x86_64
             hadolint-macos-arm64
             hadolint-windows-x86_64.exe
+            hadolint-wasm32-wasi.wasm
             checksums.sha256
 
       - name: Generate artifact attestations
