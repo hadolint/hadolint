@@ -4,13 +4,11 @@ import Data.Default
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
 
   describe "DL3040 - `dnf clean all` missing after dnf command." $ do
-
     it "no ok without dnf clean all" $ do
       ruleCatches "DL3040" "RUN dnf install -y mariadb-10.4"
       ruleCatches "DL3040" "RUN microdnf install -y mariadb-10.4"
@@ -118,3 +116,12 @@ spec = do
       onBuildRuleCatchesNot "DL3040" "RUN dnf -y up-min && dnf clean all"
       onBuildRuleCatchesNot "DL3040" "RUN dnf -y reinstall && dnf clean all"
       onBuildRuleCatchesNot "DL3040" "RUN dnf -y rei && dnf clean all"
+
+    it "ok with any form of recursive removal of the libdnf5 cache" $ do
+      ruleCatchesNot "DL3040" "RUN dnf -y install && rm -fr /var/cache/libdnf5"
+      ruleCatchesNot "DL3040" "RUN dnf -y install && rm -r -f /var/cache/libdnf5/*"
+      ruleCatchesNot "DL3040" "RUN dnf -y install && rm -rf /var/cache/libdnf5*"
+      ruleCatches "DL3040" "RUN dnf -y install && rm /var/cache/libdnf5"
+      ruleCatches "DL3040" "RUN dnf -y install && rm -rf /var/cache/yum"
+      onBuildRuleCatchesNot "DL3040" "RUN dnf -y install && rm -fr /var/cache/libdnf5"
+      onBuildRuleCatches "DL3040" "RUN dnf -y install && rm /var/cache/libdnf5"

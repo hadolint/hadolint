@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -230,3 +229,20 @@ spec = do
             ]
       mapM_ (ruleCatches "DL3009") dockerFile
       mapM_ (onBuildRuleCatches "DL3009") dockerFile
+
+    it "ok with any form of recursive removal of the apt lists" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN apt-get update && apt-get install python && rm -fr /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -r -f /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -Rf /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm --recursive --force /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists",
+              "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/"
+            ]
+      mapM_ (ruleCatchesNot "DL3009") dockerFile
+      mapM_ (onBuildRuleCatchesNot "DL3009") dockerFile
+
+    it "not ok with a non-recursive removal of the apt lists" $ do
+      ruleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"
+      onBuildRuleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"

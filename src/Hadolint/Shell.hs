@@ -2,39 +2,38 @@ module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
-import Data.List (isInfixOf, findIndex)
+import Data.List (findIndex, isInfixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Data.Text (Text)
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import ShellCheck.AST
   ( Id (..),
     Token (..),
-    pattern T_Pipe,
-    pattern T_SimpleCommand,
-    pattern T_NormalWord,
-    pattern T_DoubleQuoted,
-    pattern T_SingleQuoted,
-    pattern T_DollarBraced,
-    pattern T_DollarArithmetic,
-    pattern T_DollarExpansion,
-    pattern T_Backticked,
-    pattern T_Glob,
-    pattern T_Pipeline,
-    pattern T_Literal,
-    pattern T_ParamSubSpecialChar,
-    pattern T_SimpleCommand,
-    pattern T_Redirecting,
-    pattern T_DollarSingleQuoted,
-    pattern T_Annotation,
-    pattern TA_Sequence,
     pattern TA_Expansion,
+    pattern TA_Sequence,
+    pattern T_Annotation,
+    pattern T_Backticked,
+    pattern T_DollarArithmetic,
+    pattern T_DollarBraced,
+    pattern T_DollarExpansion,
+    pattern T_DollarSingleQuoted,
+    pattern T_DoubleQuoted,
+    pattern T_Glob,
+    pattern T_Literal,
+    pattern T_NormalWord,
+    pattern T_ParamSubSpecialChar,
+    pattern T_Pipe,
+    pattern T_Pipeline,
+    pattern T_Redirecting,
+    pattern T_SimpleCommand,
+    pattern T_SingleQuoted,
   )
-import qualified ShellCheck.AST
-import qualified ShellCheck.ASTLib
+import ShellCheck.AST qualified
+import ShellCheck.ASTLib qualified
 import ShellCheck.Checker (checkScript)
 import ShellCheck.Interface
-import qualified ShellCheck.Parser
+import ShellCheck.Parser qualified
 
 data CmdPart = CmdPart
   { arg :: Text,
@@ -124,8 +123,10 @@ shellBasename = last . Text.splitOn "/"
 
 hasUnsupportedShebang :: Text.Text -> Bool
 hasUnsupportedShebang script =
-  "#!" `Text.isPrefixOf` script &&
-  not ( any (`Text.isPrefixOf` script)
+  "#!" `Text.isPrefixOf` script
+    && not
+      ( any
+          (`Text.isPrefixOf` script)
           [ "#!/bin/sh",
             "#!/bin/bash",
             "#!/bin/ksh",
@@ -213,6 +214,14 @@ cmdsHaveAllArgs expectedNames expectedArgs (Command n args _)
   | n `notElem` expectedNames = False
   | otherwise = all (`elem` [arg | CmdPart arg _ <- args]) expectedArgs
 
+-- | Whether the command is an @rm@ that recursively removes one of the given
+-- paths, however the flags are written (@-rf@, @-fr@, @-r -f@, @--recursive@).
+isRecursiveRemoval :: [Text.Text] -> Command -> Bool
+isRecursiveRemoval paths cmd@(Command n _ _) =
+  n == "rm"
+    && hasAnyFlag ["r", "R", "recursive"] cmd
+    && any (`elem` paths) (getArgsNoFlags cmd)
+
 cmdHasPrefixArg :: Text.Text -> Text.Text -> Command -> Bool
 cmdHasPrefixArg expectedName expectedArg (Command n args _)
   | expectedName /= n = False
@@ -236,9 +245,9 @@ simplify token =
     (T_NormalWord _ l) -> [concat (concatMap simplify l)]
     (T_DoubleQuoted _ l) -> [concat (concatMap simplify l)]
     (T_SingleQuoted _ s) -> [s]
-    (T_DollarBraced _ _ t) -> ["${" ++ concat ( simplify t ) ++ "}"]
+    (T_DollarBraced _ _ t) -> ["${" ++ concat (simplify t) ++ "}"]
     (T_DollarArithmetic _ _) -> ["${VAR}"]
-    (T_DollarExpansion _ t) -> ["${" ++ concat ( concatMap simplify t ) ++ "}"]
+    (T_DollarExpansion _ t) -> ["${" ++ concat (concatMap simplify t) ++ "}"]
     (T_Backticked _ _) -> ["${VAR}"]
     (T_Glob _ s) -> [s]
     (T_Pipeline _ _ [x]) -> simplify x
@@ -272,7 +281,7 @@ hasFlag :: Text.Text -> Command -> Bool
 hasFlag flag cmd = countFlag flag cmd > 0
 
 countFlag :: Text.Text -> Command -> Int
-countFlag flag Command {flags} = length [ f | CmdPart f _ <- flags, f == flag ]
+countFlag flag Command {flags} = length [f | CmdPart f _ <- flags, f == flag]
 
 hasAnyFlag :: [Text.Text] -> Command -> Bool
 hasAnyFlag fs Command {flags} = not $ null [f | CmdPart f _ <- flags, f `elem` fs]

@@ -4,7 +4,6 @@ import Data.Default
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -40,3 +39,11 @@ spec = do
       onBuildRuleCatchesNot "DL3032" "RUN yum install -y bash && rm -rf /var/cache/yum/*"
       onBuildRuleCatches "DL3032" "RUN yum install -y bash && rm -rf /var/cache/libdnf5"
       onBuildRuleCatchesNot "DL3032" "RUN rm -rf /foo/bar && yum install -y bash && rm -rf /var/cache/yum/*"
+
+    it "ok with any form of recursive removal of the yum cache" $ do
+      ruleCatchesNot "DL3032" "RUN yum install -y bash && rm -fr /var/cache/yum/*"
+      ruleCatchesNot "DL3032" "RUN yum install -y bash && rm -r -f /var/cache/yum"
+      ruleCatchesNot "DL3032" "RUN yum install -y bash && rm --recursive /var/cache/yum/"
+      ruleCatches "DL3032" "RUN yum install -y bash && rm /var/cache/yum/*"
+      onBuildRuleCatchesNot "DL3032" "RUN yum install -y bash && rm -fr /var/cache/yum/*"
+      onBuildRuleCatches "DL3032" "RUN yum install -y bash && rm /var/cache/yum/*"

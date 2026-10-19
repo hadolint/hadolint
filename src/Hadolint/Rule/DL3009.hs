@@ -1,12 +1,11 @@
 module Hadolint.Rule.DL3009 (rule) where
 
+import Data.Map.Strict qualified as Map
+import Data.Text qualified as Text
 import Hadolint.Rule
+import Hadolint.Shell qualified as Shell
+import Hadolint.Utils qualified as Utils
 import Language.Docker.Syntax
-import qualified Data.Map.Strict as Map
-import qualified Data.Text as Text
-import qualified Hadolint.Shell as Shell
-import qualified Hadolint.Utils as Utils
-
 
 data Acc
   = Acc
@@ -17,7 +16,6 @@ data Acc
       }
   | Empty
   deriving (Eq, Show)
-
 
 rule :: Rule Shell.ParsedShell
 rule = dl3009 <> onbuild dl3009
@@ -34,11 +32,12 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
     check line st (Run (RunArgs args flags))
       | not (foldArguments forgotToCleanup args) =
           if foldArguments disabledDockerClean args
-          then st |> modify rememberDockerClean
-          else st
+            then st |> modify rememberDockerClean
+            else st
       | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt/lists" flags = st
       | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt" flags
-        && Utils.hasCacheOrTmpfsMountWith "/var/cache/apt" flags = st
+          && Utils.hasCacheOrTmpfsMountWith "/var/cache/apt" flags =
+          st
       | otherwise = st |> modify (rememberLine line)
     check _ st _ = st
 
@@ -50,8 +49,8 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
           | from == lastFrom = pure CheckFailure {..}
           | BaseImage {alias = Just (ImageAlias als)} <- from, -- Check if this stage is used later
             Just _ <- Map.lookup als stages =
-            -- If the same alias is used in another stage, fail
-            pure CheckFailure {..}
+              -- If the same alias is used in another stage, fail
+              pure CheckFailure {..}
           | otherwise = mempty
 {-# INLINEABLE dl3009 #-}
 
@@ -73,15 +72,17 @@ forgotToCleanup args
   | otherwise = False
   where
     hasCleanup =
-      any (Shell.cmdHasAllArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
+      any
+        (Shell.isRecursiveRemoval ["/var/lib/apt/lists", "/var/lib/apt/lists/", "/var/lib/apt/lists/*"])
+        (Shell.presentCommands args)
 
 hasUpdate :: Shell.ParsedShell -> Bool
 hasUpdate args = any isPackageUpdate (Shell.presentCommands args)
   where
     isPackageUpdate cmd =
-      Shell.cmdHasArgs "apt" ["update"] cmd ||
-      Shell.cmdHasArgs "apt-get" ["update"] cmd ||
-      Shell.cmdHasArgs "aptitude" ["update"] cmd
+      Shell.cmdHasArgs "apt" ["update"] cmd
+        || Shell.cmdHasArgs "apt-get" ["update"] cmd
+        || Shell.cmdHasArgs "aptitude" ["update"] cmd
 
 disabledDockerClean :: Shell.ParsedShell -> Bool
 disabledDockerClean args
