@@ -1,7 +1,7 @@
 module Hadolint.Rule.DL3044 (rule) where
 
-import qualified Data.Set as Set
-import qualified Data.Text as Text
+import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -27,12 +27,23 @@ rule = customRule check (emptyState Set.empty)
 listOfReferences :: Pairs -> [Text.Text]
 listOfReferences prs =
   [ var
-    | (idx, (var, _)) <- enum prs,
-      var `isSubstringOfAny` map (snd . snd) (filter ((/= idx) . fst) (enum prs))
+  | (idx, (var, _)) <- enum prs,
+    var `isSubstringOfAny` map (withoutEscapedDollars . snd . snd) (filter ((/= idx) . fst) (enum prs))
   ]
   where
     enum :: Pairs -> [(Integer, (Text.Text, Text.Text))]
-    enum = zip [0..]
+    enum = zip [0 ..]
+
+-- | Removes escaped dollar signs (@\$@), which Docker doesn't expand.
+-- Backslashes are consumed in pairs, so @\\${A}@ (an escaped backslash
+-- followed by an expansion) is kept.
+withoutEscapedDollars :: Text.Text -> Text.Text
+withoutEscapedDollars = Text.pack . go . Text.unpack
+  where
+    go ('\\' : '$' : rest) = go rest
+    go ('\\' : c : rest) = '\\' : c : go rest
+    go (c : rest) = c : go rest
+    go [] = []
 
 -- | is a reference of a variable substring of any text?
 -- matches ${var_name} and $var_name, but not $var_nameblafoo
@@ -41,9 +52,9 @@ isSubstringOfAny t l =
   not $
     null
       [ v
-        | v <- l,
-          (Text.pack "${" <> t <> Text.pack "}") `Text.isInfixOf` v
-            || (t `bareVariableInText` v)
+      | v <- l,
+        (Text.pack "${" <> t <> Text.pack "}") `Text.isInfixOf` v
+          || (t `bareVariableInText` v)
       ]
 
 -- | we find a 'bare' variable with name v in a text, if
