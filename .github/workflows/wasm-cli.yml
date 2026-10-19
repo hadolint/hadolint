@@ -30,6 +30,9 @@ on:
       - src/**
       - website/js/**
       - .github/workflows/wasm-cli.yml
+      # Both call this workflow, so a change to either changes the build.
+      - .github/workflows/build.yml
+      - .github/workflows/release.yml
 
   workflow_dispatch: {}
 
@@ -81,8 +84,12 @@ jobs:
           # binary must not depend on whatever is on an external branch at
           # release time. Its `autogen.json` names the whole toolchain, so one
           # commit pins the bindist, wasi-sdk, cabal, binaryen and wasmtime.
+          #
+          # To bump it, take the newest commit from
+          # https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/commits/master
+          # and let this workflow say whether it still builds.
           git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git
-          git -C ghc-wasm-meta checkout 60098a5076557e327b326a1a3ba3b5fb4fec1e49
+          git -C ghc-wasm-meta checkout 8079eb96bbc63823d99ad8acaff0765532625474
           FLAVOUR=9.10 ghc-wasm-meta/setup.sh
 
       - name: Build the command module

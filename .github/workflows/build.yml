@@ -8,11 +8,11 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  # The site used to build `exe:hadolint-embedded` itself, with a toolchain
-  # installed by `ghcup` under `SKIP_GHC=1`. That is the path that omits
-  # `--target=wasm32-wasi`, so the compiler reports a wasm target and emits
-  # x86-64 assembly. It now reuses the workflow that already builds both wasm
-  # modules, so there is one build and one toolchain instead of two.
+  # The site used to build `exe:hadolint-embedded` in a second job, with its
+  # own toolchain installed by `ghcup` under `SKIP_GHC=1`. That works — it has
+  # since 962e8cf, which passes `-- $CONFIGURE_ARGS` — but it is a second build
+  # and a second toolchain for the same module. This reuses the workflow that
+  # already builds both wasm modules.
   wasm:
     name: Build the wasm modules
     permissions:

@@ -30,14 +30,18 @@ main = error "ignore this"
 -- | Lint a Dockerfile and return the JSON report — the same document
 -- @hadolint -f json@ writes. Nothing here performs IO; the JSFFI marshalling
 -- just requires the exports to be in IO.
-foreign export javascript "lint" lint :: JSString -> IO JSString
+lint :: JSString -> IO JSString
 lint input =
   pure . toJSString . Text.unpack . FormatJson.render $
     [ doLint (Docker.parseText (jsStringToText input)) ]
 
+foreign export javascript "lint" lint :: JSString -> IO JSString
+
 -- | The version string, for hosts that want to display it.
-foreign export javascript "version" version :: IO JSString
+version :: IO JSString
 version = pure (toJSString Hadolint.getVersion)
+
+foreign export javascript "version" version :: IO JSString
 
 
 -- Internal functions --
