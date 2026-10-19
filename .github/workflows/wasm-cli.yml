@@ -92,6 +92,20 @@ jobs:
           git -C ghc-wasm-meta checkout 8079eb96bbc63823d99ad8acaff0765532625474
           FLAVOUR=9.10 ghc-wasm-meta/setup.sh
 
+      # The store holds every compiled dependency, and without it each run
+      # rebuilds them all — most of this job's runtime.
+      #
+      # The toolchain pin is part of the key, so a store built by a different GHC
+      # is never restored; `restore-keys` falls back to the pin alone, which
+      # still gives a partial hit when only the manifests change.
+      - name: Restore the cabal store
+        uses: actions/cache@v6
+        with:
+          path: ~/.ghc-wasm/.cabal/store
+          key: cabal-store-${{ runner.os }}-${{ env.GHC_WASM_META_REV }}-${{ hashFiles('hadolint.cabal', 'cabal.project') }}
+          restore-keys: |
+            cabal-store-${{ runner.os }}-${{ env.GHC_WASM_META_REV }}-
+
       - name: Build the command module
         run: |
           source ~/.ghc-wasm/env
@@ -131,17 +145,18 @@ jobs:
           source ~/.ghc-wasm/env
           wasmtime --version
 
-          # WASI has no getEffectiveUserID, which GHC's getHomeDirectory falls
-          # back to, so the module aborts before linting unless HOME is set.
+          # No `HOME` here on purpose: WASI provides none, and the module has to
+          # cope. This exercises `findConfig`'s missing-home path, which used to
+          # abort before linting.
           printf 'FROM ubuntu:latest\n' \
-            | wasmtime run --env HOME=/ hadolint-wasm32-wasi.wasm -- - \
+            | wasmtime run hadolint-wasm32-wasi.wasm -- - \
             > lint.txt 2>&1 || true
           cat lint.txt
           grep -q 'DL3007' lint.txt
 
           # No `--` before the flag: wasmtime forwards it to the guest, and
           # hadolint would then read `--version` as a Dockerfile path.
-          wasmtime run --env HOME=/ hadolint-wasm32-wasi.wasm --version
+          wasmtime run hadolint-wasm32-wasi.wasm --version
 
       - name: Upload the modules
         uses: actions/upload-artifact@v7
