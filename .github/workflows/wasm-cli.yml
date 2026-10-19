@@ -42,6 +42,13 @@ on:
 permissions:
   contents: read
 
+env:
+  # One value, used by both the checkout and the cache key, so the pin and the
+  # key cannot drift apart. To bump it, take the newest commit from
+  # https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/commits/master and
+  # let this workflow say whether it still builds.
+  GHC_WASM_META_REV: 8079eb96bbc63823d99ad8acaff0765532625474
+
 jobs:
   build:
     name: Build wasm modules
@@ -84,12 +91,8 @@ jobs:
           # binary must not depend on whatever is on an external branch at
           # release time. Its `autogen.json` names the whole toolchain, so one
           # commit pins the bindist, wasi-sdk, cabal, binaryen and wasmtime.
-          #
-          # To bump it, take the newest commit from
-          # https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/commits/master
-          # and let this workflow say whether it still builds.
           git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git
-          git -C ghc-wasm-meta checkout 8079eb96bbc63823d99ad8acaff0765532625474
+          git -C ghc-wasm-meta checkout "$GHC_WASM_META_REV"
           FLAVOUR=9.10 ghc-wasm-meta/setup.sh
 
       # The store holds every compiled dependency, and without it each run
