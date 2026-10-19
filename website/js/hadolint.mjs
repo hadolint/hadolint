@@ -24,7 +24,11 @@ wasi.initialize(wasm, {
     ghc_wasm_jsffi: ghc_wasm_jsffi(jsffiExports)
 });
 
-document.getElementById('version').textContent = wasi.instance.exports.version();
+// JSFFI exports are asynchronous unless declared `sync`, so both return a
+// Promise. Awaiting rather than marking them sync keeps a Haskell exception
+// surfacing as a rejected Promise; GHC's guide notes that sync exports cannot
+// propagate one to the call site yet.
+document.getElementById('version').textContent = await wasi.instance.exports.version();
 
 (function() {
   var delay = setTimeout(lint, 350);;
@@ -50,8 +54,8 @@ document.getElementById('version').textContent = wasi.instance.exports.version()
   }
 })();
 
-function lint() {
-  const report = wasi.instance.exports.lint(document.getElementById('dockerfile__code').value);
+async function lint() {
+  const report = await wasi.instance.exports.lint(document.getElementById('dockerfile__code').value);
   updateHints(JSON.parse(report));
 }
 

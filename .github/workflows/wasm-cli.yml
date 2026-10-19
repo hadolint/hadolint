@@ -77,7 +77,12 @@ jobs:
 
       - name: Install the wasm toolchain
         run: |
+          # Pinned: this job feeds release assets, so a released, attested
+          # binary must not depend on whatever is on an external branch at
+          # release time. Its `autogen.json` names the whole toolchain, so one
+          # commit pins the bindist, wasi-sdk, cabal, binaryen and wasmtime.
           git clone https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta.git
+          git -C ghc-wasm-meta checkout 60098a5076557e327b326a1a3ba3b5fb4fec1e49
           FLAVOUR=9.10 ghc-wasm-meta/setup.sh
 
       - name: Build the command module
