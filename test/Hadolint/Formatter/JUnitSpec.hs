@@ -19,7 +19,6 @@ spec = do
   time <- runIO Time.getCurrentTime
 
   let runID = Text.pack $ Time.formatTime Time.defaultTimeLocale "%Y%m%d_%H%M%S" time
-  let runName = Text.pack $ Time.formatTime Time.defaultTimeLocale "Hadolint run at %Y-%m-%d %H:%M:%S" time
   let providerName = Text.pack $ "Hadolint " <> getShortVersion
 
   let ?noColor = True
@@ -36,7 +35,7 @@ spec = do
                       elementAttributes =
                         Map.fromList
                           [ ("id", runID),
-                            ("name", runName),
+                            ("name", providerName),
                             ("time", "0.001")
                           ],
                       elementNodes =
@@ -45,12 +44,18 @@ spec = do
                               elementAttributes =
                                 Map.fromList
                                   [ ("id", "hadolint"),
-                                    ("name", providerName),
+                                    ("name", "<string>"),
                                     ("time", "0.001"),
                                     ("failures", "0"),
                                     ("errors", "0")
                                   ],
-                              elementNodes = []
+                              elementNodes =
+                                [ XML.NodeElement XML.Element
+                                    { elementName = "testcase",
+                                      elementAttributes = Map.empty,
+                                      elementNodes = []
+                                    }
+                                ]
                             }
                         ]
                     },
@@ -76,7 +81,7 @@ spec = do
                       elementAttributes =
                         Map.fromList
                           [ ("id", runID),
-                            ("name", runName),
+                            ("name", providerName),
                             ("time", "0.001")
                           ],
                       elementNodes =
@@ -85,7 +90,7 @@ spec = do
                               elementAttributes =
                                 Map.fromList
                                   [ ("id", "hadolint"),
-                                    ("name", providerName),
+                                    ("name", "<string>"),
                                     ("time", "0.001"),
                                     ("failures", "1"),
                                     ("errors", "0")
@@ -151,7 +156,7 @@ spec = do
                       elementAttributes =
                         Map.fromList
                           [ ("id", runID),
-                            ("name", runName),
+                            ("name", providerName),
                             ("time", "0.001")
                           ],
                       elementNodes =
@@ -160,7 +165,7 @@ spec = do
                               elementAttributes =
                                 Map.fromList
                                   [ ("id", "hadolint"),
-                                    ("name", "Hadolint " <> Text.pack getShortVersion),
+                                    ("name", "<string>"),
                                     ("time", "0.001"),
                                     ("failures", "2"),
                                     ("errors", "0")

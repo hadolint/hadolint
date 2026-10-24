@@ -59,7 +59,7 @@ hWrite handle results maybeFilepath = do
           elementAttributes =
             Map.fromList
               [ ("id", runID t),
-                ("name", runName t),
+                ("name", providerName),
                 ("time", "0.001")
               ],
           elementNodes = fmap ( `renderResult` maybeFilepath ) ( toList results )
@@ -68,10 +68,6 @@ hWrite handle results maybeFilepath = do
     runID :: Time.UTCTime -> Text.Text
     runID t =
       Text.pack $ Time.formatTime Time.defaultTimeLocale "%Y%m%d_%H%M%S" t
-
-    runName :: Time.UTCTime -> Text.Text
-    runName t =
-      Text.pack $ Time.formatTime Time.defaultTimeLocale "Hadolint run at %Y-%m-%d %H:%M:%S" t
 
 renderResult ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
@@ -82,16 +78,23 @@ renderResult (Result filename errors checks) maybeFilepath =
       elementAttributes =
         Map.fromList
           [ ("id", providerID),
-            ("name", providerName),
+            ("name", file),
             ("time", "0.001"),
-            ("failures", Text.pack $ show $ length findings),
-            ("errors", Text.pack $ show parseErrors)
+            ("failures", Text.pack $ show $ length checkNodes),
+            ("errors", Text.pack $ show $ length errorNodes)
           ],
       elementNodes = findings
     }
   where
-    findings = toList ( errorNodes <> checkNodes )
-    parseErrors = length errorNodes
+    findingsList = toList ( errorNodes <> checkNodes )
+    findings
+      | not $ null findingsList = findingsList
+      | otherwise = [ emptycase ]
+    emptycase = XML.NodeElement XML.Element
+      { elementName = "testcase",
+        elementAttributes = Map.empty,
+        elementNodes = []
+      }
     errorNodes = fmap ( `errorToNode` file ) errors
     checkNodes = fmap ( `checkToNode` file ) checks
     file = if null maybeFilepath then filename else Text.pack $ fromMaybe "" maybeFilepath
