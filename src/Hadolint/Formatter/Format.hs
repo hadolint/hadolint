@@ -32,6 +32,7 @@ data OutputFormat
   | Codacy
   | CodeclimateJson
   | GitLabCodeclimateJson
+  | GitLabCodeQualityJson
   | Gnu
   | JUnit
   | Json
@@ -45,6 +46,7 @@ instance Pretty OutputFormat where
   pretty Codacy = "codacy"
   pretty CodeclimateJson = "codeclimate"
   pretty GitLabCodeclimateJson = "gitlab_codeclimate"
+  pretty GitLabCodeQualityJson = "gitlab_codequality"
   pretty Gnu = "gnu"
   pretty JUnit = "junit"
   pretty Json = "json"
@@ -79,6 +81,7 @@ readMaybeOutputFormat "checkstyle" = Just Checkstyle
 readMaybeOutputFormat "codacy" = Just Codacy
 readMaybeOutputFormat "codeclimate" = Just CodeclimateJson
 readMaybeOutputFormat "gitlab_codeclimate" = Just GitLabCodeclimateJson
+readMaybeOutputFormat "gitlab_codequality" = Just GitLabCodeQualityJson
 readMaybeOutputFormat "gnu" = Just Gnu
 readMaybeOutputFormat "junit" = Just JUnit
 readMaybeOutputFormat "json" = Just Json
