@@ -64,8 +64,8 @@ Then add the CI step on codeship-steps.yml with the path of the dockerfile
 
 ### Mega-Linter
 
-[Mega-Linter](https://nvuillam.github.io/mega-linter/) aggregates 70 linters, including [hadolint](
-https://nvuillam.github.io/mega-linter/descriptors/dockerfile_hadolint/) out of the box.
+[Mega-Linter](https://megalinter.io/) aggregates 70 linters, including [hadolint](
+https://megalinter.io/latest/descriptors/dockerfile_hadolint/) out of the box.
 
 ### Super-Linter
 
@@ -359,7 +359,7 @@ Hadolint is used in two plugins:
 > Visual Studio Code is a lightweight but powerful source code editor which
 > runs on your desktop and is available for Windows, macOS and Linux.
 
-There is an integration [vscode-hadolint][] with [VS Code][], built by [ExiaSR][].
+There is an integration [vscode-hadolint][] with [VS Code][], built by [michaellzc][].
 
 ![vscode-hadolint-gif][]
 
@@ -414,4 +414,4 @@ that go outside of [code review](#code-review) or [editors' integration](#editor
 [vscode-hadolint]: https://marketplace.visualstudio.com/items?itemName=exiasr.hadolint
 [vscode-hadolint-gif]: https://i.gyazo.com/a701460ccdda13a1a449b2c3e8da40bc.gif
 [vs code]: https://code.visualstudio.com/
-[exiasr]: https://github.com/ExiaSR
+[michaellzc]: https://github.com/michaellzc
