@@ -40,22 +40,16 @@ missingProductionFlag acc cmd =
   )
 
 registerEnvs :: Pairs -> Acc -> Acc
-registerEnvs pairs (Acc envs) = Acc (Set.union envs (Set.fromList productionVars))
-  where
-    productionVars =
-      [ Text.toUpper key
-      | (key, value) <- pairs,
-        Text.toUpper key == "NODE_ENV",
-        Text.toLower value == "production"
-      ]
-registerEnvs pairs Empty = Acc (Set.fromList productionVars)
-  where
-    productionVars =
-      [ Text.toUpper key
-      | (key, value) <- pairs,
-        Text.toUpper key == "NODE_ENV",
-        Text.toLower value == "production"
-      ]
+registerEnvs pairs Empty = Acc (productionEnvVars pairs)
+registerEnvs pairs (Acc envs) = Acc (Set.union envs (productionEnvVars pairs))
+
+productionEnvVars :: Pairs -> Set.Set Text.Text
+productionEnvVars pairs = Set.fromList
+  [ Text.toUpper key
+  | (key, value) <- pairs,
+    Text.toUpper key == "NODE_ENV",
+    Text.toLower value == "production"
+  ]
 
 hasProductionEnv :: Acc -> Shell.Command -> Bool
 hasProductionEnv Empty _ = False
@@ -80,7 +74,7 @@ isNpmInstallOrCi cmd =
 hasNpmProductionFlag :: Shell.Command -> Bool
 hasNpmProductionFlag cmd =
   any (`elem` Shell.getArgs cmd) ["--production", "--only=production"] ||
-  any (== "--omit=dev") args ||
+  "--omit=dev" `elem` args ||
   hasOmitDev args
   where
     args = Shell.getArgs cmd
