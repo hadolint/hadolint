@@ -27,7 +27,7 @@ data Configuration =
     { noFail :: Bool,
       noColor :: Bool,
       verbose :: Bool,
-      format :: OutputFormat,
+      formats :: [OutputFormat],
       errorRules :: [RuleCode],
       warningRules :: [RuleCode],
       infoRules :: [RuleCode],
@@ -47,7 +47,7 @@ instance Default Configuration where
       False
       False
       False
-      def
+      mempty
       mempty
       mempty
       mempty
@@ -66,7 +66,7 @@ applyPartialConfiguration config partial =
     (fromMaybe (noFail config) (partialNoFail partial))
     (fromMaybe (noColor config) (partialNoColor partial))
     (fromMaybe (verbose config) (partialVerbose partial))
-    (fromMaybe (format config) (partialFormat partial))
+    (formats config <> partialFormats partial)
     (errorRules config <> partialErrorRules partial)
     (warningRules config <> partialWarningRules partial)
     (infoRules config <> partialInfoRules partial)
@@ -85,7 +85,7 @@ instance Pretty Configuration where
           [ "Configuration:",
             "no fail:" <+> pretty (noFail c),
             "no color:" <+> pretty (noColor c),
-            "output format:" <+> pretty (format c),
+            nest 2 ( "output format:\n" <> prettyPrintList pretty (formats c) ),
             "failure threshold:" <+> pretty (failureThreshold c),
             prettyPrintRulelist "error" (errorRules c),
             prettyPrintRulelist "warning" (warningRules c),
@@ -132,7 +132,7 @@ data PartialConfiguration =
     { partialNoFail :: Maybe Bool,
       partialNoColor :: Maybe Bool,
       partialVerbose :: Maybe Bool,
-      partialFormat :: Maybe OutputFormat,
+      partialFormats :: [OutputFormat],
       partialErrorRules :: [RuleCode],
       partialWarningRules :: [RuleCode],
       partialInfoRules :: [RuleCode],
@@ -192,7 +192,9 @@ instance Yaml.FromYAML PartialConfiguration where
     partialNoFail <- m .:? "no-fail" .!= Nothing
     partialNoColor <- m .:? "no-color" .!= Nothing
     partialVerbose <- m .:? "verbose" .!= Nothing
-    partialFormat <- m .:? "format"
+    partialFmt <- m .:? "format" .!= Nothing
+    partialFmts <- m .:? "formats" .!= mempty
+    let partialFormats = partialFmts <> listFromMaybe partialFmt
     override <- m .:? "override" .!= mempty
     ignored <- m .:? "ignored" .!= mempty
     trusted <- m .:? "trustedRegistries" .!= mempty
@@ -207,6 +209,10 @@ instance Yaml.FromYAML PartialConfiguration where
         partialAllowedRegistries = Set.fromList (coerce (trusted :: [Text]))
     partialFailureThreshold <- m .:? "failure-threshold"
     return PartialConfiguration {..}
+
+listFromMaybe :: Maybe a -> [a]
+listFromMaybe Nothing = []
+listFromMaybe (Just a) = [a]
 
 
 data OverrideConfig = OverrideConfig

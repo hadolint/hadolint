@@ -168,3 +168,15 @@ spec = do
     it "pipenv is not pip" $ do
       ruleCatchesNot "DL3013" "RUN pipenv install black"
       onBuildRuleCatchesNot "DL3013" "RUN pipenv install black"
+    it "pipx version not pinned" $ do
+      ruleCatches "DL3013" "RUN pipx install black"
+      onBuildRuleCatches "DL3013" "RUN pipx install black"
+    it "pipx install --python argument is not a package" $ do
+      ruleCatchesNot "DL3013" "RUN pipx install --python \"$(which python)\" \"poetry==1.8.5\""
+      onBuildRuleCatchesNot "DL3013" "RUN pipx install --python \"$(which python)\" \"poetry==1.8.5\""
+    it "pip install --root-user-action argument is not a package" $ do
+      ruleCatchesNot "DL3013" "RUN pip install --no-cache-dir --root-user-action ignore poetry==1.8.5"
+      onBuildRuleCatchesNot "DL3013" "RUN pip install --no-cache-dir --root-user-action ignore poetry==1.8.5"
+    it "pip install flag=value still checks the package" $ do
+      ruleCatches "DL3013" "RUN pip install --root-user-action=ignore mypkg"
+      onBuildRuleCatches "DL3013" "RUN pip install --root-user-action=ignore mypkg"

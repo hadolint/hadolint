@@ -51,6 +51,23 @@ spec = do
               "RUN wget -O - https://some.site | wc -l file > /number"
             ]
        in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    -- Regression test for #977: bash (and zsh/ash) should be recognized by
+    -- their basename, regardless of the absolute path they're found under
+    -- (e.g. systems where /bin is a symlink to /usr/bin).
+    it "don't warn when bash is invoked via a non-standard absolute path" $
+      let dockerFile =
+            [ "FROM scratch as build",
+              "SHELL [\"/usr/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "don't warn when zsh is invoked via a non-standard absolute path" $
+      let dockerFile =
+            [ "FROM scratch as build",
+              "SHELL [\"/usr/local/bin/zsh\", \"-o\", \"pipefail\", \"-c\"]",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
     it "don't warn on powershell" $
       let dockerFile =
             [ "FROM scratch as build",
@@ -71,6 +88,32 @@ spec = do
               "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
               "RUN wget -O - https://some.site | wc -l file > /number",
               "FROM scratch as build2",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "don't warn when the parent stage sets pipefail" $
+      let dockerFile =
+            [ "FROM scratch AS base",
+              "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
+              "FROM base AS intermediate",
+              "FROM intermediate",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "warn when the child stage resets the parent SHELL" $
+      let dockerFile =
+            [ "FROM scratch AS base",
+              "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
+              "FROM base",
+              "SHELL [\"/bin/sh\", \"-c\"]",
+              "RUN wget -O - https://some.site | wc -l file > /number"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "warn when the stage name matches an image from a registry" $
+      let dockerFile =
+            [ "FROM scratch AS base",
+              "SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]",
+              "FROM registry.example.com/base",
               "RUN wget -O - https://some.site | wc -l file > /number"
             ]
        in ruleCatches "DL4006" $ Text.unlines dockerFile

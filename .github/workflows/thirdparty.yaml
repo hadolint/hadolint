@@ -4,22 +4,35 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   third_party_notices_update:
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
       - name: Setup Haskell
         id: setup-haskell-cabal
-        uses: haskell/actions/setup@v2
+        uses: haskell-actions/setup@v2
         with:
-          ghc-version: "8.10"
-      - name: Update ThirdPartyNotices.txt
-        run: cabal update && cabal install licensor --constraint 'licensor >= 0.4 && <0.5' && /home/runner/.cabal/bin/licensor --silent > ThirdPartyNotices.txt
+          ghc-version: 9.10.2
+
+      - name: Install cabal-plan
+        run: |
+          cabal update
+          cabal install cabal-plan --flags='exe license-report'
+
+      - name: Update ThirdpartyNotices.txt
+        run: |
+          /home/runner/.cabal/bin/cabal-plan license-report exe:hadolint \
+            > ThirdPartyNotices.txt
+
       - name: Commit ThirdPartyNotices.txt
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v11
         with:
           add: "ThirdPartyNotices.txt"
           message: "Update ThirdPartyNotices.txt"

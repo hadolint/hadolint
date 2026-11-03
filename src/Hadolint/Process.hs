@@ -68,6 +68,13 @@ import qualified Hadolint.Rule.DL3058
 import qualified Hadolint.Rule.DL3059
 import qualified Hadolint.Rule.DL3060
 import qualified Hadolint.Rule.DL3061
+import qualified Hadolint.Rule.DL3062
+import qualified Hadolint.Rule.DL3063
+import qualified Hadolint.Rule.DL3064
+import qualified Hadolint.Rule.DL3065
+import qualified Hadolint.Rule.DL3066
+import qualified Hadolint.Rule.DL3067
+import qualified Hadolint.Rule.DL3068
 import qualified Hadolint.Rule.DL3070
 import qualified Hadolint.Rule.DL4000
 import qualified Hadolint.Rule.DL4001
@@ -82,6 +89,8 @@ import qualified Hadolint.Shell as Shell
 data AnalisisResult = AnalisisResult
   { -- | The set of ignored rules per line
     ignored :: SMap.IntMap (Set.Set RuleCode),
+    -- | The set of ignored rules per build stage
+    stageIgnored :: SMap.IntMap (Set.Set RuleCode),
     -- | The set of globally ignored rules
     globalIgnored :: Set.Set RuleCode,
     -- | A set of failures collected for reach rule
@@ -95,10 +104,24 @@ run config dockerfile = Seq.filter shouldKeep failed
 
     shouldKeep CheckFailure {line, code}
       | disableIgnorePragma config = True
-      | code `Set.member` globalIgnored = False
-      | otherwise = Just True /= do
-          ignoreList <- SMap.lookup line ignored
-          return $ code `Set.member` ignoreList
+      | otherwise = not $
+          code `Set.member` Set.unions [ ignores line, stageIgnores line, globalIgnores ]
+
+    ignores :: Int -> Set.Set RuleCode
+    ignores line =
+      case SMap.lookup line ignored of
+        Just set -> set
+        _ -> Set.empty
+
+    stageIgnores :: Int -> Set.Set RuleCode
+    stageIgnores line = do
+      let ls = 0:[x | x <- SMap.keys stageIgnored, x < line]
+      case SMap.lookup (last ls) stageIgnored of
+        Just set -> set
+        _ -> Set.empty
+
+    globalIgnores :: Set.Set RuleCode
+    globalIgnores = globalIgnored
 
 analyze ::
   Configuration ->
@@ -106,6 +129,7 @@ analyze ::
 analyze config =
   AnalisisResult
     <$> Hadolint.Pragma.ignored
+    <*> Hadolint.Pragma.stageIgnored
     <*> Hadolint.Pragma.globalIgnored
     <*> Foldl.premap parseShell (failures config)
 
@@ -173,6 +197,13 @@ failures Configuration {allowedRegistries, labelSchema, strictLabels} =
     <> Hadolint.Rule.DL3059.rule
     <> Hadolint.Rule.DL3060.rule
     <> Hadolint.Rule.DL3061.rule
+    <> Hadolint.Rule.DL3062.rule
+    <> Hadolint.Rule.DL3063.rule
+    <> Hadolint.Rule.DL3064.rule
+    <> Hadolint.Rule.DL3065.rule
+    <> Hadolint.Rule.DL3066.rule
+    <> Hadolint.Rule.DL3067.rule
+    <> Hadolint.Rule.DL3068.rule
     <> Hadolint.Rule.DL3070.rule
     <> Hadolint.Rule.DL4000.rule
     <> Hadolint.Rule.DL4001.rule

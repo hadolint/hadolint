@@ -2,17 +2,38 @@ module Hadolint.Shell where
 
 import Control.Monad.Writer (Writer, execWriter, tell)
 import Data.Functor.Identity (runIdentity)
-import Data.List (isInfixOf)
+import Data.List (findIndex, isInfixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Data.Text (Text)
-import qualified Data.Text as Text
-import ShellCheck.AST (Id (..), Token (..), pattern T_Pipe, pattern T_SimpleCommand)
-import qualified ShellCheck.AST
-import qualified ShellCheck.ASTLib
+import Data.Text qualified as Text
+import ShellCheck.AST
+  ( Id (..),
+    Token (..),
+    pattern TA_Expansion,
+    pattern TA_Sequence,
+    pattern T_Annotation,
+    pattern T_Backticked,
+    pattern T_DollarArithmetic,
+    pattern T_DollarBraced,
+    pattern T_DollarExpansion,
+    pattern T_DollarSingleQuoted,
+    pattern T_DoubleQuoted,
+    pattern T_Glob,
+    pattern T_Literal,
+    pattern T_NormalWord,
+    pattern T_ParamSubSpecialChar,
+    pattern T_Pipe,
+    pattern T_Pipeline,
+    pattern T_Redirecting,
+    pattern T_SimpleCommand,
+    pattern T_SingleQuoted,
+  )
+import ShellCheck.AST qualified
+import ShellCheck.ASTLib qualified
 import ShellCheck.Checker (checkScript)
 import ShellCheck.Interface
-import qualified ShellCheck.Parser
+import ShellCheck.Parser qualified
 
 data CmdPart = CmdPart
   { arg :: Text,
@@ -32,6 +53,9 @@ data ParsedShell = ParsedShell
     parsed :: ParseResult,
     presentCommands :: [Command]
   }
+
+instance Show ParsedShell where
+  show p = show (presentCommands p)
 
 data ShellOpts = ShellOpts
   { shellName :: Text.Text,
@@ -89,10 +113,20 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
 nonPosixShells :: [Text.Text]
 nonPosixShells = ["pwsh", "powershell", "cmd"]
 
+-- | Returns the last path segment of a shell command name, so that
+-- "/usr/bin/bash" and "/bin/bash" both resolve to "bash" just like a bare
+-- "bash" would. This lets shell-name matching (e.g. detecting bash/zsh/ash
+-- for the "-o pipefail" check) work regardless of which absolute path a
+-- shell happens to be installed under.
+shellBasename :: Text.Text -> Text.Text
+shellBasename = last . Text.splitOn "/"
+
 hasUnsupportedShebang :: Text.Text -> Bool
 hasUnsupportedShebang script =
-  "#!" `Text.isPrefixOf` script &&
-  not ( any (`Text.isPrefixOf` script)
+  "#!" `Text.isPrefixOf` script
+    && not
+      ( any
+          (`Text.isPrefixOf` script)
           [ "#!/bin/sh",
             "#!/bin/bash",
             "#!/bin/ksh",
@@ -158,18 +192,35 @@ noCommands check = allCommands (not . check)
 anyCommands :: (Command -> Bool) -> ParsedShell -> Bool
 anyCommands check script = any check (presentCommands script)
 
+findCommandIndex :: (Command -> Bool) -> ParsedShell -> Maybe Int
+findCommandIndex check script = findIndex check (presentCommands script)
+
 findCommandNames :: ParsedShell -> [Text]
 findCommandNames script = map name (presentCommands script)
 
 cmdHasArgs :: Text.Text -> [Text.Text] -> Command -> Bool
-cmdHasArgs expectedName expectedArgs (Command n args _)
-  | expectedName /= n = False
-  | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
+cmdHasArgs expectedName = cmdsHaveArgs [expectedName]
 
 cmdsHaveArgs :: [Text.Text] -> [Text.Text] -> Command -> Bool
 cmdsHaveArgs expectedNames expectedArgs (Command n args _)
   | n `notElem` expectedNames = False
   | otherwise = not $ null [arg | CmdPart arg _ <- args, arg `elem` expectedArgs]
+
+cmdHasAllArgs :: Text.Text -> [Text.Text] -> Command -> Bool
+cmdHasAllArgs expectedName = cmdsHaveAllArgs [expectedName]
+
+cmdsHaveAllArgs :: [Text.Text] -> [Text.Text] -> Command -> Bool
+cmdsHaveAllArgs expectedNames expectedArgs (Command n args _)
+  | n `notElem` expectedNames = False
+  | otherwise = all (`elem` [arg | CmdPart arg _ <- args]) expectedArgs
+
+-- | Whether the command is an @rm@ that recursively removes one of the given
+-- paths, however the flags are written (@-rf@, @-fr@, @-r -f@, @--recursive@).
+isRecursiveRemoval :: [Text.Text] -> Command -> Bool
+isRecursiveRemoval paths cmd@(Command n _ _) =
+  n == "rm"
+    && hasAnyFlag ["r", "R", "recursive"] cmd
+    && any (`elem` paths) (getArgsNoFlags cmd)
 
 cmdHasPrefixArg :: Text.Text -> Text.Text -> Command -> Bool
 cmdHasPrefixArg expectedName expectedArg (Command n args _)
@@ -181,10 +232,33 @@ extractAllArgs (T_SimpleCommand _ _ (_ : allArgs)) = map mkPart allArgs
   where
     mkPart token =
       CmdPart
-        (Text.concat . fmap Text.pack $ ShellCheck.ASTLib.oversimplify token)
+        (Text.concat . fmap Text.pack $ simplify token)
         (mkId (ShellCheck.AST.getId token))
     mkId (Id i) = i
 extractAllArgs _ = []
+
+-- Modified version of ShellCheck.ASTLib.oversimplify
+-- This version keeps variable names
+simplify :: Token -> [String]
+simplify token =
+  case token of
+    (T_NormalWord _ l) -> [concat (concatMap simplify l)]
+    (T_DoubleQuoted _ l) -> [concat (concatMap simplify l)]
+    (T_SingleQuoted _ s) -> [s]
+    (T_DollarBraced _ _ t) -> ["${" ++ concat (simplify t) ++ "}"]
+    (T_DollarArithmetic _ _) -> ["${VAR}"]
+    (T_DollarExpansion _ t) -> ["${" ++ concat (concatMap simplify t) ++ "}"]
+    (T_Backticked _ _) -> ["${VAR}"]
+    (T_Glob _ s) -> [s]
+    (T_Pipeline _ _ [x]) -> simplify x
+    (T_Literal _ x) -> [x]
+    (T_ParamSubSpecialChar _ x) -> [x]
+    (T_SimpleCommand _ _ wds) -> concatMap simplify wds
+    (T_Redirecting _ _ foo) -> simplify foo
+    (T_DollarSingleQuoted _ s) -> [s]
+    (T_Annotation _ _ s) -> simplify s
+    (TA_Sequence _ [TA_Expansion _ v]) -> concatMap simplify v
+    _ -> []
 
 getArgs :: Command -> [Text.Text]
 getArgs cmd = map arg (arguments cmd)
@@ -204,10 +278,10 @@ getArgsNoFlags args = map arg $ filter (notAFlagId . partId) (arguments args)
     notAFlagId pId = pId `notElem` map partId (flags args)
 
 hasFlag :: Text.Text -> Command -> Bool
-hasFlag flag Command {flags} = not $ null [f | CmdPart f _ <- flags, f == flag]
+hasFlag flag cmd = countFlag flag cmd > 0
 
 countFlag :: Text.Text -> Command -> Int
-countFlag flag Command {flags} = length [ f | CmdPart f _ <- flags, f == flag ]
+countFlag flag Command {flags} = length [f | CmdPart f _ <- flags, f == flag]
 
 hasAnyFlag :: [Text.Text] -> Command -> Bool
 hasAnyFlag fs Command {flags} = not $ null [f | CmdPart f _ <- flags, f `elem` fs]
@@ -218,7 +292,10 @@ hasArg arg Command {arguments} = not $ null [a | CmdPart a _ <- arguments, a == 
 dropFlagArg :: [Text.Text] -> Command -> Command
 dropFlagArg flagsToDrop Command {name, arguments, flags} = Command name filteredArgs flags
   where
-    idsToDrop = Set.fromList [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop]
+    idsToDrop =
+      Set.fromList
+        [getValueId fId arguments | CmdPart f fId <- flags, f `elem` flagsToDrop, not (hasInlineValue fId)]
+    hasInlineValue fId = or ["=" `Text.isInfixOf` a | CmdPart a aId <- arguments, aId == fId]
     filteredArgs = [arg | arg@(CmdPart _ aId) <- arguments, not (aId `Set.member` idsToDrop)]
 
 -- | given a flag and a command, return list of arguments for that particular

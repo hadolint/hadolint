@@ -24,7 +24,7 @@ dl3047 = simpleRule code severity message check
 
     forgotProgress cmd = isWget cmd && (not (hasProgressOption cmd) && not (hasSpecialFlags cmd))
     isWget (Shell.Command name _ _) = name == "wget"
-    hasProgressOption cmd = Shell.hasFlag "progress" cmd
+    hasProgressOption = Shell.hasFlag "progress"
 
     hasSpecialFlags cmd =
       hasQuietFlag cmd
@@ -32,9 +32,9 @@ dl3047 = simpleRule code severity message check
         || hasAppendOutputFlag cmd
         || hasNoVerboseFlag cmd
 
-    hasQuietFlag cmd = Shell.hasAnyFlag ["q", "quiet"] cmd
-    hasOutputFlag cmd = Shell.hasAnyFlag ["o", "output-file"] cmd
-    hasAppendOutputFlag cmd = Shell.hasAnyFlag ["a", "append-output"] cmd
+    hasQuietFlag = Shell.hasAnyFlag ["q", "quiet"]
+    hasOutputFlag = Shell.hasAnyFlag ["o", "output-file"]
+    hasAppendOutputFlag = Shell.hasAnyFlag ["a", "append-output"]
     hasNoVerboseFlag cmd =
       Shell.hasAnyFlag ["no-verbose"] cmd
         || Shell.cmdHasArgs "wget" ["-nv"] cmd

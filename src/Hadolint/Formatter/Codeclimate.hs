@@ -1,20 +1,21 @@
 module Hadolint.Formatter.Codeclimate
-  ( printResults,
-    printGitLabResults,
-    formatResult,
-    formatGitLabResult,
+  ( hWrite,
+    hWriteGitLab,
   )
 where
 
 import qualified Control.Foldl as Foldl
-import Crypto.Hash (Digest, SHA1 (..), hash)
+import qualified Crypto.Hash.SHA1 as SHA1
 import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Char8 as Char8
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), RuleCode (..))
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -29,7 +30,7 @@ data Issue = Issue
 
 data FingerprintIssue = FingerprintIssue
   { issue :: Issue,
-    fingerprint :: Digest SHA1
+    fingerprint :: Char8.ByteString
   }
 
 data Location
@@ -68,7 +69,7 @@ instance ToJSON FingerprintIssue where
   toJSON FingerprintIssue {..} =
     object
       [ "type" .= ("issue" :: Text.Text),
-        "fingerprint" .= show fingerprint,
+        "fingerprint" .= Char8.unpack fingerprint,
         "check_name" .= checkName issue,
         "description" .= description issue,
         "categories" .= (["Bug Risk"] :: [Text.Text]),
@@ -89,14 +90,16 @@ errorToIssue err =
     line = unPos (sourceLine pos)
     column = unPos (sourceColumn pos)
 
-checkToIssue :: Text.Text -> CheckFailure -> Issue
-checkToIssue fileName CheckFailure {..} =
+checkToIssue :: Text.Text -> Maybe FilePath -> CheckFailure -> Issue
+checkToIssue fileName filePathInReport CheckFailure {..} =
   Issue
     { checkName = unRuleCode code,
       description = message,
-      location = LocLine fileName line,
+      location = LocLine reportFileName line,
       impact = severityText severity
     }
+  where
+    reportFileName = if null filePathInReport then fileName else getFilePath filePathInReport
 
 severityText :: DLSeverity -> Text.Text
 severityText severity =
@@ -107,8 +110,8 @@ severityText severity =
     DLStyleC -> "minor"
     _ -> ""
 
-generateFingerprint :: Issue -> Digest SHA1
-generateFingerprint = hash . B.toStrict . encode
+generateFingerprint :: Issue -> Char8.ByteString
+generateFingerprint = B16.encode . SHA1.hashlazy . encode
 
 issueToFingerprintIssue :: Issue -> FingerprintIssue
 issueToFingerprintIssue i =
@@ -117,23 +120,39 @@ issueToFingerprintIssue i =
       fingerprint = generateFingerprint i
     }
 
-formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq Issue
-formatResult (Result filename errors checks) = (errorToIssue <$> errors) <> (checkToIssue filename <$> checks)
+formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Seq Issue
+formatResult (Result filename errors checks) filePathInReport = (errorToIssue <$> errors) <> (checkToIssue filename filePathInReport <$> checks)
 
-formatGitLabResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Seq FingerprintIssue
-formatGitLabResult result = issueToFingerprintIssue <$> formatResult result
+formatGitLabResult ::
+  (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
+  Result s e -> Maybe FilePath ->
+  Seq FingerprintIssue
+formatGitLabResult result filePathInReport = issueToFingerprintIssue <$> formatResult result filePathInReport
 
-printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> IO ()
-printResult result = mapM_ output (formatResult result)
+printResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
+  Handle -> Result s e -> Maybe FilePath -> IO ()
+printResult handle result filePathInReport = mapM_ output (formatResult result filePathInReport)
   where
     output value = do
-      B.putStr (encode value)
-      B.putStr (B.singleton 0x00)
+      B.hPutStr handle (encode value)
+      B.hPutStr handle (B.singleton 0x00)
 
-printResults :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) => f (Result s e) -> IO ()
-printResults = mapM_ printResult
-
-printGitLabResults :: (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) => f (Result s e) -> IO ()
-printGitLabResults results = B.putStr . encode $ flattened
+hWrite :: (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results filePathInReport = flattened
   where
-    flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results
+    flattened = Foldl.fold (Foldl.premap ( printResult handle ) Foldl.mconcat) results filePathInReport
+
+hWriteGitLab ::
+  (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWriteGitLab handle results filePathInReport = B.hPutStr handle . encode $ flattened
+  where
+    flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results filePathInReport
+
+getFilePath :: Maybe FilePath -> Text.Text
+getFilePath Nothing = ""
+getFilePath (Just filePath) = toText [filePath]
+
+toText :: [FilePath] -> Text.Text
+toText = foldMap Text.pack

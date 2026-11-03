@@ -1,7 +1,5 @@
 module Hadolint.Formatter.Codacy
-  ( printResults,
-    formatResult,
-  )
+  ( hWrite )
 where
 
 import qualified Control.Foldl as Foldl
@@ -11,6 +9,7 @@ import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import Hadolint.Formatter.Format (Result (..), errorPosition)
 import Hadolint.Rule (CheckFailure (..), RuleCode (..))
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceLine, sourceName, unPos)
@@ -55,11 +54,10 @@ formatResult (Result filename errors checks) = allIssues
     errorMessages = fmap errorToIssue errors
     checkMessages = fmap (checkToIssue filename) checks
 
-printResults ::
+hWrite ::
   (Foldable f, VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  f (Result s e) ->
-  IO ()
-printResults results = mapM_ output flattened
+  Handle -> f (Result s e) -> IO ()
+hWrite handle results = mapM_ output flattened
   where
     flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
-    output value = B.putStrLn (encode value)
+    output value = B.hPutStr handle ( encode value )

@@ -1,9 +1,9 @@
 module Hadolint.Rule.DL3041Spec (spec) where
 
 import Data.Default
+import Data.Text qualified as Text
 import Helpers
 import Test.Hspec
-
 
 spec :: SpecWith ()
 spec = do
@@ -14,17 +14,49 @@ spec = do
       ruleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"
       ruleCatches "DL3041" "RUN microdnf install -y tomcat && microdnf clean all"
       onBuildRuleCatches "DL3041" "RUN dnf install -y tomcat && dnf clean all"
+
+    it "not ok without dnf version pinning - package name with `-`" $ do
+      ruleCatches "DL3041" "RUN dnf install -y rpm-sign && dnf clean all"
+      ruleCatches "DL3041" "RUN microdnf install -y rpm-sign && microdnf clean all"
+      onBuildRuleCatches "DL3041" "RUN dnf install -y rpm-sign && dnf clean all"
+
     it "ok with dnf version pinning" $ do
       ruleCatchesNot "DL3041" "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
       ruleCatchesNot "DL3041" "RUN microdnf install -y tomcat-9.0.1 && microdnf clean all"
-      ruleCatchesNot "DL3041" "RUN notdnf install tomcat"
       onBuildRuleCatchesNot "DL3041" "RUN dnf install -y tomcat-9.0.1 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y tomcat-9.0.1 && microdnf clean all"
+
+    it "ok with version pinning if command is not `dnf` or `microdnf`" $ do
+      ruleCatchesNot "DL3041" "RUN notdnf install openssl-1:1.1.1k"
+      onBuildRuleCatchesNot "DL3041" "RUN notdnf install openssl-1:1.1.1k"
+
+    it "ok without version pinning if command is not `dnf` or `microdnf`" $ do
+      ruleCatchesNot "DL3041" "RUN notdnf install tomcat"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf install tomcat"
+
+    it "ok with dnf version pinning - package name with `-`" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y rpm-sign-4.16.1.3 && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y rpm-sign-4.16.1.3 && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y rpm-sign-4.16.1.3 && dnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y rpm-sign-4.16.1.3 && microdnf clean all"
+
+    it "ok with dnf version pinning - package name with `-` and `+`" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y gcc-c++-1.1.1"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y gcc-c++-1.1.1"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y gcc-c++-1.1.1"
+      onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y gcc-c++-1.1.1"
+
+    it "ok with dnf version pinning - package version with epoch" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y openssl-1:1.1.1k"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y openssl-1:1.1.1k"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y openssl-1:1.1.1k"
+      onBuildRuleCatchesNot "DL3041" "RUN microdnf install -y openssl-1:1.1.1k"
+
     it "not ok without dnf version pinning - modules" $ do
       ruleCatches "DL3041" "RUN dnf module install -y tomcat && dnf clean all"
       ruleCatches "DL3041" "RUN microdnf module install -y tomcat && microdnf clean all"
       onBuildRuleCatches "DL3041" "RUN dnf module install -y tomcat && dnf clean all"
+
     it "ok with dnf version pinning - modules" $ do
       ruleCatchesNot "DL3041" "RUN dnf module install -y tomcat:9 && dnf clean all"
       ruleCatchesNot "DL3041" "RUN microdnf module install -y tomcat:9 && microdnf clean all"
@@ -32,3 +64,83 @@ spec = do
       onBuildRuleCatchesNot "DL3041" "RUN dnf module install -y tomcat:9 && dnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN microdnf module install -y tomcat:9 && microdnf clean all"
       onBuildRuleCatchesNot "DL3041" "RUN notdnf module install tomcat"
+
+    it "ok with dnf group install" $ do
+      ruleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf -y --setopt=group_package_types=\"mandatory\" group install \"Development Tools\""
+      ruleCatchesNot "DL3041" "RUN dnf group install -y \"Development Tools\" && dnf clean all"
+      ruleCatchesNot "DL3041" "RUN microdnf group install -y \"Development Tools\" && microdnf clean all"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf -y group install \"Development Tools\""
+
+    -- this is important e.g. when using renovatebot
+    it "ok with version as variable - braced" $ do
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "ENV version=2.51.0-2.fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
+       in do
+            ruleCatchesNot rule snippet
+
+    it "ok with version as arg - unbraced" $ do
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "ARG version=2.51.0-2.fc42",
+                "RUN dnf -y install git-core-$version"
+              ]
+       in do
+            ruleCatchesNot rule snippet
+
+    it "ok with version as arg - different stages" $ do
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ARG version=2.51.0-2.fc42",
+                "FROM fedora:fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
+       in do
+            ruleCatchesNot rule snippet
+
+    it "ok with version as env - different stages, reused stage" $ do
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ENV version=2.51.0-2.fc42",
+                "FROM build",
+                "RUN dnf -y install git-core-${version}"
+              ]
+       in do
+            ruleCatchesNot rule snippet
+
+    it "not ok with version as variable - different stages, new stage" $ do
+      let rule = "DL3041"
+          snippet =
+            Text.unlines
+              [ "FROM fedora:fc42 AS build",
+                "ENV version=2.51.0-2.fc42",
+                "FROM fedora:fc42",
+                "RUN dnf -y install git-core-${version}"
+              ]
+       in do
+            ruleCatches rule snippet
+
+    it "ok with options that take a separate value" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y --installroot /mnt/rootfs --releasever 9 --setopt install_weak_deps=false tomcat-9.0.1"
+      ruleCatchesNot "DL3041" "RUN dnf install -y --enablerepo crb --disablerepo epel -x foo tomcat-9.0.1"
+      ruleCatchesNot "DL3041" "RUN microdnf install -y --config /etc/dnf.conf tomcat-9.0.1"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y --releasever 9 tomcat-9.0.1"
+
+    it "not ok with options that take a separate value and an unpinned package" $ do
+      ruleCatches "DL3041" "RUN dnf install -y --releasever 9 tomcat"
+      ruleCatches "DL3041" "RUN dnf install -y --enablerepo crb tomcat"
+      onBuildRuleCatches "DL3041" "RUN dnf install -y --releasever 9 tomcat"
+
+    it "ok with a wildcard version" $ do
+      ruleCatchesNot "DL3041" "RUN dnf install -y rspamd-3.* tini-0.*"
+      ruleCatches "DL3041" "RUN dnf install -y rspamd-*"
+      onBuildRuleCatchesNot "DL3041" "RUN dnf install -y rspamd-3.*"

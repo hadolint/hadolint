@@ -36,4 +36,4 @@ hasConsecutiveSeparators :: Text.Text -> Bool
 hasConsecutiveSeparators l = ".." `Text.isInfixOf` l || "--" `Text.isInfixOf` l
 
 validChars :: String
-validChars = ['0'..'9'] ++ ['a' .. 'z'] ++ ['.', '-']
+validChars = ['0'..'9'] ++ ['a' .. 'z'] ++ ['.', '-', '_', '/']

@@ -3,6 +3,7 @@ module Hadolint.Config.Configfile
   )
 where
 
+import Control.Exception (IOException, catch)
 import Control.Monad (when, filterM)
 import Data.Maybe (listToMaybe)
 import Data.YAML as Yaml
@@ -84,13 +85,15 @@ findConfig = do
   filesInCWD <- traverse
                   (\filePath -> (</> filePath) <$> getCurrentDirectory)
                   hiddenConfigs
-  filesInXdgConfig <- traverse (getXdgDirectory XdgConfig) visibleConfigs
-  filesInAppData <- traverse
-                      (\fp -> (</> fp) <$> getAppUserDataDirectory "hadolint")
-                      (visibleConfigs <> moreConfigs)
-  filesInHome <- traverse
-                   (\fp -> (</> fp) <$> getUserDocumentsDirectory)
-                   hiddenConfigs
+  filesInXdgConfig <- homeLookup $ traverse (getXdgDirectory XdgConfig) visibleConfigs
+  filesInAppData <- homeLookup $
+                      traverse
+                        (\fp -> (</> fp) <$> getAppUserDataDirectory "hadolint")
+                        (visibleConfigs <> moreConfigs)
+  filesInHome <- homeLookup $
+                   traverse
+                     (\fp -> (</> fp) <$> getUserDocumentsDirectory)
+                     hiddenConfigs
   listToMaybe
     <$> filterM
           doesFileExist
@@ -99,3 +102,17 @@ findConfig = do
     hiddenConfigs = [".hadolint.yaml", ".hadolint.yml"]
     visibleConfigs = ["hadolint.yaml", "hadolint.yml"]
     moreConfigs = ["config.yaml", "config.yml"]
+
+
+-- | A lookup that depends on the home directory.
+--
+-- Not every host provides one. Under WASI there is no home unless the host sets
+-- @HOME@ (and a real @getEffectiveUserID@ behind it), and these calls throw
+-- rather than return nothing; the same is true of a container with no @HOME@.
+-- That is not an error: it means there is no config file there, and the
+-- current-directory lookup above still applies.
+homeLookup :: IO [FilePath] -> IO [FilePath]
+homeLookup action = action `catch` ignoreMissingHome
+  where
+    ignoreMissingHome :: IOException -> IO [FilePath]
+    ignoreMissingHome _ = pure []

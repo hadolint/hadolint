@@ -20,6 +20,32 @@ spec = do
     it "ok with cache clean" $ do
       ruleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
       onBuildRuleCatchesNot "DL3060" "RUN yarn install bar && yarn cache clean"
+    it "not ok with clean before install" $ do
+      ruleCatches "DL3060" "RUN yarn cache clean && yarn install foo"
+
+    it "ok when cache mount is used" $
+      let line = "RUN --mount=type=cache,target=/root/.cache/yarn yarn install foobar"
+      in do
+        ruleCatchesNot "DL3060" line
+        onBuildRuleCatchesNot "DL3060" line
+
+    it "ok when tmpfs mount is used" $
+      let line = "RUN --mount=type=tmpfs,target=/root/.cache/yarn yarn install foobar"
+      in do
+        ruleCatchesNot "DL3060" line
+        onBuildRuleCatchesNot "DL3060" line
+
+    it "not ok when cache mount is in wrong location" $
+      let line = "RUN --mount=type=cache,target=/var/lib/foobar yarn install foobar"
+      in do
+        ruleCatches "DL3060" line
+        onBuildRuleCatches "DL3060" line
+
+    it "not ok when tmpfs mount is in wrong location" $
+      let line = "RUN --mount=type=tmpfs,target=/var/lib/foobar yarn install foobar"
+      in do
+        ruleCatches "DL3060" line
+        onBuildRuleCatches "DL3060" line
 
     it "not ok when yarn install is in last stage w/o yarn clean" $
       let dockerFile =
@@ -68,3 +94,23 @@ spec = do
        in do
             ruleCatchesNot "DL3060" dockerFile
             onBuildRuleCatches "DL3060" dockerFile
+
+    it "ok with strict all-args matching for yarn cache clean" $
+      let dockerFile =
+            Text.unlines
+              [ "RUN yarn install foo && yarn cache clean"
+              ]
+       in do
+            ruleCatchesNot "DL3060" dockerFile
+            onBuildRuleCatchesNot "DL3060" dockerFile
+
+    it "not ok with strict all-args matching for yarn cache clean" $
+      let dockerFile :: [Text.Text]
+          dockerFile =
+            [ "RUN yarn install foo && yarn cache",
+              "RUN yarn install foo && yarn cache dir"
+            ]
+       in do
+            mapM_ (ruleCatches "DL3060") dockerFile
+            mapM_ (onBuildRuleCatches "DL3060") dockerFile
+

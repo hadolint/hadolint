@@ -5,12 +5,11 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
 
-  describe "DL3009 - Delete the apt-get lists after installing something." $ do
+  describe "DL3009 - Delete the apt lists (/var/lib/apt/lists) after installing something." $ do
     it "apt-get no cleanup" $
       let dockerFile =
             [ "FROM scratch",
@@ -131,3 +130,119 @@ spec = do
        in do
             ruleCatches "DL3009" $ Text.unlines dockerFile
             onBuildRuleCatches "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: tmpfs mount to apt cache and lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=tmpfs,target=/var/cache/apt \\",
+              "  --mount=type=tmpfs,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: tmpfs mount to apt cache and cache mount to lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=tmpfs,target=/var/cache/apt \\",
+              "  --mount=type=cache,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: cache mount to apt cache and tmpfs mount to lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=cache,target=/var/cache/apt \\",
+              "  --mount=type=tmpfs,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "don't warn: cache mount to apt cache and lists directory" $
+      let dockerFile =
+            [ "RUN \\",
+              "  --mount=type=cache,target=/var/cache/apt \\",
+              "  --mount=type=cache,target=/var/lib/apt \\",
+              "  apt-get update"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "apt no cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN apt update && apt install python"
+            ]
+       in do
+            ruleCatches "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatches "DL3009" $ Text.unlines dockerFile
+
+    it "apt cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN apt update && apt install python && rm -rf /var/lib/apt/lists/*"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "aptitude no cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN aptitude update && aptitude install python"
+            ]
+       in do
+            ruleCatches "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatches "DL3009" $ Text.unlines dockerFile
+
+    it "aptitude cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN aptitude update && aptitude install python && rm -rf /var/lib/apt/lists/*"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "ok with strict all-args matching for aptitude cleanup" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN aptitude update && aptitude install python && rm -rf /var/lib/apt/lists/*",
+              "RUN rm -rf /foo/bar && aptitude update && aptitude install python && rm -rf /var/lib/apt/lists/*",
+              "RUN aptitude update && rm -rf /foo/bar && aptitude install python && rm -rf /var/lib/apt/lists/*"
+            ]
+      mapM_ (ruleCatchesNot "DL3009") dockerFile
+      mapM_ (onBuildRuleCatchesNot "DL3009") dockerFile
+
+    it "not ok with strict all-args matching for aptitude cleanup" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN aptitude update && aptitude install python && rm -rf /var/cache/libdnf5",
+              "RUN aptitude update && aptitude install python && rm -rf /var/cache/yum/*"
+            ]
+      mapM_ (ruleCatches "DL3009") dockerFile
+      mapM_ (onBuildRuleCatches "DL3009") dockerFile
+
+    it "ok with any form of recursive removal of the apt lists" $ do
+      let dockerFile :: [Text]
+          dockerFile =
+            [ "RUN apt-get update && apt-get install python && rm -fr /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -r -f /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -Rf /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm --recursive --force /var/lib/apt/lists/*",
+              "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists",
+              "RUN apt-get update && apt-get install python && rm -rf /var/lib/apt/lists/"
+            ]
+      mapM_ (ruleCatchesNot "DL3009") dockerFile
+      mapM_ (onBuildRuleCatchesNot "DL3009") dockerFile
+
+    it "not ok with a non-recursive removal of the apt lists" $ do
+      ruleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"
+      onBuildRuleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"

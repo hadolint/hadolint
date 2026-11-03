@@ -8,6 +8,7 @@ stack.yaml.lock
 
 #cabal
 dist-newstyle
+dist
 
 # travis wait is generating log in PWD
 travis_wait_*.log
@@ -26,3 +27,7 @@ devenv.local.nix
 
 .DS_Store
 .vim
+
+*.wasm
+
+hspec-discover.tix

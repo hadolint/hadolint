@@ -25,7 +25,7 @@ rule = veryCustomRule check (emptyState Empty) markFailures
     message = "Use `ADD` for extracting archives into an image"
 
     check _ _ (From _) = emptyState Empty
-    check line st (Copy (CopyArgs srcs tgt) (CopyFlags _ _ _ NoSource _)) =
+    check line st (Copy (CopyArgs srcs tgt) (CopyFlags _ _ _ _ NoSource _)) =
       st |> modify (rememberArchives line srcs tgt)
     check _ st (Run (RunArgs args _))
       | Acc archives _ <- state st,

@@ -1,11 +1,23 @@
 packages:
   .
 
+allow-newer:
+  time
+
 optional-packages:
   vendored/**/*.cabal
 
-source-repository-package
+
+if arch(wasm32)
+  shared: True
+
+  source-repository-package
     type: git
-    location: https://github.com/lorenzo/shellcheck
-    tag: 248273935cd95afeaf835c688980ac5bccca8d14
-    --sha256: 1xm38l1fcq2agiwhh2jqikzinv5ldgnfazgir83xyv8r2v6x1ray
+    location: https://github.com/haskell-wasm/network
+    tag: ab92e48e9fdf3abe214f85fdbe5301c1280e14e9
+
+  source-repository-package
+    type: git
+    location: https://github.com/m-ildefons/haskell-xml
+    tag: 755c749efe70bcaefa7d182dc62f70cb79f45a32
+    subdir: xml-conduit

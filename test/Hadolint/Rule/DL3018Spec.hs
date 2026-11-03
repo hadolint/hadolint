@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -17,6 +16,17 @@ spec = do
     it "apk add no version pinning single" $ do
       ruleCatchesNot "DL3018" "RUN apk add flex=2.6.4-r1"
       onBuildRuleCatchesNot "DL3018" "RUN apk add flex=2.6.4-r1"
+
+    it "apk add tilde version pinning single" $ do
+      ruleCatchesNot "DL3018" "RUN apk add --no-cache git~2.52.0"
+      onBuildRuleCatchesNot "DL3018" "RUN apk add --no-cache git~2.52.0"
+
+    it "apk add ~= and =~ version pinning" $ do
+      ruleCatchesNot "DL3018" "RUN apk add --no-cache git~=2.52"
+      ruleCatchesNot "DL3018" "RUN apk add --no-cache git=~2.52"
+      onBuildRuleCatchesNot "DL3018" "RUN apk add --no-cache git~=2.52"
+      onBuildRuleCatchesNot "DL3018" "RUN apk add --no-cache git=~2.52"
+
     it "apk add version pinned chained" $
       let dockerFile =
             [ "RUN apk add --no-cache flex=2.6.4-r1 \\",
@@ -25,6 +35,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add version pinned regression" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -36,6 +47,20 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
+    it "apk add version pinned with fuzzy versions" $
+      let dockerfile =
+            Text.unlines
+              [ "RUN apk add --no-cache \\",
+                "  \"flex>=2.6.1-r1\" \\",
+                "  \"libffi~3.2.1\" \\",
+                "  \"python3<3.6.12-r2\" \\",
+                "  \"libbz2=~1.0.6-r4\""
+              ]
+       in do
+            ruleCatchesNot "DL3018" dockerfile
+            onBuildRuleCatchesNot "DL3018" dockerfile
+
     it "apk add version pinned regression - one missed" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -47,6 +72,7 @@ spec = do
        in do
             ruleCatches "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatches "DL3018" $ Text.unlines dockerFile
+
     it "apk add virtual package" $
       let dockerFile =
             [ "RUN apk add \\",
@@ -59,6 +85,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository without equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -68,6 +95,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository with equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",
@@ -77,6 +105,7 @@ spec = do
        in do
             ruleCatchesNot "DL3018" $ Text.unlines dockerFile
             onBuildRuleCatchesNot "DL3018" $ Text.unlines dockerFile
+
     it "apk add with repository (-X) without equal sign" $
       let dockerFile =
             [ "RUN apk add --no-cache \\",

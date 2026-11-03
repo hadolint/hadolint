@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -14,9 +13,14 @@ spec = do
     it "runs shellcheck on RUN instructions" $ do
       assertChecks "RUN echo $MISSING_QUOTES" failsShellcheck
       assertOnBuildChecks "RUN echo $MISSING_QUOTES" failsShellcheck
+
     it "not warns on valid scripts" $ do
       assertChecks "RUN echo foo" passesShellcheck
       assertOnBuildChecks "RUN echo foo" passesShellcheck
+
+    it "no warnings on exec notations" $ do
+      assertChecks "RUN [\"foobar\", \"$f\"]" passesShellcheck
+      assertOnBuildChecks "RUN [\"foobar\", \"$f\"]" passesShellcheck
 
     it "Does not complain on default env vars" $
       let dockerFile =
@@ -91,6 +95,35 @@ spec = do
             -- This is debatable, as it should actually pass, but detecting it correctly
             -- is quite difficult
             assertOnBuildChecks dockerFile failsShellcheck
+    it "ARG after SHELL does not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"/bin/bash\", \"-c\"]",
+                "ARG FOO=bar",
+                "RUN arr=(a b c) && echo \"${arr[1]}\""
+              ]
+       in assertChecks dockerFile passesShellcheck
+
+    it "ENV after SHELL does not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "SHELL [\"/bin/bash\", \"-euo\", \"pipefail\", \"-c\"]",
+                "ENV FOO=bar",
+                "RUN if [[ -n \"$FOO\" ]]; then echo \"$FOO\"; fi",
+                "RUN set -o pipefail && echo foo | cat"
+              ]
+       in assertChecks dockerFile passesShellcheck
+
+    it "ARG and ENV after a shell pragma do not reset the shell" $
+      let dockerFile =
+            Text.unlines
+              [ "# hadolint shell=/bin/bash",
+                "ARG FOO=bar",
+                "ENV BAR=baz",
+                "RUN echo $RANDOM"
+              ]
+       in assertChecks dockerFile passesShellcheck
+
     it "Resets the SHELL to sh after a FROM" $
       let dockerFile =
             Text.unlines
@@ -169,3 +202,53 @@ spec = do
        in do
             assertChecks dockerFile passesShellcheck
             assertOnBuildChecks dockerFile passesShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 1" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "",
+                "FROM base",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck
+
+    it "SHELL instructions are propagated only propagated if referencing earlier stage" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "",
+                "FROM ubuntu:24.04",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile failsShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 2" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM something AS nothing",
+                "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "FROM nothing",
+                "FROM base",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck
+
+    it "SHELL instructions are propagated in multi-stage builds 3" $
+      let dockerfile =
+            Text.unlines
+              [ "FROM ubuntu:24.04 AS base",
+                "SHELL [\"/bin/bash\", \"-e\", \"-o\", \"pipefail\", \"-c\"]",
+                "FROM base AS next",
+                "RUN foobar && barfoo | tee logfile",
+                "FROM next",
+                "RUN source /etc/os-release"
+              ]
+       in do
+            assertChecks dockerfile passesShellcheck

@@ -1,7 +1,9 @@
 module Hadolint.Rule.DL3026 (rule) where
 
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
-import Data.Text (Text, pack, drop, dropEnd, isSuffixOf, isPrefixOf)
+import Data.String ( IsString(..) )
+import Data.Text (Text, pack, unpack, drop, dropEnd, isSuffixOf, isPrefixOf)
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -17,7 +19,24 @@ rule allowed = customRule check (emptyState Set.empty)
        in if doCheck (state st) image
             then newState
             else newState |> addFail CheckFailure {..}
+    check line st (Copy _ (CopyFlags _ _ _ _ (CopySource src) _)) =
+      let img = fromString ( Data.Text.unpack src )
+       in if doCheck (state st) img
+            then st
+            else st |> addFail CheckFailure {..}
+    check line st (Run (RunArgs _ (RunFlags m _ _))) =
+       if null $ Set.filter (not . checkMount st) m
+         then st
+         else st |> addFail CheckFailure {..}
     check _ st _ = st
+
+    checkMount st (CacheMount (CacheOpts _ _ _ _ fi _ _ _ _)) =
+      let img = fromString $ unpack $ Maybe.fromMaybe "scratch" fi
+       in doCheck (state st) img
+    checkMount st (BindMount (BindOpts _ _ fi _ _)) =
+      let img = fromString $ unpack $ Maybe.fromMaybe "scratch" fi
+       in doCheck (state st) img
+    checkMount _ _ = True
 
     doCheck st img = Set.member (toImageAlias img) st || Set.null allowed || isAllowed img
 
@@ -29,13 +48,13 @@ rule allowed = customRule check (emptyState Set.empty)
         || isRegistryAllowed "hub.docker.com"
 
     isRegistryAllowed registry = any (\p -> matchRegistry (unRegistry p) registry) allowed
-
-    matchRegistry :: Text -> Text -> Bool
-    matchRegistry allow registry | allow == star = True
-                                 | star `isPrefixOf` allow = Data.Text.drop 1 allow `isSuffixOf` registry
-                                 | star `isSuffixOf` allow = Data.Text.dropEnd 1 allow `isPrefixOf` registry
-                                 | otherwise = registry == allow
-                                  where
-                                      star = pack "*"
-
 {-# INLINEABLE rule #-}
+
+matchRegistry :: Text -> Text -> Bool
+matchRegistry allow registry
+  | allow == star = True
+  | star `isPrefixOf` allow = Data.Text.drop 1 allow `isSuffixOf` registry
+  | star `isSuffixOf` allow = Data.Text.dropEnd 1 allow `isPrefixOf` registry
+  | otherwise = registry == allow
+  where
+      star = pack "*"

@@ -28,27 +28,29 @@ import qualified Data.Text as Text
 import qualified Hadolint.Rule
 
 data OutputFormat
-  = Json
-  | SonarQube
-  | TTY
+  = Checkstyle
+  | Codacy
   | CodeclimateJson
   | GitLabCodeclimateJson
   | Gnu
-  | Checkstyle
-  | Codacy
+  | JUnit
+  | Json
   | Sarif
+  | SonarQube
+  | TTY
   deriving (Eq, Show)
 
 instance Pretty OutputFormat where
-  pretty Json = "json"
-  pretty SonarQube = "sonarqube"
-  pretty TTY = "tty"
+  pretty Checkstyle = "checkstyle"
+  pretty Codacy = "codacy"
   pretty CodeclimateJson = "codeclimate"
   pretty GitLabCodeclimateJson = "gitlab_codeclimate"
   pretty Gnu = "gnu"
-  pretty Checkstyle = "checkstyle"
-  pretty Codacy = "codacy"
+  pretty JUnit = "junit"
+  pretty Json = "json"
   pretty Sarif = "sarif"
+  pretty SonarQube = "sonarqube"
+  pretty TTY = "tty"
 
 instance Semigroup OutputFormat where
   _ <> f = f
@@ -73,15 +75,16 @@ instance Default OutputFormat where
   def = TTY
 
 readMaybeOutputFormat :: Text -> Maybe OutputFormat
-readMaybeOutputFormat "json" = Just Json
-readMaybeOutputFormat "sonarqube" = Just SonarQube
-readMaybeOutputFormat "tty" = Just TTY
+readMaybeOutputFormat "checkstyle" = Just Checkstyle
+readMaybeOutputFormat "codacy" = Just Codacy
 readMaybeOutputFormat "codeclimate" = Just CodeclimateJson
 readMaybeOutputFormat "gitlab_codeclimate" = Just GitLabCodeclimateJson
 readMaybeOutputFormat "gnu" = Just Gnu
-readMaybeOutputFormat "checkstyle" = Just Checkstyle
-readMaybeOutputFormat "codacy" = Just Codacy
+readMaybeOutputFormat "junit" = Just JUnit
+readMaybeOutputFormat "json" = Just Json
 readMaybeOutputFormat "sarif" = Just Sarif
+readMaybeOutputFormat "sonarqube" = Just SonarQube
+readMaybeOutputFormat "tty" = Just TTY
 readMaybeOutputFormat _ = Nothing
 
 

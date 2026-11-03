@@ -2,6 +2,7 @@ module RegressionSpec (spec) where
 
 import Data.Default
 import qualified Data.Text as Text
+import Hadolint (Configuration (..))
 import Helpers
 import Test.HUnit hiding (Label)
 import Test.Hspec
@@ -36,3 +37,25 @@ spec = do
        in assertChecks
             dockerFile
             (assertBool "No Warnings or Errors should be triggered," . null)
+
+    it "`ARG` or `ENV` does not reset shell name given by SHELL instruction or shell pragma" $ do
+      let ?config = def { ignoreRules = [ "DL3057" ] }
+      let dockerfile =
+            Text.unlines
+              [ "# escape=`",
+                "# hadolint shell=powershell",
+                "",
+                "ARG WINDOWS_VERSION=ltsc2022",
+                "FROM mcr.microsoft.com/windows/servercore:\"${WINDOWS_VERSION}\" AS jre-and-war",
+                "# $ProgressPreference: https://github.com/PowerShell/PowerShell/issues/2138#issuecomment-251261324",
+                "SHELL [\"powershell\", \"-Command\", \"$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';\"]",
+                "",
+                "ARG JAVA_ZIP_URL=\"Provided by docker-bake.hcl\"",
+                "ARG jdkTemp='C:\\jdktemp'",
+                "ARG localArchive=\"${jdkTemp}\\jdk.zip\"",
+                "RUN New-Item -ItemType Directory -Path $env:jdkTemp | Out-Null ; `",
+                "    Invoke-WebRequest $env:JAVA_ZIP_URL -OutFile $env:localArchive"
+              ]
+       in do
+        assertChecks dockerfile passesShellcheck
+        assertChecks dockerfile passesAllEnabled

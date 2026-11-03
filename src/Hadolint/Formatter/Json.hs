@@ -1,6 +1,6 @@
 module Hadolint.Formatter.Json
-  ( printResults,
-    formatResult,
+  ( hWrite,
+    render,
   )
 where
 
@@ -9,6 +9,7 @@ import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as TextEncoding
 import Hadolint.Formatter.Format
   ( Result (..),
     errorPosition,
@@ -16,6 +17,7 @@ import Hadolint.Formatter.Format
     errorMessage
   )
 import Hadolint.Rule (CheckFailure (..), DLSeverity (..), unRuleCode)
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos (sourceColumn, sourceLine, sourceName, unPos)
@@ -47,13 +49,20 @@ instance (VisualStream s, TraversableStream s, ShowErrorComponent e) => ToJSON (
     where
       pos = errorPosition err
 
-printResults ::
+-- | The report as text, for callers that need the value rather than a stream —
+-- a JavaScript export cannot see what was written to a Handle.
+render ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
-  f (Result s e) ->
-  IO ()
-printResults results = B.putStr . encode $ flattened
-  where
-    flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
+  f (Result s e) -> Text.Text
+render = TextEncoding.decodeUtf8 . B.toStrict . encode . flatten
+
+hWrite ::
+  (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
+  Handle -> f (Result s e) -> IO ()
+hWrite handle = B.hPutStr handle . encode . flatten
+
+flatten :: Foldable f => f (Result s e) -> Seq (JsonFormat s e)
+flatten = Foldl.fold (Foldl.premap formatResult Foldl.mconcat)
 
 formatResult :: Result s e -> Seq (JsonFormat s e)
 formatResult (Result fileName errors checks) = allMessages

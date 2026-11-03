@@ -4,12 +4,12 @@ import Data.List (isInfixOf)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
-import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
+import qualified Hadolint.Utils as Utils
 import Language.Docker.Syntax
 
 
@@ -38,10 +38,11 @@ dl3042 = customRule check (emptyState Empty)
               \ Use `pip install --no-cache-dir <package>`"
     check _ st (From from) = st |> modify (rememberStage from)
     check _ st (Env pairs) = st |> modify (registerEnv pairs)
-    check line st (Run (RunArgs args _))
+    check line st (Run (RunArgs args flags))
       | Acc s ncm <- state st, Just True <- Map.lookup s ncm = st
       | foldArguments pipNoCacheDirIsSet args = st
       | foldArguments (Shell.noCommands forgotNoCacheDir) args = st
+      | Utils.hasCacheOrTmpfsMountWith ".cache/pip" flags = st
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
 {-# INLINEABLE dl3042 #-}
@@ -119,5 +120,5 @@ pipNoCacheDirSet pairs
     isJust val && fromJust val `notElem` truthy = False
   | otherwise = True
 
-truthy :: Set Text
+truthy :: Set.Set Text
 truthy = Set.fromList ["1", "true", "True", "TRUE", "on", "On", "ON", "yes", "Yes", "YES"]

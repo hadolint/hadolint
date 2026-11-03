@@ -23,6 +23,7 @@ spec = do
                               Nothing
                               []
                               Nothing
+                              []
                               mempty
 
     describe "parse version flag" $ do
@@ -32,6 +33,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty
 
       it "parse --version" $ do
@@ -40,6 +42,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty
 
     describe "parse config file option" $ do
@@ -49,6 +52,7 @@ spec = do
                                 (Just "hadolint.yaml")
                                 []
                                 Nothing
+                                []
                                 mempty
 
       it "parse --config hadolint.yaml" $ do
@@ -57,6 +61,7 @@ spec = do
                                 (Just "hadolint.yaml")
                                 []
                                 Nothing
+                                []
                                 mempty
 
     describe "parse file arguments" $ do
@@ -66,6 +71,7 @@ spec = do
                                 Nothing
                                 ["Dockerfile"]
                                 Nothing
+                                []
                                 mempty
 
       it "parse `Dockerfile1 Dockerfile2`" $ do
@@ -74,6 +80,7 @@ spec = do
                                 Nothing
                                 ["Dockerfile1", "Dockerfile2"]
                                 Nothing
+                                []
                                 mempty
 
       it "parse --file-path-in-report foobar/Dockerfile" $ do
@@ -84,17 +91,55 @@ spec = do
               Nothing
               []
               (Just "foobar/Dockerfile")
+              []
+              mempty
+          )
+
+      it "parse single output destination - short form" $ do
+        checkCommandline
+          ["-o", "report.log"]
+          ( CommandlineConfig
+              False
+              Nothing
+              []
+              Nothing
+              ["report.log"]
+              mempty
+          )
+
+      it "parse single output destination - long form" $ do
+        checkCommandline
+          ["--output", "report.log"]
+          ( CommandlineConfig
+              False
+              Nothing
+              []
+              Nothing
+              ["report.log"]
+              mempty
+          )
+
+      it "parse multiple output destinations" $ do
+        checkCommandline
+          ["--output", "report.log", "-o", "other-report.log"]
+          ( CommandlineConfig
+              False
+              Nothing
+              []
+              Nothing
+              ["report.log", "other-report.log"]
               mempty
           )
 
     describe "parse general configuration" $ do
       it "parse --no-fail" $ do
         checkCommandline ["--no-fail"] $ CommandlineConfig
-                                          False
-                                          Nothing
-                                          []
-                                          Nothing
-                                          mempty { partialNoFail = Just True }
+                                            False
+                                            Nothing
+                                            []
+                                            Nothing
+                                            []
+                                            mempty { partialNoFail = Just True }
 
       it "parse --no-color" $ do
         checkCommandline ["--no-color"] $ CommandlineConfig
@@ -102,6 +147,7 @@ spec = do
                                             Nothing
                                             []
                                             Nothing
+                                            []
                                             mempty { partialNoColor = Just True }
 
       it "parse -V" $ do
@@ -110,6 +156,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialVerbose = Just True }
 
       it "parse --verbose" $ do
@@ -118,23 +165,36 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialVerbose = Just True }
 
-      it "parse -f json" $ do
-        checkCommandline ["-f", "json"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                mempty { partialFormat = Just Json }
+      describe "parse format options" $ do
+        it "parse -f json" $ do
+          checkCommandline ["-f", "json"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [Json] }
 
-      it "parse --format" $ do
-        checkCommandline ["--format", "sarif"] $ CommandlineConfig
-                                False
-                                Nothing
-                                []
-                                Nothing
-                                mempty { partialFormat = Just Sarif }
+        it "parse --format" $ do
+          checkCommandline ["--format", "sarif"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [Sarif] }
+
+        it "parse multiple --format" $ do
+          checkCommandline ["-f", "junit", "--format", "sarif"] $ CommandlineConfig
+                                  False
+                                  Nothing
+                                  []
+                                  Nothing
+                                  []
+                                  mempty { partialFormats = [JUnit, Sarif] }
 
     describe "parse severity overrides" $ do
       it "parse --error=DL3010" $ do
@@ -143,6 +203,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialErrorRules = ["DL3010"] }
 
       it "parse --error=DL3010 --error=DL3020" $ do
@@ -153,6 +214,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialErrorRules = ["DL3010", "DL3020"] }
           )
 
@@ -162,6 +224,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialWarningRules = ["DL3010"] }
 
       it "parse --warning=DL3010 --warning=DL3020" $ do
@@ -172,6 +235,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialWarningRules = ["DL3010", "DL3020"] }
           )
 
@@ -181,6 +245,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialInfoRules = ["DL3010"] }
 
       it "parse --info=DL3010 --info=DL3020" $ do
@@ -191,6 +256,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialInfoRules = ["DL3010", "DL3020"] }
           )
 
@@ -200,6 +266,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialStyleRules = ["DL3010"] }
 
       it "parse --style=DL3010 --style=DL3020" $ do
@@ -210,6 +277,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialStyleRules = ["DL3010", "DL3020"] }
           )
 
@@ -219,6 +287,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty { partialIgnoreRules = ["DL3010"] }
 
       it "parse --ignore=DL3010 --ignore=DL3020" $ do
@@ -229,6 +298,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialIgnoreRules = ["DL3010", "DL3020"] }
           )
 
@@ -241,6 +311,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialAllowedRegistries = Set.fromList ["foobar.com"] }
           )
 
@@ -256,6 +327,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty
                 { partialAllowedRegistries =
                     Set.fromList ["foobar.com", "barfoo.io"]
@@ -271,6 +343,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialLabelSchema = Map.fromList [("foo", Email)] }
           )
 
@@ -282,6 +355,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty
                 { partialLabelSchema =
                     Map.fromList [("foo", Email), ("bar", RawText)]
@@ -297,6 +371,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialStrictLabels = Just True }
           )
 
@@ -309,6 +384,7 @@ spec = do
               Nothing
               []
               Nothing
+              []
               mempty { partialDisableIgnorePragma = Just True }
           )
 
@@ -319,6 +395,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty
                                   { partialFailureThreshold = Just DLWarningC }
 
@@ -328,6 +405,7 @@ spec = do
                                 Nothing
                                 []
                                 Nothing
+                                []
                                 mempty
                                   { partialFailureThreshold = Just DLStyleC }
 

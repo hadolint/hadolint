@@ -8,7 +8,11 @@
   ];
 
   # https://devenv.sh/languages/
-  languages.haskell.enable = true;
+  # hadolint.cabal requires base >= 4.20.1 (GHC >= 9.10.2); we track the latest GHC
+  languages.haskell = {
+    enable = true;
+    package = pkgs.haskell.compiler.ghc912;
+  };
 
   enterShell = ''
     ghc --version
@@ -16,17 +20,17 @@
 
   # https://devenv.sh/tasks/
   tasks = {
-    "language-docker:build".exec = "cabal build";
-    "language-docker:docs".exec = "cabal haddock";
-    "language-docker:test".exec = "cabal test";
-    "language-docker:check".exec = "cabal check";
+    "hadolint:build".exec = "cabal build";
+    "hadolint:docs".exec = "cabal haddock";
+    "hadolint:test".exec = "cabal test";
+    "hadolint:check".exec = "cabal check";
   };
 
   # https://devenv.sh/tests/
   enterTest = ''
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
-    ghc --version | grep --color=auto "${pkgs.ghc.version}"
+    ghc --version | grep --color=auto "${config.languages.haskell.package.version}"
   '';
 
   # https://devenv.sh/git-hooks/

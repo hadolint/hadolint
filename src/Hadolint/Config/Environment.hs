@@ -54,10 +54,18 @@ maybeTruthy name = do
 truthy :: String -> Bool
 truthy s = map toLower s `elem` ["1", "y", "on", "true", "yes"]
 
-getFormat :: IO (Maybe OutputFormat)
+getFormat :: IO [OutputFormat]
 getFormat = do
-  fmt <- lookupEnv "HADOLINT_FORMAT"
-  return $ (readMaybeOutputFormat . pack) =<< fmt
+  maybeString <- lookupEnv "HADOLINT_FORMAT"
+  case maybeString of
+    Nothing -> return []
+    Just s -> return $ flt $ map readMaybeOutputFormat $ splitOn "," (pack s)
+
+  where
+    flt :: [Maybe a] -> [a]
+    flt [] = []
+    flt (Nothing:xs) = flt xs
+    flt ((Just x):xs) = x:flt xs
 
 getOverrideList :: String -> IO [RuleCode]
 getOverrideList env = do

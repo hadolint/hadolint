@@ -3,51 +3,42 @@
 -- See https://www.gnu.org/prep/standards/html_node/Errors.html for reference.
 
 module Hadolint.Formatter.Gnu
-  ( printResults,
-  )
+  ( hWrite )
 where
 
 
-import Data.Text (Text, pack)
+import Data.Text (Text, pack, unpack)
 import Hadolint.Formatter.Format
 import Hadolint.Rule (CheckFailure (..), RuleCode (..))
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Stream (VisualStream)
 import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Text.IO as TextIO
 
-
-printResults ::
+hWrite ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
-  f (Result s e) ->
-  IO ()
-printResults = mapM_ printResult
-
+  Handle -> f (Result s e) -> IO ()
+hWrite handle = mapM_ ( printResult handle )
 
 printResult ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  Result s e ->
-  IO ()
-printResult (Result filename errors checks) =
-  printErrors errors >> printChecks filename checks
-
+  Handle -> Result s e -> IO ()
+printResult handle (Result filename errors checks) =
+  printErrors handle errors >> printChecks handle filename checks
 
 printErrors ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e, Foldable f) =>
-  f (ParseErrorBundle s e) ->
-  IO ()
-printErrors = mapM_ (TextIO.putStrLn . formatError)
+  Handle -> f (ParseErrorBundle s e) -> IO ()
+printErrors handle = mapM_ ( hPutStrLn handle . unpack . formatError )
 
-
-printChecks :: (Foldable f) => Text -> f CheckFailure -> IO ()
-printChecks filename = mapM_ (TextIO.putStrLn . formatCheck filename)
+printChecks :: (Foldable f) => Handle -> Text -> f CheckFailure -> IO ()
+printChecks handle filename = mapM_ ( hPutStrLn handle . unpack . formatCheck filename )
 
 
 formatError ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
-  ParseErrorBundle s e ->
-  Text
+  ParseErrorBundle s e -> Text
 formatError err@(ParseErrorBundle e _) =
   pack $
     "hadolint:"

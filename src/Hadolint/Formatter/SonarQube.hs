@@ -1,8 +1,6 @@
 module Hadolint.Formatter.SonarQube
-  ( formatResult,
-    printResults
-  )
-  where
+  ( hWrite )
+where
 
 import qualified Control.Foldl as Foldl
 import Data.Aeson hiding (Result)
@@ -19,12 +17,12 @@ import Hadolint.Rule
     DLSeverity (..),
     unRuleCode
   )
+import System.IO
 import Text.Megaparsec (TraversableStream)
 import Text.Megaparsec.Error
 import Text.Megaparsec.Pos
   ( sourceColumn,
     sourceLine,
-    sourceName,
     unPos
   )
 import Text.Megaparsec.Stream (VisualStream)
@@ -32,7 +30,7 @@ import Text.Megaparsec.Stream (VisualStream)
 
 data SonarQubeFormat s e
   = SonarQubeCheck Text.Text CheckFailure
-  | SonarQubeError (ParseErrorBundle s e)
+  | SonarQubeError Text.Text (ParseErrorBundle s e)
 
 instance (VisualStream s,
   TraversableStream s,
@@ -54,7 +52,7 @@ instance (VisualStream s,
               ]
           ]
       ]
-  toJSON (SonarQubeError err) =
+  toJSON (SonarQubeError filename err) =
     object
       [ "engineId" .= Text.pack "Hadolint",
         "ruleId" .= Text.pack "DL1000",
@@ -62,7 +60,7 @@ instance (VisualStream s,
         "type" .= Text.pack "BUG",
         "primaryLocation" .= object
           [ "message" .= errorMessage err,
-            "filePath" .= Text.pack (sourceName pos),
+            "filePath" .= filename,
             "textRange" .= object
               [ "startLine" .= linenumber,
                 "endLine" .= linenumber,
@@ -77,20 +75,25 @@ instance (VisualStream s,
       column = unPos $ sourceColumn pos
 
 
-formatResult :: Result s e -> Seq (SonarQubeFormat s e)
-formatResult (Result filename errors checks) = allMessages
+formatResult :: Maybe FilePath -> Result s e -> Seq (SonarQubeFormat s e)
+formatResult filePathInReport (Result filename errors checks) = allMessages
   where
     allMessages = errorMessages <> checkMessages
-    errorMessages = fmap SonarQubeError errors
-    checkMessages = fmap (SonarQubeCheck filename) checks
+    errorMessages = fmap (SonarQubeError filepath) errors
+    checkMessages = fmap (SonarQubeCheck filepath) checks
+    filepath = if null filePathInReport then filename else getFilePath filePathInReport
 
-printResults :: (VisualStream s,
-  TraversableStream s,
-  ShowErrorComponent e,
-  Foldable f) => f (Result s e) -> IO ()
-printResults results = B.putStr . encode $ object [ "issues" .= flattened ]
+hWrite ::
+  ( VisualStream s,
+    TraversableStream s,
+    ShowErrorComponent e,
+    Foldable f
+  ) =>
+  Handle -> f (Result s e) -> Maybe FilePath -> IO ()
+hWrite handle results filePathInReport =
+  B.hPutStr handle . encode $ object [ "issues" .= flattened ]
   where
-    flattened = Foldl.fold (Foldl.premap formatResult Foldl.mconcat) results
+    flattened = Foldl.fold (Foldl.premap (formatResult filePathInReport) Foldl.mconcat) results
 
 toType :: DLSeverity -> Text.Text
 toType DLErrorC = "BUG"
@@ -101,3 +104,10 @@ toSeverity DLErrorC = "CRITICAL"
 toSeverity DLWarningC = "MAJOR"
 toSeverity DLInfoC = "MINOR"
 toSeverity _ = "INFO"
+
+getFilePath :: Maybe FilePath -> Text.Text
+getFilePath Nothing = ""
+getFilePath (Just filePath) = toText [ filePath ]
+
+toText :: [FilePath] -> Text.Text
+toText = foldMap Text.pack

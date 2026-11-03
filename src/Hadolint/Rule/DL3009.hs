@@ -1,12 +1,11 @@
 module Hadolint.Rule.DL3009 (rule) where
 
+import Data.Map.Strict qualified as Map
+import Data.Text qualified as Text
 import Hadolint.Rule
+import Hadolint.Shell qualified as Shell
+import Hadolint.Utils qualified as Utils
 import Language.Docker.Syntax
-import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
-import qualified Data.Text as Text
-import qualified Hadolint.Shell as Shell
-
 
 data Acc
   = Acc
@@ -18,7 +17,6 @@ data Acc
   | Empty
   deriving (Eq, Show)
 
-
 rule :: Rule Shell.ParsedShell
 rule = dl3009 <> onbuild dl3009
 {-# INLINEABLE rule #-}
@@ -28,17 +26,18 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
   where
     code = "DL3009"
     severity = DLInfoC
-    message = "Delete the apt-get lists after installing something"
+    message = "Delete the apt lists (/var/lib/apt/lists) after installing something"
 
     check line st (From from) = st |> modify (rememberStage line from)
     check line st (Run (RunArgs args flags))
       | not (foldArguments forgotToCleanup args) =
           if foldArguments disabledDockerClean args
-          then st |> modify rememberDockerClean
-          else st
-      | hasCacheDirectory "/var/lib/apt/lists" flags = st
-      | hasCacheDirectory "/var/lib/apt" flags
-        && hasCacheDirectory "/var/cache/apt" flags = st
+            then st |> modify rememberDockerClean
+            else st
+      | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt/lists" flags = st
+      | Utils.hasCacheOrTmpfsMountWith "/var/lib/apt" flags
+          && Utils.hasCacheOrTmpfsMountWith "/var/cache/apt" flags =
+          st
       | otherwise = st |> modify (rememberLine line)
     check _ st _ = st
 
@@ -50,8 +49,8 @@ dl3009 = veryCustomRule check (emptyState Empty) markFailures
           | from == lastFrom = pure CheckFailure {..}
           | BaseImage {alias = Just (ImageAlias als)} <- from, -- Check if this stage is used later
             Just _ <- Map.lookup als stages =
-            -- If the same alias is used in another stage, fail
-            pure CheckFailure {..}
+              -- If the same alias is used in another stage, fail
+              pure CheckFailure {..}
           | otherwise = mempty
 {-# INLINEABLE dl3009 #-}
 
@@ -73,11 +72,17 @@ forgotToCleanup args
   | otherwise = False
   where
     hasCleanup =
-      any (Shell.cmdHasArgs "rm" ["-rf", "/var/lib/apt/lists/*"]) (Shell.presentCommands args)
+      any
+        (Shell.isRecursiveRemoval ["/var/lib/apt/lists", "/var/lib/apt/lists/", "/var/lib/apt/lists/*"])
+        (Shell.presentCommands args)
 
 hasUpdate :: Shell.ParsedShell -> Bool
-hasUpdate args =
-  any (Shell.cmdHasArgs "apt-get" ["update"]) (Shell.presentCommands args)
+hasUpdate args = any isPackageUpdate (Shell.presentCommands args)
+  where
+    isPackageUpdate cmd =
+      Shell.cmdHasArgs "apt" ["update"] cmd
+        || Shell.cmdHasArgs "apt-get" ["update"] cmd
+        || Shell.cmdHasArgs "aptitude" ["update"] cmd
 
 disabledDockerClean :: Shell.ParsedShell -> Bool
 disabledDockerClean args
@@ -95,14 +100,6 @@ disabledDockerClean args
             ["\'Binary::apt::APT::Keep-Downloaded-Packages \"true\";\'"]
         )
         (Shell.presentCommands args)
-
-hasCacheDirectory :: Text.Text -> RunFlags -> Bool
-hasCacheDirectory dir RunFlags { mount } =
-  not ( null $ Set.filter (isCacheMount dir) mount)
-
-isCacheMount :: Text.Text -> RunMount -> Bool
-isCacheMount dir (CacheMount CacheOpts {cTarget = TargetPath {unTargetPath = t}}) = dir `Text.isPrefixOf` t
-isCacheMount _ _ = False
 
 -- | Even though dockerfiles without a FROM are not valid, we still want to provide some feedback for this rule
 -- so we pretend there is a base image at the start of the file if there is none

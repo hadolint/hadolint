@@ -1,6 +1,5 @@
 module Hadolint.Rule where
 
-import Control.DeepSeq (NFData)
 import Data.Default
 import Data.String (IsString (..))
 import Data.Text (Text, unpack)
@@ -24,7 +23,7 @@ data DLSeverity
   | DLInfoC
   | DLStyleC
   | DLIgnoreC
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic)
 
 instance Yaml.FromYAML DLSeverity where
   parseYAML = withSeverity pure

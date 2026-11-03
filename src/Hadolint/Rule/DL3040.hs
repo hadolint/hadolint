@@ -1,9 +1,9 @@
 module Hadolint.Rule.DL3040 (rule) where
 
 import Hadolint.Rule
-import qualified Hadolint.Shell as Shell
+import Hadolint.Shell qualified as Shell
+import Hadolint.Utils qualified as Utils
 import Language.Docker.Syntax
-
 
 rule :: Rule Shell.ParsedShell
 rule = dl3040 <> onbuild dl3040
@@ -16,17 +16,29 @@ dl3040 = simpleRule code severity message check
     severity = DLWarningC
     message = "`dnf clean all` missing after dnf command."
 
-    check (Run (RunArgs args _)) = all (checkMissingClean args) dnfCmds
+    check (Run (RunArgs args flags))
+      | all (checkMissingClean args) dnfCmds = True
+      | Utils.hasCacheOrTmpfsMountWith "/var/cache/libdnf5" flags = True
+      | Utils.hasCacheOrTmpfsMountWith ".cache/libdnf5" flags = True
+      | otherwise = False
     check _ = True
 
     checkMissingClean args cmdName =
       foldArguments (Shell.noCommands $ dnfInstall cmdName) args
-        || ( foldArguments (Shell.anyCommands $ dnfInstall cmdName) args
-               && foldArguments (Shell.anyCommands $ dnfClean cmdName) args
-           )
+        || Just True
+          == ( (<)
+                 <$> foldArguments (Shell.findCommandIndex $ dnfInstall cmdName) args
+                 <*> foldArguments (Shell.findCommandIndex $ dnfClean cmdName) args
+             )
 
-    dnfInstall cmdName = Shell.cmdHasArgs cmdName ["install"]
-    dnfClean cmdName args = Shell.cmdHasArgs cmdName ["clean", "all"] args 
-      || Shell.cmdHasArgs "rm" ["-rf", "/var/cache/yum/*"] args
+    dnfInstall cmdName args =
+      (cmdName `elem` dnfCmds)
+        && Shell.cmdHasArgs cmdName installCmds args
+    dnfClean cmdName args =
+      Shell.cmdHasAllArgs cmdName ["clean", "all"] args
+        || Shell.isRecursiveRemoval
+          ["/var/cache/libdnf5", "/var/cache/libdnf5/", "/var/cache/libdnf5/*", "/var/cache/libdnf5*"]
+          args
     dnfCmds = ["dnf", "microdnf"]
+    installCmds = ["install", "in", "upgrade", "up", "upgrade-minimal", "up-min", "reinstall", "rei"]
 {-# INLINEABLE dl3040 #-}

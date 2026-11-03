@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -38,7 +37,7 @@ spec = do
               "FROM node",
               "COPY --from=0 foo ."
             ]
-      in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+       in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
     it "don't warn on valid stage count as --from=<count>" $
       let dockerFile =
             [ "FROM scratch",
@@ -46,4 +45,24 @@ spec = do
               "FROM node",
               "COPY --from=0 foo ."
             ]
-      in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+       in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+    it "don't warn on a variable as --from=<var>" $
+      let dockerFile =
+            [ "ARG SRC=builder",
+              "FROM scratch AS builder",
+              "RUN foo",
+              "FROM node",
+              "COPY --from=$SRC foo .",
+              "COPY --from=${SRC} foo .",
+              "COPY --from=\"${SRC}\" foo ."
+            ]
+       in ruleCatchesNot "DL3022" $ Text.unlines dockerFile
+    it "warn on an undefined alias next to a variable" $
+      let dockerFile =
+            [ "ARG SRC=builder",
+              "FROM scratch AS builder",
+              "FROM node",
+              "COPY --from=${SRC} foo .",
+              "COPY --from=nonexistent bar ."
+            ]
+       in ruleCatches "DL3022" $ Text.unlines dockerFile

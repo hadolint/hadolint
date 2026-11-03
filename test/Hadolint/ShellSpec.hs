@@ -51,3 +51,8 @@ spec =
                         [ CmdPart "loglevel" 1]
        in do
         dropFlagArg ["loglevel"] cmd `shouldBe` res
+  --
+    it "dropFlagArg keeps the next argument when the flag value is inline" $ do
+      let cmds = presentCommands (parseShell "npm --loglevel=info install bla@1.0.0")
+      cmds `shouldNotBe` []
+      map (dropFlagArg ["loglevel"]) cmds `shouldBe` cmds

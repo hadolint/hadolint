@@ -5,7 +5,6 @@ import Data.Text as Text
 import Helpers
 import Test.Hspec
 
-
 spec :: SpecWith ()
 spec = do
   let ?config = def
@@ -44,3 +43,24 @@ spec = do
             ruleCatches "DL3006" $ Text.unlines dockerFile
             onBuildRuleCatches "DL3006" $ Text.unlines dockerFile
     it "scratch" $ ruleCatchesNot "DL3006" "FROM scratch"
+    it "a variable inside the name of a previous stage is ok" $
+      let dockerFile =
+            [ "FROM debian:12 AS base-amd64",
+              "FROM debian:12 AS base-arm64",
+              "FROM base-${TARGETARCH} AS final",
+              "FROM alpine:3 AS img1",
+              "FROM img$src AS other"
+            ]
+       in do
+            ruleCatchesNot "DL3006" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3006" $ Text.unlines dockerFile
+    it "a quoted variable is not an error" $
+      ruleCatchesNot "DL3006" "FROM \"${IMAGE}\""
+    it "a variable inside the name of an external image is not ok" $
+      let dockerFile =
+            [ "FROM debian:12 AS base-amd64",
+              "FROM myrepo/app-${VARIANT}"
+            ]
+       in do
+            ruleCatches "DL3006" $ Text.unlines dockerFile
+            onBuildRuleCatches "DL3006" $ Text.unlines dockerFile

@@ -3,12 +3,12 @@ COPY --chmod=777 hadolint /bin/hadolint
 LABEL org.opencontainers.image.source="https://github.com/hadolint/hadolint"
 CMD ["/bin/hadolint", "-"]
 
-FROM debian:bookworm-slim AS debian
+FROM debian:trixie-slim AS debian
 COPY --chmod=777 hadolint /bin/hadolint
 LABEL org.opencontainers.image.source="https://github.com/hadolint/hadolint"
 CMD ["/bin/hadolint", "-"]
 
-FROM alpine:3.22 AS alpine
+FROM alpine:3.24 AS alpine
 COPY --chmod=777 hadolint /bin/hadolint
 LABEL org.opencontainers.image.source="https://github.com/hadolint/hadolint"
 CMD ["/bin/hadolint", "-"]
