@@ -52,6 +52,18 @@ spec = do
       ruleCatchesNot "DL3070" "RUN npm ci --omit=dev"
       onBuildRuleCatchesNot "DL3070" "RUN npm ci --omit=dev"
 
+    it "npm install with space-separated omit dev flags is fine" $ do
+      ruleCatchesNot "DL3070" "RUN npm install --omit dev"
+      onBuildRuleCatchesNot "DL3070" "RUN npm install --omit dev"
+
+    it "npm i without production flag should trigger warning" $ do
+      ruleCatches "DL3070" "RUN npm i"
+      onBuildRuleCatches "DL3070" "RUN npm i"
+
+    it "npm i with omit dev flags is fine" $ do
+      ruleCatchesNot "DL3070" "RUN npm i --omit dev"
+      onBuildRuleCatchesNot "DL3070" "RUN npm i --omit dev"
+
     it "npm install with production flag and other flags is fine" $ do
       ruleCatchesNot "DL3070" "RUN npm install --production --no-audit"
       onBuildRuleCatchesNot "DL3070" "RUN npm install --production --no-audit"
@@ -102,6 +114,18 @@ spec = do
       ruleCatches "DL3070" "RUN yarn install"
       onBuildRuleCatches "DL3070" "RUN yarn install"
 
+    it "bare yarn without production flag should trigger warning" $ do
+      ruleCatches "DL3070" "RUN yarn"
+      onBuildRuleCatches "DL3070" "RUN yarn"
+
+    it "bare yarn with --production flag is fine" $ do
+      ruleCatchesNot "DL3070" "RUN yarn --production"
+      onBuildRuleCatchesNot "DL3070" "RUN yarn --production"
+
+    it "yarn --version should not trigger warning" $ do
+      ruleCatchesNot "DL3070" "RUN yarn --version"
+      onBuildRuleCatchesNot "DL3070" "RUN yarn --version"
+
     it "yarn install with other flags but without production flag should trigger warning" $ do
       ruleCatches "DL3070" "RUN yarn install --frozen-lockfile"
       onBuildRuleCatches "DL3070" "RUN yarn install --frozen-lockfile"
@@ -123,17 +147,13 @@ spec = do
       ruleCatchesNot "DL3070" "RUN pnpm install --only=production"
       onBuildRuleCatchesNot "DL3070" "RUN pnpm install --only=production"
 
-    it "pnpm ci with --production flag is fine" $ do
-      ruleCatchesNot "DL3070" "RUN pnpm ci --production"
-      onBuildRuleCatchesNot "DL3070" "RUN pnpm ci --production"
-
     it "pnpm install without production flag should trigger warning" $ do
       ruleCatches "DL3070" "RUN pnpm install"
       onBuildRuleCatches "DL3070" "RUN pnpm install"
 
-    it "pnpm ci without production flag should trigger warning" $ do
-      ruleCatches "DL3070" "RUN pnpm ci"
-      onBuildRuleCatches "DL3070" "RUN pnpm ci"
+    it "pnpm ci should not trigger warning" $ do
+      ruleCatchesNot "DL3070" "RUN pnpm ci"
+      onBuildRuleCatchesNot "DL3070" "RUN pnpm ci"
 
     it "pnpm run command should not trigger warning" $ do
       ruleCatchesNot "DL3070" "RUN pnpm run build"

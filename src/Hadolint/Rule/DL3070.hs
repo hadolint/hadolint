@@ -20,7 +20,7 @@ DL3070 = customRule check (emptyState Empty)
     code = "DL3070"
     severity = DLIgnoreC
     message =
-      "Install only production dependencies. Use `npm ci --production`, `yarn install --production`, or `pnpm install --production`"
+      "Install only production dependencies. Use `npm ci --omit=dev`, `yarn install --production`, or `pnpm install --production`"
 
     check _ st (Env pairs) = st |> modify (registerEnvs pairs)
     check line st (Run (RunArgs args _))
@@ -36,7 +36,7 @@ missingProductionFlag acc cmd =
   (
     (isNpmInstallOrCi cmd && not (hasNpmProductionFlag cmd)) ||
     (isYarnInstall cmd && not (hasYarnProductionFlag cmd)) ||
-    (isPnpmInstallOrCi cmd && not (hasPnpmProductionFlag cmd))
+    (isPnpmInstall cmd && not (hasPnpmProductionFlag cmd))
   )
 
 registerEnvs :: Pairs -> Acc -> Acc
@@ -74,24 +74,36 @@ hasGlobalInstall cmd =
 
 -- npm helpers
 isNpmInstallOrCi :: Shell.Command -> Bool
-isNpmInstallOrCi cmd = Shell.cmdHasArgs "npm" ["install"] cmd || Shell.cmdHasArgs "npm" ["ci"] cmd
+isNpmInstallOrCi cmd =
+  Shell.cmdHasArgs "npm" ["install", "i"] cmd || Shell.cmdHasArgs "npm" ["ci"] cmd
 
 hasNpmProductionFlag :: Shell.Command -> Bool
 hasNpmProductionFlag cmd =
   any (`elem` Shell.getArgs cmd) ["--production", "--only=production"] ||
-  any (\arg -> "--omit=dev" `Text.isPrefixOf` arg) (Shell.getArgs cmd)
+  any (== "--omit=dev") args ||
+  hasOmitDev args
+  where
+    args = Shell.getArgs cmd
+    hasOmitDev ("--omit" : "dev" : _) = True
+    hasOmitDev (_ : rest) = hasOmitDev rest
+    hasOmitDev [] = False
 
 -- yarn helpers
 isYarnInstall :: Shell.Command -> Bool
-isYarnInstall = Shell.cmdHasArgs "yarn" ["install"]
+isYarnInstall cmd =
+  Shell.cmdHasArgs "yarn" ["install"] cmd ||
+  ( Shell.name cmd == "yarn"
+      && null (Shell.getArgsNoFlags cmd)
+      && not (Shell.hasAnyFlag ["version", "help", "v", "h"] cmd)
+  )
 
 hasYarnProductionFlag :: Shell.Command -> Bool
 hasYarnProductionFlag cmd =
   any (`elem` Shell.getArgs cmd) ["--production", "--prod"]
 
 -- pnpm helpers
-isPnpmInstallOrCi :: Shell.Command -> Bool
-isPnpmInstallOrCi cmd = Shell.cmdHasArgs "pnpm" ["install"] cmd || Shell.cmdHasArgs "pnpm" ["ci"] cmd
+isPnpmInstall :: Shell.Command -> Bool
+isPnpmInstall = Shell.cmdHasArgs "pnpm" ["install"]
 
 hasPnpmProductionFlag :: Shell.Command -> Bool
 hasPnpmProductionFlag cmd =
