@@ -14,7 +14,7 @@ DL3070 :: Rule Shell.ParsedShell
 DL3070 = simpleRule code severity message check
   where
     code = "DL3070"
-    severity = DLWarningC
+    severity = DLIgnoreC
     message =
       "Install only production dependencies. Use `npm ci --production`, `yarn install --production`, or `pnpm install --production`"
 

@@ -1,7 +1,11 @@
 module Hadolint.Rule.DL3070Spec (spec) where
 
+import qualified Data.Sequence as Seq
 import Data.Default
+import qualified Hadolint
+import Hadolint.Rule (CheckFailure (..))
 import Helpers
+import Language.Docker.Parser (parseText)
 import Test.Hspec
 
 
@@ -9,6 +13,13 @@ spec :: SpecWith ()
 spec = do
   let ?config = def
   describe "DL3070 - Install only production dependencies." $ do
+    it "is ignored by default" $ do
+      case parseText "FROM node:alpine\nRUN npm install\n" of
+        Left err -> assertFailure $ show err
+        Right dockerfile -> do
+          let failures = Hadolint.analyze def dockerfile
+          Seq.filter (\CheckFailure {code} -> code == "DL3070") failures `shouldSatisfy` Seq.null
+
     it "npm install with production flag is fine" $ do
       ruleCatchesNot "DL3070" "RUN npm install --production"
       onBuildRuleCatchesNot "DL3070" "RUN npm install --production"
