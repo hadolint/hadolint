@@ -10,12 +10,12 @@ data Acc = Empty | Acc {nodeEnvProduction :: Set.Set Text.Text}
   deriving (Show)
 
 rule :: Rule Shell.ParsedShell
-rule = DL3070 <> onbuild DL3070
+rule = dl3070 <> onbuild dl3070
 {-# INLINEABLE rule #-}
 
 -- | DL3070: Install only production dependencies for npm, yarn, and pnpm package managers
-DL3070 :: Rule Shell.ParsedShell
-DL3070 = customRule check (emptyState Empty)
+dl3070 :: Rule Shell.ParsedShell
+dl3070 = customRule check (emptyState Empty)
   where
     code = "DL3070"
     severity = DLIgnoreC
@@ -27,7 +27,7 @@ DL3070 = customRule check (emptyState Empty)
       | foldArguments (Shell.noCommands (missingProductionFlag (state st))) args = st
       | otherwise = st |> addFail CheckFailure {..}
     check _ st _ = st
-{-# INLINEABLE DL3070 #-}
+{-# INLINEABLE dl3070 #-}
 
 missingProductionFlag :: Acc -> Shell.Command -> Bool
 missingProductionFlag acc cmd =
