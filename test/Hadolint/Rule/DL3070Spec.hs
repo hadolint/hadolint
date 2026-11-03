@@ -20,6 +20,22 @@ spec = do
           let failures = Hadolint.analyze def dockerfile
           Seq.filter (\CheckFailure {code} -> code == "DL3070") failures `shouldSatisfy` Seq.null
 
+    it "npm install with NODE_ENV=production inline is fine" $ do
+      ruleCatchesNot "DL3070" "RUN NODE_ENV=production npm install"
+      onBuildRuleCatchesNot "DL3070" "RUN NODE_ENV=production npm install"
+
+    it "npm install after ENV NODE_ENV=production is fine" $ do
+      ruleCatchesNot "DL3070" "ENV NODE_ENV=production\nRUN npm install"
+      onBuildRuleCatchesNot "DL3070" "ENV NODE_ENV=production\nRUN npm install"
+
+    it "npm install with --global flag is fine" $ do
+      ruleCatchesNot "DL3070" "RUN npm install --global"
+      onBuildRuleCatchesNot "DL3070" "RUN npm install --global"
+
+    it "npm install with -g flag is fine" $ do
+      ruleCatchesNot "DL3070" "RUN npm install -g"
+      onBuildRuleCatchesNot "DL3070" "RUN npm install -g"
+
     it "npm install with production flag is fine" $ do
       ruleCatchesNot "DL3070" "RUN npm install --production"
       onBuildRuleCatchesNot "DL3070" "RUN npm install --production"
