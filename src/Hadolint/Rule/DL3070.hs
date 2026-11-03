@@ -1,4 +1,4 @@
-module Hadolint.Rule.DL3062 (rule) where
+module Hadolint.Rule.DL3070 (rule) where
 
 import Hadolint.Rule
 import qualified Hadolint.Shell as Shell
@@ -6,21 +6,21 @@ import Language.Docker.Syntax
 import qualified Data.Text as Text
 
 rule :: Rule Shell.ParsedShell
-rule = dl3062 <> onbuild dl3062
+rule = DL3070 <> onbuild DL3070
 {-# INLINEABLE rule #-}
 
--- | DL3062: Install only production dependencies for npm, yarn, and pnpm package managers
-dl3062 :: Rule Shell.ParsedShell
-dl3062 = simpleRule code severity message check
+-- | DL3070: Install only production dependencies for npm, yarn, and pnpm package managers
+DL3070 :: Rule Shell.ParsedShell
+DL3070 = simpleRule code severity message check
   where
-    code = "DL3062"
+    code = "DL3070"
     severity = DLWarningC
     message =
       "Install only production dependencies. Use `npm ci --production`, `yarn install --production`, or `pnpm install --production`"
 
     check (Run (RunArgs args _)) = foldArguments (Shell.noCommands missingProductionFlag) args
     check _ = True
-{-# INLINEABLE dl3062 #-}
+{-# INLINEABLE DL3070 #-}
 
 missingProductionFlag :: Shell.Command -> Bool
 missingProductionFlag cmd =
