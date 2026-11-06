@@ -1,6 +1,6 @@
 ---
 - id: hadolint-docker
-  name: Lint Dockerfiles
+  name: Lint Dockerfiles (docker container)
   description: Runs hadolint Docker image to lint Dockerfiles
   language: docker_image
   types: ["dockerfile"]
@@ -14,7 +14,7 @@
   entry: hadolint
 
 - id: hadolint-github
-  name: Lint Dockerfiles
+  name: Lint Dockerfiles (prebuilt binary)
   description: Runs hadolint to lint Dockerfiles. Downloads Github release
   language: python
   types: ["dockerfile"]

@@ -1,5 +1,6 @@
+# This pyproject.toml is a wrapper so that Python installers, like pre-commmit, can install the hadolint binary automatically from Github.
 [build-system]
-requires = ["release-gitter[builder]"]
+requires = ["release-gitter[builder]==3.2.0"]
 build-backend = "pseudo_builder"
 
 [tool.release-gitter]
