@@ -393,6 +393,18 @@ repos:
       - id: hadolint-docker
 ```
 
+If you have neither, pre-commit can download the binary from Github. If you hit Github API rate limits. You may set `GITHUB_TOKEN` in your environment for higher limits.
+
+Note: This install method does not yet support Windows.
+
+```yaml
+---
+repos:
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+```
 ## Other
 
 Following section contains different angles on `hadolint` usage 
