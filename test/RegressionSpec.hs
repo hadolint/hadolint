@@ -59,3 +59,32 @@ spec = do
        in do
         assertChecks dockerfile passesShellcheck
         assertChecks dockerfile passesAllEnabled
+
+    -- https://github.com/hadolint/hadolint/issues/1060
+    -- A COPY whose source path ends with a line continuation used to fail to
+    -- parse with "unexpected end of line. At least two arguments are required
+    -- for COPY": the escaped line break was pulled into the preceding file
+    -- path, merging source and destination into a single argument. Fixed
+    -- upstream in language-docker#114; this repo pins language-docker to a
+    -- commit carrying that fix (see cabal.project).
+    it "COPY with a trailing backslash parses" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM alpine:3.18 AS buildstage",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "FROM alpine:3.18 AS runtime-prep",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "COPY --from=buildstage /build/go/app/docker-build/cloudformation-expired.json\\",
+                "  /root/cloudformation-expired.json"
+              ]
+       in assertChecks dockerFile passesAllEnabled
+
+    it "COPY with a line continuation between multiple sources parses" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM alpine:3.18",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "COPY foo bar\\",
+                "  baz /app/"
+              ]
+       in assertChecks dockerFile passesAllEnabled

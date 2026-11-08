@@ -8,6 +8,26 @@ optional-packages:
   vendored/**/*.cabal
 
 
+-- Temporary pin until language-docker cuts a release containing the
+-- COPY-line-continuation fix (hadolint/language-docker#114, merged 2026-08-11,
+-- fixing hadolint/hadolint#1060): an escaped line break followed by whitespace
+-- was pulled into the preceding COPY/ADD file path, merging source and
+-- destination into a single argument and failing with "At least two arguments
+-- are required for COPY". No Hackage release carries the fix yet (latest is
+-- 16.0.0, released 2026-07-29), so there is no version bound to bump instead.
+-- Pinned to the merge commit of #114 on language-docker master. This commit
+-- also contains the heredoc-terminator fix from #115 (hadolint#960), so it
+-- supersedes the pin to 5820584 on the #960 branch. Drop this pin and bump the
+-- language-docker bound in hadolint.cabal once such a release exists. Note:
+-- cabal sdist / Hackage builds do not read cabal.project, so they still
+-- resolve language-docker 16.0.0 until then; repo builds, CI, and the official
+-- release binaries (built from a checkout with `cabal build`) do pick up the
+-- fixed parser.
+source-repository-package
+  type: git
+  location: https://github.com/hadolint/language-docker
+  tag: dd5c11b3c3e5b4d494c1c14f6fd3e31d34a35602
+
 if arch(wasm32)
   shared: True
 
