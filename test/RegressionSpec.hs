@@ -59,3 +59,44 @@ spec = do
        in do
         assertChecks dockerfile passesShellcheck
         assertChecks dockerfile passesAllEnabled
+
+    -- https://github.com/hadolint/hadolint/issues/960
+    -- A heredoc terminator used to swallow the newline that follows it, so
+    -- anything on the next line (a comment or the next instruction) failed
+    -- to parse with "unexpected '#' expecting a new line followed by the
+    -- next instruction". Fixed upstream in language-docker#115; this repo
+    -- pins language-docker to a commit carrying that fix (see cabal.project).
+    it "Heredoc followed by a comment parses" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM alpine:3.17",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "RUN <<EOF",
+                "    echo \"test\"",
+                "EOF",
+                "# comment"
+              ]
+       in assertChecks dockerFile passesAllEnabled
+
+    it "Heredoc followed by another instruction parses" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM alpine:3.17",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "RUN <<EOF",
+                "    echo foo",
+                "EOF",
+                "WORKDIR /srv"
+              ]
+       in assertChecks dockerFile passesAllEnabled
+
+    it "Empty heredoc followed by a comment parses" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM alpine:3.17",
+                "HEALTHCHECK NONE", -- to satisfy DL3057
+                "RUN <<EOF",
+                "EOF",
+                "# comment"
+              ]
+       in assertChecks dockerFile passesAllEnabled
