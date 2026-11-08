@@ -8,6 +8,23 @@ optional-packages:
   vendored/**/*.cabal
 
 
+-- Temporary pin until language-docker cuts a release containing the
+-- heredoc-terminator fix (hadolint/language-docker#115, merged 2026-08-11,
+-- fixing hadolint/hadolint#960): the terminator used to swallow the newline
+-- that follows it, so anything on the next line (a comment or the next
+-- instruction) failed to parse. No Hackage release carries the fix yet
+-- (latest is 16.0.0, released 2026-07-29), so there is no version bound to
+-- bump instead. Pinned to the merge commit of #115 on language-docker
+-- master. Drop this pin and bump the language-docker bound in
+-- hadolint.cabal once such a release exists. Note: cabal sdist / Hackage
+-- builds do not read cabal.project, so they still resolve language-docker
+-- 16.0.0 until then; repo builds, CI, and the official release binaries
+-- (built from a checkout with `cabal build`) do pick up the fixed parser.
+source-repository-package
+  type: git
+  location: https://github.com/hadolint/language-docker
+  tag: 5820584e9b24cc973d0504fc2ab33ade6215cd0f
+
 if arch(wasm32)
   shared: True
 
