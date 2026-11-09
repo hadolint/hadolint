@@ -31,7 +31,9 @@ rule = customRule check (emptyState (Acc Nothing False Map.empty))
     check _ st (Shell args) =
       st |> modify (setPipefail (foldArguments isNonPosixShell args || foldArguments hasPipefailOption args))
     check line st@(State _ Acc {pipefail = False}) (Run (RunArgs args _))
-      | foldArguments Shell.hasPipes args = st |> addFail CheckFailure {..}
+      | foldArguments Shell.hasPipes args
+      , not (foldArguments Shell.heredocSetsPipefail args) =
+          st |> addFail CheckFailure {..}
       | otherwise = st
     check _ st _ = st
 
