@@ -147,3 +147,68 @@ spec = do
               "RUN Get-Variable PSVersionTable | Select-Object -ExpandProperty Value"
             ]
        in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    -- Regression tests for #1137: a RUN heredoc fed to a shell
+    -- (`RUN <<EOF bash`) runs its body under that shell, so a
+    -- `set -o pipefail` at the top of the body protects its pipes.
+    it "don't warn on a bash heredoc that sets pipefail in its body" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF bash",
+              "    set -euxo pipefail",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "don't warn on a bash heredoc with a separate -o pipefail" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF bash",
+              "    set -o pipefail",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "don't warn on a bash heredoc given as an absolute path" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF /bin/bash",
+              "    set -euxo pipefail",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatchesNot "DL4006" $ Text.unlines dockerFile
+    it "warn on a bash heredoc that does not set pipefail" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF bash",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "warn on a bash heredoc that sets pipefail after the pipe" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF bash",
+              "    echo 123 | cat",
+              "    set -euxo pipefail",
+              "EOF"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "warn on an sh heredoc that sets pipefail" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF sh",
+              "    set -euxo pipefail",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile
+    it "warn on a heredoc without an interpreter that sets pipefail" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN <<EOF",
+              "    set -euxo pipefail",
+              "    echo 123 | cat",
+              "EOF"
+            ]
+       in ruleCatches "DL4006" $ Text.unlines dockerFile

@@ -85,10 +85,16 @@ setShell s (ShellOpts _ v) = ShellOpts s v
 
 shellcheck :: ShellOpts -> ParsedShell -> [PositionedComment]
 shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
-  if any (`Text.isInfixOf` sh) nonPosixShells || hasUnsupportedShebang txt
+  if any (`Text.isInfixOf` shell) nonPosixShells || hasUnsupportedShebang txt
     then [] -- Do no run for non-posix shells i.e. powershell, cmd.exe
     else runShellCheck
   where
+    -- A heredoc RUN fed to a shell (e.g. `RUN <<EOF bash`) runs its body
+    -- under that shell, not under the image SHELL, so check the body with
+    -- that shell's dialect. Otherwise `set -o pipefail` in a bash heredoc
+    -- is wrongly flagged SC3040 ("In POSIX sh, set option pipefail is
+    -- undefined").
+    shell = fromMaybe sh (heredocShellName txt)
     runShellCheck = crComments $ runIdentity $ checkScript si spec
     si = mockedSystemInterface [("", "")]
     spec =
@@ -100,7 +106,7 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
           csShellTypeOverride = Nothing,
           csMinSeverity = StyleC
         }
-    script = Text.unpack $ "#!" <> extractShell sh <> "\n" <> printVars <> txt
+    script = Text.unpack $ "#!" <> extractShell shell <> "\n" <> printVars <> txt
     exclusions =
       [ 2187, -- exclude the warning about the ash shell not being supported
         1090, -- requires a directive (shell comment) that can't be expressed in a Dockerfile
@@ -112,6 +118,145 @@ shellcheck (ShellOpts sh env) (ParsedShell txt _ _) =
 
 nonPosixShells :: [Text.Text]
 nonPosixShells = ["pwsh", "powershell", "cmd"]
+
+-- | Shells that a RUN heredoc may be fed to, by the name that may follow
+-- the heredoc marker (e.g. @RUN <<EOF bash@). language-docker represents
+-- such a RUN as the arguments text @"bash\n<body>"@: the first line names
+-- the interpreter the heredoc is fed to, and the rest is the script it
+-- runs.
+heredocShells :: [Text.Text]
+heredocShells = ["bash", "sh", "dash", "ash", "zsh", "ksh"]
+
+-- | If a RUN's arguments text is a heredoc fed to a shell, return that
+-- shell's basename and the script body it runs. The first line must be
+-- exactly a shell name (optionally as an absolute path); a first line
+-- carrying arguments (e.g. @bash -e setup.sh@ as the first line of a plain
+-- heredoc body) is a command in the body, not an interpreter line, and is
+-- left alone.
+heredocShell :: Text.Text -> Maybe (Text.Text, Text.Text)
+heredocShell txt =
+  case Text.lines txt of
+    (first : rest)
+      | not (null rest)
+      , shell `elem` heredocShells ->
+          Just (shell, Text.unlines rest)
+      where
+        shell = shellBasename (Text.strip first)
+    _ -> Nothing
+
+-- | The shell ShellCheck should check a heredoc body as, given the
+-- interpreter the heredoc is fed to. @zsh@ is deliberately excluded:
+-- ShellCheck cannot check zsh scripts (it reports SC1071), so a zsh
+-- heredoc keeps the image shell instead of erroring on every line.
+-- @sh@, @dash@ and @ash@ map to the shells ShellCheck already treats as
+-- POSIX sh; @bash@ and @ksh@ keep their own dialect, in which
+-- @set -o pipefail@ is defined.
+heredocShellName :: Text.Text -> Maybe Text.Text
+heredocShellName txt =
+  case heredocShell txt of
+    Just ("bash", _) -> Just "/bin/bash"
+    Just ("ksh", _) -> Just "/bin/ksh"
+    Just ("ash", _) -> Just "/bin/ash"
+    Just ("sh", _) -> Just "/bin/sh"
+    Just ("dash", _) -> Just "/bin/dash"
+    _ -> Nothing
+
+-- | Shells in which @set -o pipefail@ is defined, so a heredoc body that
+-- enables it before its first pipe makes DL4006's warning unnecessary.
+-- This mirrors the shells DL4006 already recognises on SHELL
+-- instructions, plus @ksh@, which also supports the option.
+pipefailShells :: [Text.Text]
+pipefailShells = ["bash", "zsh", "ash", "ksh"]
+
+-- | Whether a RUN fed to a shell as a heredoc enables @pipefail@ in its own
+-- body before the first pipe (e.g. @RUN <<EOF bash@ with
+-- @set -euxo pipefail@ at the top of the body). Only the shell the heredoc
+-- runs under can provide @pipefail@: an @sh@ heredoc, or a heredoc without
+-- an interpreter (which runs under the image shell), does not count, so
+-- @set -o pipefail@ there still warns.
+heredocSetsPipefail :: ParsedShell -> Bool
+heredocSetsPipefail (ParsedShell txt _ _) =
+  case heredocShell txt of
+    Just (shell, body)
+      | shell `elem` pipefailShells -> setsPipefailBeforePipe body
+    _ -> False
+
+-- | Whether a script enables @pipefail@ with @set@ before its first
+-- pipeline. The @set@ must come first: a @set -o pipefail@ after a pipe
+-- cannot protect that pipe.
+setsPipefailBeforePipe :: Text.Text -> Bool
+setsPipefailBeforePipe body =
+  case (setLine, pipeLine) of
+    (Just s, Just p) -> s < p
+    _ -> False
+  where
+    ls = Text.lines body
+    setLine = findIndex enablesPipefail ls
+    pipeLine = findIndex hasPipeline ls
+
+-- | Whether a line is a @set@ command that enables @pipefail@, e.g.
+-- @set -o pipefail@ or @set -euxo pipefail@.
+enablesPipefail :: Text.Text -> Bool
+enablesPipefail line =
+  case Text.words (Text.stripStart line) of
+    ("set" : args) -> enables args
+    _ -> False
+  where
+    enables [] = False
+    enables ("--" : _) = False
+    enables (flag : rest)
+      -- @-o@ takes its option name as the next argument.
+      | flag == "-o" = case rest of
+          ("pipefail" : _) -> True
+          (_ : rest') -> enables rest'
+          [] -> False
+      -- A combined short-flag token: if it contains @o@, the option name
+      -- is the rest of the token (@-opipefail@) or, when @o@ is the last
+      -- letter (@-euxo@), the next argument.
+      | Just optName <- oOption flag =
+          if Text.null optName
+            then case rest of
+              ("pipefail" : _) -> True
+              (_ : rest') -> enables rest'
+              [] -> False
+            else optName == "pipefail" || enables rest
+      -- Any other @-...@ token is a flag without an attached option name.
+      | "-" `Text.isPrefixOf` flag = enables rest
+      -- A bare word ends the flags: @set@ from here on only sets
+      -- positional parameters, so @pipefail@ cannot follow as an option.
+      | otherwise = False
+    -- The option name a combined flag token passes to @-o@, if any:
+    -- @-euxo@ -> @""@ (the name is the next argument);
+    -- @-opipefail@ -> @"pipefail"@.
+    oOption f
+      | "-" `Text.isPrefixOf` f
+      , not ("--" `Text.isPrefixOf` f)
+      , Text.length f > 2
+      , Text.any (== 'o') (Text.drop 1 f) =
+          Just (Text.drop 1 (Text.dropWhile (/= 'o') f))
+      | otherwise = Nothing
+
+-- | Whether a line contains a pipeline operator: a @|@ outside quotes that
+-- is not part of @||@. A @#@ outside quotes starts a comment, so a @|@
+-- after one does not count.
+hasPipeline :: Text.Text -> Bool
+hasPipeline line = scan 'n' True (Text.unpack line)
+  where
+    -- quote state ('n' none, 's' single, 'd' double) and whether the
+    -- previous character was a word boundary (line start or blank).
+    scan _ _ [] = False
+    scan 's' _ ('\'' : cs) = scan 'n' False cs
+    scan 's' _ (_ : cs) = scan 's' False cs
+    scan 'd' _ ('"' : cs) = scan 'n' False cs
+    scan 'd' _ ('\\' : _ : cs) = scan 'd' False cs
+    scan 'd' _ (_ : cs) = scan 'd' False cs
+    scan 'n' _ ('\'' : cs) = scan 's' False cs
+    scan 'n' _ ('"' : cs) = scan 'd' False cs
+    scan 'n' _ ('\\' : _ : cs) = scan 'n' False cs
+    scan 'n' True ('#' : _) = False
+    scan 'n' _ ('|' : '|' : cs) = scan 'n' False cs
+    scan 'n' _ ('|' : _) = True
+    scan 'n' _ (c : cs) = scan 'n' (c == ' ' || c == '\t') cs
 
 -- | Returns the last path segment of a shell command name, so that
 -- "/usr/bin/bash" and "/bin/bash" both resolve to "bash" just like a bare

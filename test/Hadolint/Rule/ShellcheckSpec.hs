@@ -252,3 +252,39 @@ spec = do
               ]
        in do
             assertChecks dockerfile passesShellcheck
+
+    -- Regression tests for #1137: a RUN heredoc fed to a shell
+    -- (`RUN <<EOF bash`) runs its body under that shell, so ShellCheck
+    -- must check the body with that shell's dialect.
+    it "Checks a bash heredoc body as bash" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM scratch",
+                "RUN <<EOF bash",
+                "    set -euxo pipefail",
+                "    echo 123 | cat",
+                "EOF"
+              ]
+       in do
+            assertChecks dockerFile passesShellcheck
+            assertChecks dockerFile (failsWith 0 "SC3040")
+    it "Still checks an sh heredoc body as sh" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM scratch",
+                "RUN <<EOF sh",
+                "    set -euxo pipefail",
+                "    echo 123 | cat",
+                "EOF"
+              ]
+       in assertChecks dockerFile (failsWithSome "SC3040")
+    it "Still checks a heredoc without an interpreter as sh" $
+      let dockerFile =
+            Text.unlines
+              [ "FROM scratch",
+                "RUN <<EOF",
+                "    set -euxo pipefail",
+                "    echo 123 | cat",
+                "EOF"
+              ]
+       in assertChecks dockerFile (failsWithSome "SC3040")
