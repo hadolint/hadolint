@@ -3,7 +3,8 @@ module Hadolint.Rule.DL3026 (rule) where
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import Data.String ( IsString(..) )
-import Data.Text (Text, pack, unpack, drop, dropEnd, isSuffixOf, isPrefixOf)
+import qualified Data.Text as Text
+import Data.Text (Text, pack, unpack, drop, dropEnd, isSuffixOf, isPrefixOf, breakOn)
 import Hadolint.Rule
 import Language.Docker.Syntax
 
@@ -41,13 +42,26 @@ rule allowed = customRule check (emptyState Set.empty)
     doCheck st img = Set.member (toImageAlias img) st || Set.null allowed || isAllowed img
 
     toImageAlias = Just . ImageAlias . imageName
-    isAllowed Image {registryName = Just registry} = isRegistryAllowed (unRegistry registry)
+    isAllowed Image {registryName = Just registry, imageName} =
+      isRegistryAllowed (unRegistry registry) imageName
     isAllowed Image {registryName = Nothing, imageName} =
       imageName == "scratch"
-        || isRegistryAllowed "docker.io"
-        || isRegistryAllowed "hub.docker.com"
+        || isRegistryAllowed "docker.io" imageName
+        || isRegistryAllowed "hub.docker.com" imageName
 
-    isRegistryAllowed registry = any (\p -> matchRegistry (unRegistry p) registry) allowed
+    isRegistryAllowed registry image = any (matchesImage . unRegistry) allowed
+      -- COPY and mount sources can include a tag or digest in imageName.
+      -- Neither is part of the registry/namespace being trusted.
+      where
+        imagePath = Text.takeWhile (`notElem` (":@" :: String)) image
+        matchesImage allowedImage =
+          case breakOn "/" allowedImage of
+            (host, path)
+              | not (Text.null path) ->
+                  matchRegistry host registry
+                    && (matchRegistry (Data.Text.drop 1 path) imagePath
+                          || (Data.Text.drop 1 path <> "/") `isPrefixOf` imagePath)
+            _ -> matchRegistry allowedImage registry
 {-# INLINEABLE rule #-}
 
 matchRegistry :: Text -> Text -> Bool

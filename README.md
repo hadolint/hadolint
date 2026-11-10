@@ -270,6 +270,13 @@ trustedRegistries:
   - "*.gcr.io"
 ```
 
+Trusted entries can also restrict the image path. For example,
+`gcr.io/distroless` allows images in that namespace, including nested paths,
+but not `gcr.io/distroless-other`. The form `gcr.io/distroless/*` is also
+supported. A bare host such as `gcr.io` still trusts all images on that host.
+These restrictions apply to `FROM`, `COPY --from`, and image sources in
+`RUN --mount` instructions. Tags and digests do not affect the trusted path.
+
 If you want to override the severity of specific rules, you can do that too:
 
 ```yaml
