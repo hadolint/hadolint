@@ -246,3 +246,21 @@ spec = do
     it "not ok with a non-recursive removal of the apt lists" $ do
       ruleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"
       onBuildRuleCatches "DL3009" "RUN apt-get update && apt-get install python && rm /var/lib/apt/lists/*"
+
+    it "apt-get distclean counts as cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN apt-get update && apt-get install python && apt-get distclean"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile
+
+    it "apt dist-clean alias counts as cleanup" $
+      let dockerFile =
+            [ "FROM scratch",
+              "RUN apt update && apt install python && apt dist-clean"
+            ]
+       in do
+            ruleCatchesNot "DL3009" $ Text.unlines dockerFile
+            onBuildRuleCatchesNot "DL3009" $ Text.unlines dockerFile

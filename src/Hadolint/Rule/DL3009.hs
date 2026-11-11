@@ -75,6 +75,7 @@ forgotToCleanup args
       any
         (Shell.isRecursiveRemoval ["/var/lib/apt/lists", "/var/lib/apt/lists/", "/var/lib/apt/lists/*"])
         (Shell.presentCommands args)
+        || any isAptDistClean (Shell.presentCommands args)
 
 hasUpdate :: Shell.ParsedShell -> Bool
 hasUpdate args = any isPackageUpdate (Shell.presentCommands args)
@@ -83,6 +84,17 @@ hasUpdate args = any isPackageUpdate (Shell.presentCommands args)
       Shell.cmdHasArgs "apt" ["update"] cmd
         || Shell.cmdHasArgs "apt-get" ["update"] cmd
         || Shell.cmdHasArgs "aptitude" ["update"] cmd
+
+
+-- apt-get distclean (and the dist-clean alias) removes everything under
+-- /var/lib/apt/lists except the Release files, which is enough cleanup for
+-- this rule.
+isAptDistClean :: Shell.Command -> Bool
+isAptDistClean cmd =
+  Shell.cmdHasArgs "apt-get" ["distclean"] cmd
+    || Shell.cmdHasArgs "apt-get" ["dist-clean"] cmd
+    || Shell.cmdHasArgs "apt" ["distclean"] cmd
+    || Shell.cmdHasArgs "apt" ["dist-clean"] cmd
 
 disabledDockerClean :: Shell.ParsedShell -> Bool
 disabledDockerClean args
