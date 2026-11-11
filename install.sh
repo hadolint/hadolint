@@ -9,7 +9,8 @@
 # Options:
 #   -v VERSION   release tag to install (default: latest, env HADOLINT_VERSION)
 #   -b DIR       installation directory (env HADOLINT_INSTALL_DIR); defaults to
-#                the first writable directory in PATH
+#                the first of ~/.local/bin, ~/bin, /opt/homebrew/bin (macOS),
+#                /usr/local/bin that is in PATH and writable
 #   -h           show this help
 #
 # The binary is verified against the release's checksums.sha256 before it is
@@ -74,19 +75,24 @@ sha256_of() {
   fi
 }
 
-# First absolute, writable directory in PATH.
+# Candidate installation directories, most preferred first. User-owned
+# directories come first so that no sudo is needed.
+candidate_dirs() {
+  case "$os" in
+    macos) printf '%s\n' "$HOME/.local/bin" "$HOME/bin" /opt/homebrew/bin /usr/local/bin ;;
+    *) printf '%s\n' "$HOME/.local/bin" "$HOME/bin" /usr/local/bin ;;
+  esac
+}
+
+# First candidate directory that is in PATH and writable.
 default_install_dir() {
-  old_ifs="$IFS"
-  IFS=:
-  for dir in $PATH; do
-    case "$dir" in /*) ;; *) continue ;; esac
+  for dir in $(candidate_dirs); do
+    case ":$PATH:" in *":$dir:"*) ;; *) continue ;; esac
     if [ -d "$dir" ] && [ -w "$dir" ]; then
-      IFS="$old_ifs"
       echo "$dir"
       return 0
     fi
   done
-  IFS="$old_ifs"
   return 1
 }
 
@@ -116,7 +122,7 @@ main() {
   log "Checksum OK."
 
   if [ -z "$INSTALL_DIR" ]; then
-    INSTALL_DIR="$(default_install_dir)" || die "no writable directory found in PATH; use -b DIR"
+    INSTALL_DIR="$(default_install_dir)" || die "none of $(candidate_dirs | tr '\n' ' ')is a writable directory in PATH; use -b DIR"
   fi
   chmod +x "$tmp/$ASSET"
   if mkdir -p "$INSTALL_DIR" 2>/dev/null && [ -w "$INSTALL_DIR" ]; then

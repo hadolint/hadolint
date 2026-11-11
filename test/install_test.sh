@@ -26,16 +26,10 @@ export HADOLINT_BASE_URL="file://$rel"
 sh "$ROOT/install.sh" -b "$tmp/bin"
 [ "$("$tmp/bin/hadolint")" = fake-hadolint ] || { echo "FAIL: binary not installed"; exit 1; }
 
-# 2. without -b, installs into the first writable PATH directory
-mkdir -p "$tmp/ro" "$tmp/rw1" "$tmp/rw2"
-chmod 555 "$tmp/ro"
-PATH="/nonexistent:relative:$tmp/ro:$tmp/rw1:$tmp/rw2:$PATH" sh "$ROOT/install.sh" 2>/dev/null
-[ -x "$tmp/rw1/hadolint" ] && [ ! -e "$tmp/rw2/hadolint" ] || { echo "FAIL: PATH dir selection"; exit 1; }
-chmod 755 "$tmp/ro"
-
-# 3. no writable PATH directory is an error
+# Read-only directory with just the tools install.sh needs, so PATH can be
+# controlled precisely.
 mkdir "$tmp/tools"
-for t in uname mktemp awk cut chmod rm mkdir mv sed cat curl wget sha256sum shasum perl env bash; do
+for t in uname tr mktemp awk cut chmod rm mkdir mv sed cat curl wget sha256sum shasum perl env bash; do
   p=""
   for c in "/usr/bin/$t" "/bin/$t" "$(command -v "$t" 2>/dev/null || true)"; do
     [ -x "$c" ] && { p="$c"; break; }
@@ -43,10 +37,25 @@ for t in uname mktemp awk cut chmod rm mkdir mv sed cat curl wget sha256sum shas
   [ -n "$p" ] && ln -s "$p" "$tmp/tools/$t"
 done
 chmod 555 "$tmp/tools"
+
+# 2. without -b, installs into the first default directory that is in PATH and
+# writable, ignoring other writable PATH directories
+home="$tmp/home"
+mkdir -p "$home/.local/bin" "$home/bin" "$tmp/other"
+HOME="$home" PATH="$tmp/other:$home/bin:$home/.local/bin:$tmp/tools" "$SH" "$ROOT/install.sh" 2>/dev/null
+[ -x "$home/.local/bin/hadolint" ] || { echo "FAIL: default dir selection"; exit 1; }
+[ ! -e "$tmp/other/hadolint" ] || { echo "FAIL: non-default PATH dir used"; exit 1; }
+
+# 2b. a default directory that is not in PATH is skipped
+rm "$home/.local/bin/hadolint"
+HOME="$home" PATH="$home/bin:$tmp/tools" "$SH" "$ROOT/install.sh" 2>/dev/null
+[ -x "$home/bin/hadolint" ] && [ ! -e "$home/.local/bin/hadolint" ] || { echo "FAIL: not-in-PATH dir used"; exit 1; }
+
+# 3. no usable default directory is an error
 if PATH="$tmp/tools" "$SH" "$ROOT/install.sh" 2>"$tmp/err"; then
   echo "FAIL: expected failure without writable PATH dir"; exit 1
 fi
-grep -q "no writable directory" "$tmp/err" || { echo "FAIL: wrong error"; cat "$tmp/err"; exit 1; }
+grep -q "is a writable directory in PATH" "$tmp/err" || { echo "FAIL: wrong error"; cat "$tmp/err"; exit 1; }
 chmod 755 "$tmp/tools"
 
 # 4. tampered binary is rejected and nothing is installed
