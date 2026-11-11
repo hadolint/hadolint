@@ -500,6 +500,7 @@ jobs:
             hadolint-windows-x86_64.exe
             hadolint-wasm32-wasi.wasm
             checksums.sha256
+            install.sh
 
       - name: Generate artifact attestations
         uses: actions/attest@v4
