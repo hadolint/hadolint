@@ -81,6 +81,23 @@ You can download prebuilt binaries for OSX, Windows and Linux from the latest
 [release page][]. However, if this does not work for you, please fall back to
 container (Docker), `brew` or source installation.
 
+### Install script
+
+On Linux and macOS (x86_64 and arm64), the `install.sh` script downloads the
+matching release binary, verifies it against the release's `checksums.sha256`
+and installs it.
+
+```bash
+curl -sSL https://raw.githubusercontent.com/hadolint/hadolint/refs/heads/master/install.sh | sh
+# or
+gh release download --repo hadolint/hadolint --pattern 'install.sh' --output - | sh
+```
+
+Pass `-v <tag>` to pin a version and `-b <dir>` to choose the installation
+directory (defaults to the first of `~/.local/bin`, `~/bin`, `/opt/homebrew/bin`
+(macOS only) and `/usr/local/bin` that is in `PATH` and writable), e.g. `... | sh -s -- -v v2.12.0 -b ~/bin`. For reproducible
+setups, prefer a tag-pinned URL over `master`.
+
 On OSX, you can use [brew](https://brew.sh/) to install `hadolint`.
 
 ```bash
