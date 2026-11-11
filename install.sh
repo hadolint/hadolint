@@ -9,7 +9,7 @@
 # Options:
 #   -v VERSION   release tag to install (default: latest, env HADOLINT_VERSION)
 #   -b DIR       installation directory (env HADOLINT_INSTALL_DIR); defaults to
-#                /usr/local/bin if writable, otherwise $HOME/.local/bin
+#                the first writable directory in PATH
 #   -h           show this help
 #
 # The binary is verified against the release's checksums.sha256 before it is
@@ -74,12 +74,20 @@ sha256_of() {
   fi
 }
 
+# First absolute, writable directory in PATH.
 default_install_dir() {
-  if [ -w /usr/local/bin ]; then
-    echo /usr/local/bin
-  else
-    echo "$HOME/.local/bin"
-  fi
+  old_ifs="$IFS"
+  IFS=:
+  for dir in $PATH; do
+    case "$dir" in /*) ;; *) continue ;; esac
+    if [ -d "$dir" ] && [ -w "$dir" ]; then
+      IFS="$old_ifs"
+      echo "$dir"
+      return 0
+    fi
+  done
+  IFS="$old_ifs"
+  return 1
 }
 
 main() {
@@ -107,7 +115,9 @@ main() {
   [ "$expected" = "$actual" ] || die "checksum mismatch for $ASSET (expected $expected, got $actual)"
   log "Checksum OK."
 
-  [ -n "$INSTALL_DIR" ] || INSTALL_DIR="$(default_install_dir)"
+  if [ -z "$INSTALL_DIR" ]; then
+    INSTALL_DIR="$(default_install_dir)" || die "no writable directory found in PATH; use -b DIR"
+  fi
   chmod +x "$tmp/$ASSET"
   if mkdir -p "$INSTALL_DIR" 2>/dev/null && [ -w "$INSTALL_DIR" ]; then
     mv "$tmp/$ASSET" "$INSTALL_DIR/hadolint"
