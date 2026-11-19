@@ -172,3 +172,39 @@ assertFormatterXML format failures expectation = do
   (cap, _) <- capture
                 (write [] [format] ?noColor (Just "<string>") results)
   XML.parseLBS_ XML.def (BSC.pack cap) `shouldBe` expectation
+
+-- | Assert that listing the same format twice writes the report exactly once.
+-- A format can be declared in both the config file and the command line,
+-- which used to emit the report twice (e.g. two concatenated SARIF documents).
+assertNoDuplicateFormat ::
+  (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  [CheckFailure] ->
+  Assertion
+assertNoDuplicateFormat format failures = do
+  let results =
+        NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
+  (single, _) <- capture
+                   (write [] [format] ?noColor (Just "<string>") results)
+  (double, _) <- capture
+                   (write [] [format, format] ?noColor (Just "<string>") results)
+  double `shouldBe` single
+
+-- | Assert that two distinct formats are both still emitted: the output of
+-- the first format is a prefix of the combined output, followed by the second
+-- format's report.
+assertDistinctFormatsEmit ::
+  (HasCallStack, ?noColor :: Bool) =>
+  OutputFormat ->
+  OutputFormat ->
+  [CheckFailure] ->
+  Assertion
+assertDistinctFormatsEmit first second failures = do
+  let results =
+        NonEmpty.fromList [ Result "<string>" mempty (Seq.fromList failures) ]
+  (single, _) <- capture
+                   (write [] [first] ?noColor (Just "<string>") results)
+  (both, _) <- capture
+                (write [] [first, second] ?noColor (Just "<string>") results)
+  take (length single) both `shouldBe` single
+  drop (length single) both `shouldNotBe` ""

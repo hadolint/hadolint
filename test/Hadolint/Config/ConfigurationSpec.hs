@@ -37,6 +37,22 @@ spec = do
       applyPartialConfiguration def config
         `shouldBe` def { formats = [Json] }
 
+    -- Regression test for #1285: `--format sarif` on the command line
+    -- together with `format: sarif` in the config file used to emit two
+    -- concatenated SARIF documents, because the formats were merged
+    -- additively. Each format is emitted only once.
+    it "deduplicates the output format when declared twice" $ do
+      let fromConfigfile = def { partialFormats = [Sarif] }
+          fromCommandline = def { partialFormats = [Sarif] }
+      applyPartialConfiguration def (fromConfigfile <> fromCommandline)
+        `shouldBe` def { formats = [Sarif] }
+
+    it "keeps distinct output formats when declared together" $ do
+      let fromConfigfile = def { partialFormats = [Json] }
+          fromCommandline = def { partialFormats = [Sarif] }
+      applyPartialConfiguration def (fromConfigfile <> fromCommandline)
+        `shouldBe` def { formats = [Json, Sarif] }
+
     it "override default with specific configuration: disable ignore pragma" $ do
       let config = def { partialDisableIgnorePragma = Just True }
       applyPartialConfiguration def config

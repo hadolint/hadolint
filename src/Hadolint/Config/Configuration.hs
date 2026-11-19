@@ -6,6 +6,7 @@ module Hadolint.Config.Configuration
   )
 where
 
+import Data.List (nub)
 import Data.Maybe (fromMaybe)
 import Control.Applicative
 import Data.Coerce (coerce)
@@ -66,7 +67,7 @@ applyPartialConfiguration config partial =
     (fromMaybe (noFail config) (partialNoFail partial))
     (fromMaybe (noColor config) (partialNoColor partial))
     (fromMaybe (verbose config) (partialVerbose partial))
-    (formats config <> partialFormats partial)
+    dedupFormats
     (errorRules config <> partialErrorRules partial)
     (warningRules config <> partialWarningRules partial)
     (infoRules config <> partialInfoRules partial)
@@ -77,6 +78,13 @@ applyPartialConfiguration config partial =
     (fromMaybe (strictLabels config) (partialStrictLabels partial))
     (fromMaybe (disableIgnorePragma config) (partialDisableIgnorePragma partial))
     (fromMaybe (failureThreshold config) (partialFailureThreshold partial))
+  where
+    -- The same format can be declared more than once, e.g. `--format sarif`
+    -- on the command line together with `format: sarif` in the config file,
+    -- since the configurations are merged additively. Emit each format only
+    -- once, keeping the order of first declaration; distinct formats are
+    -- still all emitted.
+    dedupFormats = nub (formats config <> partialFormats partial)
 
 instance Pretty Configuration where
   pretty c =

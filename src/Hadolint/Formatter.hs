@@ -6,6 +6,7 @@ module Hadolint.Formatter
   )
 where
 
+import Data.List (nub)
 import Data.Text (Text)
 import Hadolint.Formatter.Format
 import Language.Docker.Parser (DockerfileError)
@@ -50,8 +51,14 @@ write :: Foldable f =>
   f (Result Text DockerfileError) ->
   IO ()
 write paths formats nocolor filePathInReport allResults =
-  mapM_ writePath ziplist
+  mapM_ writePath (nub ziplist)
   where
+    -- A format can be declared more than once, e.g. `--format sarif` on the
+    -- command line together with `format: sarif` in the config file, since
+    -- the configurations are merged additively. Writing the same
+    -- (destination, format) pair twice would emit the report twice, producing
+    -- e.g. two concatenated SARIF documents in a single file. Drop the
+    -- duplicates, keeping distinct destinations and formats intact.
     ziplist = zipWithDef "-" TTY paths formats
     writePath ( p, f ) =
       if p == "-" then hWrite stdout f nocolor filePathInReport allResults
