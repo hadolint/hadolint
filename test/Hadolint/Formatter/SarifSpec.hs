@@ -211,3 +211,28 @@ spec = do
                     ]
               ]
       assertFormatterJson Sarif checkFails expectation
+
+    -- Regression test for #1285: `--format sarif` on the command line
+    -- together with `format: sarif` in the config file used to emit two
+    -- concatenated SARIF documents.
+    it "does not duplicate output when the same format is given twice" $ do
+      let checkFails =
+            [ CheckFailure
+                { code = "DL2001",
+                  severity = DLWarningC,
+                  message = "test",
+                  line = 1
+                }
+            ]
+      assertNoDuplicateFormat Sarif checkFails
+
+    it "still emits both reports when two distinct formats are given" $ do
+      let checkFails =
+            [ CheckFailure
+                { code = "DL2001",
+                  severity = DLWarningC,
+                  message = "test",
+                  line = 1
+                }
+            ]
+      assertDistinctFormatsEmit Sarif Json checkFails
