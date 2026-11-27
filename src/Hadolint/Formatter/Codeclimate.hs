@@ -10,6 +10,7 @@ import Data.Aeson hiding (Result)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as Char8
+import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import qualified Data.Text as Text
 import GHC.Generics
@@ -77,12 +78,12 @@ instance ToJSON FingerprintIssue where
         "severity" .= impact issue
       ]
 
-errorToIssue :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => ParseErrorBundle s e -> Issue
-errorToIssue err =
+errorToIssue :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Maybe Text.Text -> ParseErrorBundle s e -> Issue
+errorToIssue override err =
   Issue
     { checkName = "DL1000",
       description = Text.pack $ errorBundlePretty err,
-      location = LocPos (Text.pack $ sourceName pos) Pos {..},
+      location = LocPos (fromMaybe (Text.pack $ sourceName pos) override) Pos {..},
       impact = severityText DLErrorC
     }
   where
@@ -90,16 +91,14 @@ errorToIssue err =
     line = unPos (sourceLine pos)
     column = unPos (sourceColumn pos)
 
-checkToIssue :: Text.Text -> Maybe FilePath -> CheckFailure -> Issue
-checkToIssue fileName filePathInReport CheckFailure {..} =
+checkToIssue :: Text.Text -> CheckFailure -> Issue
+checkToIssue fileName CheckFailure {..} =
   Issue
     { checkName = unRuleCode code,
       description = message,
-      location = LocLine reportFileName line,
+      location = LocLine fileName line,
       impact = severityText severity
     }
-  where
-    reportFileName = if null filePathInReport then fileName else getFilePath filePathInReport
 
 severityText :: DLSeverity -> Text.Text
 severityText severity =
@@ -121,7 +120,10 @@ issueToFingerprintIssue i =
     }
 
 formatResult :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Result s e -> Maybe FilePath -> Seq Issue
-formatResult (Result filename errors checks) filePathInReport = (errorToIssue <$> errors) <> (checkToIssue filename filePathInReport <$> checks)
+formatResult (Result filename errors checks) filePathInReport =
+  (errorToIssue override <$> errors) <> (checkToIssue (fromMaybe filename override) <$> checks)
+  where
+    override = Text.pack <$> filePathInReport
 
 formatGitLabResult ::
   (VisualStream s, TraversableStream s, ShowErrorComponent e) =>
@@ -149,10 +151,3 @@ hWriteGitLab ::
 hWriteGitLab handle results filePathInReport = B.hPutStr handle . encode $ flattened
   where
     flattened = Foldl.fold (Foldl.premap formatGitLabResult Foldl.mconcat) results filePathInReport
-
-getFilePath :: Maybe FilePath -> Text.Text
-getFilePath Nothing = ""
-getFilePath (Just filePath) = toText [filePath]
-
-toText :: [FilePath] -> Text.Text
-toText = foldMap Text.pack
